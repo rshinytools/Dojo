@@ -26,6 +26,22 @@ Open `browser-game/Beast_Dojo.html` for the offline browser concept. It has a se
 
 Run `python3 -B tools/verify_checkout.py` for a clean-clone build check. Add `--checkpoint` to compare the rebuilt Studio file with the pinned ZIP and its recorded hash. The check runs locally with the Python standard library.
 
+## Continue with another AI coding agent
+
+Clone the repository and open its root as the agent's workspace.
+
+```sh
+git clone https://github.com/rshinytools/Dojo.git
+cd Dojo
+python3 -B tools/verify_checkout.py --checkpoint
+```
+
+Give the agent a specific task and this starting brief.
+
+> Read `AGENTS.md`, `docs/IMPLEMENTATION.md`, and the relevant phase in `docs/ROADMAP.md`. Use `releases/current.json` to identify the current verified Studio checkpoint. Find the source files for the requested change, rebuild the place, and record what you verified. Update the handoff when the checkpoint changes.
+
+The checkout contains the source and design needed to continue. A collaborator who will push needs write access to the repository. Studio testing and publishing may also require access to the Roblox experience and its hosted assets. [Asset access and handoff details](docs/IMPLEMENTATION.md#asset-access)
+
 ## Project layout
 
 | Location | Purpose |
@@ -38,6 +54,6 @@ Run `python3 -B tools/verify_checkout.py` for a clean-clone build check. Add `--
 
 ## Commit and push
 
-Use `main` as the handoff branch. After each verified work package, update the implementation notes or roadmap where relevant, commit the related files, and push to [rshinytools/Dojo](https://github.com/rshinytools/Dojo). Review incoming commits and staged changes before pushing. Use descriptive messages and preserve the existing history.
+Use `main` as the handoff branch. After each verified work package, update the implementation notes or roadmap where relevant, commit the related files, and push to [rshinytools/Dojo](https://github.com/rshinytools/Dojo). Fetch `origin/main` and review incoming commits before integrating them. Stage the paths for that package, review `git diff --cached`, and use a descriptive commit message. After `git push origin main`, compare `git rev-parse HEAD` with the commit reported by `git ls-remote origin refs/heads/main`.
 
 This is a public source repository. Use the portable docs for handoffs and keep private deployment credentials, inventory secrets, owner-only site files, local backups and unpublished third-party asset payloads outside Git. A public listing does not grant a software or asset license. [Third-party notices](THIRD_PARTY_NOTICES.txt)
