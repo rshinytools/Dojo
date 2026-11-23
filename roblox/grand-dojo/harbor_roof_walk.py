@@ -2,6 +2,8 @@
 
 from math import atan2, ceil, degrees, dist, hypot
 
+from sea_lantern_lookout import EAST_OPENING, build_sea_lantern_lookout
+
 
 NAME = "Harbor Sky Pier"
 WIDTH = 5.72
@@ -48,7 +50,7 @@ def quay_bank(index, point):
 
 def build_harbor_roof_walk(town, *, item, prop, part, beam, triangle, path_edge, sign,
                            swept_roof, festival_lantern, garden_shelf, garden_prop,
-                           slate, limestone, cedar, grass, brass, paving_variant,
+                           slate, limestone, cedar, grass, brass, neon, paving_variant,
                            cedar_variant, variant_field):
     walk = item(town, "Model", NAME)
     prop(walk, "token", "ModelStreamingMode", 1)
@@ -134,7 +136,8 @@ def build_harbor_roof_walk(town, *, item, prop, part, beam, triangle, path_edge,
         ((west + .16, top, south), (x - 2.72, top, south)),
         ((x + 2.72, top, south), (east - .16, top, south)),
         ((west + .16, top, north), (west + .16, top, south)),
-        ((east - .16, top, north), (east - .16, top, south)),
+        ((east - .16, top, north), (east - .16, top, EAST_OPENING[0])),
+        ((east - .16, top, EAST_OPENING[1]), (east - .16, top, south)),
     ):
         guard(pavilion, u, v)
         beam(pavilion, "Sea Lantern stone apron", lift(u, -.35), lift(v, -.35),
@@ -196,11 +199,11 @@ def build_harbor_roof_walk(town, *, item, prop, part, beam, triangle, path_edge,
     sign(pavilion, "SEA LANTERN PAVILION", x, top + 6.44, z - 4.00, 8.20, 1.02,
          yaw=180, tint="3B6767")
 
-    seat_x = east - 1.21
+    seat_x = west + 1.21
     seat = part(pavilion, "Sea Lantern bench", (seat_x, top + .60, z),
-                (1.02, .30, 4.08), "AC825F", material=cedar, class_name="Seat")
+                (4.08, .30, 1.02), "AC825F", yaw=-90, material=cedar, class_name="Seat")
     seat.find("Properties/bool[@name='CanTouch']").text = "true"
-    detail(pavilion, "Sea Lantern bench back", (seat_x + .45, top + 1.18, z), (.19, .66, 4.18),
+    detail(pavilion, "Sea Lantern bench back", (seat_x - .45, top + 1.18, z), (.19, .66, 4.18),
            "986D54", cedar)
     for pz in (z - 1.52, z + 1.52):
         detail(pavilion, "Sea Lantern bench slate shoe", (seat_x, top + .24, pz), (.85, .48, .68),
@@ -230,3 +233,8 @@ def build_harbor_roof_walk(town, *, item, prop, part, beam, triangle, path_edge,
                  (WIDTH + .28, 6.60, dist(a, b) + .44), "FFFFFF",
                  yaw=degrees(atan2(dx, dz)), pitch=-degrees(atan2(dy, hypot(dx, dz))),
                  collide=False, transparency=1)
+
+    build_sea_lantern_lookout(walk, bounds=bounds, item=item, part=part, prop=prop,
+                              beam=beam, sign=sign, slate=slate, limestone=limestone,
+                              cedar=cedar, brass=brass, neon=neon, paving_variant=paving_variant,
+                              cedar_variant=cedar_variant, variant_field=variant_field)

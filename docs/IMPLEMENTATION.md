@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.214 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.215 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -28,6 +28,7 @@ The Python builder embeds the Luau from disk. Change source and rebuild so the S
 
 | Area | Evidence |
 | --- | --- |
+| Tideharbor and Sea Lantern Lookout | The west causeway now arrives at a taller Tideharbor gate with a curved brass-edged teal sign, swept indigo roof and two amber lanterns. The return reads Grand Dojo City, and painted cedar backs make the nearby route signs quieter from the causeway. A guarded 4.10-stud climb from Sea Lantern Pavilion leads to the compass deck and amber beacon at 22.45 studs above the city datum. Exact v0.215 desktop Studio Play walked both ways through the gate, along the new stair-free lookout spur, around Harbor Sky Pier between Beacon Terrace and Lantern Quay, and across the Tideharbor to Cinder Terraces connection. The six districts and 14 mapped links retain their routes. Terrain and script source are preserved. The outlook uses no dynamic lights. The gate keeps its two local lights and the place retains the same total light count. The Galaxy A06 landscape Studio emulator completed the spur and displayed its touch controls. Both Studio clients resolved the Harbor Sky Pier HUD and Tideharbor music area. Physical devices and published streaming remain open. |
 | Reedfall and Cinder approach | v0.214 adds richer blue water, brighter planted ledges and a marked switchback. Desktop Studio walked the plaza ascent, crown climb, Cinder gate connection, Crown Crossing return and plaza descent. The official waterfall foam texture loaded in desktop Studio and the Galaxy A06 landscape emulator. |
 | Grand Dojo arrival | v0.212 desktop Studio viewed the closer skyline, fitted Sakura tree, new Trophy Hall timber level, and amber canal reflections. The fighter used both canal exits, the Hall stairs and viewing gallery, and both parts of the Reedfall Crown climb. The Galaxy A06 landscape Studio emulator showed the arrival skyline and the three plaza landmarks with touch controls. |
 | Lantern Circuit and western connections | v0.211 desktop Studio confirmed both gate signs and walked the west road, Orchard High Walk, and Upper Market link to Frostglass Gardens in both directions. Studio captures show the new gate, slope terraces, and lower market shopfronts. |
@@ -47,6 +48,8 @@ The full v1 design includes 24 fighters with three forms, six arenas, four match
 Priorities remain production Reedguard combat, published persistence, additional trophy grants, cross-device onboarding and HUD, and isolated staging. Expand content, matchmaking, monetization and launch work through the acceptance gates in the [roadmap](ROADMAP.md). The target for the final cartoon fighting is Mild, pending review of the actual Roblox experience. The optional VPS supports telemetry and private operations. Roblox progression and gameplay should remain usable if the VPS is unavailable.
 
 ## Asset access
+
+Compared two free hulls, a stylized Junk Ship and a paid Fishing Dock pack in the Creator Store. The decorative sailboat reuses the free previously screened 556-triangle Valk’s Boat hull by MusicZip with an original battened sail. Both native clients loaded the mesh and albedo. No purchase was made. [Creator Store hull](https://create.roblox.com/store/asset/8627497756)
 
 The numbers in [Creator Store prop manifests](../roblox/grand-dojo/art/creator-store-props.json) and the builders are Roblox asset references. An account other than the original owner may see missing assets until the experience has permission. Verify dependencies in a separate test experience before publishing. Use only the assets your creator or experience is permitted to use.
 

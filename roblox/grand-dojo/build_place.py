@@ -97,6 +97,7 @@ from south_ridge_trail import build_south_ridge_trail
 from south_valley_backdrop import build_south_valley_backdrop, hillside_cedar, ridge_surface_height
 from tidebank_landing import build_tidebank_landing
 from tideharbor_offshore import build_tideharbor_offshore
+from tideharbor_town_gate import build_tideharbor_town_gate
 from tideharbor_sea_stacks import SEA_STACK_MATERIAL, SEA_STACK_VARIANT, build_tideharbor_sea_stacks
 from tideharbor_waterfront import build_tideharbor_waterfront
 from tidewatch_walk import (BEACON_OPENING as TIDEWATCH_BEACON_OPENING,
@@ -545,10 +546,17 @@ def arrival_hanging_lantern(parent, x, y, z, scale, *, light=True, entrance_pape
         lantern_light(body, scale, warm_pool=True, light_profile=light_profile)
 
 
-def sign(parent, label, x, y, z, width, height, yaw=0, tint=DARK, *, roll=0, face_only=False):
+def sign(parent, label, x, y, z, width, height, yaw=0, tint=DARK, *, roll=0, face_only=False,
+         finished_back=False):
     if width > 5 and not face_only:
         part(parent, label + " gold frame", (x, y, z), (width+.32, height+.29, .42),
              GOLD, yaw=yaw, roll=roll, collide=False)
+        if finished_back:
+            backing = part(parent, label + " painted cedar back",
+                           (x-.214*sin(radians(yaw)), y, z-.214*cos(radians(yaw))),
+                           (width+.08, height+.07, .044), tint, yaw=yaw, roll=roll,
+                           material=WOOD_PLANK, collide=False)
+            prop(backing,"bool","CastShadow",False)
         setback=.18
         x+=sin(radians(yaw))*setback
         z+=cos(radians(yaw))*setback
@@ -732,9 +740,10 @@ def curved_plaque(parent,x,z,profile,height,face,edge,*,rim_height=.17,rim_depth
 
 
 # Fredoka One advances in em units, measured from the original font.
-MARQUEE_ADVANCES={" ":.253,"A":.765,"C":.681,"E":.638,"F":.637,"G":.714,"H":.699,
+MARQUEE_ADVANCES={" ":.253,"A":.765,"B":.657,"C":.681,"D":.718,"E":.638,"F":.637,
+                  "G":.714,"H":.699,
                   "I":.257,"L":.587,"N":.720,"O":.775,"P":.632,"R":.631,
-                  "T":.731,"U":.714,"Y":.686}
+                  "S":.645,"T":.731,"U":.714,"Y":.686}
 
 
 def marquee_title(parent,title,x,z,profile,em):
@@ -3296,7 +3305,7 @@ def route(parent,name,points,width,tint,*,surface=SANDSTONE,stone_footings=True,
                 beam(parent,"Elevated route rail",a,b,.20,DARK,collide=True)
 
 
-def road_sign(parent, origin, destination, label, tint, *, width=8):
+def road_sign(parent, origin, destination, label, tint, *, width=8, finished_back=False):
     """Face approaching travelers from just beyond the road shoulder."""
     x,y,z=origin
     dx,dz=destination[0]-x,destination[2]-z
@@ -3307,7 +3316,7 @@ def road_sign(parent, origin, destination, label, tint, *, width=8):
     z+=dz/length*2-dx/length*shoulder
     part(parent,"Wayfinding post",(x,y+2.54,z),(.43,5.40,.43),"754438",yaw=yaw,collide=False)
     part(parent,"Wayfinding stone foot",(x,y+.25,z),(1.17,.50,1.17),"85767D",collide=False)
-    sign(parent,label,x,y+4.18,z,width,1.72,yaw,tint)
+    sign(parent,label,x,y+4.18,z,width,1.72,yaw,tint,finished_back=finished_back)
     lamp(parent,x,y+5.63,z,scale=.52)
 
 
@@ -5589,7 +5598,8 @@ for (label,points,tone),(destination,paint) in zip(routes,[
         for facet in entry.findall('Item'):
             prop(facet,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
     road_sign(road,points[0],points[1],destination,paint)
-    road_sign(road,points[-1],points[-2],"GRAND DOJO",paint,width=7)
+    road_sign(road,points[-1],points[-2],"GRAND DOJO",paint,width=7,
+              finished_back=label=="Tideharbor causeway")
     for a,b in zip(points,points[1:]):
         span=dist(a,b)
         for i in range(1,int(span//18)+1):
@@ -5726,14 +5736,14 @@ def saltwind_lookout(parent,causeway):
         garden_prop(walk,"grassBlade",(x+1.05,high-.16,z+.38),.52,yaw+51,"D7B675")
         if index in (1,2,4):
             garden_prop(walk,"meadowFlowers",(x-.34,high-.20,z-1.22),.38,yaw+67,"F4CB86")
-    for x,y,z,yaw,title in (
-        (124.31,.699,19.44,-84,"SALTWIND LOOKOUT"),
-        (190.21,2.904,21.21,91,"SALTWIND LOOKOUT"),
-        (163.84,top,43.42,0,"TIDEHARBOR COAST  →"),
+    for x,y,z,yaw,title,finished_back in (
+        (124.31,.699,19.44,-84,"SALTWIND LOOKOUT",False),
+        (190.21,2.904,21.21,91,"SALTWIND LOOKOUT",True),
+        (163.84,top,43.42,0,"TIDEHARBOR COAST  →",False),
     ):
         part(walk,"Saltwind wayfinding post",(x,y+1.48,z),(.35,2.97,.38),"724F3E",
              material=WOOD_PLANK,collide=False)
-        sign(walk,title,x,y+2.74,z,6.37,.98,yaw,"3E6C69")
+        sign(walk,title,x,y+2.74,z,6.37,.98,yaw,"3E6C69",finished_back=finished_back)
     for path,side,posts in ((approach,-2.96,(1,3,5)),(descent,2.96,(1,3,5))):
         shoulder=path_edge(path,side)
         for index in posts:
@@ -6008,6 +6018,12 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
                                  swept_roof=swept_roof,curved_plaque=curved_plaque,marquee_title=marquee_title,
                                  festival_lantern=festival_lantern,banner=banner,slate=SLATE,wood=WOOD_PLANK,
                                  brass=METAL,wood_variant=LANDMARK_CEDAR,variant_field=MATERIAL_VARIANT_FIELD)
+    elif name=="Tideharbor Coast":
+        build_tideharbor_town_gate(town,x-27,y,z,item=item,prop=prop,part=part,beam=beam,
+                                  gate=gate,sign=sign,swept_roof=swept_roof,curved_plaque=curved_plaque,
+                                  marquee_title=marquee_title,festival_lantern=festival_lantern,
+                                  slate=SLATE,wood=WOOD_PLANK,metal=METAL,cedar_variant=LANDMARK_CEDAR,
+                                  variant_field=MATERIAL_VARIANT_FIELD)
     elif yaw:
         gate(town,x-27*(1 if yaw>0 else -1),z,-yaw,span=15,label=sign_name,trim=accent,y=y)
     else:
@@ -6132,7 +6148,7 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
                                path_edge=path_edge,sign=sign,swept_roof=swept_roof,
                                festival_lantern=festival_lantern,garden_shelf=garden_shelf,
                                garden_prop=garden_prop,slate=SLATE,limestone=LIMESTONE,
-                               cedar=WOOD_PLANK,grass=GRASS_MAT,brass=METAL,
+                               cedar=WOOD_PLANK,grass=GRASS_MAT,brass=METAL,neon=NEON,
                                paving_variant=PROMENADE_STONE,cedar_variant=LANDMARK_CEDAR,
                                variant_field=MATERIAL_VARIANT_FIELD)
         moored_skiff(town,x+55,z+18,33,"447A78")
@@ -6141,7 +6157,8 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
         build_harbor_cargo_hoist(town, item=item, prop=prop, part=part, beam=beam, triangle=triangle,
                                 sign=sign, garden_prop=garden_prop, slate=SLATE, wood=WOOD_PLANK,
                                 metal=METAL, cloth=FABRIC)
-        build_harbor_goods(town,item=item,prop=prop,part=part,vector=vector,asset=asset)
+        build_harbor_goods(town,item=item,prop=prop,part=part,vector=vector,asset=asset,
+                           beam=beam,triangle=triangle,fabric=FABRIC)
     elif index==1:
         cinder_hillside(town,x,y,z)
         build_cinder_arrival_relief(town, x, y, z, item=item, prop=prop, triangle=triangle,

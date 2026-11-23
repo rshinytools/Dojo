@@ -31,7 +31,8 @@ def verify_place():
                 "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts",
                 "Relay garden Sakura tree", "Trophy Hall upper timber bays",
                 "Fighting Ring canvas tailoring", "Recessed cedar ceiling panels",
-                "Reedfall switchback wayfinding", "Reedfall upper lip foam"}
+                "Reedfall switchback wayfinding", "Reedfall upper lip foam",
+                "Tideharbor tidal arch", "Sea Lantern Lookout", "Batten-sail harbor boat"}
     seen = set()
     routes = None
     notes = 0
