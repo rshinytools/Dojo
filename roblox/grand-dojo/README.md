@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.228, walk **Copper Kiln Walk** from **Potters’ Yard** to **Glaze Terrace**. Look out from the pavilion and down into the eastern ravine.
+
+Three staggered clay terraces now frame the ravine outside Copper Kiln Walk, rising to 10.4, 15.8 and 20.8 studs. Warm sandstone banks, planted crowns and dry-slope cedars create a foreground, middle shelf and taller rear shoulder. Three screened meshes from the free Desert Rocks Pack are used in four tinted rock parts. The added slopes are scenery. The route retains its existing floor and guardrails.
+
+Exact v0.228 desktop Studio verified all 58 waypoints on Copper Kiln Walk in both directions and measured the pavilion at 27.05 studs. Kiln Hall’s crest is about 34.5 studs above the square. Desktop also walked Cloudstep Pass to Skywalk and the Cinder–Tideharbor road in both directions, and followed Reedfall Crown and Kiln Ridge to Cinder Square. The three hosted rock meshes loaded in desktop and Galaxy A06 landscape Studio simulation. The six districts and 14 mapped connections are present. Published asset access and physical device performance remain open.
+
 In v0.227, stand at the **Skywalk Peaks** gate and look toward **Wind Court**, then walk **Pinecrest Trail** to see the separated ridges from above the town.
 
 The mauve range and the center and east of the rose range now sit behind the northern districts. A western shoulder stays closer to the Grand Dojo arrival, and the lower outlines spread into sloping rock fans. Wind Court is visible through the Skywalk gate. From the same gate camera, the mauve range covered 243 of 243 sample rays in v0.226 and 29 in v0.227. The revised place uses the same number of instances, and adds no collisions, lights or hosted assets.

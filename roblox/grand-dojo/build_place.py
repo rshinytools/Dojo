@@ -27,6 +27,7 @@ from cedarbank_rise import PATH as CEDARBANK_PATH, build_cedarbank_rise
 from cinder_arrival_relief import build_cinder_arrival_relief
 from cinder_harbor_road_relief import build_cinder_harbor_road_relief
 from cinder_kilnwalk import GLAZE_RAIL_OPENING, POTTERS_NORTH_RAIL_END, build_cinder_kiln_walk
+from cinder_ravine_terraces import build_cinder_ravine_terraces
 from cinder_workshop_hall import build_cinder_workshop_hall
 from city_boundary import build_south_boundary
 from coastal_horizon import build_coastal_horizon
@@ -6237,6 +6238,9 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
                            beam=beam,triangle=triangle,fabric=FABRIC)
     elif index==1:
         cinder_hillside(town,x,y,z)
+        build_cinder_ravine_terraces(town,item=item,prop=prop,part=part,triangle=triangle,vector=vector,asset=asset,
+                                    garden_prop=garden_prop,stone=SANDSTONE,grass=GRASS_MAT,cedar=WOOD_PLANK,
+                                    stone_variant=CINDER_STONE,variant_field=MATERIAL_VARIANT_FIELD)
         build_cinder_arrival_relief(town, x, y, z, item=item, prop=prop, triangle=triangle,
                                     sandstone=SANDSTONE, slate=SLATE, metal=METAL,
                                     material_variant_field=MATERIAL_VARIANT_FIELD,
