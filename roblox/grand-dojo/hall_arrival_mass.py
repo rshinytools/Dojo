@@ -19,8 +19,8 @@ def build_hall_crown_roof(parent, eave_y, *, item, prop, part, triangle, clay, b
         (0, 11.90, 14.31, 1.39),
     )
     lanes = ((-1, 1), (-.75, .34), (-.44, .04), (.44, .04), (.75, .34), (1, 1))
-    courses = ("334A88", "394F8F", "425B9B", "4964A3", "506CA9")
-    shade_courses = ("303F73", "37487D", "3B4F88", "435991", "49629A")
+    courses = ("3A4167", "3D456D", "414A75", "464F7B", "4A547F")
+    shade_courses = ("343A60", "373F66", "3B436B", "3F4874", "444D78")
 
     def surface(row, across, sweep, side, lift=0):
         depth, height, half_width, end_rise = row
@@ -54,7 +54,7 @@ def build_hall_crown_roof(parent, eave_y, *, item, prop, part, triangle, clay, b
                 ceramic_panel(a,b,c,palette[band])
                 ceramic_panel(a,c,d,palette[band])
                 if band == 0:
-                    tile("Sculpted indigo eave lip", a, b, .64, "3B548E")
+                    tile("Sculpted indigo eave lip", a, b, .64, "41486F")
                     tile("Gilded lower eave line", tuple(v-.33 if axis==1 else v for axis,v in enumerate(a)),
                          tuple(v-.33 if axis==1 else v for axis,v in enumerate(b)), .17, "C48952", metal=True)
             if direction == 1 or band == 0:
@@ -65,12 +65,12 @@ def build_hall_crown_roof(parent, eave_y, *, item, prop, part, triangle, clay, b
                         for (lo,lo_lift),(hi,hi_lift) in zip(lanes,lanes[1:])
                         if lo <= across <= hi
                     )
-                    a=surface(lower, across, sweep, direction, .20)
-                    b=surface(upper, across, sweep, direction, .20)
-                    tile("Raised ceramic barrel tile", a, b, .26, ("637CB1","536BA2","586EAB")[run%3])
+                    a=surface(lower, across, sweep, direction, .26)
+                    b=surface(upper, across, sweep, direction, .26)
+                    tile("Raised ceramic barrel tile", a, b, .36, ("555C85","4D567D","59618B")[run%3])
             for end in (-1, 1):
                 tile("Rounded indigo hip", surface(lower, end, 1, direction, .21),
-                     surface(upper, end, 1, direction, .21), .55, "48649D")
+                     surface(upper, end, 1, direction, .21), .55, "485178")
                 return_eave=(end*20.32,eave_y+1.70,center_z)
                 ceramic_panel(return_eave,surface(lower,end,1,direction),
                               surface(upper,end,1,direction),shade_courses[band])
@@ -78,13 +78,13 @@ def build_hall_crown_roof(parent, eave_y, *, item, prop, part, triangle, clay, b
         for end in (-1,1):
             x,y,z=surface(rows[0],end,1,direction)
             tip=(x+end*1.08,y+.83,z+direction*.20)
-            tile("Round side eave", (x,y,z),(end*20.32,eave_y+1.70,center_z),.53,"414F84")
+            tile("Round side eave", (x,y,z),(end*20.32,eave_y+1.70,center_z),.53,"424971")
             tile("Oxidized bronze eave tip", (x-end*.47,y-.19,z), tip, .42, "C68F4D", metal=True)
             tile("Lit eave tip facet", tip, (tip[0]+end*.15,tip[1]+.25,tip[2]), .28, "F1C178", metal=True)
 
     ridge = tuple(surface(rows[-1], x, lift, 1, .21) for x,lift in lanes)
     for a,b in zip(ridge,ridge[1:]):
-        tile("Arcing blue ridge coping", a, b, .73, "354878")
+        tile("Arcing blue ridge coping", a, b, .73, "3B4166")
     for end in (-1,1):
         x,y,z=surface(rows[-1],end,1,1,.20)
         swept_tip=((x-end*1.04,y-.37,z),(x+end*.32,y+.16,z),

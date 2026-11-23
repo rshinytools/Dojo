@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.233, look up at the **Trophy Hall crown** from the plaza, then follow the elevated road into **Frostglass Gardens**.
+
+The Fighting Ring, Trophy Hall and Lantern Tower use muted indigo clay, thicker rounded tile ribs and warmer metal at the eave corners. The same ceramic finish and brass corners appear on signature roofs in Lantern Circuit, Frostglass Gardens, Tideharbor Coast, Cinder Terraces and Skywalk Peaks.
+
+Exact v0.233 desktop Studio and Galaxy A06 landscape simulation rendered the plaza arrival and loaded both clay material maps. The native avatar envelope measured about 4.4 studs. The roof tops are about 29 studs for the Fighting Ring canopy, 41 for Lantern Tower and 64 for Trophy Hall above the city datum. Reedguard walked from Reed Market to the Fighting Ring and traversed Mistline Crossing from Frostglass Gardens to Skywalk Peaks and back without jumping. The City Map reported six districts and 14 connections. Physical-device rendering and performance remain open.
+
 In v0.232, follow the **Reedfall Gallery** signs from Trophy Hall past the west overflow.
 
 Reedfall’s west overflow is wider and follows the rock shelves beside the Trophy Hall approach. Pale foam sits over the teal water at the crest and the lower garden spill. Two slate rocks frame the shoulder and landing, helping separate the water from the cliff face.

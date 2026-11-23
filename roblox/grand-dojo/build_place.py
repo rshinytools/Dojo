@@ -958,11 +958,13 @@ def roof_panel(parent, name, point, size, tint, *, pitch=0, roll=0):
     prop(panel,"string",MATERIAL_VARIANT_FIELD,INDIGO_TILE)
 
 
-def roof_barrel(parent, name, point, length, diameter, tint, *, pitch=0):
+def roof_barrel(parent, name, point, length, diameter, tint, *, pitch=0, ceramic=False):
     # Roblox cylinders run along local X. Turn that axis along the roof slope.
     tile = part(parent,name,point,(length,diameter,diameter),tint,
-                yaw=90,roll=pitch,shape=2,collide=False)
+                yaw=90,roll=pitch,shape=2,material=CLAY_ROOF if ceramic else SMOOTH,collide=False)
     prop(tile,"bool","CastShadow",False)
+    if ceramic:
+        prop(tile,"string",MATERIAL_VARIANT_FIELD,INDIGO_TILE)
 
 
 def roof(parent, x, y, z, width, depth):
@@ -1001,8 +1003,8 @@ def swept_roof(parent, x, eave_y, z, width, depth, rise, *, fine_tiles=True, sig
         sections = ((-1,.35),(-.81,.11),(-.43,0),(.43,0),(.81,.11),(1,.35))
     sections=tuple((offset,lift*corner_sweep) for offset,lift in sections)
     standard_ribs = (.25,.72) if fine_tiles else (.31,.69)
-    palettes = (("34477B","3D528B","455D98","4B649F","526DA7"),
-                ("2F4171","344A82","3C5590","435D99","4C65A0")) if signature else (
+    palettes = (("3B4164","3F466C","434A73","464E77","4A527C"),
+                ("363B5E","3A4065","3F446D","414870","464D77")) if signature else (
                 ("394778","414D81","48548A","4F5B8F","566299"),
                 ("303B65","374471","3B4A7B","435184","4A598D"))
     for side in (-1,1):
@@ -1029,15 +1031,15 @@ def swept_roof(parent, x, eave_y, z, width, depth, rise, *, fine_tiles=True, sig
                     for index,rib in enumerate(rib_positions):
                         px = x+(start+(end-start)*rib)*width/2
                         py = mid_y+(rib-.5)*turn
-                        lift_above_panel,diameter,tint=(.25,.28,("6075AC","52679F","6C7FB3")[index%3]) if signature else (
+                        lift_above_panel,diameter,tint=(.27,.34,("535A82","4A5279","575D85")[(lane+index)%3]) if signature else (
                             .22,.21,"58699C")
                         roof_barrel(parent,"Glazed barrel tile",(px,py+lift_above_panel,mid_z),
-                                    hypot(travel,lift)+.30,diameter,tint,pitch=pitch)
+                                    hypot(travel,lift)+.30,diameter,tint,pitch=pitch,ceramic=signature)
                         if band==0:
                             lip_y=eave_y+(up_start+(up_end-up_start)*rib)*rise+.08
                             roof_barrel(parent,"Indigo eave tile end",(px,lip_y,z+side*(depth/2+.065)),
-                                        .49 if signature else .42,.36 if signature else .28,
-                                        "496092" if signature else "465788",pitch=pitch)
+                                        .58 if signature else .42,.42 if signature else .28,
+                                        "464B72" if signature else "465788",pitch=pitch,ceramic=signature)
                 if band==0:
                     a = (x+start*width/2,eave_y+up_start*rise-.13,z+side*depth/2)
                     b = (x+end*width/2,eave_y+up_end*rise-.13,z+side*depth/2)
@@ -1047,6 +1049,15 @@ def swept_roof(parent, x, eave_y, z, width, depth, rise, *, fine_tiles=True, sig
             tip=(x+corner*width*.5,eave_y+rise*.35*corner_sweep,z+side*depth/2)
             end=(tip[0]+corner*.75,tip[1]+.68,tip[2]+side*.15)
             beam(parent,"Upturned bronze finial",tip,end,.37,"E0A755")
+            if signature:
+                lining = part(parent,"Eave corner bronze shoe",(tip[0]-corner*.27,tip[1]+.13,tip[2]),
+                              (.98,.42,1.08),"B78147",roll=corner*21,material=METAL,collide=False)
+                prop(lining,"string",MATERIAL_VARIANT_FIELD,ORNAMENT_BRASS)
+                prop(lining,"bool","CastShadow",False)
+                glint = part(parent,"Raised eave brass cheek",(end[0]-corner*.22,end[1]-.15,end[2]),
+                             (.80,.39,.88),"E1AE6C",roll=corner*43,material=METAL,collide=False)
+                prop(glint,"string",MATERIAL_VARIANT_FIELD,ORNAMENT_BRASS)
+                prop(glint,"bool","CastShadow",False)
     part(parent,"Raised ridge coping",(x,eave_y+rise+.02,z),(width-.24,.59,1.04),ROOF,collide=False)
     if signature:
         for factor in (-.36,-.17,0,.17,.36):
