@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.227, stand at the **Skywalk Peaks** gate and look toward **Wind Court**, then walk **Pinecrest Trail** to see the separated ridges from above the town.
+
+The mauve range and the center and east of the rose range now sit behind the northern districts. A western shoulder stays closer to the Grand Dojo arrival, and the lower outlines spread into sloping rock fans. Wind Court is visible through the Skywalk gate. From the same gate camera, the mauve range covered 243 of 243 sample rays in v0.226 and 29 in v0.227. The revised place uses the same number of instances, and adds no collisions, lights or hosted assets.
+
+The exact v0.227 desktop build kept the sun clear at all five sampled points. Authored mesh intersections across the Pinecrest and Cloudbreak trails at deck, fighter-root and jump height dropped from 12 to zero. Desktop Studio walked Pinecrest to the 34-stud overlook and back without jumping, then crossed the Skywalk bridge, Mistline to Frostglass and Cloudstep to Cinder in both directions. The Galaxy A06 landscape simulator rendered the cleared Skywalk entrance with touch controls. All six districts and 14 mapped connections remain. The complete Cloudbreak run and physical-device tests are open.
+
 In v0.226, follow the **Skywalk Peaks** road out of the Grand Dojo and turn left at the **Cedar Foothill Walk** sign. Follow the ridge to the overlook, then take the upper join back to the main road.
 
 Cedar Foothill Walk adds a signed, roughly 121-stud climb beside the Skywalk ascent. It starts near the lower fork, reaches a guarded overlook 8.52 studs high and rejoins the main road before the creek bridge. A second cedar-planted rise reaches 16.25 studs. Slate outcrops, native cedar silhouettes, and five previously used Viridian and Greenleaf meshes dress the slopes. The upper road join has slate supports. The three amber fixtures add no dynamic lights.

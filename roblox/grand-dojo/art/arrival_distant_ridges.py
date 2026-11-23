@@ -3,6 +3,9 @@
 from math import hypot, sin
 
 
+ARRIVAL_EYE = (.776, 5.792, 75.324)
+
+
 # The crest paths open around the sun east of Reedfall. All lower contours
 # sit behind the original skyline, leaving the gardens and town roads intact.
 FAR_CREST = (
@@ -59,7 +62,7 @@ MIDDLE_RELIEF = ((-1234, 0), (-850, 26), (-590, 48), (-447, 98),
                  (1070, 30), (1401, 0))
 
 
-def ridge_bands(crest, reach):
+def ridge_bands(crest, reach, toe_limit, west_extension):
     """Carry each summit's rock ribs down to broader shoulders and a haze line."""
     ledge, shoulder, spur, base = [], [], [], []
     for index, (x, y, z) in enumerate(crest):
@@ -67,6 +70,10 @@ def ridge_bands(crest, reach):
         # from reading as horizontal stripes at player height.
         fold = sin(index * 1.57) + .29 * sin(index * 2.76)
         cut = sin(index * .77 + .3)
+        valley = sin(index * .36 + .55) + .24 * sin(index * .91)
+        west = max(0, min(1, (-x - 52) / 32))
+        run = min(reach * (.85 + .18 * sin(index * .51) + .12 * sin(index * .19)),
+                  (toe_limit + west * west_extension - z) / 1.22)
         previous = crest[max(0, index - 1)][0]
         following = crest[min(len(crest) - 1, index + 1)][0]
         shift_limit = .43 * min(x - previous, following - x)
@@ -74,10 +81,10 @@ def ridge_bands(crest, reach):
         def across(offset):
             return x + max(-shift_limit, min(shift_limit, offset))
 
-        ledge.append((across(fold * 4.5 + cut * 3), y * .89 + fold * 2.4, z + reach * .21))
-        shoulder.append((across(fold * 9 + cut * 7), y * .70 + fold * 4.7, z + reach * .51 + cut * 3.7))
-        spur.append((across(fold * 14 + cut * 12), y * .43 + cut * 7.4, z + reach * .81 + fold * 3.8))
-        base.append((across(cut * 10), -66, z + reach * 1.22))
+        ledge.append((across(fold * 8 + cut * 4), y * (.88 + valley * .034), z + run * .21))
+        shoulder.append((across(fold * 16 + cut * 10), y * (.67 + valley * .072), z + run * .51 + cut * 4.4))
+        spur.append((across(fold * 32 + cut * 14), y * (.39 + valley * .068), z + run * .81 + fold * 5.8))
+        base.append((across(cut * 24), -66, z + run * 1.22))
     return crest, ledge, shoulder, spur, base
 
 
@@ -101,12 +108,12 @@ def face_light(a, b, c):
     return facing * (nx * .82 + ny * .38) / length
 
 
-def distant_facets(crest, reach, west, east):
-    contours = ridge_bands(crest, reach)
+def distant_facets(crest, reach, toe_limit, west_extension, palette_scale, west, east):
+    contours = ridge_bands(crest, reach, toe_limit, west_extension)
     for band, (above, below) in enumerate(zip(contours, contours[1:])):
         for index, (left, right, low_left, low_right) in enumerate(
                 zip(above, above[1:], below, below[1:])):
-            center = (left[0] + right[0]) * .5
+            center = (left[0] + right[0]) * .5 / palette_scale
             faces = ((left, low_left, right), (right, low_left, low_right))
             broad_light = sum(face_light(*face) for face in faces) / 2
             rib_light = 5.2 * sin(index * 1.39 + .38) + 2.6 * sin(index * 2.1)
@@ -128,15 +135,30 @@ def fit_to_plaza_view(crest, relief, depth_scale, height_scale):
         yield x * depth_scale, (y + lift) * height_scale, arrival_z + (z - arrival_z) * depth_scale
 
 
+def place_beyond_towns(crest, scale, west_scale, saddle):
+    """Recede along arrival sightlines, with a lower notch behind Wind Court."""
+    for x, y, z in crest:
+        notch = max(0, 1 - abs(x + 15) / 117)
+        height = y - saddle * notch ** 1.7
+        # Keep the western crest visible to the arrival camera. Its shoulder
+        # stays west of the highland routes while the center and east recede.
+        blend = max(0, min(1, (x + 94) / 78)) ** 1.6
+        depth_scale = west_scale + (scale - west_scale) * blend
+        yield tuple(eye + (value - eye) * depth_scale for eye, value in zip(ARRIVAL_EYE, (x, height, z)))
+
+
 def build_arrival_distant_ridges(landscape, *, item, prop, triangle, smooth):
-    for name, crest, relief, depth, height, reach, west, east in (
-        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 45, (161, 130, 149), (204, 151, 148)),
-        ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 31, (129, 108, 137), (173, 124, 134)),
+    for name, crest, relief, depth, height, scale, west_scale, saddle, reach, toe, extension, west, east in (
+        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 2.12, 1., 21, 192, -520, 239,
+         (149, 121, 143), (195, 145, 145)),
+        ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 1.96, 1.96, 34, 144, -447, 0,
+         (117, 100, 129), (163, 120, 132)),
     ):
         backdrop = item(landscape, 'Model', name)
         prop(backdrop, 'token', 'ModelStreamingMode', 2)
         prop(backdrop, 'token', 'LevelOfDetail', 4)
-        fitted = tuple(fit_to_plaza_view(crest, relief, depth, height))
-        for face, tint in distant_facets(fitted, reach, west, east):
+        fitted = fit_to_plaza_view(crest, relief, depth, height)
+        far_crest = tuple(place_beyond_towns(fitted, scale, west_scale, saddle))
+        for face, tint in distant_facets(far_crest, reach, toe, extension, scale, west, east):
             triangle(backdrop, *face, tint, name='Distant ridge facet', thickness=.28,
                      material=smooth, shadow=False)
