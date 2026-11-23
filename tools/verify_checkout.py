@@ -33,7 +33,8 @@ def verify_place():
                 "Fighting Ring canvas tailoring", "Recessed cedar ceiling panels",
                 "Reedfall switchback wayfinding", "Reedfall upper lip foam",
                 "Tideharbor tidal arch", "Sea Lantern Lookout", "Batten-sail harbor boat",
-                "Windcut sea arch", "Low slate reefs", "Horizon sea fills", "Trophy Hall front amber portal"}
+                "Windcut sea arch", "Low slate reefs", "Horizon sea fills", "Trophy Hall front amber portal",
+                "Projected cedar gallery soffit", "Raked cedar gallery support"}
     seen = set()
     routes = None
     notes = 0

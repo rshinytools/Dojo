@@ -2244,7 +2244,9 @@ def trophy_hall_wing_frontage(parent, side):
     prop(bay,"token","LevelOfDetail",4)
     swept_roof(bay,x,11.05,-47.14,14.7,17.50,2.58,fine_tiles=False)
     build_hall_wing_eave(bay,x,eave,item=item,prop=prop,part=part,
-                        swept_roof=swept_roof,cedar=WOOD_PLANK)
+                        beam=beam,swept_roof=swept_roof,lantern_window=lantern_window,
+                        cedar=WOOD_PLANK,brass=METAL,variant_field=MATERIAL_VARIANT_FIELD,
+                        wood_variant=LANDMARK_CEDAR,brass_variant=ORNAMENT_BRASS)
     part(bay,"Upper wing rear gable",(x,13.97,-39.44),(12.92,3.51,.54),
          "873D31",material=WOOD_PLANK,collide=False)
     part(bay,"Window bay stone base",(x,-.11,front-1.28),(12.9,1.70,2.95),

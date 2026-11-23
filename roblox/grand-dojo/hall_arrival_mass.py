@@ -93,16 +93,69 @@ def build_hall_crown_roof(parent, eave_y, *, item, prop, part, triangle, clay, b
             tile("Signature gilded crown hook", a, b, diameter, tint, metal=True)
 
 
-def build_hall_wing_eave(parent, x, eave_y, *, item, prop, part, swept_roof, cedar):
-    """Pull the lower gallery gables forward without covering the central title."""
+def build_hall_wing_eave(parent, x, eave_y, *, item, prop, part, beam, swept_roof,
+                        lantern_window, cedar, brass, variant_field, wood_variant, brass_variant):
+    """Extend the upper galleries over the existing side courts."""
     wing = item(parent, "Model", "Trophy Hall forward gallery eave")
     prop(wing, "token", "LevelOfDetail", 4)
-    swept_roof(wing, x, eave_y+.08, -32.71, 21.02, 13.78, 6.47, fine_tiles=False,
-               signature=True, corner_sweep=1.52, ridge_finial_scale=1.26)
-    for across in (-7.01,-3.52,0,3.52,7.01):
-        arm = part(wing, "Under eave rafter tail", (x+across, eave_y-.43, -27.97),
-                   (.49,.37,4.82), "945438", material=cedar, collide=False, pitch=-5)
-        prop(arm, "bool", "CastShadow", False)
+    # The east end steps inside Reedfall's separate west overflow curtain.
+    x, center_z, depth, width, frontage = ((x, -29.62, 19.20, 25.20, 1)
+                                         if x < 0 else (17.55, -30.20, 18.15, 10.20, .61))
+    roof_y = eave_y + 1.64
+    swept_roof(wing, x, roof_y, center_z, width, depth, 6.1, fine_tiles=False,
+               signature=True, corner_sweep=1.46, ridge_finial_scale=1.23)
+
+    front = center_z + depth / 2 - 4.48
+    rear = -35.36
+
+    def fit(point):
+        return x + (point[0] - x) * frontage, point[1], point[2]
+
+    def trim(name, center, size, tint, material=cedar):
+        piece = part(wing, name, fit(center), (size[0] * frontage, size[1], size[2]), tint,
+                     material=material, collide=False)
+        prop(piece, "bool", "CastShadow", False)
+        prop(piece, "string", variant_field, wood_variant if material == cedar else brass_variant)
+
+    def brace(name, start, end, width, tint):
+        node = beam(wing, name, fit(start), fit(end), width, tint, collide=False)
+        prop(node, "bool", "CastShadow", False)
+
+    trim("Setback vermilion gallery wall", (x, roof_y - 2.54, front - .61),
+         (16.82, 4.46, .67), "87462F")
+    for name, y, z, size, tint, material in (
+        ("Projected cedar gallery soffit", roof_y - 5.02, (front + rear) / 2,
+         (17.52, .47, front - rear + .56), "684236", cedar),
+        ("Carved gallery lintel", roof_y - .48, front - .06,
+         (17.66, .64, .88), "8B4D35", cedar),
+        ("Cedar gallery window sill", roof_y - 4.35, front + .07,
+         (17.38, .53, 1.14), "945336", cedar),
+        ("Warm gallery sill bead", roof_y - 4.24, front + .67,
+         (17.50, .105, .18), "CE995E", brass),
+    ):
+        trim(name, (x, y, z), size, tint, material)
+
+    for offset in (-6.12, -2.04, 2.04, 6.12):
+        lantern_window(wing, x + offset * frontage, roof_y - 2.62, front + .13,
+                       3.18 * frontage, 2.42, glow=False, tint="F2C58C")
+    for offset in (-8.25, -4.08, 0, 4.08, 8.25):
+        px = x + offset
+        trim("Exposed cedar gallery upright", (px, roof_y - 2.61, front + .32),
+             (.52, 3.91, .63), "954D33")
+        trim("Amber gallery joint", (px, roof_y - 1.15, front + .55),
+             (.64, .14, .23), "BC8751", brass)
+        forward = center_z + depth / 2 - .20
+        brace("Long cedar gallery rafter", (px, roof_y - .54, rear + .66),
+              (px, roof_y - .35, forward), .44, "8E573D")
+
+    for side in (-1, 1):
+        px = x + side * 8.24
+        trim("Returning gallery shutter wall", (px, roof_y - 2.55, (front + rear) / 2),
+             (.51, 4.45, front - rear), "844432")
+        brace("Raked cedar gallery support", (px, roof_y - 7.01, rear + .34),
+              (px, roof_y - 4.93, front + .23), .66, "774533")
+        trim("Gallery bracket brass end", (px, roof_y - 4.91, front + .39),
+             (.79, .47, .26), "C38C51", brass)
 
 
 def build_hall_upper_bays(parent, *, item, prop, part, beam, cedar, clay, brass, neon,

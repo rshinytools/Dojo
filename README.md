@@ -2,11 +2,11 @@
 
 Beast Dojo is a Roblox martial-arts adventure centered on the Grand Dojo Fighting Ring. Players travel between six districts, train with animal fighters, and earn trophies through matches, exploration, and festival activities.
 
-**Current Roblox checkpoint** v0.218. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
+**Current Roblox checkpoint** v0.219. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
 
 ## Play the Roblox checkpoint
 
-Download [Beast_Dojo_Grand_Dojo_v0.218.zip](releases/Beast_Dojo_Grand_Dojo_v0.218.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**. Start at the festival plaza and follow the signs for the Fighting Ring, Lantern Relay, or Trophy Hall. Climb the Trophy Hall stairs beneath the amber transom or take the causeway to Sea Lantern Lookout.
+Download [Beast_Dojo_Grand_Dojo_v0.219.zip](releases/Beast_Dojo_Grand_Dojo_v0.219.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**. Start at the festival plaza and follow the signs for the Fighting Ring, Lantern Relay, or Trophy Hall. Walk the east ramp beside Reedfall or cross the Jade bridge beneath the expanded Trophy Hall wings.
 
 The ZIP is the verified desktop Studio checkpoint. The place refers to Roblox-hosted meshes, textures, and audio. Some need account or experience permissions. See [asset access](docs/IMPLEMENTATION.md#asset-access). Studio uses session data. Published data, purchases and physical devices have separate release tests.
 

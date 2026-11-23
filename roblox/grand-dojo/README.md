@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.219, walk toward **Trophy Hall** from Festival Plaza. Look at the projecting upper wings from **Jade Crossing** and the **Hall Garden Ramp**.
+
+Trophy Hall now has two projecting upper wings with recessed paper windows, copper-trimmed sills and long cedar rafters. The west tiles reach 5.65 studs farther toward the plaza. The east tiles extend about 4.56 studs toward the plaza and step inward beside the main Reedfall cascade and the narrow garden overflow. Both ridges rise to about 28.46 studs.
+
+In exact v0.219 desktop Studio Play, Reedguard walked the east ramp and Jade crossing in both directions, climbed the original central stairs and followed the viewing gallery around the east rail. All seven legs reached their destinations. The checked place retained its terrain, all colliders, lights and 14 mapped links. The Galaxy A06 landscape simulator framed the revised Hall with touch controls. Physical-device and published streaming tests remain open.
+
 In v0.218, open the **Event Board** and click **×** to return to the plaza. The shared event panel keeps its close button above the header and temporarily disables the Roblox player list while open. Desktop Studio Play clicked × three times, reopened the Relay panel, and restored plaza prompts each time. The player list re-enabled when previously enabled and stayed disabled when previously disabled.
 
 In v0.217, start at **Festival Plaza** to see the whole Fighting Ring title. Follow the promenade and climb the central steps into **Trophy Hall** beneath the amber fan.
