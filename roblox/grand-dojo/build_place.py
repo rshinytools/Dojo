@@ -46,7 +46,8 @@ from frostglass_glacier_walk import build_frostglass_glacier_walk
 from frostglass_reflectors import build_frostglass_reflectors
 from frostglass_store_planting import build_frostglass_approach_planting, build_frostglass_store_planting
 from hall_arrival_details import build_hall_arrival_details
-from hall_arrival_mass import build_hall_arrival_mass, build_hall_crown_roof, build_hall_wing_eave
+from hall_arrival_mass import (build_hall_arrival_mass, build_hall_crown_roof,
+                               build_hall_upper_bays, build_hall_wing_eave)
 from hall_valley_facades import build_hall_valley_facades
 from hall_garden_spill import build_hall_garden_spill
 from hall_stair_court import build_hall_stair_court
@@ -2319,6 +2320,9 @@ for x in (-7.72,-3.86,0,3.86,7.72):
          "C98743",material=METAL,collide=False)
 part(clerestory,"Clerestory red cedar beam",(0,29.62+crown_delta,-34.75),(21.16,.48,.74),
      "9D4C33",material=WOOD_PLANK,collide=False)
+build_hall_upper_bays(facade,item=item,prop=prop,part=part,beam=beam,cedar=WOOD_PLANK,
+                      clay=CLAY_ROOF,brass=METAL,neon=NEON,variant_field=MATERIAL_VARIANT_FIELD,
+                      tile_variant=INDIGO_TILE,brass_variant=ORNAMENT_BRASS)
 for y,width,height,tint in ((30.77,33.6,.72,"8F4333"),(31.23,34.2,.39,"C79553"),(31.61,35.1,.53,"793B2F")):
     part(facade,"Gallery cornice",(0,y+crown_delta,-34.85),(width,height,1.25),tint,collide=False)
 for x in (-13.25,-8.82,-4.41,0,4.41,8.82,13.25):
@@ -3995,8 +3999,39 @@ blossom_x,blossom_z=-32.2,5.8
 garden_shelf(blossom_garden,blossom_x,.67,blossom_z,5.45,5.11,.66,"877782",SLATE,collide=False)
 garden_shelf(blossom_garden,blossom_x-.20,1.26,blossom_z+.15,4.79,4.37,.74,"A08D95",SLATE,collide=False)
 garden_shelf(blossom_garden,blossom_x-.14,1.49,blossom_z+.13,4.28,3.91,.32,"758B51",GRASS_MAT,collide=False)
-showcase_tree(blossom_garden,blossom_x,blossom_z,True,1.98,-31,1.48,
-              height_scale=1.49,compact=True,relief_crown=True,hero_crown=True,crown_spread=1.31)
+
+# Sakura Tree by @plentune, Creator Store model 3725991689. Reference its
+# screened trunk and textured leaves at the scale of the Relay garden.
+sakura=item(blossom_garden,"Model","Relay garden Sakura tree")
+prop(sakura,"token","ModelStreamingMode",1)
+sakura_yaw=-31
+trunk_size=(19.594587,37.661224,15.228602)
+sakura_scale=(1.07,.77,1.07)
+
+
+def scaled_sakura_size(axes):
+    return tuple(value*scale for value,scale in zip(axes,sakura_scale))
+
+
+placed_trunk_size=scaled_sakura_size(trunk_size)
+trunk=part(sakura,"Sakura trunk",(blossom_x,1.48+placed_trunk_size[1]/2,blossom_z),placed_trunk_size,
+           "816A5D",yaw=sakura_yaw,material=SLATE,collide=False,class_name="MeshPart")
+prop(trunk,"bool","CastShadow",False)
+prop(trunk,"token","RenderFidelity",1)
+vector(trunk,"Vector3","InitialSize",("X","Y","Z"),(6.797350,11.199409,5.221320))
+asset(trunk,"MeshContent","rbxassetid://743209096")
+leaf_offset=scaled_sakura_size((.876709,trunk_size[1]/2+7.286158,1.120193))
+leaf_x,leaf_y,leaf_z=rotate_garden_point(leaf_offset,sakura_yaw)
+leaves=part(sakura,"Sakura blossom sprays",(blossom_x+leaf_x,1.48+leaf_y,blossom_z+leaf_z),
+            scaled_sakura_size((3.344402,8.555678,3.344402)),"A3A2A5",yaw=sakura_yaw,
+            material=FABRIC,collide=False,transparency=.40)
+prop(leaves,"bool","CastShadow",False)
+leaf_mesh=item(leaves,"SpecialMesh","Textured blossom branches")
+prop(leaf_mesh,"token","MeshType",5)
+vector(leaf_mesh,"Vector3","Scale",("X","Y","Z"),scaled_sakura_size((2.894195,)*3))
+asset(leaf_mesh,"MeshContent","rbxassetid://743209371")
+asset(leaf_mesh,"TextureContent","rbxassetid://5834464899")
+
 for key,dx,dz,scale,yaw,tint in (
     ("bankRock",1.44,.61,.18,78,"98848C"),
     ("meadowGrass",.53,1.16,.18,65,"ACBC6A"),

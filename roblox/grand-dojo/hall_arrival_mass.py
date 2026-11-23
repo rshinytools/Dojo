@@ -105,6 +105,46 @@ def build_hall_wing_eave(parent, x, eave_y, *, item, prop, part, swept_roof, ced
         prop(arm, "bool", "CastShadow", False)
 
 
+def build_hall_upper_bays(parent, *, item, prop, part, beam, cedar, clay, brass, neon,
+                          variant_field, tile_variant, brass_variant):
+    """Divide the crowned gallery into shaded timber and lit paper bays."""
+    facade = item(parent, "Model", "Trophy Hall upper timber bays")
+    prop(facade, "token", "LevelOfDetail", 4)
+
+    def trim(name, center, size, tint, material=cedar, *, pitch=0):
+        node = part(facade, name, center, size, tint, material=material, collide=False, pitch=pitch)
+        prop(node, "bool", "CastShadow", False)
+        if material in (clay, brass):
+            prop(node, "string", variant_field, tile_variant if material == clay else brass_variant)
+
+    # These coordinates use the crowned gallery's original local level.
+    # The emblem reaches 28.68 here and conversion to world height lifts both.
+    trim("Deep cedar gallery rail", (0, 29.88, -34.76), (29.10, .49, 1.26), "6C382E")
+    trim("Copper gallery rail edge", (0, 29.99, -34.08), (28.72, .105, .12), "D6A061", brass)
+    trim("Upper gallery dark lintel", (0, 33.95, -34.74), (28.92, .52, 1.16), "713E32")
+    trim("Upper gallery shed canopy", (0, 34.14, -33.94), (30.54, .32, 2.92), "3A5084", clay,
+         pitch=12)
+    trim("Gallery indigo eave rim", (0, 33.85, -32.56), (30.84, .25, .27), "50689C", clay)
+    trim("Gallery shaded eave underside", (0, 33.64, -33.57), (29.82, .20, 2.18), "573834")
+
+    for index, x in enumerate((-11.34, -5.67, 0, 5.67, 11.34)):
+        trim("Recessed upper gallery panel", (x, 31.81, -35.04), (4.61, 2.93, .75), "79402F")
+        pane = ("D69764", "E3A46D", "ECB678", "E1A06C", "CE8C61")[index]
+        trim("Warm upper shoji paper", (x, 31.79, -34.63), (3.87, 2.39, .13), pane, neon)
+        for dx in (-1.93, -.64, .64, 1.93):
+            trim("Upper shoji vertical", (x + dx, 31.79, -34.52), (.13, 2.47, .142), "783F31")
+        for y in (30.61, 31.18, 32.45, 32.99):
+            trim("Upper shoji horizontal", (x, y, -34.52), (4.00, .13, .144), "87462F")
+        trim("Warm upper bay sill", (x, 30.46, -34.45), (4.35, .19, .54), "AF6844")
+
+    for x in (-14.16, -8.51, -2.84, 2.84, 8.51, 14.16):
+        trim("Gallery exposed red post", (x, 31.84, -34.66), (.57, 3.64, .56), "A9593C")
+        trim("Gallery cedar post sunward bead", (x + .18, 31.81, -34.357), (.12, 3.58, .08), "C27A4F")
+        bracket = beam(facade, "Gallery slender eave bracket", (x, 32.62, -34.61),
+                       (x, 33.65, -32.91), .23, "A66343")
+        prop(bracket, "bool", "CastShadow", False)
+
+
 def build_hall_arrival_mass(hall, *, item, prop, part, beam, triangle, slate, sandstone,
                             cedar, brass, neon, variant_field, stone_variant, brass_variant):
     """Layer the stone flanks and add a deep amber reveal around the open doorway."""

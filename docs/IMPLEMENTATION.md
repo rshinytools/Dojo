@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.211 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.212 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -28,6 +28,7 @@ The Python builder embeds the Luau from disk. Change source and rebuild so the S
 
 | Area | Evidence |
 | --- | --- |
+| Grand Dojo arrival | v0.212 desktop Studio viewed the closer skyline, fitted Sakura tree, new Trophy Hall timber level, and amber canal reflections. The fighter used both canal exits, the Hall stairs and viewing gallery, and both parts of the Reedfall Crown climb. The Galaxy A06 landscape Studio emulator showed the arrival skyline and the three plaza landmarks with touch controls. |
 | Lantern Circuit and western connections | v0.211 desktop Studio confirmed both gate signs and walked the west road, Orchard High Walk, and Upper Market link to Frostglass Gardens in both directions. Studio captures show the new gate, slope terraces, and lower market shopfronts. |
 | Native world | Six districts and 14 mapped links. Desktop Studio checks include Crown Crossing in both directions and the routes through Frostglass and Tideharbor. Coverage varies by route. |
 | Wind Court | v0.210 desktop Studio walked the new ramp and nearby bridge routes both ways, and climbed the original stairs. The three keyboard prompts counted one melody. The client loaded the Wind Court notes and Cloudbreak summit bell. |
@@ -47,6 +48,8 @@ Priorities remain production Reedguard combat, published persistence, additional
 ## Asset access
 
 The numbers in [Creator Store prop manifests](../roblox/grand-dojo/art/creator-store-props.json) and the builders are Roblox asset references. An account other than the original owner may see missing assets until the experience has permission. Verify dependencies in a separate test experience before publishing. Use only the assets your creator or experience is permitted to use.
+
+The Relay garden uses the trunk mesh and textured foliage from the free Sakura Tree by plentune. The builder records the individual IDs and fit. Studio inspected the detached model and verified its render in the packaged place. [Creator Store listing](https://create.roblox.com/store/asset/3725991689/Sakura-Tree)
 
 The art tree holds original GLBs, textures, layout definitions, and Blender exporters. For example, `bake_fighting_ring_gate.py` generates the authored gate, and the native builder can use its generated geometry and Roblox references without starting Blender. The native place uses Studio geometry where an imported asset is still an art study. These distinctions are documented in the [Studio walkthrough](../roblox/grand-dojo/README.md).
 

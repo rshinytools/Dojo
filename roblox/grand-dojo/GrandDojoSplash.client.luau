@@ -177,6 +177,11 @@ local function loadEntry()
         end
         local petals = plaza:FindFirstChild("Creator Store blossom petals", true)
         queue(petals and petals:FindFirstChildOfClass("ParticleEmitter"))
+        local sakura = plaza:FindFirstChild("Relay garden Sakura tree", true)
+        if sakura then
+            queue(sakura:FindFirstChildOfClass("MeshPart"))
+            queue(sakura:FindFirstChildWhichIsA("SpecialMesh", true))
+        end
     end
 
     while os.clock() < deadline do

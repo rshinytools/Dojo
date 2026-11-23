@@ -28,7 +28,8 @@ def digest(stream):
 def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring",
-                "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts"}
+                "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts",
+                "Relay garden Sakura tree", "Trophy Hall upper timber bays"}
     seen = set()
     routes = None
     notes = 0

@@ -67,14 +67,21 @@ def distant_facets(crest, reach, west, east):
             yield (right, low_left, low_right), tint
 
 
+def fit_to_plaza_view(crest, depth_scale, height_scale):
+    """Keep a backdrop's bearing while bringing it inside the local valley."""
+    arrival_z = 73
+    return tuple((x * depth_scale, y * height_scale, arrival_z + (z - arrival_z) * depth_scale)
+                 for x, y, z in crest)
+
+
 def build_arrival_distant_ridges(landscape, *, item, prop, triangle, smooth):
-    for name, crest, reach, west, east in (
-        ('Rose horizon range', FAR_CREST, 89, (186, 144, 172), (213, 161, 173)),
-        ('Mauve saddle range', MIDDLE_CREST, 31, (154, 118, 154), (185, 139, 162)),
+    for name, crest, depth, height, reach, west, east in (
+        ('Rose horizon range', FAR_CREST, .365, .246, 45, (186, 144, 172), (213, 161, 173)),
+        ('Mauve saddle range', MIDDLE_CREST, .379, .254, 27, (154, 118, 154), (185, 139, 162)),
     ):
         backdrop = item(landscape, 'Model', name)
         prop(backdrop, 'token', 'ModelStreamingMode', 2)
         prop(backdrop, 'token', 'LevelOfDetail', 4)
-        for face, tint in distant_facets(crest, reach, west, east):
+        for face, tint in distant_facets(fit_to_plaza_view(crest, depth, height), reach, west, east):
             triangle(backdrop, *face, tint, name='Distant ridge facet', thickness=.28,
                      material=smooth, shadow=False)
