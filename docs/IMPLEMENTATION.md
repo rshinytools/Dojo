@@ -9,6 +9,14 @@ The v0.228 Studio checkpoint is the starting point for new work. This repository
 3. Walk to Skywalk Peaks, climb the Wind Court ramp or stairs, and activate **Reed**, **Cloud**, then **Summit**. Try the browser concept separately to review the planned progression loop.
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
 
+## Shared city and personal trophy rooms
+
+All six districts belong to one walkable Roblox city place. Players in the same server see each other and share the city and its events. Roblox can run multiple copies of the city at once. The district roads keep a group together in the same server. Roblox's Join Experience action can bring a player into a friend's session when account settings, experience access, and server capacity allow it. [Roblox friend joining](https://en.help.roblox.com/hc/en-us/articles/203314220-How-to-follow-or-join-another-player-in-experiences)
+
+The planned **Play Together** flow adds in-game invites and regrouping. If a city server is full, offer the group a common server with enough room. Queued matches and larger raids can use separate servers and return the party to a safe city checkpoint. Test these flows in published staging with separate accounts.
+
+The public Trophy Hall is a city landmark and the planned entrance to each player's **personal trophy room**. Each owner chooses six featured trophies plus paged wall displays. Layouts and earned trophies are saved per account and follow the owner across servers. The room defaults to private. Owners can invite guests to inspect displays, and only the owner can change the layout. The Studio build has the Hall, an owner-specific journal and the first Lantern Keeper display. Private rooms, visit invites and published multiplayer verification are planned.
+
 ## Source map
 
 | Work area | First files to inspect |
