@@ -11,7 +11,8 @@ from art.arrival_canopy_relief import arrival_canopy, arrival_canopy_faces
 from art.arrival_distant_ridges import build_arrival_distant_ridges
 from art.promenade_layout import (ARRIVAL_LAMPS, INLET_EDGE, INLET_NORTH, INLET_SOUTH,
                                    ORIGINAL_SOUTH_EDGE, PROMENADE_BOUNDS, PROMENADE_GRADE,
-                                   flagstones, promenade_dampness, promenade_sections, stone_pigment)
+                                   flagstones, promenade_dampness, promenade_sections,
+                                   ring_forecourt_pigment, stone_pigment, tint_stone)
 from art.garden_tree_layout import garden_knuckles, garden_tree, rotate_garden_point
 from art.north_ridge_relief import north_ridge_facets
 from art.valley_ridge_layout import VALLEY_RIDGES
@@ -190,6 +191,7 @@ CLAY_ROOF = 2307
 PROMENADE_STONE = "Honed promenade limestone"
 PROMENADE_MORTAR = "Weathered promenade joints"
 SUNSET_FLAGSTONE = "Rose sandstone flagstone"
+FESTIVAL_FLAGSTONE = "Weathered festival sandstone"
 ORNAMENT_BRASS = "Warm landmark brass"
 CANOPY_FOLIAGE = "Garden leaf and blossom grain"
 VALLEY_ROCK = "Valley slope rock"
@@ -372,9 +374,9 @@ def build_promenade(parent):
             triangle(stone,face[0],a,b,triangle_tint,name="Sandstone cut",
                      thickness=.021,material=LIMESTONE,shadow=False)
             for facet in stone[first:]:
-                prop(facet,"string",MATERIAL_VARIANT_FIELD,SUNSET_FLAGSTONE)
+                prop(facet,"string",MATERIAL_VARIANT_FIELD,FESTIVAL_FLAGSTONE)
                 if damp>.16:
-                    prop(facet,"float","Reflectance",round(damp*.10,3))
+                    prop(facet,"float","Reflectance",round(damp*.15,3))
         for i,(outer,inner) in enumerate(zip(shoulder,face)):
             next_inner=face[(i+1)%len(face)]
             dx,dz=next_inner[0]-inner[0],next_inner[2]-inner[2]
@@ -386,11 +388,13 @@ def build_promenade(parent):
             center=((inner[0]+next_inner[0]-nx*depth)/2,(outer[1]+inner[1])/2,
                     (inner[2]+next_inner[2]-nz*depth)/2)
             edge_color=stone_pigment(pigment,(center[0],center[2]))
-            edge_tint="".join(f"{round(value*.84):02x}" for value in rgb(edge_color))
+            # The face normal points out from the slab into the joint.
+            sunward = max(0, -.34*nx + .94*nz)
+            edge_tint = tint_stone(edge_color, (-21+24*sunward, -18+23*sunward, -18+18*sunward))
             rim=part(stone,"Beveled sandstone rim",center,(length,inner[1]-outer[1],depth),edge_tint,
                      yaw=degrees(atan2(-dz,dx)),material=LIMESTONE,collide=False,class_name="WedgePart")
             prop(rim,"bool","CastShadow",False)
-            prop(rim,"string",MATERIAL_VARIANT_FIELD,SUNSET_FLAGSTONE)
+            prop(rim,"string",MATERIAL_VARIANT_FIELD,FESTIVAL_FLAGSTONE)
 
 
 def coastal_ridge(parent,x,z,width,depth,profile,front,planting,*,cliff_gardens=False):
@@ -1424,6 +1428,8 @@ material_variant(materials,PROMENADE_STONE,LIMESTONE,7.5,1,
                  Color=9920561437,Normal=9439415191,Roughness=9439415495)
 material_variant(materials,SUNSET_FLAGSTONE,LIMESTONE,4.15,1,
                  Color=9920561437,Normal=9439415191,Roughness=9439415495)
+material_variant(materials,FESTIVAL_FLAGSTONE,LIMESTONE,3.2,1,
+                 Color=9920561437,Normal=9439596530,Roughness=9439596711)
 material_variant(materials,PROMENADE_MORTAR,SLATE,5.0,1,
                  Color=9920599782,Normal=9439612514,Roughness=9439612733)
 material_variant(materials,ORNAMENT_BRASS,METAL,4.8,0,
@@ -3446,11 +3452,11 @@ def ring_forecourt(parent):
             edges=[0,*((column+offset)*row_width for column in range(1,7)),width]
             for column,(left,right) in enumerate(zip(edges,edges[1:])):
                 x=center-width/2+(left+right)/2
-                tint=palette[(row*3+column*2)%len(palette)]
+                tint=ring_forecourt_pigment(palette[(row*3+column*2)%len(palette)],x-center,z)
                 paver=part(court,"Staggered forecourt sandstone",(x,y,z),
                      (right-left-.055,.023,(row_depth-.056)*slant),tint,
                      pitch=degrees(atan2(grade,1)),material=LIMESTONE,collide=False)
-                prop(paver,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
+                prop(paver,"string",MATERIAL_VARIANT_FIELD,FESTIVAL_FLAGSTONE)
                 prop(paver,"bool","CastShadow",False)
     for side in (-1,1):
         end_x=center+side*8.10

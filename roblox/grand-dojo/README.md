@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.235, follow the **Festival Plaza** paving along the canal and up to the **Fighting Ring**.
+
+The Festival Plaza promenade now uses muted rose and violet sandstone, grain in the stone faces and brighter bevels where they face the setting sun. Canal-side stones stay cooler. Existing lanterns are picked out by warmer patches on the promenade and 49 pavers at the Fighting Ring entry.
+
+Exact v0.235 Studio Play compared matched v0.234 desktop views from the plaza, canal-side promenade and Trophy Hall approach. The updated paving and its three material maps loaded in desktop Studio and the Galaxy A06 landscape simulator. Reedguard walked from the plaza into Trophy Hall, climbed to the viewing gallery and walked from Reed Market to the Fighting Ring entrance. The City Map reported six districts and 14 connections. Physical-device rendering and performance remain open.
+
 In v0.234, compare **Festival Plaza** with the elevated approach to **Frostglass Gate**.
 
 The western mountain range now sits farther behind the towns, with broader shoulders and a lower saddle between the peaks. The nearer faces use a softer rose-gray palette. From Festival Plaza the western skyline frames Trophy Hall, and Frostglass Gate looks across stepped mountain layers.

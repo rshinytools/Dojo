@@ -1,5 +1,5 @@
 """Authored flagstone layout shared by the Studio and Blender builders."""
-from math import ceil, hypot
+from math import ceil, cos, hypot, sin
 import random
 
 PROMENADE_BOUNDS=(-12,18,-8,82)
@@ -60,6 +60,13 @@ def promenade_dampness(point):
                for cx, cz, rx, rz in DAMP_POOLS)
 
 
+def tint_stone(pigment, shifts):
+    """Add light and weathering to a sandstone color in display RGB."""
+    channels = (int(pigment[i:i + 2], 16) for i in (0, 2, 4))
+    return "".join(f"{round(min(255, max(0, base + shift))):02X}"
+                   for base, shift in zip(channels, shifts))
+
+
 def stone_pigment(pigment, point):
     x,z=point
     amber=max(smooth_falloff(1-hypot((x-lx)/reach_x,(z-lz)/reach_z))
@@ -75,12 +82,20 @@ def stone_pigment(pigment, point):
                               smooth_falloff((bank+3.3-x)/3.6))
     damp = promenade_dampness(point)
     glint = damp * smooth_falloff(1 - abs(x - 8.9 - (z - 53) * .12) / 3.8)
-    channels=(int(pigment[i:i+2],16) for i in (0,2,4))
-    tints=(base+rose+sunset*sun+amber*warm+canal*cool+golden_lane*glow-garden_shadow*shade
-           -damp*wet+glint*gleam for base,rose,sun,warm,cool,glow,shade,wet,gleam in zip(
-               channels,(8,-4,4),(16,4,-6),(59,25,-16),(-12,-7,14),(14,12,6),(21,17,11),
-               (25,28,24),(26,17,8)))
-    return "".join(f"{round(min(255,max(0,value))):02X}" for value in tints)
+    drift = sin(x * .65 + z * .28) * cos(z * .52 - x * .19)
+    veins = .65 * drift + .35 * sin(x * 1.08 - z * .47)
+    shifts = (rose + sunset*sun + amber*warm + canal*cool + golden_lane*glow
+              - garden_shadow*shade - damp*wet + glint*gleam + veins*weather
+              for rose,sun,warm,cool,glow,shade,wet,gleam,weather in zip(
+                  (-5,-11,2),(18,10,0),(76,44,2),(-13,-7,16),(8,6,3),(23,18,10),
+                  (29,29,23),(44,28,8),(9,8,9)))
+    return tint_stone(pigment, shifts)
+
+
+def ring_forecourt_pigment(pigment, across, z):
+    """Paint the step lanterns' warm spill over the raised entry slabs."""
+    spill = smooth_falloff(1 - hypot((abs(across) - 9.73) / 7.4, (z - 29.93) / 8.6))
+    return tint_stone(pigment, (-9 + 55*spill, -10 + 34*spill, 2 + 6*spill))
 
 
 def polygon_area(region):
