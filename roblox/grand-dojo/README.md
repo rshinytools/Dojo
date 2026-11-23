@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.225, compare the sunset ridges from the normal arrival, the promenade, and the path toward Skywalk Peaks.
+
+The west summit has uneven rock ribs and shorter shoulders. A lower southern-facing shoulder runs toward Reedfall, and a broad eastern saddle joins the skyline above the ring. The rose back range and cooler mauve middle range carry separate light and shadow planes. This pass adds 960 anchored visual wedges across the two persistent backdrop models. They add no collisions, shadows, dynamic lights, or hosted assets.
+
+Exact v0.225 desktop Studio captured the same camera at arrival and from the promenade. Five ray samples across the visible sunset stayed clear of the ranges. Reedguard walked the Grand Dojo–Lantern Circuit road in both directions, and followed the elevated Reedfall Crown and Kiln Ridge route to the Cinder Terraces gate. Both skyline models rendered in the Galaxy A06 landscape simulator with touch controls. All six districts and 14 mapped connections, Terrain, lights, and gameplay scripts remain the same. Published streaming and frame time on physical devices remain unverified.
+
 In v0.224, take the garden stairs to **Garden Lookout** next to Lantern Relay. Follow the **Tower Ramp** sign or the original stone steps to the balcony. Talk to the Tower Keeper, then return either way.
 
 A guarded cedar ramp climbs 4.14 studs from Garden Lookout to the Lantern Tower balcony. The original ten stone steps also reach the 6.56-stud balcony. Two amber fixtures mark the turns, a mounted plaque points to the ramp, and a blossom tree sits back from the walking lane. Rose sandstone flagstones continue 34.6 studs through the fourth Lantern Relay gate. The new pavers are decorative and the local light count is unchanged.

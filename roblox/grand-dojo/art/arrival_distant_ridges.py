@@ -1,6 +1,6 @@
-"""Quiet ridgelines beyond the walkable Grand Dojo skyline."""
+"""Layered shoulders and eroded ribs beyond the walkable Grand Dojo skyline."""
 
-from math import sin
+from math import hypot, sin
 
 
 # The crest paths open around the sun east of Reedfall. All lower contours
@@ -8,14 +8,21 @@ from math import sin
 FAR_CREST = (
     (-1598, 9, -1048),
     (-1226, 271, -1043), (-1068, 403, -1034), (-943, 467, -1037),
-    (-836, 556, -1041), (-717, 521, -1046), (-671, 537, -1062),
-    (-587, 578, -1079), (-503, 633, -1076), (-425, 674, -1050),
-    (-356, 646, -1026), (-303, 681, -1027), (-236, 643, -1045),
+    (-836, 556, -1041), (-717, 565, -1046), (-671, 598, -1062),
+    (-628, 621, -1071), (-587, 613, -1079), (-557, 635, -1060),
+    (-503, 633, -1076), (-453, 649, -1061),
+    (-425, 674, -1050), (-403, 657, -1037), (-374, 638, -1024),
+    (-345, 652, -1037), (-319, 666, -1029), (-303, 681, -1027),
+    (-285, 668, -1029), (-265, 635, -1032), (-236, 633, -1045),
     (-177, 604, -1058), (-77, 554, -1063), (-4, 591, -1068),
-    (75, 537, -1071), (160, 443, -1059), (211, 473, -1034),
-    (260, 373, -1020), (373, 307, -1035), (493, 304, -1062),
-    (583, 341, -1075), (650, 441, -1069), (715, 473, -1059),
-    (793, 507, -1053), (869, 455, -1043), (923, 459, -1029),
+    (75, 537, -1071), (160, 469, -1059), (211, 490, -1034),
+    (236, 523, -1027), (263, 596, -1011), (284, 571, -1006),
+    (312, 575, -1018), (339, 548, -1029), (373, 497, -1024),
+    (420, 461, -1009), (455, 482, -1022), (493, 511, -1048),
+    (545, 492, -1050), (583, 452, -1075), (625, 438, -1076), (650, 448, -1069),
+    (687, 459, -1063), (715, 473, -1059), (754, 496, -1057),
+    (783, 501, -1052), (809, 495, -1043), (842, 466, -1049),
+    (869, 449, -1043), (891, 454, -1037), (923, 451, -1029),
     (1015, 403, -1029), (1191, 381, -1052), (1448, 295, -1078),
     (1740, 9, -1086),
 )
@@ -23,13 +30,16 @@ FAR_CREST = (
 MIDDLE_CREST = (
     (-1234, 5, -835),
     (-980, 147, -840), (-841, 234, -835), (-736, 300, -845),
-    (-636, 344, -854), (-555, 433, -861), (-515, 418, -872),
-    (-447, 464, -883), (-389, 382, -875), (-312, 392, -847),
-    (-253, 353, -827), (-182, 424, -835), (-133, 419, -859),
+    (-636, 359, -854), (-555, 443, -861), (-515, 428, -872),
+    (-447, 464, -883), (-389, 398, -875), (-312, 398, -847),
+    (-253, 353, -827), (-219, 380, -831), (-182, 424, -835),
+    (-158, 409, -844), (-133, 419, -859), (-114, 408, -865),
     (-87, 380, -873), (-35, 387, -873), (21, 364, -871),
     (94, 325, -869), (206, 317, -856), (267, 291, -835),
-    (350, 221, -829), (441, 258, -849), (533, 311, -877),
-    (629, 353, -886), (689, 366, -872), (750, 329, -857),
+    (301, 305, -831), (350, 286, -829), (401, 314, -844),
+    (441, 295, -849), (495, 327, -867), (533, 330, -877),
+    (603, 332, -885), (629, 353, -886), (655, 370, -875),
+    (689, 366, -872), (717, 353, -865), (750, 329, -857),
     (824, 362, -850), (892, 319, -845), (967, 277, -838),
     (1146, 192, -843), (1401, 5, -843),
 )
@@ -50,21 +60,45 @@ MIDDLE_RELIEF = ((-1234, 0), (-850, 26), (-590, 48), (-447, 98),
 
 
 def ridge_bands(crest, reach):
-    shoulder = []
-    base = []
+    """Carry each summit's rock ribs down to broader shoulders and a haze line."""
+    ledge, shoulder, spur, base = [], [], [], []
     for index, (x, y, z) in enumerate(crest):
-        folded = sin(index * 1.08) + .35 * sin(index * 2.41)
-        shoulder.append((x + folded * 14, y * .73 + folded * 10, z + reach * .54))
-        base.append((x, -66, z + reach))
-    return crest, shoulder, base
+        # The rib is continuous down the slope. Unequal offsets prevent terraces
+        # from reading as horizontal stripes at player height.
+        fold = sin(index * 1.57) + .29 * sin(index * 2.76)
+        cut = sin(index * .77 + .3)
+        previous = crest[max(0, index - 1)][0]
+        following = crest[min(len(crest) - 1, index + 1)][0]
+        shift_limit = .43 * min(x - previous, following - x)
+
+        def across(offset):
+            return x + max(-shift_limit, min(shift_limit, offset))
+
+        ledge.append((across(fold * 4.5 + cut * 3), y * .89 + fold * 2.4, z + reach * .21))
+        shoulder.append((across(fold * 9 + cut * 7), y * .70 + fold * 4.7, z + reach * .51 + cut * 3.7))
+        spur.append((across(fold * 14 + cut * 12), y * .43 + cut * 7.4, z + reach * .81 + fold * 3.8))
+        base.append((across(cut * 10), -66, z + reach * 1.22))
+    return crest, ledge, shoulder, spur, base
 
 
 def ridge_shade(x, band, roll, west, east):
     sunlight = max(0, min(1, (x + 680) / 1330))
-    haze = band * 3
-    channels = (round(a + (b - a) * sunlight + roll + haze)
-                for a, b in zip(west, east))
+    haze = ((0, 0, 0), (1, 0, 0), (3, 3, 4), (8, 8, 9))[band]
+    channels = (round(a + (b - a) * sunlight + roll * light + mist)
+                for a, b, light, mist in zip(west, east, (1., .87, .64), haze))
     return ''.join(f'{channel:02X}' for channel in channels)
+
+
+def face_light(a, b, c):
+    """Bake a broad, warm light from the right onto each rock plane."""
+    ax, ay, az = (v - u for u, v in zip(a, b))
+    bx, by, bz = (v - u for u, v in zip(a, c))
+    nx, ny, nz = ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx
+    length = hypot(nx, ny, nz)
+    if length < .01:
+        return 0
+    facing = 1 if nz >= 0 else -1
+    return facing * (nx * .82 + ny * .38) / length
 
 
 def distant_facets(crest, reach, west, east):
@@ -73,12 +107,13 @@ def distant_facets(crest, reach, west, east):
         for index, (left, right, low_left, low_right) in enumerate(
                 zip(above, above[1:], below, below[1:])):
             center = (left[0] + right[0]) * .5
-            soft_shadow = round(3.1 * sin(index * 1.27 + band * .2))
-            tint = ridge_shade(center, band, soft_shadow, west, east)
-            # Share pigment across a quad. The folds in the geometry keep the
-            # shoulder legible without putting a sharp color seam in its middle.
-            yield (left, low_left, right), tint
-            yield (right, low_left, low_right), tint
+            faces = ((left, low_left, right), (right, low_left, low_right))
+            broad_light = sum(face_light(*face) for face in faces) / 2
+            rib_light = 5.2 * sin(index * 1.39 + .38) + 2.6 * sin(index * 2.1)
+            contrast = (1, .89, .65, .32)[band]
+            for face in faces:
+                value = ((.78 * broad_light + .22 * face_light(*face)) * 14 + rib_light) * contrast
+                yield face, ridge_shade(center, band, value, west, east)
 
 
 def fit_to_plaza_view(crest, relief, depth_scale, height_scale):
@@ -95,8 +130,8 @@ def fit_to_plaza_view(crest, relief, depth_scale, height_scale):
 
 def build_arrival_distant_ridges(landscape, *, item, prop, triangle, smooth):
     for name, crest, relief, depth, height, reach, west, east in (
-        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 45, (174, 134, 165), (211, 147, 157)),
-        ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 27, (139, 108, 149), (176, 121, 147)),
+        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 45, (161, 130, 149), (204, 151, 148)),
+        ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 31, (129, 108, 137), (173, 124, 134)),
     ):
         backdrop = item(landscape, 'Model', name)
         prop(backdrop, 'token', 'ModelStreamingMode', 2)
