@@ -81,6 +81,7 @@ from orchard_road_terraces import build_orchard_road_terraces
 from pinecrest_trail import build_pinecrest_trail
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
+from skywalk_foothill import build_skywalk_foothill
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
 from reedfall_arrival_terraces import build_reedfall_arrival_terraces
 from reedfall_crown_wayfinding import build_reedfall_crown_wayfinding
@@ -3388,6 +3389,10 @@ build_lantern_tower_ramp(relay_skyline,item=item,prop=prop,part=part,triangle=tr
                         beam=beam,path_edge=path_edge,sign=sign,lantern=arrival_hanging_lantern,
                         cedar=WOOD_PLANK,slate=SLATE,metal=METAL,cedar_variant=LANDMARK_CEDAR,
                         variant_field=MATERIAL_VARIANT_FIELD)
+build_skywalk_foothill(landscape,item=item,prop=prop,part=part,triangle=triangle,beam=beam,
+                      path_edge=path_edge,sign=sign,garden_prop=garden_prop,lantern=arrival_hanging_lantern,
+                      rock=ROCK,grass=GRASS_MAT,cedar=WOOD_PLANK,limestone=LIMESTONE,metal=METAL,
+                      rock_variant=VALLEY_ROCK,path_variant=PROMENADE_STONE,variant_field=MATERIAL_VARIANT_FIELD)
 build_relay_runner(relay,item=item,prop=prop,triangle=triangle,path_edge=path_edge,
                    slate=SLATE,limestone=LIMESTONE,stone_variant=PROMENADE_STONE,
                    slate_variant=PROMENADE_MORTAR,variant_field=MATERIAL_VARIANT_FIELD)

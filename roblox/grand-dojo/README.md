@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.226, follow the **Skywalk Peaks** road out of the Grand Dojo and turn left at the **Cedar Foothill Walk** sign. Follow the ridge to the overlook, then take the upper join back to the main road.
+
+Cedar Foothill Walk adds a signed, roughly 121-stud climb beside the Skywalk ascent. It starts near the lower fork, reaches a guarded overlook 8.52 studs high and rejoins the main road before the creek bridge. A second cedar-planted rise reaches 16.25 studs. Slate outcrops, native cedar silhouettes, and five previously used Viridian and Greenleaf meshes dress the slopes. The upper road join has slate supports. The three amber fixtures add no dynamic lights.
+
+Exact v0.226 desktop Studio walked the new path in both directions, reaching all 64 waypoints per leg with no jumps or airborne time. The Galaxy A06 landscape simulator walked the same two legs using scripted movement and showed the touch controls. Desktop also crossed the direct Skywalk cedar bridge, Mistline Crossing to Frostglass Gardens, and Cloudstep Pass to Cinder Terraces in both directions. All six districts and 14 mapped connections remain. Frame time and input on physical devices remain unverified.
+
 In v0.225, compare the sunset ridges from the normal arrival, the promenade, and the path toward Skywalk Peaks.
 
 The west summit has uneven rock ribs and shorter shoulders. A lower southern-facing shoulder runs toward Reedfall, and a broad eastern saddle joins the skyline above the ring. The rose back range and cooler mauve middle range carry separate light and shadow planes. This pass adds 960 anchored visual wedges across the two persistent backdrop models. They add no collisions, shadows, dynamic lights, or hosted assets.
