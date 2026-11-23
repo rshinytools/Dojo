@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.232, follow the **Reedfall Gallery** signs from Trophy Hall past the west overflow.
+
+Reedfall’s west overflow is wider and follows the rock shelves beside the Trophy Hall approach. Pale foam sits over the teal water at the crest and the lower garden spill. Two slate rocks frame the shoulder and landing, helping separate the water from the cliff face.
+
+Exact v0.232 Studio Play captured the updated falls from five matched desktop cameras and a Galaxy A06 landscape simulation. Both Studio configurations loaded the two rock meshes and reported moving water. Reedguard walked six route legs around the cascade, Reedfall Crown and the Cinder Gate, including the lookout ascent and descent. The City Map still reported six districts and 14 connections. Physical-device performance remains open.
+
 In v0.231, look over the cherry canopy from **Festival Plaza** and across the ridge from the **Frostglass Gardens** approach.
 
 The steep west face of the Rose horizon range moved deeper into the valley and has two lower saddles. A nearer range of asymmetric purple peaks and sloping shoulders sits in front of it. The arrival view now separates the cherry canopy, western skyline and far Rose range. A broader view of the mountains and sky opens on the Frostglass road.

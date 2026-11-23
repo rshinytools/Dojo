@@ -3253,7 +3253,8 @@ build_reedfall_arrival_terraces(falls, item=item, prop=prop, part=part, triangle
 build_reedfall_west_spill(falls, item=item, prop=prop, part=part, triangle=triangle,
                           garden_shelf=garden_shelf, garden_prop=garden_prop,
                           horizontal_water_beam=horizontal_water_beam, flow_beam=reedfall_flow_beam,
-                          slate=SLATE, grass=GRASS_MAT, glass=GLASS)
+                          vector=vector, asset=asset, slate=SLATE, grass=GRASS_MAT, glass=GLASS,
+                          rock=ROCK, rock_variant=VALLEY_ROCK, variant_field=MATERIAL_VARIANT_FIELD)
 
 # A narrow side spill crosses the green ledge in front of the eastern rock shoulder.
 # It uses static sheets while the three main curtains retain their scrolling beams.
