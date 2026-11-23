@@ -34,6 +34,20 @@ MIDDLE_CREST = (
     (1146, 192, -843), (1401, 5, -843),
 )
 
+# Lift the west summits above the blossoms and the east shoulder behind the
+# ring. The low middle of each profile leaves the painted sun visible.
+FAR_RELIEF = ((-1598, 0), (-1050, 27), (-784, 56), (-516, 76),
+              (-425, 124), (-356, 116), (-303, 177), (-236, 145),
+              (-177, 125), (-77, 177), (-4, 208), (75, 169),
+              (160, 112), (211, 96), (283, 31), (340, 0), (497, 12),
+              (650, 104), (715, 141), (793, 201), (869, 135),
+              (1015, 115), (1448, 29), (1740, 0))
+MIDDLE_RELIEF = ((-1234, 0), (-850, 26), (-590, 48), (-447, 98),
+                 (-316, 82), (-182, 163), (-133, 146), (-66, 109),
+                 (94, 61), (206, 83), (267, 55), (341, 4), (490, 12),
+                 (629, 135), (689, 146), (750, 93), (824, 118),
+                 (1070, 30), (1401, 0))
+
 
 def ridge_bands(crest, reach):
     shoulder = []
@@ -67,21 +81,27 @@ def distant_facets(crest, reach, west, east):
             yield (right, low_left, low_right), tint
 
 
-def fit_to_plaza_view(crest, depth_scale, height_scale):
-    """Keep a backdrop's bearing while bringing it inside the local valley."""
+def fit_to_plaza_view(crest, relief, depth_scale, height_scale):
+    """Keep the range's bearing and shape the visible crests before scaling."""
     arrival_z = 73
-    return tuple((x * depth_scale, y * height_scale, arrival_z + (z - arrival_z) * depth_scale)
-                 for x, y, z in crest)
+    shoulders = zip(relief, relief[1:])
+    (left, low), (right, high) = next(shoulders)
+    for x, y, z in crest:
+        while x > right:
+            (left, low), (right, high) = next(shoulders)
+        lift = low + (high - low) * (x - left) / (right - left)
+        yield x * depth_scale, (y + lift) * height_scale, arrival_z + (z - arrival_z) * depth_scale
 
 
 def build_arrival_distant_ridges(landscape, *, item, prop, triangle, smooth):
-    for name, crest, depth, height, reach, west, east in (
-        ('Rose horizon range', FAR_CREST, .365, .246, 45, (186, 144, 172), (213, 161, 173)),
-        ('Mauve saddle range', MIDDLE_CREST, .379, .254, 27, (154, 118, 154), (185, 139, 162)),
+    for name, crest, relief, depth, height, reach, west, east in (
+        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 45, (174, 134, 165), (211, 147, 157)),
+        ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 27, (139, 108, 149), (176, 121, 147)),
     ):
         backdrop = item(landscape, 'Model', name)
         prop(backdrop, 'token', 'ModelStreamingMode', 2)
         prop(backdrop, 'token', 'LevelOfDetail', 4)
-        for face, tint in distant_facets(fit_to_plaza_view(crest, depth, height), reach, west, east):
+        fitted = tuple(fit_to_plaza_view(crest, relief, depth, height))
+        for face, tint in distant_facets(fitted, reach, west, east):
             triangle(backdrop, *face, tint, name='Distant ridge facet', thickness=.28,
                      material=smooth, shadow=False)

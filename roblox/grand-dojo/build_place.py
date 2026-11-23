@@ -3995,12 +3995,38 @@ arrival_planting(plaza,15.07,62.52,.79,-1)
 arrival_planting(arrival_water,-27.76,54.60,.91,-1,wet_bank=True)
 build_arrival_bank_planting(plaza,item=item,prop=prop,beam=beam,triangle=triangle,
                             garden_prop=garden_prop,grass=LEAFY_GRASS)
+# The near end of the east bed gives the camera a ground-level frame.
+plume_bank=item(plaza,"Model","Arrival plume bank")
+prop(plume_bank,"token","ModelStreamingMode",1)
+prop(plume_bank,"token","LevelOfDetail",4)
+for top,width,depth,height,tint,material in (
+    (.40,3.88,3.32,.31,"857578",SLATE),
+    (.61,3.58,2.96,.27,"A88E82",SLATE),
+    (.76,3.32,2.68,.22,"778C40",LEAFY_GRASS),
+):
+    garden_shelf(plume_bank,10.38,top,69.12,width,depth,height,tint,material,collide=False)
+for shelf in plume_bank.findall("Item"):
+    prop(shelf,"bool","CastShadow",False)
+build_bank_stone(plume_bank,(9.85,.46,69.45),(1.62,.88,1.41),-28,
+                 triangle=triangle,prop=prop,rock=ROCK,leaf=LEAFY_GRASS,
+                 stone_variant=BANK_STONE,variant_field=MATERIAL_VARIANT_FIELD,moss=True)
+for key,x,z,scale,yaw,tint in (
+    ("meadowCover",9.63,68.50,.19,73,"9BAD54"),
+    ("meadowGrass",9.28,68.68,.19,33,"8FA54C"),
+    ("meadowGrass",9.18,69.29,.16,110,"A0AB4C"),
+    ("meadowCover",10.19,68.70,.20,118,"89A248"),
+    ("mossFlowers",10.35,69.44,.12,55,"ECB4B1"),
+    ("meadowFlowers",9.05,69.06,.24,103,"F0CC92"),
+):
+    garden_prop(plume_bank,key,(x,.75,z),scale,yaw,tint)
+build_golden_plumes(plume_bank,(9.01,.75,68.57),1.05,-1,
+                   part=part,prop=prop,beam=beam,triangle=triangle,grass=LEAFY_GRASS)
+
 # Pampas Grass by cube3D. Use just the screened render mesh and its texture.
-pampas=item(plaza,"Model","Creator Store pampas accent")
-prop(pampas,"token","ModelStreamingMode",1)
+pampas=item(plume_bank,"Model","Creator Store pampas accent")
 pampas_original=(4.0,5.56048584,3.95563745)
 pampas_size=tuple(axis*.36 for axis in pampas_original)
-tuft=part(pampas,"Cream pampas tuft",(11.76,1.02+pampas_size[1]/2,64.00),pampas_size,"A3A2A5",
+tuft=part(pampas,"Cream pampas tuft",(9.64,.75+pampas_size[1]/2,69.00),pampas_size,"A3A2A5",
           yaw=-38,collide=False,class_name="MeshPart")
 vector(tuft,"Vector3","InitialSize",("X","Y","Z"),pampas_original)
 prop(tuft,"bool","CastShadow",False)

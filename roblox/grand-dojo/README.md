@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.220, look from the **Festival Plaza** spawn toward **Trophy Hall** and the saddle above Reedfall. Follow the right-hand edge of the promenade past the new slate planter.
+
+The Grand Dojo arrival has higher rose and mauve mountain crests behind Lantern Relay, Trophy Hall and the Fighting Ring. Sharp summits and overlapping shoulders add visible depth while the saddle leaves the painted sun visible. A low slate planter brings fifteen ivory seed heads and the existing cream pampas closer to the lower-right edge of the normal spawn view.
+
+Matched desktop Studio Play captures use the same spawn camera. The event board opened Lantern Relay directions and restored the prompt when closed. Reedguard walked alongside the new bed, crossed the red bridge both ways, and followed the elevated Reedfall Crown and Kiln Ridge connection to the Cinder gate. Both ridge models and the 201-piece foreground planter rendered in the Galaxy A06 landscape simulator with touch controls. All six districts, 14 mapped links, lights, colliders and Terrain match the preceding place. Physical-device and published streaming checks remain open.
+
 In v0.219, walk toward **Trophy Hall** from Festival Plaza. Look at the projecting upper wings from **Jade Crossing** and the **Hall Garden Ramp**.
 
 Trophy Hall now has two projecting upper wings with recessed paper windows, copper-trimmed sills and long cedar rafters. The west tiles reach 5.65 studs farther toward the plaza. The east tiles extend about 4.56 studs toward the plaza and step inward beside the main Reedfall cascade and the narrow garden overflow. Both ridges rise to about 28.46 studs.
