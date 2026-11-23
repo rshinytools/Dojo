@@ -1449,6 +1449,8 @@ for name,x,z,w,d in (("West plaza foundation",(-125+cove_west)/2,-9,cove_west+12
                    ("North canal end",canal_x,-88.5,canal_width,89),
                    ("South canal end",canal_x,89.5,canal_width,51)):
     part(plaza, name, (x,-2.2,z), (w,4,d), GRASS, material=GRASS_MAT)
+hall_apron_tints = {(-3,-23): "C2A088", (3,-23): "CAA88D",
+                    (-3,-17): "B9998C", (3,-17): "BE9D8E"}
 for x in range(-87, 88, 6):
     for z in range(-71, 79, 6):
         if abs(x-canal_x)<canal_width/2 and abs(z-canal_z)<canal_length/2:
@@ -1469,7 +1471,11 @@ for x in range(-87, 88, 6):
                 if z-2.99<cove_north:
                     part(plaza,"Cove paving return",((cove_west+right)/2,-.05,(z-2.99+cove_north)/2),
                          (right-cove_west,.4,cove_north-z+2.99),tint,material=LIMESTONE)
-            part(plaza,"Sandstone paving",(tile_x,-.05,z),(tile_width,.4,5.98),tint,material=LIMESTONE)
+            apron_tint = hall_apron_tints.get((x,z))
+            paving=part(plaza,"Sandstone paving",(tile_x,-.05,z),(tile_width,.4,5.98),
+                        apron_tint or tint,material=LIMESTONE)
+            if apron_tint:
+                prop(paving,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
 walkway=item(plaza,"Folder","Hewn promenade paving")
 build_promenade(walkway)
 build_arrival_flagstone_detail(walkway,item=item,prop=prop,triangle=triangle,limestone=LIMESTONE)
@@ -2563,14 +2569,14 @@ prop(hall_treads,"token","LevelOfDetail",4)
 for index, tread in enumerate(list(hall)[stair_first:-1]):
     top=.445*(index+1)
     z=-21.76-index*1.12
-    tint=("B29A92","B59B91","AE938B","B9A198")[index%4]
+    tint=("BA9A88","C2A391","B79989","C6A894")[index%4]
     tread.find("Properties/Color3uint8[@name='Color3uint8']").text=str(0xFF000000+int(tint,16))
     prop(tread,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
     # A warm bevel highlights the rise while the original block carries every tread.
     for segment,(left,right) in enumerate(zip((-6.43,-2.76,2.94),(-2.81,2.89,6.43))):
         x=(left+right)/2
         nosing=part(hall_treads,"Sunlit hall stair edge",(x,top-.060,z+.597),
-                    (right-left,.115,.046),("CCAC98","C7A392","D1B39E")[(index+segment)%3],
+                    (right-left,.115,.046),("D5B19A","CFA88F","DBBDA4")[(index+segment)%3],
                     material=LIMESTONE,collide=False)
         prop(nosing,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
         prop(nosing,"bool","CastShadow",False)
@@ -4103,13 +4109,24 @@ garden_shelf(blossom_garden,blossom_x,.67,blossom_z,5.45,5.11,.66,"877782",SLATE
 garden_shelf(blossom_garden,blossom_x-.20,1.26,blossom_z+.15,4.79,4.37,.74,"A08D95",SLATE,collide=False)
 garden_shelf(blossom_garden,blossom_x-.14,1.49,blossom_z+.13,4.28,3.91,.32,"758B51",GRASS_MAT,collide=False)
 
-# Sakura Tree by @plentune, Creator Store model 3725991689. Reference its
-# screened trunk and textured leaves at the scale of the Relay garden.
-sakura=item(blossom_garden,"Model","Relay garden Sakura tree")
+# Set the taller blossom canopy behind the west gallery in the arrival view.
+# Sakura Tree by @plentune, Creator Store model 3725991689.
+grove=item(foreground,"Model","Trophy Hall west blossom grove")
+prop(grove,"token","ModelStreamingMode",1)
+prop(grove,"token","LevelOfDetail",4)
+sakura_x,sakura_z=-42,-38
+for dx,dz,top,width,depth,height,tint,material in (
+    (0,0,.76,5.01,4.70,.61,"877782",SLATE),
+    (-.18,.14,1.30,4.41,4.02,.68,"A08D95",SLATE),
+    (-.13,.12,1.51,3.94,3.60,.29,"758B51",GRASS_MAT),
+):
+    garden_shelf(grove,sakura_x+dx,top,sakura_z+dz,width,depth,height,tint,material,collide=False)
+sakura=item(grove,"Model","Relay garden Sakura tree")
 prop(sakura,"token","ModelStreamingMode",1)
 sakura_yaw=-31
+sakura_base=1.50
 trunk_size=(19.594587,37.661224,15.228602)
-sakura_scale=(1.07,.77,1.07)
+sakura_scale=(.9844,.77,.9844)
 
 
 def scaled_sakura_size(axes):
@@ -4117,7 +4134,7 @@ def scaled_sakura_size(axes):
 
 
 placed_trunk_size=scaled_sakura_size(trunk_size)
-trunk=part(sakura,"Sakura trunk",(blossom_x,1.48+placed_trunk_size[1]/2,blossom_z),placed_trunk_size,
+trunk=part(sakura,"Sakura trunk",(sakura_x,sakura_base+placed_trunk_size[1]/2,sakura_z),placed_trunk_size,
            "816A5D",yaw=sakura_yaw,material=SLATE,collide=False,class_name="MeshPart")
 prop(trunk,"bool","CastShadow",False)
 prop(trunk,"token","RenderFidelity",1)
@@ -4125,7 +4142,7 @@ vector(trunk,"Vector3","InitialSize",("X","Y","Z"),(6.797350,11.199409,5.221320)
 asset(trunk,"MeshContent","rbxassetid://743209096")
 leaf_offset=scaled_sakura_size((.876709,trunk_size[1]/2+7.286158,1.120193))
 leaf_x,leaf_y,leaf_z=rotate_garden_point(leaf_offset,sakura_yaw)
-leaves=part(sakura,"Sakura blossom sprays",(blossom_x+leaf_x,1.48+leaf_y,blossom_z+leaf_z),
+leaves=part(sakura,"Sakura blossom sprays",(sakura_x+leaf_x,sakura_base+leaf_y,sakura_z+leaf_z),
             scaled_sakura_size((3.344402,8.555678,3.344402)),"A3A2A5",yaw=sakura_yaw,
             material=FABRIC,collide=False,transparency=.40)
 prop(leaves,"bool","CastShadow",False)
@@ -4140,6 +4157,10 @@ for key,dx,dz,scale,yaw,tint in (
     ("meadowGrass",.53,1.16,.18,65,"ACBC6A"),
     ("meadowCover",-.87,-.92,.22,117,"A4B96A"),
     ("mossFlowers",-1.42,.60,.14,30,"DE95B0"),
+    ("bankRock",-.46,-.18,.29,28,"8E7C83"),
+    ("meadowCover",.68,-.76,.28,105,"99AB5C"),
+    ("meadowFlowers",.18,.40,.30,51,"F4BCB3"),
+    ("meadowGrass",-1.28,-.52,.23,74,"9CAA6F"),
 ):
     garden_prop(blossom_garden,key,(blossom_x+dx,1.43,blossom_z+dz),scale,yaw,tint)
 

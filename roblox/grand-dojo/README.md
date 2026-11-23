@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.230, look left of **Trophy Hall** from the default arrival, then walk up the warmer central steps. Follow Jade Crossing on the west or the garden ramp on the east.
+
+The tall Sakura moved about 45 studs to a new slate planter behind the Trophy Hall west gallery. The blue eave and paper windows are visible from the main plaza. Lower rocks and planting fill the old canal-side bed. Four forecourt paving stones and all eight stair courses use a warmer sandstone palette. The hall still has its central steps, Jade Crossing and the east garden ramp.
+
+Desktop Studio compared matched views from spawn, midway and the stair foot. Reedguard walked the east ramp and Jade Crossing in both directions, climbed the main stairs, and reached the viewing gallery. The Relay was started using the native Start relay button. Reedguard crossed all seven gates and Lantern Keeper appeared on the Hall pedestal. The two Sakura meshes and blossom texture loaded in desktop and Galaxy A06 landscape Studio simulation. The original route collision, lights, terrain and scripts passed the structured place comparison. Physical-device verification remains open.
+
 In v0.229, follow the north road into **Frostglass Gardens**, then climb to **Glacier Lantern Walk**. Look northwest through the pavilion and east along Mistline Crossing.
 
 The lower western slope of the Rose horizon range moved back from Frostglass Gardens. The original crest still frames the Grand Dojo sunset. Two snow shoulders create a lower layer around Frostglass Gate and Glacier Lantern Walk, with the existing purple ridges behind them. Only cosmetic mountain parts changed.
