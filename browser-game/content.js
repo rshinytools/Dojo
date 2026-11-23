@@ -1,0 +1,566 @@
+window.BEAST_CONTENT = {
+  "districts": [
+    {
+      "id": "valley",
+      "name": "Dojo Valley",
+      "landmark": "Grand Dojo and Reedgrove Court",
+      "arena": "Grand Bamboo Dojo",
+      "mentor": "Reed court keeper",
+      "chapter": "Find your footing",
+      "steps": [
+        "Meet the dojo mentor and learn movement.",
+        "Complete the reed-path course and lantern timing drill.",
+        "Finish a guided spar and return to the dojo."
+      ],
+      "activities": [
+        "Reed-path parkour",
+        "Lantern timing drill"
+      ],
+      "secret": "Three tucked-away reed seals",
+      "mastery": "Reed-path expert course"
+    },
+    {
+      "id": "coast",
+      "name": "Tideharbor Coast",
+      "landmark": "Harbor paths, tide pools and shipwreck overlook",
+      "arena": "Sunken Pirate Galleon",
+      "mentor": "Harbor instructor",
+      "chapter": "Restore the harbor route",
+      "steps": [
+        "Find the harbor instructor and activate the shore marker.",
+        "Carry training parcels across the tide-path route.",
+        "Complete the harbor practice encounter and report back."
+      ],
+      "activities": [
+        "Tide-path traversal",
+        "Harbor delivery route"
+      ],
+      "secret": "Three hidden tide seals",
+      "mastery": "Tide-path expert course"
+    },
+    {
+      "id": "cinder",
+      "name": "Cinder Terraces",
+      "landmark": "Kiln workshops, steam lifts and ceramic gardens",
+      "arena": "Molten Caldera",
+      "mentor": "Kiln workshop keeper",
+      "chapter": "Set the workshop right",
+      "steps": [
+        "Meet the keeper and inspect three marked vents.",
+        "Solve the bellows timing puzzle to restore the lift.",
+        "Complete the workshop spar and return the repaired training tile."
+      ],
+      "activities": [
+        "Bellows timing puzzle",
+        "Steam-lift ascent"
+      ],
+      "secret": "Three hidden kiln seals",
+      "mastery": "Steam-lift expert course"
+    },
+    {
+      "id": "sky",
+      "name": "Skywalk Peaks",
+      "landmark": "Wind bridges, cliff paths and the cloud temple",
+      "arena": "Cloud-Top Temple",
+      "mentor": "Wind-court instructor",
+      "chapter": "Reconnect the wind courts",
+      "steps": [
+        "Reach the wind court using its marked accessible route.",
+        "Activate the bridge switches through a movement challenge.",
+        "Complete the temple practice encounter and reconnect the route."
+      ],
+      "activities": [
+        "Wind-bridge course",
+        "Chime sequence puzzle"
+      ],
+      "secret": "Three hidden wind seals",
+      "mastery": "Wind-bridge expert course"
+    },
+    {
+      "id": "frost",
+      "name": "Frostglass Gardens",
+      "landmark": "Ice gardens, warm shelters and frozen ponds",
+      "arena": "Glacial Ice Floe",
+      "mentor": "Garden caretaker",
+      "chapter": "Bring the garden to life",
+      "steps": [
+        "Find the caretaker and survey three garden markers.",
+        "Complete the sliding course and light puzzle.",
+        "Finish the garden training trial and report back."
+      ],
+      "activities": [
+        "Ice-slide course",
+        "Reflector light puzzle"
+      ],
+      "secret": "Three hidden frost seals",
+      "mastery": "Ice-slide expert course"
+    },
+    {
+      "id": "circuit",
+      "name": "Lantern Circuit",
+      "landmark": "Neon courtyards, rooftop paths and a night market",
+      "arena": "Cyber Neon Arena",
+      "mentor": "Circuit instructor",
+      "chapter": "Light the circuit",
+      "steps": [
+        "Meet the instructor and discover the rooftop route.",
+        "Complete a signal-routing puzzle and delivery challenge.",
+        "Finish the circuit practice encounter and open the night display."
+      ],
+      "activities": [
+        "Rooftop delivery route",
+        "Signal-routing puzzle"
+      ],
+      "secret": "Three hidden circuit seals",
+      "mastery": "Rooftop expert course"
+    }
+  ],
+  "trophies": [
+    {
+      "id": "journey-01",
+      "name": "First Footing",
+      "category": "Journey",
+      "criterion": "Complete the introductory mentor quest, not simply the first login."
+    },
+    {
+      "id": "journey-02",
+      "name": "A Chapter Begins",
+      "category": "Journey",
+      "criterion": "Complete the three-step Dojo Valley mentor chapter."
+    },
+    {
+      "id": "journey-03",
+      "name": "Six Horizons",
+      "category": "Journey",
+      "criterion": "Discover the arrival checkpoint in all six districts."
+    },
+    {
+      "id": "journey-04",
+      "name": "A New Form",
+      "category": "Journey",
+      "criterion": "Complete the first server-confirmed fighter evolution."
+    },
+    {
+      "id": "journey-05",
+      "name": "Mentors Remember",
+      "category": "Journey",
+      "criterion": "Complete all six mentor chapters."
+    },
+    {
+      "id": "journey-06",
+      "name": "Dojo Graduate",
+      "category": "Journey",
+      "criterion": "Complete the graduation quest after the six mentor chapters."
+    },
+    {
+      "id": "discovery-valley",
+      "name": "Dojo Valley Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Dojo Valley."
+    },
+    {
+      "id": "discovery-coast",
+      "name": "Tideharbor Coast Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Tideharbor Coast."
+    },
+    {
+      "id": "discovery-cinder",
+      "name": "Cinder Terraces Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Cinder Terraces."
+    },
+    {
+      "id": "discovery-sky",
+      "name": "Skywalk Peaks Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Skywalk Peaks."
+    },
+    {
+      "id": "discovery-frost",
+      "name": "Frostglass Gardens Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Frostglass Gardens."
+    },
+    {
+      "id": "discovery-circuit",
+      "name": "Lantern Circuit Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Lantern Circuit."
+    },
+    {
+      "id": "mastery-valley",
+      "name": "Dojo Valley Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Reed-path expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-coast",
+      "name": "Tideharbor Coast Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Tide-path expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-cinder",
+      "name": "Cinder Terraces Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Steam-lift expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-sky",
+      "name": "Skywalk Peaks Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Wind-bridge expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-frost",
+      "name": "Frostglass Gardens Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Ice-slide expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-circuit",
+      "name": "Lantern Circuit Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Rooftop expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "arena-01",
+      "name": "First Duel",
+      "category": "Arena",
+      "criterion": "Win one eligible completed duel."
+    },
+    {
+      "id": "arena-02",
+      "name": "Ring Reader",
+      "category": "Arena",
+      "criterion": "Finish in the top three of an eligible eight-player brawl."
+    },
+    {
+      "id": "arena-03",
+      "name": "Tag Partners",
+      "category": "Arena",
+      "criterion": "Win one eligible tag-team match."
+    },
+    {
+      "id": "arena-04",
+      "name": "Ten Duels",
+      "category": "Arena",
+      "criterion": "Win ten eligible duels; duplicate result IDs never increment the counter."
+    },
+    {
+      "id": "arena-05",
+      "name": "Steady Guard",
+      "category": "Arena",
+      "criterion": "Perform ten server-validated parries across eligible completed encounters."
+    },
+    {
+      "id": "arena-06",
+      "name": "Ring Veteran",
+      "category": "Arena",
+      "criterion": "Complete twenty eligible arena matches with participation evidence."
+    },
+    {
+      "id": "world-01",
+      "name": "Kiln Keeper",
+      "category": "World challenges",
+      "criterion": "Earn participation credit for clearing the Kilnback Custodian encounter."
+    },
+    {
+      "id": "world-02",
+      "name": "Deepwater Team",
+      "category": "World challenges",
+      "criterion": "Earn participation credit for clearing the Abyssal Kraken encounter."
+    },
+    {
+      "id": "world-03",
+      "name": "Dawn Return",
+      "category": "World challenges",
+      "criterion": "Earn participation credit for clearing the Solar Phoenix encounter."
+    },
+    {
+      "id": "world-04",
+      "name": "Lantern Keeper",
+      "category": "World challenges",
+      "criterion": "Complete one Lantern Relay world event with validated participation."
+    },
+    {
+      "id": "world-05",
+      "name": "Festival Regular",
+      "category": "World challenges",
+      "criterion": "Complete three Training Festival activities with unique valid completion IDs."
+    },
+    {
+      "id": "world-06",
+      "name": "World Champion",
+      "category": "World challenges",
+      "criterion": "Earn all three boss-clear trophies and both world-event trophies in this category."
+    }
+  ],
+  "fighters": [
+    {
+      "id": 0,
+      "name": "Reedguard Kangaroo",
+      "element": "Land",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 1000,
+      "attack": 100,
+      "speed": 18,
+      "ultimate": "Reedstep Rising"
+    },
+    {
+      "id": 1,
+      "name": "Karate Frog",
+      "element": "Land",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 950,
+      "attack": 95,
+      "speed": 19,
+      "ultimate": "Tadpole Tornado"
+    },
+    {
+      "id": 2,
+      "name": "Silverback Gorilla",
+      "element": "Land",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1350,
+      "attack": 115,
+      "speed": 15,
+      "ultimate": "Seismic Chest-Pound"
+    },
+    {
+      "id": 3,
+      "name": "Snapping Tortoise",
+      "element": "Land",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1400,
+      "attack": 105,
+      "speed": 14,
+      "ultimate": "Fortress Ricochet"
+    },
+    {
+      "id": 4,
+      "name": "Honey Badger",
+      "element": "Land",
+      "rarity": "Epic",
+      "role": "Beast",
+      "hp": 1150,
+      "attack": 125,
+      "speed": 18,
+      "ultimate": "Unstoppable Frenzy"
+    },
+    {
+      "id": 5,
+      "name": "Emerald Saber-Tooth",
+      "element": "Land",
+      "rarity": "Legendary",
+      "role": "Beast",
+      "hp": 1200,
+      "attack": 135,
+      "speed": 20,
+      "ultimate": "Apex Pounce"
+    },
+    {
+      "id": 6,
+      "name": "Penguin Brawler",
+      "element": "Aquatic",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 980,
+      "attack": 95,
+      "speed": 19,
+      "ultimate": "Belly-Slide Blitz"
+    },
+    {
+      "id": 7,
+      "name": "River Otter",
+      "element": "Aquatic",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 960,
+      "attack": 100,
+      "speed": 19,
+      "ultimate": "Pebble Barrage"
+    },
+    {
+      "id": 8,
+      "name": "Pistol Shrimp",
+      "element": "Aquatic",
+      "rarity": "Rare",
+      "role": "Agile",
+      "hp": 940,
+      "attack": 120,
+      "speed": 18,
+      "ultimate": "Cavitation Cannon"
+    },
+    {
+      "id": 9,
+      "name": "Walrus Sumo",
+      "element": "Aquatic",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1420,
+      "attack": 110,
+      "speed": 14,
+      "ultimate": "Tidal Belly-Flop"
+    },
+    {
+      "id": 10,
+      "name": "Great White Shark",
+      "element": "Aquatic",
+      "rarity": "Epic",
+      "role": "Beast",
+      "hp": 1180,
+      "attack": 130,
+      "speed": 19,
+      "ultimate": "Jaws of the Deep"
+    },
+    {
+      "id": 11,
+      "name": "Abyssal Kraken",
+      "element": "Aquatic",
+      "rarity": "Mythic",
+      "role": "Heavy",
+      "hp": 1500,
+      "attack": 135,
+      "speed": 16,
+      "ultimate": "Tentacle Cataclysm"
+    },
+    {
+      "id": 12,
+      "name": "Fire Salamander",
+      "element": "Magma",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 960,
+      "attack": 105,
+      "speed": 19,
+      "ultimate": "Magma Trail"
+    },
+    {
+      "id": 13,
+      "name": "Desert Scorpion",
+      "element": "Magma",
+      "rarity": "Common",
+      "role": "Beast",
+      "hp": 1020,
+      "attack": 105,
+      "speed": 18,
+      "ultimate": "Cinder Snare"
+    },
+    {
+      "id": 14,
+      "name": "Armadillo Striker",
+      "element": "Magma",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1320,
+      "attack": 115,
+      "speed": 16,
+      "ultimate": "Meteor Roll"
+    },
+    {
+      "id": 15,
+      "name": "Komodo Dragon",
+      "element": "Magma",
+      "rarity": "Rare",
+      "role": "Beast",
+      "hp": 1150,
+      "attack": 120,
+      "speed": 17,
+      "ultimate": "Volcanic Breath"
+    },
+    {
+      "id": 16,
+      "name": "Magma Grizzly Bear",
+      "element": "Magma",
+      "rarity": "Epic",
+      "role": "Heavy",
+      "hp": 1400,
+      "attack": 125,
+      "speed": 15,
+      "ultimate": "Eruption Slam"
+    },
+    {
+      "id": 17,
+      "name": "Obsidian Hellhound",
+      "element": "Magma",
+      "rarity": "Legendary",
+      "role": "Beast",
+      "hp": 1180,
+      "attack": 140,
+      "speed": 20,
+      "ultimate": "Hellfire Stampede"
+    },
+    {
+      "id": 18,
+      "name": "Rooster Kickboxer",
+      "element": "Sky",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 950,
+      "attack": 105,
+      "speed": 19,
+      "ultimate": "Feather Flurry"
+    },
+    {
+      "id": 19,
+      "name": "Sugar Glider",
+      "element": "Sky",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 920,
+      "attack": 95,
+      "speed": 20,
+      "ultimate": "Gust Vortex"
+    },
+    {
+      "id": 20,
+      "name": "Electric Owl",
+      "element": "Sky",
+      "rarity": "Rare",
+      "role": "Agile",
+      "hp": 980,
+      "attack": 120,
+      "speed": 19,
+      "ultimate": "Thunder Dive"
+    },
+    {
+      "id": 21,
+      "name": "Bighorn Ram",
+      "element": "Sky",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1340,
+      "attack": 115,
+      "speed": 16,
+      "ultimate": "Static Charge"
+    },
+    {
+      "id": 22,
+      "name": "Golden Eagle",
+      "element": "Sky",
+      "rarity": "Epic",
+      "role": "Beast",
+      "hp": 1120,
+      "attack": 125,
+      "speed": 20,
+      "ultimate": "Talon Drop"
+    },
+    {
+      "id": 23,
+      "name": "Celestial Storm Dragon",
+      "element": "Sky",
+      "rarity": "Mythic",
+      "role": "Heavy",
+      "hp": 1480,
+      "attack": 140,
+      "speed": 17,
+      "ultimate": "Tempest Roar"
+    }
+  ]
+};

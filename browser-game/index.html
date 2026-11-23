@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#132b29"><title>Beast Dojo</title><link rel="stylesheet" href="game.css">
+<script defer src="content.js"></script><script defer src="engine.js"></script><script defer src="art.js"></script><script defer src="game.js"></script></head>
+<body><main id="game" aria-label="Beast Dojo browser edition">
+<canvas id="world" aria-label="Playable dojo world"></canvas><div class="vignette"></div>
+<header id="hud" hidden><div class="identity"><span class="crest">BD</span><div><strong id="fighter-name"></strong><small id="fighter-level"></small><div class="xp-track"><div id="fighter-xp"></div></div></div></div><div class="balances"><span id="coins"></span><span id="trophy-count"></span><span id="save-state" role="status"></span></div></header>
+<section id="objective" hidden aria-label="Current objective"><small id="location"></small><strong id="objective-name"></strong><span id="objective-detail"></span></section>
+<nav id="menu" hidden aria-label="Game menus">
+<button data-panel="map">Map <kbd>M</kbd></button><button data-panel="journal">Journal <kbd>Q</kbd></button><button data-panel="fighters">Fighters <kbd>F</kbd></button><button data-panel="trophies">Trophies <kbd>T</kbd></button><button data-panel="arena" class="arena-menu">Arena <kbd>B</kbd></button><button data-panel="settings">Settings <kbd>Esc</kbd></button>
+</nav>
+<header id="showroom" hidden><div><strong>Trophy Room</strong><small>Sample display · 6 pedestals</small></div><a href="?play=1">Back to game</a></header>
+<ol id="showroom-awards" hidden aria-label="Trophies in the sample room"></ol>
+<div id="combat" hidden></div><div id="activity" hidden aria-live="polite"></div><div id="toast" hidden role="status"></div>
+<button id="interact" hidden></button><div id="desktop-keys" hidden></div>
+<div id="touch" hidden><div id="stick" aria-label="Drag to move"><i></i></div><div class="touch-actions">
+<button data-touch="dash">Dash</button><button data-touch="guard">Guard</button><button data-touch="ultimate">Signature</button><button data-touch="skill">Skill</button><button data-touch="attack">Strike</button>
+</div></div>
+<div id="overlay" hidden><section id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title"></section></div>
+<section id="title-screen"><div class="title-wash"></div><div class="title-content">
+<span class="title-kicker">GRAND DOJO ADVENTURES</span><h1>BEAST<br><em>DOJO</em></h1><p>Explore the valley. Master your style.<br>Bring your victories home.</p>
+<button id="start" class="primary">Enter the dojo</button><button id="controls">Controls</button><div class="edition">Browser edition · Single player</div>
+</div><div class="title-location">◆ GRAND DOJO <small>Dojo Valley</small></div></section>
+<noscript>Enable JavaScript to play Beast Dojo.</noscript></main></body></html>

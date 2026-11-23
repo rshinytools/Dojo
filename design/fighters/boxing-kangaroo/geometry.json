@@ -1,0 +1,1195 @@
+{
+  "name": "Reedguard Kangaroo",
+  "stage": "Original identity inspection prototype v2",
+  "forward": "-Z",
+  "notes": "Shared primitive geometry; browser lighting is illustrative. Not yet tested in Roblox Studio.",
+  "groups": [
+    {
+      "name": "Torso",
+      "parent": null,
+      "pivot": [
+        0,
+        2.6,
+        0
+      ]
+    },
+    {
+      "name": "Head",
+      "parent": "Torso",
+      "pivot": [
+        0,
+        1.15,
+        0
+      ]
+    },
+    {
+      "name": "Right Arm",
+      "parent": "Torso",
+      "pivot": [
+        1.0,
+        0.7,
+        0
+      ]
+    },
+    {
+      "name": "Left Arm",
+      "parent": "Torso",
+      "pivot": [
+        -1.0,
+        0.7,
+        0
+      ]
+    },
+    {
+      "name": "Right Leg",
+      "parent": "Torso",
+      "pivot": [
+        0.57,
+        -0.9,
+        0
+      ]
+    },
+    {
+      "name": "Left Leg",
+      "parent": "Torso",
+      "pivot": [
+        -0.57,
+        -0.9,
+        0
+      ]
+    },
+    {
+      "name": "Tail",
+      "parent": "Torso",
+      "pivot": [
+        0,
+        -0.65,
+        0.45
+      ]
+    }
+  ],
+  "parts": [
+    {
+      "name": "Torso",
+      "group": "Torso",
+      "size": [
+        1.75,
+        2.1,
+        1.24
+      ],
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": true
+    },
+    {
+      "name": "Chest",
+      "group": "Torso",
+      "size": [
+        1.5,
+        0.9,
+        1.23
+      ],
+      "position": [
+        0,
+        0.5,
+        -0.05
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Belly",
+      "group": "Torso",
+      "size": [
+        1.28,
+        1.55,
+        0.32
+      ],
+      "position": [
+        0,
+        -0.15,
+        -0.61
+      ],
+      "color": "#F2D9A5",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Abdomen patch",
+      "group": "Torso",
+      "size": [
+        0.86,
+        0.52,
+        0.08
+      ],
+      "position": [
+        0,
+        -0.48,
+        -0.67
+      ],
+      "color": "#D9B983",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Belt",
+      "group": "Torso",
+      "size": [
+        1.62,
+        0.25,
+        1.18
+      ],
+      "position": [
+        0,
+        -0.83,
+        0
+      ],
+      "color": "#237E78",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Belt knot",
+      "group": "Torso",
+      "size": [
+        0.32,
+        0.32,
+        0.24
+      ],
+      "position": [
+        0,
+        -0.83,
+        -0.67
+      ],
+      "color": "#36BFA8",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Belt end A",
+      "group": "Torso",
+      "size": [
+        0.17,
+        0.62,
+        0.12
+      ],
+      "position": [
+        -0.11,
+        -1.08,
+        -0.68
+      ],
+      "color": "#237E78",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        -0.18
+      ],
+      "core": false
+    },
+    {
+      "name": "Belt end B",
+      "group": "Torso",
+      "size": [
+        0.17,
+        0.47,
+        0.12
+      ],
+      "position": [
+        0.13,
+        -1.01,
+        -0.69
+      ],
+      "color": "#36BFA8",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0.23
+      ],
+      "core": false
+    },
+    {
+      "name": "Head",
+      "group": "Head",
+      "size": [
+        1.38,
+        1.35,
+        1.13
+      ],
+      "position": [
+        0,
+        0.35,
+        0
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": true
+    },
+    {
+      "name": "Muzzle",
+      "group": "Head",
+      "size": [
+        1.03,
+        0.66,
+        0.86
+      ],
+      "position": [
+        0,
+        0.06,
+        -0.65
+      ],
+      "color": "#F2D9A5",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Nose",
+      "group": "Head",
+      "size": [
+        0.4,
+        0.24,
+        0.24
+      ],
+      "position": [
+        0,
+        0.18,
+        -1.04
+      ],
+      "color": "#192D32",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Mouth",
+      "group": "Head",
+      "size": [
+        0.42,
+        0.045,
+        0.07
+      ],
+      "position": [
+        0,
+        -0.14,
+        -1.04
+      ],
+      "color": "#754A2D",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right ear",
+      "group": "Head",
+      "size": [
+        0.43,
+        1.62,
+        0.34
+      ],
+      "position": [
+        0.47,
+        1.45,
+        0.04
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        -0.19
+      ],
+      "core": false
+    },
+    {
+      "name": "Right inner ear",
+      "group": "Head",
+      "size": [
+        0.23,
+        1.23,
+        0.105
+      ],
+      "position": [
+        0.49,
+        1.46,
+        -0.13
+      ],
+      "color": "#BD775F",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        -0.19
+      ],
+      "core": false
+    },
+    {
+      "name": "Right eye white",
+      "group": "Head",
+      "size": [
+        0.27,
+        0.35,
+        0.13
+      ],
+      "position": [
+        0.36,
+        0.46,
+        -0.52
+      ],
+      "color": "#FFF5DF",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right eye",
+      "group": "Head",
+      "size": [
+        0.16,
+        0.24,
+        0.105
+      ],
+      "position": [
+        0.35,
+        0.45,
+        -0.6
+      ],
+      "color": "#192D32",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right eye shine",
+      "group": "Head",
+      "size": [
+        0.05,
+        0.065,
+        0.025
+      ],
+      "position": [
+        0.33,
+        0.51,
+        -0.653
+      ],
+      "color": "#FFF5DF",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right brow",
+      "group": "Head",
+      "size": [
+        0.38,
+        0.105,
+        0.13
+      ],
+      "position": [
+        0.36,
+        0.7,
+        -0.51
+      ],
+      "color": "#754A2D",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0.19
+      ],
+      "core": false
+    },
+    {
+      "name": "Right Arm",
+      "group": "Right Arm",
+      "size": [
+        0.68,
+        1.17,
+        0.71
+      ],
+      "position": [
+        0.16,
+        -0.46,
+        0.01
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0.21
+      ],
+      "core": true
+    },
+    {
+      "name": "Right forearm",
+      "group": "Right Arm",
+      "size": [
+        0.59,
+        0.63,
+        1.02
+      ],
+      "position": [
+        0.2,
+        -0.49,
+        -0.36
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        -0.48,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right cuff",
+      "group": "Right Arm",
+      "size": [
+        0.68,
+        0.45,
+        0.65
+      ],
+      "position": [
+        0.2,
+        -0.22,
+        -0.67
+      ],
+      "color": "#187D79",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right wrapped fist",
+      "group": "Right Arm",
+      "size": [
+        0.78,
+        0.66,
+        0.83
+      ],
+      "position": [
+        0.2,
+        0.09,
+        -0.88
+      ],
+      "color": "#36BFA8",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right thumb",
+      "group": "Right Arm",
+      "size": [
+        0.3,
+        0.43,
+        0.48
+      ],
+      "position": [
+        -0.14,
+        -0.02,
+        -0.82
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right wrap stripe",
+      "group": "Right Arm",
+      "size": [
+        0.7,
+        0.1,
+        0.67
+      ],
+      "position": [
+        0.2,
+        -0.25,
+        -0.68
+      ],
+      "color": "#F2D9A5",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right Leg",
+      "group": "Right Leg",
+      "size": [
+        0.91,
+        1.43,
+        1.02
+      ],
+      "position": [
+        0,
+        -0.45,
+        0.1
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        -0.12,
+        0,
+        0
+      ],
+      "core": true
+    },
+    {
+      "name": "Right ankle",
+      "group": "Right Leg",
+      "size": [
+        0.55,
+        0.69,
+        0.58
+      ],
+      "position": [
+        0,
+        -1.03,
+        -0.11
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right foot",
+      "group": "Right Leg",
+      "size": [
+        0.77,
+        0.49,
+        1.72
+      ],
+      "position": [
+        0,
+        -1.43,
+        -0.45
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Right toe",
+      "group": "Right Leg",
+      "size": [
+        0.65,
+        0.24,
+        0.57
+      ],
+      "position": [
+        0,
+        -1.49,
+        -1.04
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left ear",
+      "group": "Head",
+      "size": [
+        0.43,
+        1.2,
+        0.34
+      ],
+      "position": [
+        -0.47,
+        1.2,
+        0.04
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0.44
+      ],
+      "core": false
+    },
+    {
+      "name": "Left inner ear",
+      "group": "Head",
+      "size": [
+        0.23,
+        0.86,
+        0.105
+      ],
+      "position": [
+        -0.49,
+        1.2,
+        -0.13
+      ],
+      "color": "#BD775F",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0.44
+      ],
+      "core": false
+    },
+    {
+      "name": "Left eye white",
+      "group": "Head",
+      "size": [
+        0.27,
+        0.35,
+        0.13
+      ],
+      "position": [
+        -0.36,
+        0.46,
+        -0.52
+      ],
+      "color": "#FFF5DF",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left eye",
+      "group": "Head",
+      "size": [
+        0.16,
+        0.24,
+        0.105
+      ],
+      "position": [
+        -0.35,
+        0.45,
+        -0.6
+      ],
+      "color": "#192D32",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left eye shine",
+      "group": "Head",
+      "size": [
+        0.05,
+        0.065,
+        0.025
+      ],
+      "position": [
+        -0.33,
+        0.51,
+        -0.653
+      ],
+      "color": "#FFF5DF",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left brow",
+      "group": "Head",
+      "size": [
+        0.38,
+        0.105,
+        0.13
+      ],
+      "position": [
+        -0.36,
+        0.7,
+        -0.51
+      ],
+      "color": "#754A2D",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        -0.19
+      ],
+      "core": false
+    },
+    {
+      "name": "Left Arm",
+      "group": "Left Arm",
+      "size": [
+        0.68,
+        1.17,
+        0.71
+      ],
+      "position": [
+        -0.16,
+        -0.46,
+        0.01
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        -0.21
+      ],
+      "core": true
+    },
+    {
+      "name": "Left forearm",
+      "group": "Left Arm",
+      "size": [
+        0.59,
+        0.63,
+        1.02
+      ],
+      "position": [
+        -0.2,
+        -0.49,
+        -0.36
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        -0.48,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left cuff",
+      "group": "Left Arm",
+      "size": [
+        0.68,
+        0.45,
+        0.65
+      ],
+      "position": [
+        -0.2,
+        -0.22,
+        -0.67
+      ],
+      "color": "#187D79",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left wrapped fist",
+      "group": "Left Arm",
+      "size": [
+        0.78,
+        0.66,
+        0.83
+      ],
+      "position": [
+        -0.2,
+        0.09,
+        -0.88
+      ],
+      "color": "#36BFA8",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left thumb",
+      "group": "Left Arm",
+      "size": [
+        0.3,
+        0.43,
+        0.48
+      ],
+      "position": [
+        0.14,
+        -0.02,
+        -0.82
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left wrap stripe",
+      "group": "Left Arm",
+      "size": [
+        0.7,
+        0.1,
+        0.67
+      ],
+      "position": [
+        -0.2,
+        -0.25,
+        -0.68
+      ],
+      "color": "#F2D9A5",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left Leg",
+      "group": "Left Leg",
+      "size": [
+        0.91,
+        1.43,
+        1.02
+      ],
+      "position": [
+        0,
+        -0.45,
+        0.1
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        -0.12,
+        0,
+        0
+      ],
+      "core": true
+    },
+    {
+      "name": "Left ankle",
+      "group": "Left Leg",
+      "size": [
+        0.55,
+        0.69,
+        0.58
+      ],
+      "position": [
+        0,
+        -1.03,
+        -0.11
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left foot",
+      "group": "Left Leg",
+      "size": [
+        0.77,
+        0.49,
+        1.72
+      ],
+      "position": [
+        0,
+        -1.43,
+        -0.45
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Left toe",
+      "group": "Left Leg",
+      "size": [
+        0.65,
+        0.24,
+        0.57
+      ],
+      "position": [
+        0,
+        -1.49,
+        -1.04
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Reed shoulder guard",
+      "group": "Right Arm",
+      "size": [
+        0.84,
+        0.33,
+        0.8
+      ],
+      "position": [
+        0.1,
+        -0.04,
+        0.08
+      ],
+      "color": "#187D79",
+      "shape": "Block",
+      "rotation": [
+        0,
+        0,
+        0.12
+      ],
+      "core": false
+    },
+    {
+      "name": "Reed brace 1",
+      "group": "Right Arm",
+      "size": [
+        0.14,
+        0.56,
+        0.16
+      ],
+      "position": [
+        0.49,
+        -0.38,
+        -0.23
+      ],
+      "color": "#D9B983",
+      "shape": "Block",
+      "rotation": [
+        -0.48,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Reed brace 2",
+      "group": "Right Arm",
+      "size": [
+        0.14,
+        0.56,
+        0.16
+      ],
+      "position": [
+        0.49,
+        -0.38,
+        -0.42000000000000004
+      ],
+      "color": "#D9B983",
+      "shape": "Block",
+      "rotation": [
+        -0.48,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Reed brace 3",
+      "group": "Right Arm",
+      "size": [
+        0.14,
+        0.56,
+        0.16
+      ],
+      "position": [
+        0.49,
+        -0.38,
+        -0.61
+      ],
+      "color": "#D9B983",
+      "shape": "Block",
+      "rotation": [
+        -0.48,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Tail",
+      "group": "Tail",
+      "size": [
+        0.72,
+        1.52,
+        0.79
+      ],
+      "position": [
+        0,
+        -0.48,
+        0.48
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        -0.66,
+        0,
+        0
+      ],
+      "core": true
+    },
+    {
+      "name": "Tail middle",
+      "group": "Tail",
+      "size": [
+        0.49,
+        0.62,
+        1.44
+      ],
+      "position": [
+        0,
+        -1.02,
+        1.35
+      ],
+      "color": "#BA793E",
+      "shape": "Ball",
+      "rotation": [
+        0.22,
+        0,
+        0
+      ],
+      "core": false
+    },
+    {
+      "name": "Tail tip",
+      "group": "Tail",
+      "size": [
+        0.28,
+        0.34,
+        0.99
+      ],
+      "position": [
+        0,
+        -1.22,
+        2.24
+      ],
+      "color": "#D89A55",
+      "shape": "Ball",
+      "rotation": [
+        0.12,
+        0,
+        0
+      ],
+      "core": false
+    }
+  ]
+}

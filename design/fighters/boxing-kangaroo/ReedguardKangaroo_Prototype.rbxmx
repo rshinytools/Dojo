@@ -1,0 +1,2188 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <External>null</External>
+  <External>nil</External>
+  <Item class="Model" referent="KANGAROO_MODEL">
+    <Properties>
+      <string name="Name">ReedguardKangaroo_Prototype</string>
+      <Ref name="PrimaryPart">KANGAROO_ROOT</Ref>
+    </Properties>
+    <Item class="Part" referent="KANGAROO_ROOT">
+      <Properties>
+        <string name="Name">HumanoidRootPart</string>
+        <Vector3 name="size">
+          <X>2</X>
+          <Y>2</Y>
+          <Z>1</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.6</Y>
+          <Z>0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <float name="Transparency">1</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_0">
+      <Properties>
+        <string name="Name">Torso</string>
+        <Vector3 name="size">
+          <X>1.75</X>
+          <Y>2.1</Y>
+          <Z>1.24</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.6</Y>
+          <Z>0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_1">
+      <Properties>
+        <string name="Name">Chest</string>
+        <Vector3 name="size">
+          <X>1.5</X>
+          <Y>0.9</Y>
+          <Z>1.23</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>3.1</Y>
+          <Z>-0.05</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_2">
+      <Properties>
+        <string name="Name">Belly</string>
+        <Vector3 name="size">
+          <X>1.28</X>
+          <Y>1.55</Y>
+          <Z>0.32</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.45</Y>
+          <Z>-0.61</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294105509</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_3">
+      <Properties>
+        <string name="Name">Abdomen patch</string>
+        <Vector3 name="size">
+          <X>0.86</X>
+          <Y>0.52</Y>
+          <Z>0.08</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.12</Y>
+          <Z>-0.67</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292458883</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_4">
+      <Properties>
+        <string name="Name">Belt</string>
+        <Vector3 name="size">
+          <X>1.62</X>
+          <Y>0.25</Y>
+          <Z>1.18</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.77</Y>
+          <Z>0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4280516216</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_5">
+      <Properties>
+        <string name="Name">Belt knot</string>
+        <Vector3 name="size">
+          <X>0.32</X>
+          <Y>0.32</Y>
+          <Z>0.24</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.77</Y>
+          <Z>-0.67</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4281778088</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_6">
+      <Properties>
+        <string name="Name">Belt end A</string>
+        <Vector3 name="size">
+          <X>0.17</X>
+          <Y>0.62</Y>
+          <Z>0.12</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.11</X>
+          <Y>1.52</Y>
+          <Z>-0.68</Z>
+          <R00>0.98384369</R00>
+          <R01>0.17902957</R01>
+          <R02>0.0</R02>
+          <R10>-0.17902957</R10>
+          <R11>0.98384369</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4280516216</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_7">
+      <Properties>
+        <string name="Name">Belt end B</string>
+        <Vector3 name="size">
+          <X>0.17</X>
+          <Y>0.47</Y>
+          <Z>0.12</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.13</X>
+          <Y>1.59</Y>
+          <Z>-0.69</Z>
+          <R00>0.9736664</R00>
+          <R01>-0.22797752</R01>
+          <R02>0.0</R02>
+          <R10>0.22797752</R10>
+          <R11>0.9736664</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4281778088</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_8">
+      <Properties>
+        <string name="Name">Head</string>
+        <Vector3 name="size">
+          <X>1.38</X>
+          <Y>1.35</Y>
+          <Z>1.13</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>4.1</Y>
+          <Z>0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_9">
+      <Properties>
+        <string name="Name">Muzzle</string>
+        <Vector3 name="size">
+          <X>1.03</X>
+          <Y>0.66</Y>
+          <Z>0.86</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>3.81</Y>
+          <Z>-0.65</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294105509</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_10">
+      <Properties>
+        <string name="Name">Nose</string>
+        <Vector3 name="size">
+          <X>0.4</X>
+          <Y>0.24</Y>
+          <Z>0.24</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>3.93</Y>
+          <Z>-1.04</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4279840050</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_11">
+      <Properties>
+        <string name="Name">Mouth</string>
+        <Vector3 name="size">
+          <X>0.42</X>
+          <Y>0.045</Y>
+          <Z>0.07</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>3.61</Y>
+          <Z>-1.04</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4285876781</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_12">
+      <Properties>
+        <string name="Name">Right ear</string>
+        <Vector3 name="size">
+          <X>0.43</X>
+          <Y>1.62</Y>
+          <Z>0.34</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.47</X>
+          <Y>5.2</Y>
+          <Z>0.04</Z>
+          <R00>0.98200424</R00>
+          <R01>0.18885889</R01>
+          <R02>0.0</R02>
+          <R10>-0.18885889</R10>
+          <R11>0.98200424</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_13">
+      <Properties>
+        <string name="Name">Right inner ear</string>
+        <Vector3 name="size">
+          <X>0.23</X>
+          <Y>1.23</Y>
+          <Z>0.105</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.49</X>
+          <Y>5.21</Y>
+          <Z>-0.13</Z>
+          <R00>0.98200424</R00>
+          <R01>0.18885889</R01>
+          <R02>0.0</R02>
+          <R10>-0.18885889</R10>
+          <R11>0.98200424</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290606943</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_14">
+      <Properties>
+        <string name="Name">Right eye white</string>
+        <Vector3 name="size">
+          <X>0.27</X>
+          <Y>0.35</Y>
+          <Z>0.13</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.36</X>
+          <Y>4.21</Y>
+          <Z>-0.52</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294964703</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_15">
+      <Properties>
+        <string name="Name">Right eye</string>
+        <Vector3 name="size">
+          <X>0.16</X>
+          <Y>0.24</Y>
+          <Z>0.105</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.35</X>
+          <Y>4.2</Y>
+          <Z>-0.6</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4279840050</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_16">
+      <Properties>
+        <string name="Name">Right eye shine</string>
+        <Vector3 name="size">
+          <X>0.05</X>
+          <Y>0.065</Y>
+          <Z>0.025</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.33</X>
+          <Y>4.26</Y>
+          <Z>-0.653</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294964703</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_17">
+      <Properties>
+        <string name="Name">Right brow</string>
+        <Vector3 name="size">
+          <X>0.38</X>
+          <Y>0.105</Y>
+          <Z>0.13</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.36</X>
+          <Y>4.45</Y>
+          <Z>-0.51</Z>
+          <R00>0.98200424</R00>
+          <R01>-0.18885889</R01>
+          <R02>0.0</R02>
+          <R10>0.18885889</R10>
+          <R11>0.98200424</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4285876781</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_18">
+      <Properties>
+        <string name="Name">Right Arm</string>
+        <Vector3 name="size">
+          <X>0.68</X>
+          <Y>1.17</Y>
+          <Z>0.71</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.16</X>
+          <Y>2.84</Y>
+          <Z>0.01</Z>
+          <R00>0.97803091</R00>
+          <R01>-0.2084599</R01>
+          <R02>0.0</R02>
+          <R10>0.2084599</R10>
+          <R11>0.97803091</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_19">
+      <Properties>
+        <string name="Name">Right forearm</string>
+        <Vector3 name="size">
+          <X>0.59</X>
+          <Y>0.63</Y>
+          <Z>1.02</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.2</X>
+          <Y>2.81</Y>
+          <Z>-0.36</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.88699492</R11>
+          <R12>0.46177918</R12>
+          <R20>0.0</R20>
+          <R21>-0.46177918</R21>
+          <R22>0.88699492</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_20">
+      <Properties>
+        <string name="Name">Right cuff</string>
+        <Vector3 name="size">
+          <X>0.68</X>
+          <Y>0.45</Y>
+          <Z>0.65</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.2</X>
+          <Y>3.08</Y>
+          <Z>-0.67</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4279795065</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_21">
+      <Properties>
+        <string name="Name">Right wrapped fist</string>
+        <Vector3 name="size">
+          <X>0.78</X>
+          <Y>0.66</Y>
+          <Z>0.83</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.2</X>
+          <Y>3.39</Y>
+          <Z>-0.88</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4281778088</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_22">
+      <Properties>
+        <string name="Name">Right thumb</string>
+        <Vector3 name="size">
+          <X>0.3</X>
+          <Y>0.43</Y>
+          <Z>0.48</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.86</X>
+          <Y>3.28</Y>
+          <Z>-0.82</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_23">
+      <Properties>
+        <string name="Name">Right wrap stripe</string>
+        <Vector3 name="size">
+          <X>0.7</X>
+          <Y>0.1</Y>
+          <Z>0.67</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.2</X>
+          <Y>3.05</Y>
+          <Z>-0.68</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294105509</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_24">
+      <Properties>
+        <string name="Name">Right Leg</string>
+        <Vector3 name="size">
+          <X>0.91</X>
+          <Y>1.43</Y>
+          <Z>1.02</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.57</X>
+          <Y>1.25</Y>
+          <Z>0.1</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.99280864</R11>
+          <R12>0.11971221</R12>
+          <R20>0.0</R20>
+          <R21>-0.11971221</R21>
+          <R22>0.99280864</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_25">
+      <Properties>
+        <string name="Name">Right ankle</string>
+        <Vector3 name="size">
+          <X>0.55</X>
+          <Y>0.69</Y>
+          <Z>0.58</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.57</X>
+          <Y>0.67</Y>
+          <Z>-0.11</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_26">
+      <Properties>
+        <string name="Name">Right foot</string>
+        <Vector3 name="size">
+          <X>0.77</X>
+          <Y>0.49</Y>
+          <Z>1.72</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.57</X>
+          <Y>0.27</Y>
+          <Z>-0.45</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_27">
+      <Properties>
+        <string name="Name">Right toe</string>
+        <Vector3 name="size">
+          <X>0.65</X>
+          <Y>0.24</Y>
+          <Z>0.57</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.57</X>
+          <Y>0.21</Y>
+          <Z>-1.04</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_28">
+      <Properties>
+        <string name="Name">Left ear</string>
+        <Vector3 name="size">
+          <X>0.43</X>
+          <Y>1.2</Y>
+          <Z>0.34</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.47</X>
+          <Y>4.95</Y>
+          <Z>0.04</Z>
+          <R00>0.90475166</R00>
+          <R01>-0.42593947</R01>
+          <R02>0.0</R02>
+          <R10>0.42593947</R10>
+          <R11>0.90475166</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_29">
+      <Properties>
+        <string name="Name">Left inner ear</string>
+        <Vector3 name="size">
+          <X>0.23</X>
+          <Y>0.86</Y>
+          <Z>0.105</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.49</X>
+          <Y>4.95</Y>
+          <Z>-0.13</Z>
+          <R00>0.90475166</R00>
+          <R01>-0.42593947</R01>
+          <R02>0.0</R02>
+          <R10>0.42593947</R10>
+          <R11>0.90475166</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290606943</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_30">
+      <Properties>
+        <string name="Name">Left eye white</string>
+        <Vector3 name="size">
+          <X>0.27</X>
+          <Y>0.35</Y>
+          <Z>0.13</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.36</X>
+          <Y>4.21</Y>
+          <Z>-0.52</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294964703</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_31">
+      <Properties>
+        <string name="Name">Left eye</string>
+        <Vector3 name="size">
+          <X>0.16</X>
+          <Y>0.24</Y>
+          <Z>0.105</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.35</X>
+          <Y>4.2</Y>
+          <Z>-0.6</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4279840050</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_32">
+      <Properties>
+        <string name="Name">Left eye shine</string>
+        <Vector3 name="size">
+          <X>0.05</X>
+          <Y>0.065</Y>
+          <Z>0.025</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.33</X>
+          <Y>4.26</Y>
+          <Z>-0.653</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294964703</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_33">
+      <Properties>
+        <string name="Name">Left brow</string>
+        <Vector3 name="size">
+          <X>0.38</X>
+          <Y>0.105</Y>
+          <Z>0.13</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.36</X>
+          <Y>4.45</Y>
+          <Z>-0.51</Z>
+          <R00>0.98200424</R00>
+          <R01>0.18885889</R01>
+          <R02>0.0</R02>
+          <R10>-0.18885889</R10>
+          <R11>0.98200424</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4285876781</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_34">
+      <Properties>
+        <string name="Name">Left Arm</string>
+        <Vector3 name="size">
+          <X>0.68</X>
+          <Y>1.17</Y>
+          <Z>0.71</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.16</X>
+          <Y>2.84</Y>
+          <Z>0.01</Z>
+          <R00>0.97803091</R00>
+          <R01>0.2084599</R01>
+          <R02>0.0</R02>
+          <R10>-0.2084599</R10>
+          <R11>0.97803091</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_35">
+      <Properties>
+        <string name="Name">Left forearm</string>
+        <Vector3 name="size">
+          <X>0.59</X>
+          <Y>0.63</Y>
+          <Z>1.02</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.2</X>
+          <Y>2.81</Y>
+          <Z>-0.36</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.88699492</R11>
+          <R12>0.46177918</R12>
+          <R20>0.0</R20>
+          <R21>-0.46177918</R21>
+          <R22>0.88699492</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_36">
+      <Properties>
+        <string name="Name">Left cuff</string>
+        <Vector3 name="size">
+          <X>0.68</X>
+          <Y>0.45</Y>
+          <Z>0.65</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.2</X>
+          <Y>3.08</Y>
+          <Z>-0.67</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4279795065</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_37">
+      <Properties>
+        <string name="Name">Left wrapped fist</string>
+        <Vector3 name="size">
+          <X>0.78</X>
+          <Y>0.66</Y>
+          <Z>0.83</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.2</X>
+          <Y>3.39</Y>
+          <Z>-0.88</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4281778088</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_38">
+      <Properties>
+        <string name="Name">Left thumb</string>
+        <Vector3 name="size">
+          <X>0.3</X>
+          <Y>0.43</Y>
+          <Z>0.48</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.86</X>
+          <Y>3.28</Y>
+          <Z>-0.82</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_39">
+      <Properties>
+        <string name="Name">Left wrap stripe</string>
+        <Vector3 name="size">
+          <X>0.7</X>
+          <Y>0.1</Y>
+          <Z>0.67</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.2</X>
+          <Y>3.05</Y>
+          <Z>-0.68</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294105509</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_40">
+      <Properties>
+        <string name="Name">Left Leg</string>
+        <Vector3 name="size">
+          <X>0.91</X>
+          <Y>1.43</Y>
+          <Z>1.02</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.57</X>
+          <Y>1.25</Y>
+          <Z>0.1</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.99280864</R11>
+          <R12>0.11971221</R12>
+          <R20>0.0</R20>
+          <R21>-0.11971221</R21>
+          <R22>0.99280864</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_41">
+      <Properties>
+        <string name="Name">Left ankle</string>
+        <Vector3 name="size">
+          <X>0.55</X>
+          <Y>0.69</Y>
+          <Z>0.58</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.57</X>
+          <Y>0.67</Y>
+          <Z>-0.11</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_42">
+      <Properties>
+        <string name="Name">Left foot</string>
+        <Vector3 name="size">
+          <X>0.77</X>
+          <Y>0.49</Y>
+          <Z>1.72</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.57</X>
+          <Y>0.27</Y>
+          <Z>-0.45</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_43">
+      <Properties>
+        <string name="Name">Left toe</string>
+        <Vector3 name="size">
+          <X>0.65</X>
+          <Y>0.24</Y>
+          <Z>0.57</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.57</X>
+          <Y>0.21</Y>
+          <Z>-1.04</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_44">
+      <Properties>
+        <string name="Name">Reed shoulder guard</string>
+        <Vector3 name="size">
+          <X>0.84</X>
+          <Y>0.33</Y>
+          <Z>0.8</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.1</X>
+          <Y>3.26</Y>
+          <Z>0.08</Z>
+          <R00>0.99280864</R00>
+          <R01>-0.11971221</R01>
+          <R02>0.0</R02>
+          <R10>0.11971221</R10>
+          <R11>0.99280864</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4279795065</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_45">
+      <Properties>
+        <string name="Name">Reed brace 1</string>
+        <Vector3 name="size">
+          <X>0.14</X>
+          <Y>0.56</Y>
+          <Z>0.16</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.49</X>
+          <Y>2.92</Y>
+          <Z>-0.23</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.88699492</R11>
+          <R12>0.46177918</R12>
+          <R20>0.0</R20>
+          <R21>-0.46177918</R21>
+          <R22>0.88699492</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292458883</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_46">
+      <Properties>
+        <string name="Name">Reed brace 2</string>
+        <Vector3 name="size">
+          <X>0.14</X>
+          <Y>0.56</Y>
+          <Z>0.16</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.49</X>
+          <Y>2.92</Y>
+          <Z>-0.42</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.88699492</R11>
+          <R12>0.46177918</R12>
+          <R20>0.0</R20>
+          <R21>-0.46177918</R21>
+          <R22>0.88699492</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292458883</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_47">
+      <Properties>
+        <string name="Name">Reed brace 3</string>
+        <Vector3 name="size">
+          <X>0.14</X>
+          <Y>0.56</Y>
+          <Z>0.16</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.49</X>
+          <Y>2.92</Y>
+          <Z>-0.61</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.88699492</R11>
+          <R12>0.46177918</R12>
+          <R20>0.0</R20>
+          <R21>-0.46177918</R21>
+          <R22>0.88699492</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292458883</Color3uint8>
+        <token name="shape">1</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_48">
+      <Properties>
+        <string name="Name">Tail</string>
+        <Vector3 name="size">
+          <X>0.72</X>
+          <Y>1.52</Y>
+          <Z>0.79</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.47</Y>
+          <Z>0.93</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.78999223</R11>
+          <R12>0.61311685</R12>
+          <R20>0.0</R20>
+          <R21>-0.61311685</R21>
+          <R22>0.78999223</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_49">
+      <Properties>
+        <string name="Name">Tail middle</string>
+        <Vector3 name="size">
+          <X>0.49</X>
+          <Y>0.62</Y>
+          <Z>1.44</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>0.93</Y>
+          <Z>1.8</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.97589745</R11>
+          <R12>-0.21822962</R12>
+          <R20>0.0</R20>
+          <R21>0.21822962</R21>
+          <R22>0.97589745</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4290410814</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="KANGAROO_PART_50">
+      <Properties>
+        <string name="Name">Tail tip</string>
+        <Vector3 name="size">
+          <X>0.28</X>
+          <Y>0.34</Y>
+          <Z>0.99</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>0.73</Y>
+          <Z>2.69</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.99280864</R11>
+          <R12>-0.11971221</R12>
+          <R20>0.0</R20>
+          <R21>0.11971221</R21>
+          <R22>0.99280864</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4292385365</Color3uint8>
+        <token name="shape">0</token>
+        <token name="Material">272</token>
+        <bool name="CanCollide">false</bool>
+        <bool name="Massless">true</bool>
+        <bool name="CastShadow">true</bool>
+        <float name="Reflectance">0</float>
+      </Properties>
+    </Item>
+    <Item class="Motor6D" referent="KANGAROO_JOINT_Torso">
+      <Properties>
+        <string name="Name">RootJoint</string>
+        <CoordinateFrame name="C0">
+          <X>0.0</X>
+          <Y>0.0</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <CoordinateFrame name="C1">
+          <X>0.0</X>
+          <Y>0.0</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Ref name="Part0">KANGAROO_ROOT</Ref>
+        <Ref name="Part1">KANGAROO_PART_0</Ref>
+      </Properties>
+    </Item>
+    <Item class="Motor6D" referent="KANGAROO_JOINT_Head">
+      <Properties>
+        <string name="Name">Neck</string>
+        <CoordinateFrame name="C0">
+          <X>0.0</X>
+          <Y>1.15</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <CoordinateFrame name="C1">
+          <X>0.0</X>
+          <Y>-0.34999999999999964</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_8</Ref>
+      </Properties>
+    </Item>
+    <Item class="Motor6D" referent="KANGAROO_JOINT_RightArm">
+      <Properties>
+        <string name="Name">Right Shoulder</string>
+        <CoordinateFrame name="C0">
+          <X>1.0</X>
+          <Y>0.6999999999999997</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <CoordinateFrame name="C1">
+          <X>-0.06059339242665787</X>
+          <Y>0.48324780474848406</Y>
+          <Z>-0.01</Z>
+          <R00>0.9780309147241483</R00>
+          <R01>0.20845989984609956</R01>
+          <R02>0.0</R02>
+          <R10>-0.20845989984609956</R10>
+          <R11>0.9780309147241483</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_18</Ref>
+      </Properties>
+    </Item>
+    <Item class="Motor6D" referent="KANGAROO_JOINT_LeftArm">
+      <Properties>
+        <string name="Name">Left Shoulder</string>
+        <CoordinateFrame name="C0">
+          <X>-1.0</X>
+          <Y>0.6999999999999997</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <CoordinateFrame name="C1">
+          <X>0.06059339242665787</X>
+          <Y>0.48324780474848406</Y>
+          <Z>-0.01</Z>
+          <R00>0.9780309147241483</R00>
+          <R01>-0.20845989984609956</R01>
+          <R02>0.0</R02>
+          <R10>0.20845989984609956</R10>
+          <R11>0.9780309147241483</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_34</Ref>
+      </Properties>
+    </Item>
+    <Item class="Motor6D" referent="KANGAROO_JOINT_RightLeg">
+      <Properties>
+        <string name="Name">Right Hip</string>
+        <CoordinateFrame name="C0">
+          <X>0.57</X>
+          <Y>-0.8999999999999999</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <CoordinateFrame name="C1">
+          <X>0.0</X>
+          <Y>0.45873510686313174</Y>
+          <Z>-0.04541037030537292</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.9928086358538663</R11>
+          <R12>-0.11971220728891936</R12>
+          <R20>0.0</R20>
+          <R21>0.11971220728891936</R21>
+          <R22>0.9928086358538663</R22>
+        </CoordinateFrame>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_24</Ref>
+      </Properties>
+    </Item>
+    <Item class="Motor6D" referent="KANGAROO_JOINT_LeftLeg">
+      <Properties>
+        <string name="Name">Left Hip</string>
+        <CoordinateFrame name="C0">
+          <X>-0.57</X>
+          <Y>-0.8999999999999999</Y>
+          <Z>0.0</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <CoordinateFrame name="C1">
+          <X>0.0</X>
+          <Y>0.45873510686313174</Y>
+          <Z>-0.04541037030537292</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.9928086358538663</R11>
+          <R12>-0.11971220728891936</R12>
+          <R20>0.0</R20>
+          <R21>0.11971220728891936</R21>
+          <R22>0.9928086358538663</R22>
+        </CoordinateFrame>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_40</Ref>
+      </Properties>
+    </Item>
+    <Item class="Motor6D" referent="KANGAROO_JOINT_Tail">
+      <Properties>
+        <string name="Name">TailJoint</string>
+        <CoordinateFrame name="C0">
+          <X>0.0</X>
+          <Y>-0.6499999999999999</Y>
+          <Z>0.45</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>1.0</R11>
+          <R12>0.0</R12>
+          <R20>0.0</R20>
+          <R21>0.0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <CoordinateFrame name="C1">
+          <X>0.0</X>
+          <Y>0.6734923600659835</Y>
+          <Z>-0.08490018217148693</Z>
+          <R00>1.0</R00>
+          <R01>0.0</R01>
+          <R02>0.0</R02>
+          <R10>0.0</R10>
+          <R11>0.7899922314973651</R11>
+          <R12>-0.6131168519734338</R12>
+          <R20>0.0</R20>
+          <R21>0.6131168519734338</R21>
+          <R22>0.7899922314973651</R22>
+        </CoordinateFrame>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_48</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_1">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_1</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_2">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_2</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_3">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_3</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_4">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_4</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_5">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_5</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_6">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_6</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_7">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_0</Ref>
+        <Ref name="Part1">KANGAROO_PART_7</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_9">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_9</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_10">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_10</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_11">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_11</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_12">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_12</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_13">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_13</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_14">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_14</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_15">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_15</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_16">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_16</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_17">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_17</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_19">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_19</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_20">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_20</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_21">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_21</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_22">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_22</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_23">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_23</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_25">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_24</Ref>
+        <Ref name="Part1">KANGAROO_PART_25</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_26">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_24</Ref>
+        <Ref name="Part1">KANGAROO_PART_26</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_27">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_24</Ref>
+        <Ref name="Part1">KANGAROO_PART_27</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_28">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_28</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_29">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_29</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_30">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_30</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_31">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_31</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_32">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_32</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_33">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_8</Ref>
+        <Ref name="Part1">KANGAROO_PART_33</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_35">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_34</Ref>
+        <Ref name="Part1">KANGAROO_PART_35</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_36">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_34</Ref>
+        <Ref name="Part1">KANGAROO_PART_36</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_37">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_34</Ref>
+        <Ref name="Part1">KANGAROO_PART_37</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_38">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_34</Ref>
+        <Ref name="Part1">KANGAROO_PART_38</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_39">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_34</Ref>
+        <Ref name="Part1">KANGAROO_PART_39</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_41">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_40</Ref>
+        <Ref name="Part1">KANGAROO_PART_41</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_42">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_40</Ref>
+        <Ref name="Part1">KANGAROO_PART_42</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_43">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_40</Ref>
+        <Ref name="Part1">KANGAROO_PART_43</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_44">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_44</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_45">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_45</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_46">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_46</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_47">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_18</Ref>
+        <Ref name="Part1">KANGAROO_PART_47</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_49">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_48</Ref>
+        <Ref name="Part1">KANGAROO_PART_49</Ref>
+      </Properties>
+    </Item>
+    <Item class="WeldConstraint" referent="KANGAROO_WELD_50">
+      <Properties>
+        <string name="Name">DetailWeld</string>
+        <Ref name="Part0">KANGAROO_PART_48</Ref>
+        <Ref name="Part1">KANGAROO_PART_50</Ref>
+      </Properties>
+    </Item>
+    <Item class="Humanoid" referent="KANGAROO_HUMANOID">
+      <Properties>
+        <string name="Name">Humanoid</string>
+        <float name="Health">100</float>
+        <float name="MaxHealth">100</float>
+        <float name="WalkSpeed">16</float>
+        <token name="RigType">0</token>
+        <bool name="RequiresNeck">true</bool>
+        <string name="DisplayName">Reedguard Kangaroo</string>
+      </Properties>
+      <Item class="Animator" referent="KANGAROO_ANIMATOR">
+        <Properties>
+          <string name="Name">Animator</string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>

@@ -1,0 +1,871 @@
+{
+  "version": "0.2-ip-remediated",
+  "project": "Beast Dojo",
+  "researchedOn": "2026-11-21",
+  "scope": "Full GDD UI system and mockups, not a working Roblox implementation",
+  "direction": "Playful martial-arts dojo with parchment, deep blue-green panels, gold actions and jade equipment states",
+  "colors": {
+    "ink": {
+      "hex": "#182B35",
+      "role": "Main dark canvas and text on bright accents"
+    },
+    "surface": {
+      "hex": "#223B45",
+      "role": "Dark-mode panel"
+    },
+    "elevated": {
+      "hex": "#2E4A52",
+      "role": "Dark-mode raised controls"
+    },
+    "parchment": {
+      "hex": "#F7F0DC",
+      "role": "Main light canvas and text on dark panels"
+    },
+    "paper": {
+      "hex": "#FFF9E9",
+      "role": "Light-mode panel"
+    },
+    "mutedDark": {
+      "hex": "#B4C4C3",
+      "role": "Secondary text on dark panels"
+    },
+    "mutedLight": {
+      "hex": "#4D6368",
+      "role": "Secondary text on light panels"
+    },
+    "borderDark": {
+      "hex": "#708D97",
+      "role": "Control boundaries on dark panels"
+    },
+    "borderLight": {
+      "hex": "#B9C7BE",
+      "role": "Decorative dividers on light panels; never the sole control boundary"
+    },
+    "gold": {
+      "hex": "#F4BD4F",
+      "role": "Primary Play/confirm action and Coins"
+    },
+    "goldPressed": {
+      "hex": "#D99C2D",
+      "role": "Pressed primary action"
+    },
+    "jade": {
+      "hex": "#54D5AF",
+      "role": "Equipped and positive state"
+    },
+    "jadePressed": {
+      "hex": "#2AB88F",
+      "role": "Pressed positive action"
+    },
+    "land": {
+      "hex": "#8DD878",
+      "role": "Land element badge"
+    },
+    "aquatic": {
+      "hex": "#6BCBF2",
+      "role": "Aquatic element badge"
+    },
+    "magma": {
+      "hex": "#FF9274",
+      "role": "Magma element badge"
+    },
+    "sky": {
+      "hex": "#F5D46B",
+      "role": "Sky element badge"
+    },
+    "health": {
+      "hex": "#68D391",
+      "role": "HP fill plus numeric value"
+    },
+    "danger": {
+      "hex": "#FF8D93",
+      "role": "Destructive action, error and low-HP alert"
+    },
+    "warning": {
+      "hex": "#F5D46B",
+      "role": "Warning plus icon and label"
+    },
+    "success": {
+      "hex": "#54D5AF",
+      "role": "Success plus check and label"
+    },
+    "focus": {
+      "hex": "#FFFFFF",
+      "role": "Outer selection ring paired with ink inner ring"
+    },
+    "common": {
+      "hex": "#CAD5DB",
+      "role": "Common rarity badge"
+    },
+    "rare": {
+      "hex": "#7CB9FF",
+      "role": "Rare rarity badge"
+    },
+    "epic": {
+      "hex": "#CAADFF",
+      "role": "Epic rarity badge"
+    },
+    "legendary": {
+      "hex": "#F4BD4F",
+      "role": "Legendary rarity badge"
+    },
+    "mythic": {
+      "hex": "#F797C7",
+      "role": "Mythic rarity badge"
+    }
+  },
+  "themes": {
+    "light": {
+      "canvas": "parchment",
+      "panel": "paper",
+      "raised": "#EFE6D0",
+      "text": "ink",
+      "muted": "mutedLight",
+      "controlBoundary": "mutedLight"
+    },
+    "dark": {
+      "canvas": "ink",
+      "panel": "surface",
+      "raised": "elevated",
+      "text": "parchment",
+      "muted": "mutedDark",
+      "controlBoundary": "borderDark"
+    }
+  },
+  "typography": {
+    "display": {
+      "productionFamily": "rbxasset://fonts/families/FredokaOne.json",
+      "weights": [
+        "Regular"
+      ],
+      "sizes": [
+        28,
+        36,
+        48
+      ]
+    },
+    "body": {
+      "productionFamily": "rbxasset://fonts/families/BuilderSans.json",
+      "weights": [
+        "Regular",
+        "Medium",
+        "Bold"
+      ],
+      "sizes": [
+        14,
+        16,
+        18,
+        22
+      ]
+    },
+    "rules": [
+      "No condensed or decorative body text.",
+      "Browser mockups use system rounded/sans fallbacks; final Roblox typography needs Studio verification.",
+      "Use tabular numbers for HP/cooldown/currencies.",
+      "Allow 30\u201350% copy expansion; test user text scaling to 150% as a project gate."
+    ]
+  },
+  "geometry": {
+    "spacing": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48
+    ],
+    "radii": {
+      "chip": 8,
+      "button": 12,
+      "panel": 20,
+      "dialog": 24
+    },
+    "touchTargetMinimum": 48,
+    "combatTouchTargetPreferred": 60,
+    "minimumTouchGap": 8,
+    "normalTextContrastMinimum": 4.5,
+    "largeTextContrastMinimum": 3,
+    "controlBoundaryContrastMinimum": 3
+  },
+  "motion": {
+    "pressMs": 80,
+    "panelMs": 180,
+    "rewardMs": 300,
+    "rules": [
+      "No looped decorative motion in menus.",
+      "Reduced motion replaces zoom/shake with opacity or instant state changes.",
+      "VR disables forced camera shake and camera hit-stop."
+    ]
+  },
+  "input": {
+    "keyboard": {
+      "basic": "Mouse1",
+      "tactical": "E",
+      "ultimate": "R",
+      "dash": "Q",
+      "jump": "Space",
+      "tag": "T"
+    },
+    "gamepad": {
+      "basic": "X / Square",
+      "tactical": "Y / Triangle",
+      "ultimate": "RB / R1",
+      "dash": "LB / L1",
+      "jump": "A / Cross",
+      "tag": "D-pad Up"
+    },
+    "rules": [
+      "Proposed bindings, not final shipped bindings; validate conflicts and platform conventions in Studio.",
+      "Use active input rather than device name as the source of prompts.",
+      "Capture focus on opening a panel and restore it on closing.",
+      "Preserve Roblox system menu and default movement/jump reserved zones."
+    ]
+  },
+  "devices": {
+    "phone": "Touch-ready compact layouts; intended combat reference 844x390 landscape; narrow preview reflows instead of shrinking text.",
+    "tablet": "Keep action cluster close to thumb reach; do not anchor it at a fixed percentage of a large screen.",
+    "desktop": "Expanded side rail and keyboard prompts; resizable panels.",
+    "console": "Persistent two-tone focus, D-pad order, confirm/back and TV-readable type.",
+    "vr": "Comfortable world-space menu panel, controller-ray selection and readable labels; no forced shake. Browser preview is a layout study, not headset validation."
+  },
+  "research": [
+    {
+      "finding": "Show the fighter before the economy",
+      "decision": "Use one large active-fighter portrait and one primary Play button. Keep shop and season prompts secondary.",
+      "basis": [
+        "party-animals",
+        "brawl-stars"
+      ],
+      "kind": "Design recommendation from qualitative reference review; no usability test has been run."
+    },
+    {
+      "finding": "Design for changing inputs",
+      "decision": "Use the same actions across touch, mouse/keyboard, gamepad and VR. Swap prompts without restarting the session.",
+      "basis": [
+        "roblox-adaptive"
+      ],
+      "kind": "Platform guidance applied to this game."
+    },
+    {
+      "finding": "Protect combat visibility",
+      "decision": "Keep timer and opponent status high, health low left, skills near the right thumb or lower center by input. Remove sales prompts during combat.",
+      "basis": [
+        "roblox-position"
+      ],
+      "kind": "Layout proposal requiring actual-device playtesting."
+    },
+    {
+      "finding": "Separate element from rarity",
+      "decision": "Four labeled elemental chips use colored fills; rarity uses a separate text badge and frame marker. Never recolor the full screen by rarity.",
+      "basis": [
+        "roblox-accessibility"
+      ],
+      "kind": "Semantic design recommendation."
+    },
+    {
+      "finding": "Expose transaction conditions before commitment",
+      "decision": "Use readable Details, guaranteed-item alternatives, clear pending receipts, and trade snapshots that reset both confirmations when an offer changes.",
+      "basis": [
+        "random-policy",
+        "ads-policy"
+      ],
+      "kind": "Policy-informed interaction specification; server enforcement remains implementation work."
+    },
+    {
+      "finding": "Build a reusable kit for solo development",
+      "decision": "Reuse fighter cards, action buttons, sheets, progress bars and state messaging across the full GDD. Keep portrait art separate from functional UI.",
+      "basis": [
+        "roblox-adaptive"
+      ],
+      "kind": "Production recommendation for the user and Codex workflow."
+    }
+  ],
+  "sources": [
+    {
+      "id": "roblox-adaptive",
+      "title": "Roblox adaptive design",
+      "url": "https://create.roblox.com/docs/production/publishing/adaptive-design",
+      "supports": "Layouts, input-aware prompts and focus navigation."
+    },
+    {
+      "id": "roblox-position",
+      "title": "Roblox UI position and size",
+      "url": "https://create.roblox.com/docs/ui/position-and-size",
+      "supports": "Thumb zones and reserved default controls."
+    },
+    {
+      "id": "roblox-accessibility",
+      "title": "Roblox accessibility",
+      "url": "https://create.roblox.com/docs/production/publishing/accessibility",
+      "supports": "Text size, contrast, redundant signals and player preferences."
+    },
+    {
+      "id": "roblox-safe",
+      "title": "Roblox ScreenGui",
+      "url": "https://create.roblox.com/docs/reference/engine/classes/ScreenGui",
+      "supports": "ScreenInsets and safe-area properties."
+    },
+    {
+      "id": "roblox-font",
+      "title": "Roblox Font datatype",
+      "url": "https://create.roblox.com/docs/reference/engine/datatypes/Font",
+      "supports": "Production font configuration."
+    },
+    {
+      "id": "roblox-vr",
+      "title": "Roblox VR guidelines",
+      "url": "https://create.roblox.com/docs/production/publishing/vr-guidelines",
+      "supports": "Comfort and headset-specific presentation."
+    },
+    {
+      "id": "wcag-contrast",
+      "title": "W3C contrast guidance",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+      "supports": "4.5:1 normal text and 3:1 large text benchmarks."
+    },
+    {
+      "id": "wcag-target",
+      "title": "W3C enhanced target size",
+      "url": "https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html",
+      "supports": "44 CSS pixel enhanced target benchmark; a design reference, not a Roblox certification."
+    },
+    {
+      "id": "brawl-stars",
+      "title": "Brawl Stars November release notes",
+      "url": "https://supercell.com/brawlstars/en/blog/game-updates/release-notes-november-2026/",
+      "supports": "Roster grid and explicit loadout information as a qualitative reference."
+    },
+    {
+      "id": "party-animals",
+      "title": "Party Animals character-select reference",
+      "url": "https://www.windowscentral.com/gaming/party-animals-review",
+      "supports": "Character-led presentation and controller prompts; no borrowed assets."
+    },
+    {
+      "id": "random-policy",
+      "title": "Roblox paid random items",
+      "url": "https://create.roblox.com/docs/production/monetization/paid-random-items",
+      "supports": "Odds details, restricted players and paid-item trading eligibility."
+    },
+    {
+      "id": "ads-policy",
+      "title": "Roblox rewarded video ads",
+      "url": "https://create.roblox.com/docs/production/promotion/rewarded-video-ads",
+      "supports": "Eligible-user flow and deterministic rewards."
+    },
+    {
+      "id": "roblox-safety",
+      "title": "Roblox creator safety",
+      "url": "https://create.roblox.com/docs/safety",
+      "supports": "Filtered custom text and moderation surfaces."
+    }
+  ],
+  "screens": [
+    {
+      "id": "onboarding",
+      "name": "Arrival and tutorial",
+      "primaryAction": "Choose starter; learn move, dash and ring-out",
+      "elements": "Starter choice, tutorial steps, skip/replay, input hint",
+      "states": "new, returning, skipped, interrupted"
+    },
+    {
+      "id": "lobby",
+      "name": "Dojo lobby",
+      "primaryAction": "Enter a match",
+      "elements": "Active fighter, currencies, mode card, Play, practice, party, navigation",
+      "states": "loading, ready, party leader, offline"
+    },
+    {
+      "id": "play",
+      "name": "Mode and arena selection",
+      "primaryAction": "Choose 1v1, 2v2, Brawl or Raid",
+      "elements": "Four mode cards, ranked rules, arena preview, party readiness",
+      "states": "eligible, locked, party mismatch, scheduled raid"
+    },
+    {
+      "id": "queue",
+      "name": "Matchmaking",
+      "primaryAction": "Wait or cancel",
+      "elements": "Elapsed time, selected mode, party members, cancel",
+      "states": "searching, found, cancelled, timeout, teleport failed"
+    },
+    {
+      "id": "draft",
+      "name": "Fighter and backup selection",
+      "primaryAction": "Lock a fighter and optional 2v2 backup",
+      "elements": "Roster, element preview, lock, countdown",
+      "states": "choosing, locked, duplicate rule, time expired"
+    },
+    {
+      "id": "combat-duel",
+      "name": "Ranked duel HUD",
+      "primaryAction": "Track rounds and fight",
+      "elements": "HP, timer, round score, 3 skills, dash/parry, jump, status effects",
+      "states": "ready, cooldown, blocked, stunned, disconnected"
+    },
+    {
+      "id": "combat-tag",
+      "name": "Tag-team HUD",
+      "primaryAction": "Swap primary and backup",
+      "elements": "Team HP, backup portrait, contextual Tag-In, 12s cooldown",
+      "states": "available, tag cooldown, backup KO, teammate disconnected"
+    },
+    {
+      "id": "combat-brawl",
+      "name": "Brawl HUD",
+      "primaryAction": "Survive ring shrink",
+      "elements": "Remaining fighters, shrink timer, edge warning, elimination feed",
+      "states": "normal, shrink warning, sudden death, eliminated"
+    },
+    {
+      "id": "combat-raid",
+      "name": "Raid HUD",
+      "primaryAction": "Coordinate boss phases",
+      "elements": "Boss HP, telegraph banner, party status, revive prompt",
+      "states": "waiting, phase transition, downed, revive, defeat"
+    },
+    {
+      "id": "spectate",
+      "name": "Spectator",
+      "primaryAction": "Follow remaining players",
+      "elements": "Target selector, exit, teammate state",
+      "states": "available target, no target, match ended"
+    },
+    {
+      "id": "results",
+      "name": "Match results",
+      "primaryAction": "Collect rewards or rematch",
+      "elements": "Placement, Coins/XP/trophies breakdown, level progress, rematch",
+      "states": "win, loss, draw, reward pending, level-up"
+    },
+    {
+      "id": "fighters",
+      "name": "Fighter collection",
+      "primaryAction": "Choose and equip",
+      "elements": "Portrait grid, search, element filter, ownership, rarity",
+      "states": "owned, locked, equipped, new, no results"
+    },
+    {
+      "id": "detail",
+      "name": "Fighter detail",
+      "primaryAction": "Understand the fighter",
+      "elements": "Class passive, HP/ATK/KB/speed, element, breed, mutation",
+      "states": "normal, compare, ranked rules, unavailable art"
+    },
+    {
+      "id": "loadout",
+      "name": "Three-slot loadout",
+      "primaryAction": "Select three move variants",
+      "elements": "Basic/tactical/ultimate slots, 3 variants each, save/revert",
+      "states": "selected, locked level, unsaved, saved, conflict"
+    },
+    {
+      "id": "evolution",
+      "name": "Evolution",
+      "primaryAction": "Inspect Rookie/Warrior/Grandmaster",
+      "elements": "Stage strip, before/after preview, XP requirement, evolve",
+      "states": "locked, available, in progress, complete"
+    },
+    {
+      "id": "cosmetics",
+      "name": "Cosmetics and showcase",
+      "primaryAction": "Equip appearance",
+      "elements": "Skin/finisher/emote slots, preview, pedestal assignment",
+      "states": "owned, preview, equipped, incompatible"
+    },
+    {
+      "id": "capsules",
+      "name": "Earned capsules",
+      "primaryAction": "Open an earned reward",
+      "elements": "Capsule inventory, origin label, contents, reveal, equip",
+      "states": "empty, unopened, revealing, duplicate, inventory full"
+    },
+    {
+      "id": "paid-capsules",
+      "name": "Paid capsule eligibility",
+      "primaryAction": "Understand availability and odds",
+      "elements": "Details, all final outcomes, actual odds, eligibility fallback",
+      "states": "policy checking, eligible, restricted, service error"
+    },
+    {
+      "id": "shop",
+      "name": "Guaranteed-item shop",
+      "primaryAction": "Preview and buy a named cosmetic",
+      "elements": "Item cards, price/currency, preview, permanent benefit copy",
+      "states": "available, owned, unavailable, price changed"
+    },
+    {
+      "id": "purchase",
+      "name": "Purchase confirmation",
+      "primaryAction": "Confirm an exact item and price",
+      "elements": "Item summary, platform prompt handoff, cancel, receipt status",
+      "states": "confirm, platform pending, success, cancelled, delayed, failed"
+    },
+    {
+      "id": "season",
+      "name": "Battle pass",
+      "primaryAction": "Claim earned tiers",
+      "elements": "Free/premium tracks, 50 tiers, progress, reward details",
+      "states": "locked, earned, claimable, claimed, pass expired"
+    },
+    {
+      "id": "quests",
+      "name": "Quests and daily rewards",
+      "primaryAction": "Choose and claim tasks",
+      "elements": "Daily/weekly tabs, progress, claim, refresh time",
+      "states": "active, completed, claimed, refresh pending"
+    },
+    {
+      "id": "ranked",
+      "name": "Ranked divisions",
+      "primaryAction": "Inspect progression",
+      "elements": "Six divisions, trophy progress, season rules, leaderboard",
+      "states": "unranked, placed, promotion, demotion, no data"
+    },
+    {
+      "id": "party",
+      "name": "Party",
+      "primaryAction": "Invite and ready",
+      "elements": "Friends/party list, invite, kick/leave, readiness",
+      "states": "solo, invited, full, offline, leader changed"
+    },
+    {
+      "id": "dojo",
+      "name": "Player dojo",
+      "primaryAction": "Manage membership and perks",
+      "elements": "Member cap 30, perks, donations, banner, weekly wars",
+      "states": "no dojo, member, leader, full, request pending"
+    },
+    {
+      "id": "dojo-war",
+      "name": "Dojo wars",
+      "primaryAction": "Inspect weekly standings",
+      "elements": "Schedule, contribution, leaderboard, rewards",
+      "states": "not started, active, ended, reward pending"
+    },
+    {
+      "id": "trade",
+      "name": "Trading Plaza",
+      "primaryAction": "Review an item exchange",
+      "elements": "Two offers, item identity, breed/mutation, 2-step confirm, 5s lock",
+      "states": "invited, editing, locked, review, changed, complete, cancelled"
+    },
+    {
+      "id": "trade-history",
+      "name": "Trade history",
+      "primaryAction": "Verify a completed exchange",
+      "elements": "Timestamp, counterpart, item snapshots, report/help",
+      "states": "empty, completed, disputed, unavailable"
+    },
+    {
+      "id": "trade-restricted",
+      "name": "Trade restrictions",
+      "primaryAction": "Understand unavailable trading",
+      "elements": "Eligibility notice, affected item, return to collection",
+      "states": "policy checking, restricted, policy error"
+    },
+    {
+      "id": "raid-lobby",
+      "name": "Raid lobby",
+      "primaryAction": "Join a scheduled boss",
+      "elements": "Next raid countdown, party slots, tokens, readiness",
+      "states": "upcoming, open, full, joining, cancelled"
+    },
+    {
+      "id": "settings",
+      "name": "Settings and accessibility",
+      "primaryAction": "Adjust comfort and controls",
+      "elements": "Text/UI size, contrast, motion, audio, captions, input, graphics",
+      "states": "default, changed, reset, device override"
+    },
+    {
+      "id": "controls",
+      "name": "Controls and tutorial replay",
+      "primaryAction": "Learn current bindings",
+      "elements": "Input-specific labels, controller glyphs, touch layout preview",
+      "states": "keyboard, touch, Xbox, PlayStation, VR"
+    },
+    {
+      "id": "system",
+      "name": "System feedback",
+      "primaryAction": "Recover from interruption",
+      "elements": "Loading, reconnect, maintenance, save status, error and retry",
+      "states": "loading, reconnecting, failed, offline, save pending"
+    },
+    {
+      "id": "help",
+      "name": "Help and reporting",
+      "primaryAction": "Find safe assistance",
+      "elements": "Rules, support topics, report player, native report guidance",
+      "states": "topic, report selection, submitted, unavailable"
+    },
+    {
+      "id": "ads",
+      "name": "Optional rewarded video",
+      "primaryAction": "Choose a deterministic reward",
+      "elements": "Eligibility, reward disclosure, opt-in, safe lobby, completion",
+      "states": "not eligible, no fill, ready, playing, cancelled, completed"
+    }
+  ],
+  "components": [
+    {
+      "id": "navigation",
+      "name": "Navigation rail and compact menu",
+      "specification": "Persistent destination labels, selected state and unread count only for actionable items."
+    },
+    {
+      "id": "header",
+      "name": "Player and economy header",
+      "specification": "Avatar/name, Coins, trophies; contextual Raid Tokens or shards only where relevant."
+    },
+    {
+      "id": "primary",
+      "name": "Primary button",
+      "specification": "Gold fill, ink label, strong bottom edge; idle/hover/pressed/focus/loading/disabled."
+    },
+    {
+      "id": "secondary",
+      "name": "Secondary button",
+      "specification": "Neutral panel with visible boundary; never compete with primary action."
+    },
+    {
+      "id": "destructive",
+      "name": "Destructive button",
+      "specification": "Danger fill plus explicit verb; separate from confirm; destructive operations need review."
+    },
+    {
+      "id": "icon",
+      "name": "Icon button",
+      "specification": "Lucide concept icon plus accessible name; visible label for unfamiliar actions."
+    },
+    {
+      "id": "chip",
+      "name": "Element and class chips",
+      "specification": "Element symbol + word + color. Class text stays independent of rarity."
+    },
+    {
+      "id": "rarity",
+      "name": "Rarity badge",
+      "specification": "Common/Rare/Epic/Legendary/Mythic text plus frame marker; no color-only meaning."
+    },
+    {
+      "id": "portrait",
+      "name": "Fighter portrait",
+      "specification": "Transparent portrait on controlled background; identity, no pricing baked into artwork."
+    },
+    {
+      "id": "fighter-card",
+      "name": "Fighter card",
+      "specification": "Name, element, level, rarity and ownership/equipped state; whole card selectable."
+    },
+    {
+      "id": "stat",
+      "name": "Stat row",
+      "specification": "Named stat, numeric value, unit where needed; ranked adjustments explicitly labeled."
+    },
+    {
+      "id": "skill",
+      "name": "Skill button",
+      "specification": "Action icon/name, current binding, numeric cooldown, ready state and blocked reason."
+    },
+    {
+      "id": "ultimate",
+      "name": "Ultimate meter",
+      "specification": "Charge percentage or cooldown, consistent source rule, ready text and optional sound."
+    },
+    {
+      "id": "dash",
+      "name": "Dash/parry control",
+      "specification": "Distinct shield icon and binding; 3s cooldown; separate from jump."
+    },
+    {
+      "id": "tag",
+      "name": "Contextual tag control",
+      "specification": "Only in 2v2; backup identity and 12s cooldown without changing the three skill slots."
+    },
+    {
+      "id": "health",
+      "name": "Health bar",
+      "specification": "Numeric current/max HP; fill; low health uses icon/text as well as color."
+    },
+    {
+      "id": "progress",
+      "name": "XP and tier progress",
+      "specification": "Current/required text plus fill, earned transition and claim state."
+    },
+    {
+      "id": "status",
+      "name": "Status effect badge",
+      "specification": "Icon, effect word and remaining duration; stack counts when needed."
+    },
+    {
+      "id": "hazard",
+      "name": "Hazard warning",
+      "specification": "World marker plus screen-edge label/countdown; preserve on low graphics."
+    },
+    {
+      "id": "mode",
+      "name": "Mode card",
+      "specification": "Players, duration, ranked rules and party eligibility; selected state."
+    },
+    {
+      "id": "queue",
+      "name": "Queue status",
+      "specification": "Elapsed time, mode, cancel; do not invent an exact ETA without data."
+    },
+    {
+      "id": "tabs",
+      "name": "Tabs and segmented controls",
+      "specification": "Visible selected state, preserved local state, directional navigation."
+    },
+    {
+      "id": "filter",
+      "name": "Search and filters",
+      "specification": "Search label, clear, element filter, no-results reset; no typed input required for core actions."
+    },
+    {
+      "id": "dropdown",
+      "name": "Dropdown",
+      "specification": "Selected value, keyboard/controller navigation and clear dismissal."
+    },
+    {
+      "id": "toggle",
+      "name": "Toggle",
+      "specification": "Word label and On/Off state; not color-only; optimistic state only if reversible."
+    },
+    {
+      "id": "slider",
+      "name": "Slider and stepper",
+      "specification": "Value label, larger touch target and +/- alternative for gamepad."
+    },
+    {
+      "id": "modal",
+      "name": "Review dialog",
+      "specification": "One question/task, readable content, visible back/cancel, trapped focus and restored focus."
+    },
+    {
+      "id": "sheet",
+      "name": "Compact sheet",
+      "specification": "Full-width or full-height mobile detail view rather than tiny desktop dialogs."
+    },
+    {
+      "id": "tooltip",
+      "name": "Info and details",
+      "specification": "Accessible through touch and gamepad; never put essential purchase terms in hover-only content."
+    },
+    {
+      "id": "toast",
+      "name": "Toast and announcement",
+      "specification": "Short success/info with visible text; error remains until resolved; never covers combat."
+    },
+    {
+      "id": "empty",
+      "name": "Empty state",
+      "specification": "Cause and next action: no fighters found, no invites, no capsules."
+    },
+    {
+      "id": "loading",
+      "name": "Loading and skeleton",
+      "specification": "Stable dimensions, status label, time-out recovery and reduced-motion fallback."
+    },
+    {
+      "id": "error",
+      "name": "Error and retry",
+      "specification": "Plain failure description, preserved data and retry/back option."
+    },
+    {
+      "id": "transaction",
+      "name": "Transaction status",
+      "specification": "Exact item/price, native purchase handoff, pending/fulfilled/cancelled/error."
+    },
+    {
+      "id": "odds",
+      "name": "Odds details",
+      "specification": "All final outcomes, normalized percentages, actual active luck modifiers and read-before-purchase access."
+    },
+    {
+      "id": "trade-offer",
+      "name": "Trade offer cell",
+      "specification": "Persistent item instance ID in data, visible name/level/breed/mutation and changed marker."
+    },
+    {
+      "id": "trade-lock",
+      "name": "Trade confirmation timer",
+      "specification": "Five-second lock after any change, both acceptances reset, explicit second review."
+    },
+    {
+      "id": "leaderboard",
+      "name": "Leaderboard row",
+      "specification": "Rank, name, value, own-row emphasis, loading/empty/pagination states."
+    },
+    {
+      "id": "reward",
+      "name": "Reward tile",
+      "specification": "Type, amount, track, locked/earned/claimable/claimed; no fake urgency."
+    },
+    {
+      "id": "party-slot",
+      "name": "Party slot",
+      "specification": "Member identity, ready, leader, invite, offline and disconnected state."
+    },
+    {
+      "id": "avatar-name",
+      "name": "Player label",
+      "specification": "Filtered names, non-color team indicator; safe truncation with accessible full name."
+    },
+    {
+      "id": "focus",
+      "name": "Focus and selection indicator",
+      "specification": "Two-tone 3px outer light / 2px inner ink ring; persistent on controller."
+    },
+    {
+      "id": "input-hint",
+      "name": "Binding hint",
+      "specification": "Current key or platform-specific controller image; update on input switch."
+    },
+    {
+      "id": "currency",
+      "name": "Currency chip",
+      "specification": "Symbol plus Coins/Trophies/Raid Tokens label; never make Coins resemble Robux."
+    },
+    {
+      "id": "comfort",
+      "name": "Accessibility controls",
+      "specification": "Reduced motion, opacity, larger text, captions, contrast, sound and camera-shake controls."
+    },
+    {
+      "id": "spectator",
+      "name": "Spectator controls",
+      "specification": "Target identity, previous/next and exit; supports no-target and ended-match state."
+    },
+    {
+      "id": "ad",
+      "name": "Rewarded-ad offer",
+      "specification": "Deterministic named reward, eligibility/no-fill state, opt-in and safe-zone placement."
+    }
+  ],
+  "policyRules": [
+    "Paid capsules are excluded from the first interactive purchase path until actual all-outcome odds and eligibility enforcement are finalized.",
+    "Earned reward capsules are granted directly by gameplay; paid Coins are not treated as a free-only currency.",
+    "Paid-random-item and paid-item-trading eligibility must be enforced on the server; unknown policy status blocks restricted transactions.",
+    "Rewarded video offers deterministic rewards and appears only for eligible users/devices after availability checks.",
+    "All trade offer changes reset both acceptances and the five-second timer; server atomicity is separate implementation work.",
+    "Custom clan/player text must be filtered; use preset banner shapes for the initial release."
+  ],
+  "openDecisions": [
+    "GDD move-unlock schedule conflicts between sections; mockups show one available variant and one level-locked variant without claiming a final unlock schedule.",
+    "Ultimate charge versus fixed cooldown must be finalized per move before production HUD behavior.",
+    "Ranked rarity/breed normalization remains a game-balance decision; mockup says rules rather than claiming fully normalized stats.",
+    "Approve fighter portrait art style before generating the full 24-animal art library."
+  ],
+  "assetProvenance": {
+    "method": "Built-in image_gen tool",
+    "file": "assets/fighter-portrait-atlas.png",
+    "optimizedFile": "assets/fighter-portrait-atlas.webp",
+    "role": "Original concept portrait atlas, not production rigs or animation",
+    "prompt": "Use case: stylized-concept. Asset type: a single four-column character portrait atlas for Beast Dojo Critter Clash, an original cartoon martial arts arena game. Create four distinct original stylized 3D toy-like animal fighters, each framed from waist up, all at exactly the same scale, each centered in one of four equally wide columns across a wide horizontal image. Left to right: a warm caramel boxing kangaroo with long upright ears and teal cloth handwraps, an icy blue penguin brawler with a cream belly and orange scarf, a bulky charcoal silverback gorilla wearing jade wristwraps, a cheerful red-orange fire salamander with small ember spots and a dark martial arts belt. Confident expressive sporting poses, friendly competitive faces, rounded chunky silhouettes, rich soft materials, crisp edges, high quality game key art, soft studio lighting. Each fighter isolated against actual transparent alpha; leave clear transparent gaps between columns; no fighters overlap or cross their column boundaries; no ground, no scenery, no UI, no text, no logo, no watermark, no recognizable existing franchise character. Intended as four adjacent square portrait cells in one wide 4:1 strip, usable as one sprite sheet.",
+    "status": "Legacy visual concept; not cleared production art. Kangaroo production identity is Reedguard v2.",
+    "currentFighterReference": "fighters/boxing-kangaroo/geometry.json (Reedguard v2)"
+  }
+}

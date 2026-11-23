@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "ccu-capacity",
+      "title": "What does sustaining 1\u20132k CCU require?",
+      "assumptions": [
+        "25 active minutes per daily player is hypothetical.",
+        "No observed Beast Dojo audience or retention data exists."
+      ],
+      "queries": [
+        {
+          "id": "capacity-arithmetic",
+          "source": {
+            "label": "Beast Dojo scenario calculations",
+            "files": [
+              {
+                "label": "growth-research.json"
+              }
+            ],
+            "metricDefinitions": [
+              {
+                "label": "Daily average CCU",
+                "definition": "Daily average CCU is total active player minutes across a complete day divided by 1,440."
+              }
+            ],
+            "caveats": [
+              "A daily peak or average does not establish a minimum online population."
+            ]
+          },
+          "columns": [
+            "Average CCU",
+            "Assumed minutes per DAU",
+            "Required DAU"
+          ],
+          "rows": [
+            {
+              "Average CCU": 1000,
+              "Assumed minutes per DAU": 25,
+              "Required DAU": 57600
+            },
+            {
+              "Average CCU": 2000,
+              "Assumed minutes per DAU": 25,
+              "Required DAU": 115200
+            }
+          ],
+          "methods": [
+            {
+              "language": "calculation",
+              "code": "DAU = average CCU \u00d7 1440 \u00f7 daily minutes per player\n1000 \u00d7 1440 \u00f7 25 = 57600\n2000 \u00d7 1440 \u00f7 25 = 115200"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "organic-growth",
+      "title": "Why test retention before scaling ads?",
+      "queries": [
+        {
+          "id": "roblox-acquisition",
+          "summary": "Roblox recommends promotion once retention and engagement are healthy. Ads can seed attention but do not buy Recommended for You ranking.",
+          "source": {
+            "label": "Roblox discovery and acquisition guidance",
+            "links": [
+              {
+                "label": "Discovery",
+                "href": "https://create.roblox.com/docs/discovery"
+              },
+              {
+                "label": "Acquisition",
+                "href": "https://create.roblox.com/docs/production/analytics/acquisition"
+              },
+              {
+                "label": "Ads Manager",
+                "href": "https://create.roblox.com/docs/production/promotion/ads-manager"
+              }
+            ],
+            "caveats": [
+              "The organic-first sequence is a proposed strategy, not a guarantee of traffic or revenue."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "audience-access",
+      "title": "Does a Mild target establish younger-player access?",
+      "queries": [
+        {
+          "id": "publishing-rules",
+          "summary": "The approved design keeps fighting and targets Mild. Final ratings and under-16 access still depend on actual content, current publishing requirements and review.",
+          "source": {
+            "label": "Roblox content ratings and audience eligibility",
+            "links": [
+              {
+                "label": "Content ratings",
+                "href": "https://create.roblox.com/docs/production/promotion/content-ratings"
+              },
+              {
+                "label": "Kids and Select",
+                "href": "https://create.roblox.com/docs/production/publishing/kids-and-select"
+              }
+            ],
+            "caveats": [
+              "No rating or publishing eligibility is assigned to this project.",
+              "Current all-age publishing eligibility can require a fee or qualifying subscription in addition to optional marketing."
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

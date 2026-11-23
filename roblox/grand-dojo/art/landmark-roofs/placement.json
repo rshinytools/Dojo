@@ -1,0 +1,74 @@
+{
+  "Fighting_Ring_Roof": {
+    "sourceModel": "Grand Dojo ring canopy",
+    "nativeRoofParts": 452,
+    "pivotStuds": [
+      42.0,
+      24.11673,
+      6.2
+    ],
+    "detailedSizeStuds": [
+      43.813629,
+      9.503462,
+      39.711029
+    ],
+    "detail": {
+      "file": "Fighting_Ring_Roof.glb",
+      "triangles": 9680,
+      "atlasPixels": 1024
+    },
+    "lowerDetail": {
+      "file": "Fighting_Ring_Roof_LOD1.glb",
+      "triangles": 3392,
+      "atlasPixels": 512
+    }
+  },
+  "Trophy_Hall_Roofs": {
+    "sourceModel": "Crowned gallery",
+    "nativeRoofParts": 904,
+    "pivotStuds": [
+      0.0,
+      32.306732,
+      -43.392849
+    ],
+    "detailedSizeStuds": [
+      46.113628,
+      33.663464,
+      31.725327
+    ],
+    "detail": {
+      "file": "Trophy_Hall_Roofs.glb",
+      "triangles": 19360,
+      "atlasPixels": 1024
+    },
+    "lowerDetail": {
+      "file": "Trophy_Hall_Roofs_LOD1.glb",
+      "triangles": 6784,
+      "atlasPixels": 512
+    }
+  },
+  "Lantern_Tower_Roofs": {
+    "sourceModel": "Lantern district tower",
+    "nativeRoofParts": 408,
+    "pivotStuds": [
+      -61.300003,
+      27.02173,
+      12.7
+    ],
+    "detailedSizeStuds": [
+      24.313633,
+      27.833462,
+      24.111029
+    ],
+    "detail": {
+      "file": "Lantern_Tower_Roofs.glb",
+      "triangles": 7248,
+      "atlasPixels": 1024
+    },
+    "lowerDetail": {
+      "file": "Lantern_Tower_Roofs_LOD1.glb",
+      "triangles": 4176,
+      "atlasPixels": 512
+    }
+  }
+}

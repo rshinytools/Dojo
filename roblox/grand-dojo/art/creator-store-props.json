@@ -1,0 +1,362 @@
+{
+  "grassBlade": {
+    "pack": 116715066942677,
+    "name": "TS02_ENV_Grass_02",
+    "size": [
+      4.484253,
+      2.533119,
+      0.07513
+    ],
+    "mesh": "rbxassetid://79995624098250",
+    "texture": "rbxassetid://97454184867481",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 0,
+      "color": [
+        0.505882,
+        1,
+        0.2
+      ],
+      "albedo": "rbxassetid://108372906343698",
+      "roughness": "",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "meadowGrass": {
+    "pack": 116715066942677,
+    "name": "TS02_ENV_Grass_04",
+    "size": [
+      12.526099,
+      2.543338,
+      13.223788
+    ],
+    "mesh": "rbxassetid://138161671429073",
+    "texture": "rbxassetid://103884738886115",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 0,
+      "color": [
+        0.505882,
+        1,
+        0.2
+      ],
+      "albedo": "rbxassetid://108372906343698",
+      "roughness": "",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "meadowFlowers": {
+    "pack": 116715066942677,
+    "name": "TS02_ENV_GroundFlowers_01",
+    "size": [
+      4.401622,
+      0.266248,
+      4.403265
+    ],
+    "mesh": "rbxassetid://90106739656191",
+    "texture": "",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        1,
+        0.592157,
+        0.12549
+      ],
+      "albedo": "rbxassetid://122307751129895",
+      "roughness": "",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "meadowCover": {
+    "pack": 116715066942677,
+    "name": "TS02_ENV_Groundcover_02",
+    "size": [
+      16.379616,
+      1.142309,
+      12.457048
+    ],
+    "mesh": "rbxassetid://138913408408324",
+    "texture": "",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        0.27451,
+        0.603922,
+        0.121569
+      ],
+      "albedo": "rbxassetid://18844407430",
+      "roughness": "rbxassetid://9886845408",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "lilyPads": {
+    "pack": 101029558224430,
+    "name": "TS03_Waterlilies_03",
+    "size": [
+      4.575157,
+      0.010001,
+      5.150715
+    ],
+    "mesh": "rbxassetid://129196714058124",
+    "texture": "rbxassetid://96870173649411",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "albedo": "rbxassetid://116928471149830",
+      "roughness": "",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "lilyFlowers": {
+    "pack": 101029558224430,
+    "name": "TS03_Waterlily_Flowers_02",
+    "size": [
+      6.246082,
+      1.304778,
+      7.888039
+    ],
+    "mesh": "rbxassetid://75160109786434",
+    "texture": "rbxassetid://96870173649411",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        1,
+        0.737255,
+        0.921569
+      ],
+      "albedo": "rbxassetid://116928471149830",
+      "roughness": "",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "reeds": {
+    "pack": 101029558224430,
+    "name": "TS03_Reeds01_03",
+    "size": [
+      2.99077,
+      5.401831,
+      3.391198
+    ],
+    "mesh": "rbxassetid://76242462482097",
+    "texture": "rbxassetid://83492370167763",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "albedo": "rbxassetid://116928471149830",
+      "roughness": "",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "tallReeds": {
+    "pack": 101029558224430,
+    "name": "TS03_Reeds02_02",
+    "size": [
+      4.148835,
+      6.095051,
+      4.243408
+    ],
+    "mesh": "rbxassetid://98336177882488",
+    "texture": "rbxassetid://83492370167763",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "albedo": "rbxassetid://116928471149830",
+      "roughness": "",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "cattails": {
+    "pack": 101029558224430,
+    "name": "TS03_Cattails_01A",
+    "size": [
+      4.707916,
+      6.365805,
+      3.217518
+    ],
+    "mesh": "rbxassetid://134141979811857",
+    "texture": "rbxassetid://83492370167763",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "albedo": "rbxassetid://116928471149830",
+      "roughness": "rbxassetid://136934132658741",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "bankRock": {
+    "pack": 101029558224430,
+    "name": "TS03_ENV_Rock_02_MossPatch",
+    "size": [
+      9.04432,
+      6.349634,
+      8.883014
+    ],
+    "mesh": "rbxassetid://83725918553191",
+    "texture": "rbxassetid://102172884696543",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        0.690196,
+        0.788235,
+        0.87451
+      ],
+      "albedo": "rbxassetid://74771427158520",
+      "roughness": "rbxassetid://136934132658741",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "mossFlowers": {
+    "pack": 101029558224430,
+    "name": "TS03_ENV_MossFlower_04",
+    "size": [
+      13.867948,
+      0.780776,
+      4.300258
+    ],
+    "mesh": "rbxassetid://124000758519878",
+    "texture": "rbxassetid://120613658631455",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        0.72549,
+        0.564706,
+        0.623529
+      ],
+      "albedo": "rbxassetid://136634358180963",
+      "roughness": "rbxassetid://136934132658741",
+      "normal": "",
+      "metalness": ""
+    }
+  },
+  "rockVine": {
+    "pack": 101029558224430,
+    "name": "Meshes/TS03_ENV_Vine_03",
+    "size": [
+      3.049339,
+      3.173648,
+      0.001
+    ],
+    "mesh": "rbxassetid://80992648886442",
+    "texture": "rbxassetid://88685835932473",
+    "doubleSided": false,
+    "color": [
+      0.639216,
+      0.635294,
+      0.647059
+    ],
+    "material": 256,
+    "surface": {
+      "alpha": 1,
+      "color": [
+        0.243137,
+        0.537255,
+        0.584314
+      ],
+      "albedo": "rbxassetid://124438313378995",
+      "roughness": "rbxassetid://89606103096077",
+      "normal": "",
+      "metalness": ""
+    }
+  }
+}

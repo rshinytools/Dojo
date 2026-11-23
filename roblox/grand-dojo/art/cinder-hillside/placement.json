@@ -1,0 +1,39 @@
+{
+  "sourceModel": "Cinder sandstone hillside",
+  "replacePartsNamed": "Layered Cinder sandstone",
+  "pivotStuds": [
+    150,
+    10,
+    -188
+  ],
+  "detail": {
+    "file": "Cinder_Square_Hillside.glb",
+    "triangles": 322,
+    "atlasPixels": 1024,
+    "sizeStuds": [
+      87.076191,
+      13.686686,
+      89.273207
+    ],
+    "centerStuds": [
+      150.389679,
+      2.445591,
+      -187.677065
+    ]
+  },
+  "lowerDetail": {
+    "file": "Cinder_Square_Hillside_LOD1.glb",
+    "triangles": 130,
+    "atlasPixels": 512,
+    "sizeStuds": [
+      87.076191,
+      13.681555,
+      89.273207
+    ],
+    "centerStuds": [
+      150.389679,
+      2.443026,
+      -187.677065
+    ]
+  }
+}

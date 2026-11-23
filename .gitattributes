@@ -1,0 +1,7 @@
+*.py text eol=lf
+*.luau text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.rbxmx text eol=lf

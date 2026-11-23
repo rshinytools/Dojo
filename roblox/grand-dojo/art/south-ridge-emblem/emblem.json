@@ -1,0 +1,18 @@
+{
+  "triangles": 1908,
+  "bake": [
+    512,
+    512
+  ],
+  "icon": [
+    384,
+    384
+  ],
+  "robloxDimensionsXYZ": [
+    3.6,
+    3.6,
+    0.488
+  ],
+  "glTFFrontAxis": "+Z",
+  "creativeSource": "Original code-authored Blender geometry and material bakes"
+}

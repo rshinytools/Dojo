@@ -1,0 +1,2321 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#132b29"><title>Beast Dojo</title><style>
+:root {
+ color-scheme:dark; font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;
+ --ink:#132b29; --panel:#173631; --surface:#24473d; --line:#70917b;
+ --paper:#fff4dc; --soft:#ccdfcb; --gold:#ffc75c; --jade:#b0ebad;
+}
+* {box-sizing:border-box}
+[hidden] {display:none!important}
+html,body {margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper)}
+button,select {font:inherit;color:inherit;min-height:44px;font-weight:750;border:1px solid var(--line);border-radius:11px;background:var(--surface);padding:8px 12px}
+button {cursor:pointer;touch-action:manipulation}
+button:enabled:hover {background:#345c4e}
+button:focus-visible, select:focus-visible {outline:3px solid white;outline-offset:3px}
+button:disabled {opacity:.65;cursor:default}
+.primary {background:var(--gold);color:#202e24;border-color:#d39439;box-shadow:0 4px 0 #a56d30}
+.primary:enabled:hover {background:#ffdb89}
+#game {height:100dvh;width:100%;position:relative;isolation:isolate;overflow:hidden}
+#world,.vignette,#title-screen,#overlay {position:absolute;inset:0;width:100%;height:100%}
+#world {display:block;touch-action:none}
+.vignette {pointer-events:none;background:linear-gradient(180deg,#0d211b72,transparent 29%,transparent 70%,#122b2773)}
+#hud {position:absolute;top:max(12px,env(safe-area-inset-top));left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
+.identity,.balances span,#objective,#desktop-keys,.title-location {background:#163731f5;border:1px solid #72927a;border-radius:13px;box-shadow:0 3px 0 #142b2844}
+.identity {display:flex;align-items:center;gap:10px;padding:9px 13px 9px 9px}
+.identity strong {display:block;font-size:15px;line-height:1.2}
+.identity small {color:var(--soft);font-size:12px}
+.crest {display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:var(--gold);color:var(--ink);font-size:16px;font-weight:900;letter-spacing:-1px;transform:rotate(-5deg)}
+.xp-track {height:4px;background:#45675a;border-radius:9px;margin-top:3px;overflow:hidden}
+#fighter-xp {height:100%;background:var(--jade)}
+.balances {display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.balances span {font-size:13px;font-weight:750;padding:8px 10px;white-space:nowrap}
+#coins {color:var(--gold)}
+#save-state {color:var(--soft);font-size:12px}
+#objective {position:absolute;top:88px;left:16px;padding:10px 13px;display:grid;gap:3px;width:min(260px,52vw);pointer-events:none}
+#objective small,.title-kicker {font-weight:850;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);font-size:11px}
+#objective strong {font-size:15px}
+#objective span {font-size:13px;color:var(--soft);line-height:1.35}
+#menu {position:absolute;right:16px;top:75px;display:grid;grid-template-columns:repeat(2,minmax(70px,auto));gap:6px}
+#menu button {display:flex;align-items:center;justify-content:space-between;gap:6px;background:#193a34f5;font-size:13px;padding:6px 9px}
+kbd {font:700 11px system-ui;background:#406155;padding:2px 5px;border-radius:4px}
+#desktop-keys {position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:12px;white-space:nowrap;padding:8px 12px;color:var(--soft);pointer-events:none}
+#interact {position:absolute;bottom:64px;left:50%;transform:translateX(-50%);max-width:72vw}
+#toast {position:absolute;left:50%;transform:translateX(-50%);top:79px;width:max-content;max-width:min(410px,80vw);border:1px solid #f2cf86;border-radius:12px;background:#23463d;padding:10px 15px;font-weight:800;text-align:center;pointer-events:none;z-index:3}
+#combat,#activity {position:absolute;top:140px;left:50%;transform:translateX(-50%);display:grid;gap:6px;width:min(425px,85vw);text-align:center;border:1px solid #81977a;border-radius:14px;padding:9px 13px;background:#163731f5;pointer-events:none}
+#combat strong,#activity strong {font-size:16px}
+#combat small,#activity small {font-size:13px;color:var(--soft)}
+.bars {display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bars div {display:grid;gap:3px;text-align:left;font-size:12px}
+meter {width:100%;height:11px;accent-color:var(--jade)}
+#touch {position:absolute;inset:auto 14px max(16px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end;gap:10px;pointer-events:none}
+#stick {width:94px;height:94px;border-radius:50%;background:#173b3588;border:2px solid #fff4da8c;position:relative;touch-action:none;pointer-events:auto}
+#stick i {width:42px;height:42px;position:absolute;border-radius:50%;background:#fff4dacc;left:24px;top:24px;pointer-events:none}
+.touch-actions {display:grid;grid-template-columns:repeat(2,56px);gap:7px;pointer-events:auto}
+.touch-actions button {padding:0;font-size:12px;min-height:51px;border-radius:15px;background:#173b35ed;border-color:#9ab3a2;touch-action:none}
+.touch-actions button:last-child {background:var(--gold);color:var(--ink)}
+#overlay {display:grid;place-items:center;background:#102820b0;padding:14px;z-index:5}
+#panel {width:min(780px,100%);max-height:96%;overflow:auto;overscroll-behavior:contain;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:clamp(15px,3vw,27px);box-shadow:0 20px 55px #061a1d8c}
+.panel-head {display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.panel-head h2 {font-size:clamp(23px,5vw,32px);line-height:1.05;letter-spacing:-.04em;margin:6px 0}
+.panel-head small,.tag {color:var(--gold);font-weight:850;font-size:12px}
+.panel-head small {text-transform:uppercase;letter-spacing:.12em}
+#panel p {margin:8px 0 12px;color:var(--soft);line-height:1.45}
+#panel h3 {font-size:17px;margin:0 0 4px}
+.panel-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.entry {border:1px solid #577b68;border-radius:13px;background:#20443b;padding:12px;min-width:0}
+.entry p {font-size:14px;margin-bottom:8px!important}
+.entry small {display:block;color:var(--soft);font-size:13px}
+.entry.earned {border-color:#b4bf7c}
+.entry button {margin-top:7px}
+#queue-progress {display:block;width:100%;height:12px;accent-color:#ffc75c}
+#queue-elapsed {font-variant-numeric:tabular-nums}
+.panel-actions,.filters {display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0}
+.fighter-card {display:grid;grid-template-columns:63px minmax(0,1fr);gap:9px}
+.portrait {width:62px;height:62px;background:#183930;border-radius:8px}
+.world-map {display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.world-map button {background:var(--region,#24473d);color:#fff8dd;text-align:left;min-width:0}
+.world-map small {display:block;font-size:11px;color:#f2f1d4}
+#title-screen {display:flex;align-items:center;z-index:4;pointer-events:none}
+.title-wash {position:absolute;inset:0;background:linear-gradient(90deg,#112c26f2 2%,#183b30cc 27%,#193a2b26 63%,transparent 82%)}
+.title-content {position:relative;display:flex;align-items:flex-start;flex-direction:column;gap:14px;margin-left:clamp(24px,8vw,132px);pointer-events:auto}
+.title-kicker {font-size:13px}
+.title-content h1 {font-size:clamp(68px,12vw,152px);letter-spacing:-.10em;font-weight:1000;line-height:.77;margin:5px 0 0;text-shadow:0 5px #122b29}
+.title-content em {font-style:normal;color:var(--gold)}
+.title-content p {font-size:clamp(16px,2vw,22px);line-height:1.35;margin:7px 0;color:#f9f1d7;font-weight:650}
+.title-content button {min-width:205px;text-align:center}
+.edition {font-size:12px;color:var(--soft);letter-spacing:.07em}
+.title-location {position:absolute;bottom:25px;right:25px;padding:10px 13px;font-size:13px;font-weight:850;letter-spacing:.08em}
+.title-location small {display:block;color:var(--soft);letter-spacing:normal;margin-top:3px}
+#game[data-input="touch"] kbd,#game[data-input="pad"] kbd {display:none}
+#game[data-input="touch"] #interact {bottom:123px}
+#game[data-input="touch"] #desktop-keys {display:none}
+#game[data-fight="true"] #objective,#game[data-fight="true"] #menu {visibility:hidden}
+#game[data-activity="true"] #objective,#game[data-activity="true"] #menu {visibility:hidden}
+#game[data-activity="true"] #activity {top:80px}
+#game[data-fight="true"] #combat {top:78px}
+#game[data-fight="true"] #toast,#game[data-activity="true"] #toast {top:auto;bottom:61px}
+#game[data-input="touch"][data-fight="true"] #toast,#game[data-input="touch"][data-activity="true"] #toast {bottom:132px}
+@media(max-width:650px) {
+ #hud {left:8px;right:8px;top:max(8px,env(safe-area-inset-top))}
+ .identity {padding:6px 8px;gap:6px}.identity strong {font-size:13px}.crest {width:31px;height:31px;font-size:13px}
+ .balances {gap:3px}.balances span {padding:6px;font-size:11px}#save-state {font-size:11px}
+ #objective {left:8px;top:69px;padding:8px 9px}#objective strong {font-size:14px}#objective span {font-size:12px}
+ #menu {right:8px;top:68px;grid-template-columns:repeat(2,minmax(55px,auto));gap:4px}
+ #menu button {padding:5px 6px;font-size:12px}#menu kbd {display:none}
+ #toast,#activity {top:213px}#toast {font-size:13px}
+ .panel-grid {grid-template-columns:1fr}.title-content {gap:12px;margin-left:25px}
+ .title-location {display:none}.title-wash {background:linear-gradient(90deg,#112c26eb,#183b3063)}
+ .world-map {grid-template-columns:repeat(2,1fr)}
+}
+@media(max-height:490px) and (min-width:651px){
+ .title-content {gap:8px}.title-content h1 {font-size:clamp(50px,14vh,85px)}.title-content p {font-size:15px}
+ #objective {top:68px}#menu {top:66px;grid-template-columns:repeat(3,minmax(61px,auto))}
+ #hud {top:7px}.identity {padding:5px 8px}
+ #activity {top:119px}#game[data-fight="true"] #combat {top:62px}#toast {top:124px}
+}
+.tag-button {pointer-events:auto;justify-self:center;min-height:40px}
+#touch.exploring .touch-actions {grid-template-columns:56px}
+#touch.exploring [data-touch]:not([data-touch="dash"]) {display:none}
+.room-display {display:grid;grid-template-columns:repeat(3,1fr);gap:11px;padding:14px;border-radius:14px;background:linear-gradient(#37584a,#242f2b);border:1px solid #81a087}
+.room-display.theme-1 {background:linear-gradient(#5c5240,#392d29)}
+.room-display.theme-2 {background:linear-gradient(#48516f,#252d47)}
+.pedestal {display:grid;align-content:end;justify-items:center;text-align:center;gap:7px;min-width:0;background:#142a24ac;border-radius:11px;padding:8px}
+.pedestal strong {font-size:14px}.pedestal button {font-size:12px;padding:5px 7px}
+.timing-track {position:relative;height:32px;margin:24px 9px 14px;background:#32554a;border-radius:12px;border:1px solid #8dad91}
+.timing-track div {position:absolute;inset:0 31%;background:#e8b74f;border-radius:9px}
+.timing-track i {position:absolute;top:-4px;width:7px;height:38px;border-radius:6px;background:#fff6d8;transform:translateX(-50%);box-shadow:0 2px 4px #142b24}
+.sequence {display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.sequence span {padding:10px 15px;border-radius:10px;background:#8eb397;color:#142b27;font-weight:850}
+@media(max-width:470px){.room-display {grid-template-columns:repeat(2,1fr)}}
+.touch-actions {grid-template-columns:repeat(3,54px)}
+.touch-actions button[data-touch="ultimate"] {font-size:11px}
+.touch-actions button.charged {background:#f8d178;color:#182e25;border-color:#fff3c6}
+.signature[data-ready="true"] {color:#ffdf8d;font-weight:850}
+@media(max-width:650px){#desktop-keys {white-space:normal;width:min(92vw,410px);text-align:center}}
+#menu .arena-menu {background:#ffc75c;color:#322d24;border-color:#ffe08f}
+#menu .arena-menu kbd {background:#725232;color:#fff4dc}
+.game-link {color:#ffda83;display:inline-block;padding:10px 0}
+#showroom {position:absolute;top:max(14px,env(safe-area-inset-top));left:16px;right:16px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+#showroom div {display:grid;gap:4px;background:#163731f5;padding:10px 14px;border:1px solid #72927a;border-radius:12px}
+#showroom small {font-size:12px;color:var(--soft)}
+#showroom a {background:var(--gold);color:var(--ink);font-size:14px;font-weight:800;border-radius:10px;padding:12px;text-decoration:none}
+#showroom a:focus-visible,.game-link:focus-visible {outline:3px solid white;outline-offset:3px}
+#showroom-awards {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0;padding:0}
+@media(max-width:560px) and (min-height:600px){
+ #showroom-awards {width:auto;height:auto;clip-path:none;left:14px;right:14px;bottom:20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;list-style:none;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#163731f5;font-size:12px}
+ #showroom a {white-space:nowrap}
+}
+</style>
+</head>
+<body><main id="game" aria-label="Beast Dojo browser edition">
+<canvas id="world" aria-label="Playable dojo world"></canvas><div class="vignette"></div>
+<header id="hud" hidden><div class="identity"><span class="crest">BD</span><div><strong id="fighter-name"></strong><small id="fighter-level"></small><div class="xp-track"><div id="fighter-xp"></div></div></div></div><div class="balances"><span id="coins"></span><span id="trophy-count"></span><span id="save-state" role="status"></span></div></header>
+<section id="objective" hidden aria-label="Current objective"><small id="location"></small><strong id="objective-name"></strong><span id="objective-detail"></span></section>
+<nav id="menu" hidden aria-label="Game menus">
+<button data-panel="map">Map <kbd>M</kbd></button><button data-panel="journal">Journal <kbd>Q</kbd></button><button data-panel="fighters">Fighters <kbd>F</kbd></button><button data-panel="trophies">Trophies <kbd>T</kbd></button><button data-panel="arena" class="arena-menu">Arena <kbd>B</kbd></button><button data-panel="settings">Settings <kbd>Esc</kbd></button>
+</nav>
+<header id="showroom" hidden><div><strong>Trophy Room</strong><small>Sample display · 6 pedestals</small></div><a href="?play=1">Back to game</a></header>
+<ol id="showroom-awards" hidden aria-label="Trophies in the sample room"></ol>
+<div id="combat" hidden></div><div id="activity" hidden aria-live="polite"></div><div id="toast" hidden role="status"></div>
+<button id="interact" hidden></button><div id="desktop-keys" hidden></div>
+<div id="touch" hidden><div id="stick" aria-label="Drag to move"><i></i></div><div class="touch-actions">
+<button data-touch="dash">Dash</button><button data-touch="guard">Guard</button><button data-touch="ultimate">Signature</button><button data-touch="skill">Skill</button><button data-touch="attack">Strike</button>
+</div></div>
+<div id="overlay" hidden><section id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title"></section></div>
+<section id="title-screen"><div class="title-wash"></div><div class="title-content">
+<span class="title-kicker">GRAND DOJO ADVENTURES</span><h1>BEAST<br><em>DOJO</em></h1><p>Explore the valley. Master your style.<br>Bring your victories home.</p>
+<button id="start" class="primary">Enter the dojo</button><button id="controls">Controls</button><div class="edition">Browser edition · Single player</div>
+</div><div class="title-location">◆ GRAND DOJO <small>Dojo Valley</small></div></section>
+<noscript>Enable JavaScript to play Beast Dojo.</noscript></main><script>
+window.BEAST_CONTENT = {
+  "districts": [
+    {
+      "id": "valley",
+      "name": "Dojo Valley",
+      "landmark": "Grand Dojo and Reedgrove Court",
+      "arena": "Grand Bamboo Dojo",
+      "mentor": "Reed court keeper",
+      "chapter": "Find your footing",
+      "steps": [
+        "Meet the dojo mentor and learn movement.",
+        "Complete the reed-path course and lantern timing drill.",
+        "Finish a guided spar and return to the dojo."
+      ],
+      "activities": [
+        "Reed-path parkour",
+        "Lantern timing drill"
+      ],
+      "secret": "Three tucked-away reed seals",
+      "mastery": "Reed-path expert course"
+    },
+    {
+      "id": "coast",
+      "name": "Tideharbor Coast",
+      "landmark": "Harbor paths, tide pools and shipwreck overlook",
+      "arena": "Sunken Pirate Galleon",
+      "mentor": "Harbor instructor",
+      "chapter": "Restore the harbor route",
+      "steps": [
+        "Find the harbor instructor and activate the shore marker.",
+        "Carry training parcels across the tide-path route.",
+        "Complete the harbor practice encounter and report back."
+      ],
+      "activities": [
+        "Tide-path traversal",
+        "Harbor delivery route"
+      ],
+      "secret": "Three hidden tide seals",
+      "mastery": "Tide-path expert course"
+    },
+    {
+      "id": "cinder",
+      "name": "Cinder Terraces",
+      "landmark": "Kiln workshops, steam lifts and ceramic gardens",
+      "arena": "Molten Caldera",
+      "mentor": "Kiln workshop keeper",
+      "chapter": "Set the workshop right",
+      "steps": [
+        "Meet the keeper and inspect three marked vents.",
+        "Solve the bellows timing puzzle to restore the lift.",
+        "Complete the workshop spar and return the repaired training tile."
+      ],
+      "activities": [
+        "Bellows timing puzzle",
+        "Steam-lift ascent"
+      ],
+      "secret": "Three hidden kiln seals",
+      "mastery": "Steam-lift expert course"
+    },
+    {
+      "id": "sky",
+      "name": "Skywalk Peaks",
+      "landmark": "Wind bridges, cliff paths and the cloud temple",
+      "arena": "Cloud-Top Temple",
+      "mentor": "Wind-court instructor",
+      "chapter": "Reconnect the wind courts",
+      "steps": [
+        "Reach the wind court using its marked accessible route.",
+        "Activate the bridge switches through a movement challenge.",
+        "Complete the temple practice encounter and reconnect the route."
+      ],
+      "activities": [
+        "Wind-bridge course",
+        "Chime sequence puzzle"
+      ],
+      "secret": "Three hidden wind seals",
+      "mastery": "Wind-bridge expert course"
+    },
+    {
+      "id": "frost",
+      "name": "Frostglass Gardens",
+      "landmark": "Ice gardens, warm shelters and frozen ponds",
+      "arena": "Glacial Ice Floe",
+      "mentor": "Garden caretaker",
+      "chapter": "Bring the garden to life",
+      "steps": [
+        "Find the caretaker and survey three garden markers.",
+        "Complete the sliding course and light puzzle.",
+        "Finish the garden training trial and report back."
+      ],
+      "activities": [
+        "Ice-slide course",
+        "Reflector light puzzle"
+      ],
+      "secret": "Three hidden frost seals",
+      "mastery": "Ice-slide expert course"
+    },
+    {
+      "id": "circuit",
+      "name": "Lantern Circuit",
+      "landmark": "Neon courtyards, rooftop paths and a night market",
+      "arena": "Cyber Neon Arena",
+      "mentor": "Circuit instructor",
+      "chapter": "Light the circuit",
+      "steps": [
+        "Meet the instructor and discover the rooftop route.",
+        "Complete a signal-routing puzzle and delivery challenge.",
+        "Finish the circuit practice encounter and open the night display."
+      ],
+      "activities": [
+        "Rooftop delivery route",
+        "Signal-routing puzzle"
+      ],
+      "secret": "Three hidden circuit seals",
+      "mastery": "Rooftop expert course"
+    }
+  ],
+  "trophies": [
+    {
+      "id": "journey-01",
+      "name": "First Footing",
+      "category": "Journey",
+      "criterion": "Complete the introductory mentor quest, not simply the first login."
+    },
+    {
+      "id": "journey-02",
+      "name": "A Chapter Begins",
+      "category": "Journey",
+      "criterion": "Complete the three-step Dojo Valley mentor chapter."
+    },
+    {
+      "id": "journey-03",
+      "name": "Six Horizons",
+      "category": "Journey",
+      "criterion": "Discover the arrival checkpoint in all six districts."
+    },
+    {
+      "id": "journey-04",
+      "name": "A New Form",
+      "category": "Journey",
+      "criterion": "Complete the first server-confirmed fighter evolution."
+    },
+    {
+      "id": "journey-05",
+      "name": "Mentors Remember",
+      "category": "Journey",
+      "criterion": "Complete all six mentor chapters."
+    },
+    {
+      "id": "journey-06",
+      "name": "Dojo Graduate",
+      "category": "Journey",
+      "criterion": "Complete the graduation quest after the six mentor chapters."
+    },
+    {
+      "id": "discovery-valley",
+      "name": "Dojo Valley Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Dojo Valley."
+    },
+    {
+      "id": "discovery-coast",
+      "name": "Tideharbor Coast Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Tideharbor Coast."
+    },
+    {
+      "id": "discovery-cinder",
+      "name": "Cinder Terraces Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Cinder Terraces."
+    },
+    {
+      "id": "discovery-sky",
+      "name": "Skywalk Peaks Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Skywalk Peaks."
+    },
+    {
+      "id": "discovery-frost",
+      "name": "Frostglass Gardens Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Frostglass Gardens."
+    },
+    {
+      "id": "discovery-circuit",
+      "name": "Lantern Circuit Explorer",
+      "category": "Discovery",
+      "criterion": "Find all three permanent seals in Lantern Circuit."
+    },
+    {
+      "id": "mastery-valley",
+      "name": "Dojo Valley Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Reed-path expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-coast",
+      "name": "Tideharbor Coast Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Tide-path expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-cinder",
+      "name": "Cinder Terraces Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Steam-lift expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-sky",
+      "name": "Skywalk Peaks Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Wind-bridge expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-frost",
+      "name": "Frostglass Gardens Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Ice-slide expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "mastery-circuit",
+      "name": "Lantern Circuit Master",
+      "category": "Mastery",
+      "criterion": "Complete the server-validated Rooftop expert course at its authored expert standard. Exact scoring belongs to the activity specification."
+    },
+    {
+      "id": "arena-01",
+      "name": "First Duel",
+      "category": "Arena",
+      "criterion": "Win one eligible completed duel."
+    },
+    {
+      "id": "arena-02",
+      "name": "Ring Reader",
+      "category": "Arena",
+      "criterion": "Finish in the top three of an eligible eight-player brawl."
+    },
+    {
+      "id": "arena-03",
+      "name": "Tag Partners",
+      "category": "Arena",
+      "criterion": "Win one eligible tag-team match."
+    },
+    {
+      "id": "arena-04",
+      "name": "Ten Duels",
+      "category": "Arena",
+      "criterion": "Win ten eligible duels; duplicate result IDs never increment the counter."
+    },
+    {
+      "id": "arena-05",
+      "name": "Steady Guard",
+      "category": "Arena",
+      "criterion": "Perform ten server-validated parries across eligible completed encounters."
+    },
+    {
+      "id": "arena-06",
+      "name": "Ring Veteran",
+      "category": "Arena",
+      "criterion": "Complete twenty eligible arena matches with participation evidence."
+    },
+    {
+      "id": "world-01",
+      "name": "Kiln Keeper",
+      "category": "World challenges",
+      "criterion": "Earn participation credit for clearing the Kilnback Custodian encounter."
+    },
+    {
+      "id": "world-02",
+      "name": "Deepwater Team",
+      "category": "World challenges",
+      "criterion": "Earn participation credit for clearing the Abyssal Kraken encounter."
+    },
+    {
+      "id": "world-03",
+      "name": "Dawn Return",
+      "category": "World challenges",
+      "criterion": "Earn participation credit for clearing the Solar Phoenix encounter."
+    },
+    {
+      "id": "world-04",
+      "name": "Lantern Keeper",
+      "category": "World challenges",
+      "criterion": "Complete one Lantern Relay world event with validated participation."
+    },
+    {
+      "id": "world-05",
+      "name": "Festival Regular",
+      "category": "World challenges",
+      "criterion": "Complete three Training Festival activities with unique valid completion IDs."
+    },
+    {
+      "id": "world-06",
+      "name": "World Champion",
+      "category": "World challenges",
+      "criterion": "Earn all three boss-clear trophies and both world-event trophies in this category."
+    }
+  ],
+  "fighters": [
+    {
+      "id": 0,
+      "name": "Reedguard Kangaroo",
+      "element": "Land",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 1000,
+      "attack": 100,
+      "speed": 18,
+      "ultimate": "Reedstep Rising"
+    },
+    {
+      "id": 1,
+      "name": "Karate Frog",
+      "element": "Land",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 950,
+      "attack": 95,
+      "speed": 19,
+      "ultimate": "Tadpole Tornado"
+    },
+    {
+      "id": 2,
+      "name": "Silverback Gorilla",
+      "element": "Land",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1350,
+      "attack": 115,
+      "speed": 15,
+      "ultimate": "Seismic Chest-Pound"
+    },
+    {
+      "id": 3,
+      "name": "Snapping Tortoise",
+      "element": "Land",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1400,
+      "attack": 105,
+      "speed": 14,
+      "ultimate": "Fortress Ricochet"
+    },
+    {
+      "id": 4,
+      "name": "Honey Badger",
+      "element": "Land",
+      "rarity": "Epic",
+      "role": "Beast",
+      "hp": 1150,
+      "attack": 125,
+      "speed": 18,
+      "ultimate": "Unstoppable Frenzy"
+    },
+    {
+      "id": 5,
+      "name": "Emerald Saber-Tooth",
+      "element": "Land",
+      "rarity": "Legendary",
+      "role": "Beast",
+      "hp": 1200,
+      "attack": 135,
+      "speed": 20,
+      "ultimate": "Apex Pounce"
+    },
+    {
+      "id": 6,
+      "name": "Penguin Brawler",
+      "element": "Aquatic",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 980,
+      "attack": 95,
+      "speed": 19,
+      "ultimate": "Belly-Slide Blitz"
+    },
+    {
+      "id": 7,
+      "name": "River Otter",
+      "element": "Aquatic",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 960,
+      "attack": 100,
+      "speed": 19,
+      "ultimate": "Pebble Barrage"
+    },
+    {
+      "id": 8,
+      "name": "Pistol Shrimp",
+      "element": "Aquatic",
+      "rarity": "Rare",
+      "role": "Agile",
+      "hp": 940,
+      "attack": 120,
+      "speed": 18,
+      "ultimate": "Cavitation Cannon"
+    },
+    {
+      "id": 9,
+      "name": "Walrus Sumo",
+      "element": "Aquatic",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1420,
+      "attack": 110,
+      "speed": 14,
+      "ultimate": "Tidal Belly-Flop"
+    },
+    {
+      "id": 10,
+      "name": "Great White Shark",
+      "element": "Aquatic",
+      "rarity": "Epic",
+      "role": "Beast",
+      "hp": 1180,
+      "attack": 130,
+      "speed": 19,
+      "ultimate": "Jaws of the Deep"
+    },
+    {
+      "id": 11,
+      "name": "Abyssal Kraken",
+      "element": "Aquatic",
+      "rarity": "Mythic",
+      "role": "Heavy",
+      "hp": 1500,
+      "attack": 135,
+      "speed": 16,
+      "ultimate": "Tentacle Cataclysm"
+    },
+    {
+      "id": 12,
+      "name": "Fire Salamander",
+      "element": "Magma",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 960,
+      "attack": 105,
+      "speed": 19,
+      "ultimate": "Magma Trail"
+    },
+    {
+      "id": 13,
+      "name": "Desert Scorpion",
+      "element": "Magma",
+      "rarity": "Common",
+      "role": "Beast",
+      "hp": 1020,
+      "attack": 105,
+      "speed": 18,
+      "ultimate": "Cinder Snare"
+    },
+    {
+      "id": 14,
+      "name": "Armadillo Striker",
+      "element": "Magma",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1320,
+      "attack": 115,
+      "speed": 16,
+      "ultimate": "Meteor Roll"
+    },
+    {
+      "id": 15,
+      "name": "Komodo Dragon",
+      "element": "Magma",
+      "rarity": "Rare",
+      "role": "Beast",
+      "hp": 1150,
+      "attack": 120,
+      "speed": 17,
+      "ultimate": "Volcanic Breath"
+    },
+    {
+      "id": 16,
+      "name": "Magma Grizzly Bear",
+      "element": "Magma",
+      "rarity": "Epic",
+      "role": "Heavy",
+      "hp": 1400,
+      "attack": 125,
+      "speed": 15,
+      "ultimate": "Eruption Slam"
+    },
+    {
+      "id": 17,
+      "name": "Obsidian Hellhound",
+      "element": "Magma",
+      "rarity": "Legendary",
+      "role": "Beast",
+      "hp": 1180,
+      "attack": 140,
+      "speed": 20,
+      "ultimate": "Hellfire Stampede"
+    },
+    {
+      "id": 18,
+      "name": "Rooster Kickboxer",
+      "element": "Sky",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 950,
+      "attack": 105,
+      "speed": 19,
+      "ultimate": "Feather Flurry"
+    },
+    {
+      "id": 19,
+      "name": "Sugar Glider",
+      "element": "Sky",
+      "rarity": "Common",
+      "role": "Agile",
+      "hp": 920,
+      "attack": 95,
+      "speed": 20,
+      "ultimate": "Gust Vortex"
+    },
+    {
+      "id": 20,
+      "name": "Electric Owl",
+      "element": "Sky",
+      "rarity": "Rare",
+      "role": "Agile",
+      "hp": 980,
+      "attack": 120,
+      "speed": 19,
+      "ultimate": "Thunder Dive"
+    },
+    {
+      "id": 21,
+      "name": "Bighorn Ram",
+      "element": "Sky",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "hp": 1340,
+      "attack": 115,
+      "speed": 16,
+      "ultimate": "Static Charge"
+    },
+    {
+      "id": 22,
+      "name": "Golden Eagle",
+      "element": "Sky",
+      "rarity": "Epic",
+      "role": "Beast",
+      "hp": 1120,
+      "attack": 125,
+      "speed": 20,
+      "ultimate": "Talon Drop"
+    },
+    {
+      "id": 23,
+      "name": "Celestial Storm Dragon",
+      "element": "Sky",
+      "rarity": "Mythic",
+      "role": "Heavy",
+      "hp": 1480,
+      "attack": 140,
+      "speed": 17,
+      "ultimate": "Tempest Roar"
+    }
+  ]
+};
+</script>
+<script>
+'use strict';
+(() => {
+ const {districts, fighters, trophies} = window.BEAST_CONTENT;
+ const clamp = (n,min,max) => Math.max(min,Math.min(max,n));
+ const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
+ const centers = [[0,0],[1150,420],[-1150,420],[800,-1000],[-800,-1000],[0,1300]];
+ const palettes = [
+  ['#679764','#92b779','#326554','#ead49d'], ['#4f9392','#85bab1','#27696d','#eed39d'],
+  ['#ad775b','#cf9b72','#774c48','#f2bc78'], ['#7d95ad','#a9bcc5','#4f6586','#e8d9ac'],
+  ['#89aeb6','#c4dee0','#537d97','#fff0ce'], ['#737b9b','#9b99b7','#4f5b83','#e8b4a7']
+ ];
+ const districtsMap = districts.map((district,index) => {
+  const [x,y] = centers[index];
+  const point = (id,label,dx,dy,kind,extra={}) => ({id,label,x:x+dx,y:y+dy,kind,district:index,...extra});
+  return {...district,index,x,y,palette:palettes[index],nodes:[
+   point('mentor',district.mentor,-120,70,'mentor'),
+   point('route',district.activities[0],-288,170,'route'),
+   point('puzzle',district.activities[1],279,135,'puzzle'),
+   point('spar',district.arena,-57,-101,'spar'),
+   point('seal-0','Hidden seal',-302,-147,'seal',{seal:0}),
+   point('seal-1','Hidden seal',325,-124,'seal',{seal:1}),
+   point('seal-2','Hidden seal',187,317,'seal',{seal:2}),
+   ...(index===0 ? [point('room','Trophy room',220,-100,'room'),point('events','World events',-212,-73,'events'),point('graduation','Graduation court',220,240,'graduation')] : []),
+   ...([1,2,3].includes(index) ? [point('boss','Co-op raid gate',180,-279,'boss')] : [])
+  ]};
+ });
+ const arenaModes = [
+  {id:'duel',name:'Duels',detail:'One opponent. Win two rounds.',count:1,rounds:2},
+  {id:'tag',name:'Tag Team',detail:'Two on two with bots. Swap to your backup when needed.',count:2,rounds:1},
+  {id:'brawl',name:'Dojo Brawl',detail:'Eight fighters. Last fighter in the ring wins.',count:7,rounds:1},
+  {id:'raid',name:'Co-op Raid',detail:'Fight a boss with three bot allies.',count:1,rounds:1}
+ ];
+ const bosses = [
+  {name:'Kilnback Custodian',id:'world-01',species:3,color:'#c38154'},
+  {name:'Abyssal Kraken',id:'world-02',species:11,color:'#658baf'},
+  {name:'Solar Phoenix',id:'world-03',species:22,color:'#d99850'}
+ ];
+ const levelThresholds=[0,80,180,300,460,650,830,1030,1260,1500];
+ const levelCap=levelThresholds.length;
+ const levelOf=xp=>1+levelThresholds.slice(1).filter(threshold=>xp>=threshold).length;
+ const stageOf=xp=>levelOf(xp)===levelCap?'Grandmaster':levelOf(xp)>=5?'Warrior':'Rookie';
+ function levelProgress(xp){
+  const level=levelOf(xp), next=levelThresholds[level];
+  const current=levelThresholds[level-1];
+  return {level,next,remaining:next===undefined?0:next-xp,ratio:next===undefined?1:(xp-current)/(next-current)};
+ }
+ const botTiers={
+  beginner:{name:'Beginner',health:78,speed:86,wind:.8,interval:1.35,damage:10},
+  standard:{name:'Standard',health:105,speed:102,wind:.55,interval:1.03,damage:13},
+  advanced:{name:'Advanced',health:145,speed:131,wind:.36,interval:.76,damage:16}
+ };
+ const boosts={
+  xp:{name:'Training XP',minutes:15},
+  strength:{name:'PvE strength',minutes:10}
+ };
+ const boostRemaining=(p,id,now=Date.now())=>Math.max(0,(p.boosts?.[id]||0)-now);
+ const distanceToSegment = (p,a,b) => {
+  const dx=b.x-a.x,dy=b.y-a.y;
+  const t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);
+  return Math.hypot(p.x-a.x-dx*t,p.y-a.y-dy*t);
+ };
+ function walkable(p) {
+  return districtsMap.some(d=>distance(p,d)<454) || districtsMap.slice(1).some(d=>distanceToSegment(p,districtsMap[0],d)<86);
+ }
+ const empty = () => ({
+  version:1,coins:0,active:0,backup:6,fighterXP:{0:0,6:0},found:[0],checkpoint:0,
+  quests:[0,0,0,0,0,0],routes:{},puzzles:[],spar:[],seals:[],trophies:{},shelf:Array(6).fill(null),
+  stats:{duels:0,parries:0,matches:0,festival:0},rank:0,track:0,pin:null,theme:0,
+  graduated:false,boosts:{},settings:{sound:true,motion:true,touch:false}
+ });
+ const storageKey='beast-dojo-adventure-v1';
+ function validProfile(p) {
+  return p?.version===1 && Array.isArray(p.quests) && p.quests.length===6 &&
+   ['found','puzzles','spar','seals','shelf'].every(k=>Array.isArray(p[k])) &&
+   ['fighterXP','routes','trophies','stats','settings'].every(k=>p[k]&&typeof p[k]==='object') &&
+   Number.isInteger(p.checkpoint) && !!districtsMap[p.checkpoint] &&
+   Number.isInteger(p.active) && !!fighters[p.active] && Number.isFinite(p.coins);
+ }
+ function readProfile(storage) {
+  try {
+   const raw=storage.getItem(storageKey);
+   if(raw===null) return {profile:empty(),status:'Ready',canSave:true};
+   const profile=JSON.parse(raw);
+   if(!validProfile(profile)) throw Error('Invalid save');
+   profile.boosts=Object.fromEntries(Object.keys(boosts).flatMap(id=>{
+    const until=profile.boosts?.[id];
+    return Number.isFinite(until)&&until>0?[[id,until]]:[];
+   }));
+   return {profile,status:'Restored',canSave:true};
+  } catch { return {profile:empty(),status:'Save unavailable',canSave:false}; }
+ }
+ const elementAdvantage = {Land:'Aquatic',Aquatic:'Magma',Magma:'Sky',Sky:'Land'};
+ // Signature styles share five reusable effects. Distances are browser world units.
+ const signatures = [
+  ['lunge',130,58],['burst',143,45],['burst',150,59],['lunge',145,55],['lunge',121,66],['lunge',197,58],
+  ['lunge',169,53],['bolt',202,52],['bolt',242,62],['burst',154,60],['lunge',184,63],['pull',201,64],
+  ['trail',144,49],['pull',160,57],['lunge',157,57],['bolt',212,58],['burst',169,64],['bolt',247,66],
+  ['lunge',164,51],['pull',171,54],['lunge',191,57],['lunge',169,62],['pull',194,62],['bolt',263,71]
+ ];
+ const has = (p,id) => Object.hasOwn(p.trophies,id);
+ function unlockRule(id) {
+  const row=Math.floor(id/6), col=id%6;
+  if(id===0||id===6)return {label:'Starter roster',test:()=>true};
+  const district=districtsMap[(id+row)%6];
+  if(row===0)return {label:'Discover '+district.name,test:p=>p.found.includes(district.index)};
+  if(row===1)return {label:'Complete '+district.name+' mentor chapter',test:p=>p.quests[district.index]===4};
+  if(row===2)return {label:'Find all seals in '+district.name,test:p=>districtSeals(p,district.index)===3};
+  if(id===23)return {label:'Win the Grand Dojo graduation trial',test:p=>p.graduated};
+  return {label:'Earn '+(6+col*2)+' trophies',test:p=>Object.keys(p.trophies).length>=6+col*2};
+ }
+ const districtSeals = (p,d) => p.seals.filter(id=>id.startsWith(d+':')).length;
+ const owned = (p,id) => unlockRule(id).test(p);
+ function trophyProgress(p,t) {
+  const d=districtsMap.find(d=>t.id.endsWith('-'+d.id));
+  if(t.id.startsWith('discovery-')) return [districtSeals(p,d.index),3];
+  if(t.id.startsWith('mastery-')) return [Number(p.routes[d.index]?.expert||false),1];
+  const entries = {
+   'journey-01':[Number(p.quests[0]>0),1], 'journey-02':[Number(p.quests[0]===4),1],
+   'journey-03':[p.found.length,6], 'journey-04':[Number(Object.values(p.fighterXP).some(x=>stageOf(x)!=='Rookie')),1],
+   'journey-05':[p.quests.filter(q=>q===4).length,6], 'journey-06':[Number(p.graduated),1],
+   'arena-01':[p.stats.duels,1], 'arena-02':[Number(p.stats.brawl||false),1], 'arena-03':[Number(p.stats.tag||false),1],
+   'arena-04':[p.stats.duels,10], 'arena-05':[p.stats.parries,10], 'arena-06':[p.stats.matches,20],
+   'world-01':[Number(p.stats.boss0||false),1], 'world-02':[Number(p.stats.boss1||false),1],
+   'world-03':[Number(p.stats.boss2||false),1], 'world-04':[Number(p.stats.relay||false),1],
+   'world-05':[p.stats.festival,3], 'world-06':[[0,1,2].filter(i=>p.stats['boss'+i]).length+Number(p.stats.relay||false)+Number(p.stats.festival>=3),5]
+  };
+  return entries[t.id] ?? [0,1];
+ }
+ function makeGame(storage, events={}) {
+  let {profile,status,canSave}=readProfile(storage);
+  const state={profile,status,canSave,player:{x:0,y:190,face:1,vx:0,vy:0}, region:0,
+   fight:null,activity:null,room:null,target:null,clock:0,lastDash:-10,fx:[],revision:0};
+  const emit=(name,detail)=>events[name]?.(detail);
+  const say=(message)=>emit('toast',message);
+  function save() {
+   try {
+    if(!state.canSave)throw Error('Storage unavailable');
+    storage.setItem(storageKey,JSON.stringify(state.profile));
+    state.status='Saved';
+   } catch {state.status='Save unavailable';}
+   state.revision++;
+  }
+  function settle(message) {
+   const p=state.profile, earned=[];
+   for(const t of trophies){
+    const [n,goal]=trophyProgress(p,t);
+    if(n>=goal&&!has(p,t.id)){
+     p.trophies[t.id]=new Date().toISOString();
+     earned.push(t.name);
+    }
+   }
+   save();
+   if(earned.length) say((state.status==='Saved'?'Trophy earned · ':'Trophy earned in this session · ')+earned.join(' • '));
+   else if(message) say(message);
+  }
+  function reward(coins,xp,message) {
+   const p=state.profile;
+   const before=levelOf(p.fighterXP[p.active]||0);
+   const bonus=boostRemaining(p,'xp')>0?xp:0;
+   p.coins+=coins;
+   p.fighterXP[p.active]=(p.fighterXP[p.active]||0)+xp+bonus;
+   const level=levelOf(p.fighterXP[p.active]);
+   settle(level>before?fighters[p.active].name+' reached Lv. '+level:message);
+   return {xp:xp+bonus,bonus,before,level,fighter:fighters[p.active].name};
+  }
+  function activateBoost(id) {
+   const p=state.profile;
+   if(!Object.hasOwn(boosts,id)||state.fight||state.activity||boostRemaining(p,id)>0)return false;
+   p.boosts[id]=Date.now()+boosts[id].minutes*60000;
+   save();
+   return true;
+  }
+  function travel(index,allowNew=false) {
+   if(!districtsMap[index]||(!allowNew&&!state.profile.found.includes(index))||state.fight||state.activity)return false;
+   const d=districtsMap[index];state.room=null;
+   Object.assign(state.player,{x:d.x,y:d.y+210,vx:0,vy:0});
+   state.target=null; state.region=index; state.profile.checkpoint=index;
+   save();return true;
+  }
+  function reset() {
+   state.profile=empty();state.canSave=true;state.fight=null;state.activity=null;
+   state.lastDash=-10;state.fx=[];travel(0,true);
+  }
+  travelInitial();
+  function travelInitial() {
+   const d=districtsMap[state.profile.checkpoint];
+   Object.assign(state.player,{x:d.x,y:d.y+210});
+   state.region=d.index;
+  }
+  function equip(id,backup=false) {
+   if(!fighters[id]||!owned(state.profile,id)||state.fight)return false;
+   const p=state.profile;
+   if(backup&&id===p.active)return false;
+   if(!backup&&p.backup===id)p.backup=p.active;
+   p[backup?'backup':'active']=id;
+   save();return true;
+  }
+  function display(slot,id) {
+   if(!Number.isInteger(slot)||slot<0||slot>=6||id!==null&&!has(state.profile,id))return false;
+   const shelf=state.profile.shelf;
+   if(id!==null)for(let i=0;i<shelf.length;i++)if(shelf[i]===id)shelf[i]=null;
+   shelf[slot]=id;save();return true;
+  }
+  function nearby() {
+   if(state.fight||state.activity)return null;
+   const nodes=state.room?state.room.nodes:districtsMap[state.region].nodes;
+   return nodes.filter(n=>n.kind!=='seal'||!state.profile.seals.includes(n.district+':'+n.seal))
+    .reduce((best,n)=>distance(state.player,n)<(best?distance(state.player,best):76)?n:best,null);
+  }
+  function approach(node) {
+   const d=districtsMap[node.district],from=districtsMap[state.region];
+   const entrance=node.kind==='spar'?[{x:node.x,y:node.y+77},node]:[node];
+   const queue=state.room||d===from?entrance:[from,districtsMap[0],...(d.index?[d]:[]),...entrance];
+   state.target={...node,queue};
+  }
+  function enterRoom(){
+   if(state.fight||state.activity||state.room)return false;
+   const returnAt={x:state.player.x,y:state.player.y};
+   const nodes=Array.from({length:6},(_,slot)=>({id:'pedestal-'+slot,kind:'pedestal',label:'Inspect pedestal '+(slot+1),slot,x:(slot%3-1)*145,y:slot<3?-84:44}));
+   nodes.push({id:'exit',kind:'room-exit',label:'Return to dojo grounds',x:0,y:210});
+   state.room={returnAt,nodes};state.target=null;state.fx=[];
+   Object.assign(state.player,{x:0,y:177,vx:0,vy:0});return true;
+  }
+  function exitRoom(){
+   if(!state.room)return false;
+   Object.assign(state.player,state.room.returnAt,{vx:0,vy:0});state.room=null;state.target=null;state.fx=[];return true;
+  }
+  function talk(index) {
+   const p=state.profile,d=districtsMap[index],step=p.quests[index];
+   p.track=index;p.pin=null;
+   if(step===0){p.quests[index]=1;reward(20,25,'Mentor chapter started');}
+   else if(step===3){p.quests[index]=4;reward(105,150,'Chapter complete');}
+   else save();
+   return {district:d,step:p.quests[index]};
+  }
+  function questUpdate(i) {
+   const p=state.profile;
+   if(p.quests[i]===1&&p.routes[i]&&p.puzzles.includes(i))p.quests[i]=p.spar.includes(i)?3:2;
+   if(p.quests[i]===2&&p.spar.includes(i))p.quests[i]=3;
+  }
+  function collect(node) {
+   const key=node.district+':'+node.seal;
+   if(state.profile.seals.includes(key))return;
+   state.profile.seals.push(key);
+   reward(25,30,'Reed seal found · '+districtSeals(state.profile,node.district)+'/3');
+  }
+  function beginActivity(i,type) {
+   if(state.fight||state.activity)return;
+   const d=districtsMap[i],p=state.profile;
+   if(type==='route'||type==='relay'){
+    const start={x:d.x-278,y:d.y+155};
+    const patterns=[[[0,0],[62,-95],[175,-140],[260,-40],[170,75],[50,63]],
+     [[0,0],[20,100],[146,125],[244,45],[170,-68],[68,-87]],
+     [[0,0],[64,75],[190,62],[260,-44],[148,-116],[25,-96]],
+     [[0,0],[52,-80],[136,-190],[244,-223],[261,-117],[232,10]],
+     [[0,0],[78,54],[181,31],[268,-32],[208,-128],[123,-170]],
+     [[0,0],[53,-104],[153,-80],[241,-79],[252,38],[149,109]]];
+    const points=patterns[i].map(([x,y])=>({x:d.x-235+x,y:d.y+153+y}));
+    Object.assign(state.player,start);
+    state.activity={type,i,title:type==='relay'?'Lantern Relay':d.activities[0],points,at:0,time:0,limit:35,expert:16+i};
+   } else {
+    state.activity={type,i,title:type==='festival'?'Training Festival':d.activities[1],pattern:i%2===0?'timing':'sequence',
+     time:0,hits:0,mistakes:0,targetHits:3,phase:0,seq:Array.from({length:4},(_,k)=>(i+k*2+Math.floor(k/2))%3),started:false};
+   }
+   state.target=null;emit('activity',state.activity);
+  }
+  function finishActivity(success) {
+   const a=state.activity;if(!a)return;
+   const p=state.profile;
+   let progress=null;
+   state.activity=null;
+   if(success){
+    if(a.type==='route'){
+     const prev=p.routes[a.i];
+     p.routes[a.i]={best:Math.min(a.time,prev?.best??Infinity),expert:!!prev?.expert||a.time<=a.expert};
+    }
+    if(a.type==='puzzle'&&!p.puzzles.includes(a.i))p.puzzles.push(a.i);
+    if(a.type==='relay')p.stats.relay=true;
+    if(a.type==='festival')p.stats.festival=Math.min(3,p.stats.festival+1);
+    questUpdate(a.i);
+    progress=reward(35,85,'Activity complete');
+   }
+   emit('activityResult',{success,title:a.title,time:a.time,expert:a.type==='route'&&a.time<=a.expert,progress});
+  }
+  function timing() {
+   const a=state.activity;
+   if(!a||!['puzzle','festival'].includes(a.type)||a.pattern!=='timing')return;
+   if(Math.abs(a.phase-.5)<.19){
+    a.hits++;say('Perfect timing!');
+    if(a.hits>=a.targetHits)finishActivity(true);
+   } else {a.mistakes++;say('Try when the marker reaches the center');}
+  }
+  function sequence(choice) {
+   const a=state.activity;
+   if(!a||a.pattern!=='sequence'||!a.started)return;
+   if(a.seq[a.hits]===choice){
+    a.hits++;
+    if(a.hits===a.seq.length)finishActivity(true);
+   } else {a.hits=0;a.mistakes++;a.started=false;a.time=0;emit('activity',a);}
+  }
+  function actor(id,x,y,team,health,scale=1) {
+   const f=fighters[id];
+   return {id,name:f.name,x,y,team,hp:health,max:health,face:team==='you'?1:-1,vx:0,vy:0,
+    cool:0,phase:'idle',wind:0,next:1,guard:0,inv:0,skill:0,charge:0,flash:0,scale};
+  }
+  function spawnRound(f) {
+   const {mode,round,district,bossIndex}=f;
+   const p=state.profile,id=p.active,x=f.x,y=f.y;
+   f.hero=actor(id,x-103,y,'you',playerHealth(id));
+   const count={duel:1,practice:1,spar:1,tag:2,brawl:7,raid:1,graduation:1}[mode];
+   f.enemies=Array.from({length:count},(_,n)=>{
+    const angle=mode==='tag'?n*.84-.42:n/count*Math.PI*2+0.16;
+    const enemy=actor((district*4+n+round+1)%24,x+Math.cos(angle)*147,y+Math.sin(angle)*147,mode==='brawl'?'rival'+n:'enemy',
+     mode==='raid'?500:mode==='graduation'?420:mode==='spar'?92:mode==='brawl'?95:botTiers[f.botTier]?.health??145,mode==='raid'||mode==='graduation'?1.7:1);
+    if(mode==='raid'||mode==='graduation'){enemy.id=bosses[bossIndex].species;enemy.name=bosses[bossIndex].name;enemy.color=bosses[bossIndex].color;}
+    else enemy.name=mode==='spar'?'Training automaton':fighters[enemy.id].name;
+    return enemy;
+   });
+   f.allies=mode==='raid'?[0,6,12].map((id,n)=>actor(id,x-115+n*90,y+115,'ally',110)):
+    mode==='tag'?[actor((id+7)%24,x-92,y+100,'ally',115)]:[];
+   f.timer=mode==='raid'||mode==='graduation'?115:mode==='practice'?45:75;
+   f.heroBack=null;f.tagUsed=false;f.enemyTag=false;
+   f.transition=0;
+  }
+  function playerHealth(id){
+   return Math.round(fighters[id].hp/9)+4*(levelOf(state.profile.fighterXP[id]||0)-1);
+  }
+  function startFight(mode,i=state.region,bossIndex=0,botTier='') {
+   if(state.fight||state.activity||state.room||!districtsMap[i]||!['duel','practice','spar','tag','brawl','raid','graduation'].includes(mode))return false;
+   if(mode==='graduation'&&!state.profile.quests.every(q=>q===4))return false;
+   if(mode==='practice'&&!Object.hasOwn(botTiers,botTier))return false;
+   const d=districtsMap[i];
+   state.fight={mode,district:i,bossIndex,botTier:mode==='practice'?botTier:'',round:1,wins:0,losses:0,parries:0,x:d.x,y:d.y-195,returnAt:{x:state.player.x,y:state.player.y}};
+   spawnRound(state.fight);state.target=null;emit('fight',state.fight);return true;
+  }
+  const isOpponent = (a,b) => a!==b&&a.team!==b.team&&!(['you','ally'].includes(a.team)&&['you','ally'].includes(b.team));
+  function tag() {
+   const f=state.fight,p=state.profile;
+   if(f?.mode!=='tag'||f.tagUsed||f.transition||!owned(p,p.backup))return;
+   const h=f.hero;
+   f.hero=actor(p.backup,h.x,h.y,'you',playerHealth(p.backup));
+   f.hero.inv=.6;f.tagUsed=true;say('Backup fighter joined');
+  }
+  function damage(attacker,target,power,knockback) {
+   if(target.inv>0||target.hp<=0)return;
+   if(target.guard>0){
+    if(target.team==='you'){
+     state.fight.parries++;say('Parry!');
+     target.charge=Math.min(100,target.charge+20);
+     attacker.phase='idle';attacker.next=1.15;attacker.hp=Math.max(0,attacker.hp-7);
+     state.fx.push({x:target.x,y:target.y,life:.38,max:.38,color:'#c8f5ad',radius:72});
+    }
+    return;
+   }
+   const element=fighters[attacker.id].element, defended=fighters[target.id].element;
+   const strength=attacker.team==='you'&&['spar','practice','raid'].includes(state.fight.mode)&&boostRemaining(state.profile,'strength')>0?1.15:1;
+   const mult=(elementAdvantage[element]===defended?1.18:elementAdvantage[defended]===element?.88:1)*strength;
+   target.hp=Math.max(0,target.hp-Math.round(power*mult));target.inv=.21;target.flash=.21;
+   if(attacker.team==='you')attacker.charge=Math.min(100,attacker.charge+Math.round(power*.55));
+   if(target.team==='you')target.charge=Math.min(100,target.charge+9);
+   const angle=Math.atan2(target.y-attacker.y,target.x-attacker.x);
+   const boost=knockback*(1+(1-target.hp/target.max)*.8);
+   target.vx+=Math.cos(angle)*boost;target.vy+=Math.sin(angle)*boost;
+   if(target.team==='you')emit('sound','hurt');
+  }
+  function attack(kind) {
+   const f=state.fight;
+   if(!f||f.transition)return;
+   const h=f.hero;
+   if(h.hp<=0)return;
+   if(kind==='guard'){
+    if(h.guardCooldown>0)return;
+    h.guard=.43;h.guardCooldown=1.05;emit('sound','guard');return;
+   }
+   if(kind==='ultimate'){
+    if(h.charge<100){say('Charge your signature by landing hits and parries');return;}
+    const [effect,range,power]=signatures[h.id];
+    const nearby=f.enemies.filter(e=>e.hp>0&&distance(e,h)<range).sort((a,b)=>distance(a,h)-distance(b,h));
+    const targets=['bolt','lunge'].includes(effect)?nearby.slice(0,1):nearby;
+    h.charge=0;h.swing=.34;h.inv=.23;
+    for(const enemy of targets){
+     h.face=Math.sign(enemy.x-h.x)||h.face;
+     damage(h,enemy,power,effect==='pull'?-148:effect==='trail'?105:320);
+    }
+    if(effect==='lunge'&&targets[0]){
+     const enemy=targets[0],d=distance(enemy,h)||1;
+     const stride=Math.max(0,Math.min(64,d-40));
+     h.x+=(enemy.x-h.x)/d*stride;h.y+=(enemy.y-h.y)/d*stride;
+    }
+    state.fx.push({x:h.x,y:h.y,life:.52,max:.52,color:'#ffe184',radius:range,shape:effect});
+    say(fighters[h.id].ultimate);emit('sound','hit');return;
+   }
+   const skill=kind==='skill';
+   if((skill?h.skill>0:h.cool>0))return;
+   if(skill)h.skill=4.7; else h.cool=.36;
+   const species=fighters[h.id],skillRange={Land:108,Aquatic:180,Magma:137,Sky:158}[species.element];
+   const range=skill?skillRange:79;
+   const targets=f.enemies.filter(a=>a.hp>0&&distance(a,h)<range).sort((a,b)=>distance(h,a)-distance(h,b));
+   const power=skill?Math.round(species.attack*.35):Math.round(species.attack*.17);
+   for(const enemy of skill?targets:targets.slice(0,1)){
+    h.face=Math.sign(enemy.x-h.x)||h.face;
+    damage(h,enemy,power,skill?260:118);emit('sound','hit');
+   }
+   h.swing=.21;
+   state.fx.push({x:h.x,y:h.y,life:.26,max:.26,color:skill?'#ffcd69':'#fff2bb',radius:range});
+   if(!targets.length)emit('sound','swing');
+  }
+  function dash(input) {
+   if(state.clock-state.lastDash<.9)return;
+   const h=state.fight?.hero??state.player;
+   const dx=input.x||(!input.y?h.face:0),dy=input.y;
+   h.vx+=dx*435;h.vy+=dy*435;h.inv=.29;state.lastDash=state.clock;
+   state.fx.push({x:h.x,y:h.y,life:.25,max:.25,color:'#d6f6cf',radius:47});
+   emit('sound','dash');
+  }
+  function returnFromFight(f){
+   state.fight=null;
+   Object.assign(state.player,f.returnAt,{vx:0,vy:0});
+  }
+  function awardFight(f,won,place) {
+   const p=state.profile, m=f.mode;
+   if(!['spar','practice','graduation'].includes(m))p.stats.matches++;
+   p.stats.parries=Math.min(10,p.stats.parries+f.parries);
+   if(m==='brawl'&&place<=3)p.stats.brawl=true;
+   if(won){
+    if(m==='duel')p.stats.duels++;
+    if(m==='tag')p.stats.tag=true;
+    if(m==='raid')p.stats['boss'+f.bossIndex]=true;
+    if(m==='spar'&&!p.spar.includes(f.district)){p.spar.push(f.district);questUpdate(f.district);}
+    if(m==='graduation')p.graduated=true;
+   }
+   const coins=won?(m==='raid'?140:m==='graduation'?300:65):10;
+   const xp=won?(m==='raid'?230:m==='graduation'?425:105):25;
+   const progress=reward(coins,xp,won?'Victory!':'Practice makes progress');
+   returnFromFight(f);
+   emit('fightResult',{won,place,mode:m,district:f.district,bossIndex:f.bossIndex,botTier:f.botTier,coins,progress});
+  }
+  function stepFight(dt,input) {
+   const f=state.fight,h=f.hero,tier=botTiers[f.botTier];
+   if(f.transition>0){
+    f.transition-=dt;
+    if(f.transition<=0){f.round++;spawnRound(f);}
+    return;
+   }
+   f.timer-=dt;
+   h.x+=input.x*192*dt;h.y+=input.y*192*dt;
+   if(input.x)h.face=Math.sign(input.x);
+   const actors=[h,...f.enemies,...f.allies];
+   for(const a of actors) {
+    for(const k of ['cool','guard','guardCooldown','inv','skill','flash','swing'])a[k]=Math.max(0,(a[k]||0)-dt);
+    if(a.hp<=0)continue;
+    a.x+=a.vx*dt;a.y+=a.vy*dt;a.vx*=Math.exp(-6*dt);a.vy*=Math.exp(-6*dt);
+    if(distance(a,f)>240){a.hp=0;continue;}
+    if(a===h)continue;
+    const targets=actors.filter(b=>b.hp>0&&isOpponent(a,b)).sort((l,r)=>distance(a,l)-distance(a,r));
+    const target=targets[0];if(!target)continue;
+    const d=distance(a,target),range=a.scale>1?94:48;
+    a.face=Math.sign(target.x-a.x)||a.face;
+    if(a.phase==='wind'){
+     a.wind-=dt;
+     if(a.wind<=0){
+      a.phase='idle';a.next=tier?.interval??(a.scale>1?1.26:1.03);
+      a.swing=.22;
+      state.fx.push({x:a.x,y:a.y,life:.28,max:.28,color:'#f0966b',radius:range+17});
+      for(const b of targets)if(distance(a,b)<range+17)damage(a,b,tier?.damage??(a.team==='ally'?14:a.scale>1?23:13),a.scale>1?196:130);
+     }
+    }else{
+     a.next-=dt;
+     if(d>range){
+      const speed=tier?.speed??(a.scale>1?67:a.team==='ally'?132:102);
+      a.x+=(target.x-a.x)/d*speed*dt;a.y+=(target.y-a.y)/d*speed*dt;
+     }else if(a.next<=0){a.phase='wind';a.wind=tier?.wind??(a.scale>1?.85:.55);}
+    }
+   }
+   // Keep crowded fighters readable and prevent bodies sitting at the same point.
+   for(let i=0;i<actors.length;i++)for(let j=i+1;j<actors.length;j++){
+    const a=actors[i],b=actors[j],gap=distance(a,b);
+    if(a.hp>0&&b.hp>0&&gap<26&&gap>.05){
+     const overlap=(26-gap)*.23;
+     const x=(a.x-b.x)/gap*overlap,y=(a.y-b.y)/gap*overlap;
+     a.x+=x;a.y+=y;b.x-=x;b.y-=y;
+    }
+   }
+   if(f.mode==='tag'&&h.hp<=0&&!f.tagUsed){tag();return;}
+   const living=f.enemies.filter(e=>e.hp>0);
+   if(h.hp>0&&living.length&&f.timer>0)return;
+   const won=h.hp>0&&(living.length===0||(['duel','practice'].includes(f.mode)&&h.hp/h.max>living[0].hp/living[0].max));
+   if(f.mode==='duel'){
+    if(won)f.wins++;else f.losses++;
+    if(f.wins<2&&f.losses<2){f.transition=1.05;say(won?'Round won':'Round lost');return;}
+    return awardFight(f,f.wins===2,1);
+   }
+   awardFight(f,won,won?1:living.length+1);
+  }
+  function tick(dt,input={x:0,y:0}) {
+   state.clock+=dt;
+   for(const fx of state.fx)fx.life-=dt;
+   state.fx=state.fx.filter(fx=>fx.life>0);
+   if(state.fight){stepFight(dt,input);return;}
+   const h=state.player,a=state.activity;
+   if(a){a.time+=dt;a.phase=(Math.sin(a.time*3.5)+1)/2;}
+   if(a?.type==='puzzle'||a?.type==='festival')return;
+   let {x,y}=input;
+   if(x||y)state.target=null;
+   if(state.target&&state.target.queue.length){
+    const t=state.target.queue[0],d=distance(h,t);
+    const last=state.target.queue.length===1;
+    if(d<(last&&state.target.kind?45:12)){
+     if(last){const node=state.target;state.target=null;if(node.kind)emit('arrive',node);}
+     else state.target.queue.shift();
+    }else{x=(t.x-h.x)/d;y=(t.y-h.y)/d;}
+   }
+   if(h.inv>0)h.inv-=dt;
+   const speed=230+(fighters[state.profile.active].speed-16)*5;
+   const nx=h.x+(x*speed+h.vx)*dt,ny=h.y+(y*speed+h.vy)*dt;
+   if(state.room?(Math.abs(nx)<280&&ny>-185&&ny<245):walkable({x:nx,y:ny})){h.x=nx;h.y=ny;}
+   if(x)h.face=Math.sign(x);
+   h.vx*=Math.exp(-7*dt);h.vy*=Math.exp(-7*dt);
+   if(state.room)return;
+   const region=districtsMap.find(d=>distance(h,d)<440);
+   if(region&&state.region!==region.index){
+    state.region=region.index;const p=state.profile;p.checkpoint=region.index;
+    if(!p.found.includes(region.index)){p.found.push(region.index);reward(20,45,'Discovered '+region.name);}
+    else save();
+   }
+   const near=nearby();if(near?.kind==='seal'&&distance(h,near)<31)collect(near);
+   if(a?.points){
+    if(distance(h,a.points[a.at])<31){a.at++;emit('sound','step');}
+    if(a.at>=a.points.length)finishActivity(true);
+    else if(a.time>a.limit)finishActivity(false);
+   }
+  }
+  function objective() {
+   const p=state.profile,d=districtsMap[p.track]||districtsMap[0],q=p.quests[d.index];
+   if(p.pin){
+    const t=trophies.find(t=>t.id===p.pin);
+    if(t&&!has(p,t.id)){const [n,max]=trophyProgress(p,t);return {title:t.name,detail:n+'/'+max+' · '+t.criterion,node:null};}
+   }
+   if(p.graduated)return {title:'Grand Dojo Graduate',detail:'Revisit trials and complete the collection.',node:null};
+   if(p.quests.every(n=>n===4))return {title:'The graduation trial',detail:'Return to the Grand Dojo graduation court.',node:districtsMap[0].nodes.find(n=>n.kind==='graduation')};
+   const title=q===0?'Meet the mentor':d.chapter;
+   const kind=q===0||q===3?'mentor':q===1?(p.routes[d.index]?'puzzle':'route'):'spar';
+   const node=d.nodes.find(n=>n.kind===kind);
+   const detail=q===0?'Talk to '+d.mentor+' in '+d.name:q===1?'Complete '+(p.routes[d.index]?d.activities[1]:d.activities[0]):q===2?'Win the guided spar':q===3?'Report back to the mentor':'Open the map and track the next district.';
+   return {title,detail,node:q===4?null:node};
+  }
+  return {state,tick,save,settle,travel,reset,equip,display,nearby,approach,enterRoom,exitRoom,talk,collect,beginActivity,
+   finishActivity,timing,sequence,startFight,attack,tag,dash,objective,activateBoost,
+   leaveFight:()=>{
+    const f=state.fight;if(!f)return;
+    if(f.mode!=='practice'){awardFight(f,false,8);return;}
+    returnFromFight(f);
+    emit('fightResult',{won:false,mode:f.mode,district:f.district,botTier:f.botTier,progress:null});
+   }};
+ }
+ window.BEAST_ENGINE={makeGame,districts:districtsMap,fighters,trophies,bosses,arenaModes,owned,has,stageOf,levelOf,levelCap,levelProgress,botTiers,boosts,boostRemaining,trophyProgress,districtSeals,unlockRule,clamp,distance,walkable};
+})();
+</script>
+<script>
+'use strict';
+(() => {
+ const {districts,fighters,owned,stageOf,distance} = window.BEAST_ENGINE;
+ const TAU=Math.PI*2;
+ const palette={
+  Land:['#c68a52','#eac89f','#3b9482'], Aquatic:['#4d7588','#cce1dc','#62bdd2'],
+  Magma:['#d17c55','#ffca8b','#d8593e'], Sky:['#939abb','#eee4cc','#b59ad9']
+ };
+ const colors=['#c68a52','#71a357','#6c7069','#739269','#7d787c','#68ab83','#526c83','#a57659','#db8a83','#769ca9','#6a8eae','#747d9c','#d98867','#c59269','#b18879','#9c995e','#b2745b','#665a69','#cda882','#af9cae','#8b83a5','#bca3a2','#c39463','#6c8ca2'];
+ const shape=['ears','frog','ape','shell','round','cat','bird','round','shrimp','walrus','shark','squid','lizard','scorpion','shell','lizard','round','cat','bird','sail','owl','ram','bird','dragon'];
+ function poly(c,points,fill,stroke,width=2){
+  c.beginPath();c.moveTo(...points[0]);for(const p of points.slice(1))c.lineTo(...p);c.closePath();
+  c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke();}
+ }
+ function oval(c,x,y,w,h,color,angle=0){
+  c.beginPath();c.ellipse(x,y,Math.max(.01,w),Math.max(.01,h),angle,0,TAU);c.fillStyle=color;c.fill();
+ }
+ function box(c,x,y,w,h,r,color,stroke){
+  c.beginPath();c.roundRect(x,y,w,h,r);c.fillStyle=color;c.fill();
+  if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke();}
+ }
+ function line(c,points,color,width){
+  c.beginPath();c.moveTo(...points[0]);for(const p of points.slice(1))c.lineTo(...p);c.lineCap='round';c.lineJoin='round';c.strokeStyle=color;c.lineWidth=width;c.stroke();
+ }
+ function rng(seed){
+  let s=seed>>>0;
+  return ()=>((s=(1664525*s+1013904223)>>>0)/4294967296);
+ }
+ function drawAnimal(c,{id=0,x=0,y=0,face=1,scale=1,stage='Rookie',motion=0,guard=0,swing=0,flash=0,color},clock=0){
+  c.save();c.translate(x,y);
+  oval(c,0,0,23*scale,9*scale,'#173a3260');
+  c.scale(scale*face,scale);
+  const f=fighters[id],type=shape[id],base=color||colors[id],cream=palette[f.element][1],accent=palette[f.element][2],outline='#24352f';
+  const bob=motion?Math.sin(clock*17)*Math.min(4,motion):0;
+  c.translate(0,bob);
+  if(stage==='Grandmaster'){
+   oval(c,0,-7,26,11,'#ffeaa271');
+   c.strokeStyle='#fdf195';c.lineWidth=2;c.beginPath();c.ellipse(0,-7,30,12,0,0,TAU);c.stroke();
+  }
+  if(['ears','lizard','cat','scorpion','dragon','shark'].includes(type)){
+   line(c,[[-10,-23],[-23,-11],[-37,-13],[-42,-21]],outline,10);
+   line(c,[[-10,-23],[-23,-11],[-37,-13],[-42,-21]],base,7);
+  }
+  if(type==='sail'||type==='dragon')poly(c,[[-8,-58],[-41,-48],[-28,-31],[-12,-27],[28,-36],[33,-54]],accent,outline);
+  if(type==='squid')for(let i=0;i<5;i++)line(c,[[i*7-15,-21],[i*10-20,-9],[i*9-18,-3]],base,7);
+  for(const dx of [-12,13]){
+   oval(c,dx,-7+(dx===13?-bob:bob),13,8,outline);
+   oval(c,dx+1,-9+(dx===13?-bob:bob),11,6,base);
+  }
+  oval(c,-3,-32,24,27,outline);oval(c,-3,-32,22,25,base);oval(c,5,-28,13,17,cream);
+  if(type==='shell'){
+   oval(c,-12,-32,22,24,'#414a41');oval(c,-14,-34,18,21,accent);
+   poly(c,[[-26,-40],[-13,-49],[0,-40],[-3,-27],[-16,-21],[-27,-28]],'#6f894f','#435b46',2);
+   line(c,[[-24,-37],[-12,-29],[-9,-21]],'#aac079',2);
+  }
+  box(c,-21,-21,44,8,3,stage==='Rookie'?accent:'#e3ae55',outline);
+  box(c,-2,-22,9,9,2,'#f4cf73');
+  if(type==='shark')poly(c,[[-25,-58],[-12,-86],[2,-57]],base,outline);
+  if(type==='ears'){
+   oval(c,-4,-75,8,25,outline,-.22);oval(c,-4,-75,6,23,base,-.22);oval(c,-4,-78,3,15,'#f2b78e',-.22);
+   oval(c,17,-73,7,19,outline,.33);oval(c,17,-73,5,17,base,.33);oval(c,17,-75,2.6,11,'#f2b78e',.33);
+  }
+  if(['round','ape','cat','sail'].includes(type)){
+   for(const dx of [-13,16]){
+    if(type==='cat')poly(c,[[dx-8,-58],[dx-5,-83],[dx+10,-62]],base,outline);
+    else {oval(c,dx,-66,10,10,outline);oval(c,dx,-67,8,7,base);oval(c,dx,-67,4,4,cream);}
+   }
+  }
+  if(type==='ram')for(const dx of [-18,19]){
+   oval(c,dx,-65,13,12,outline);oval(c,dx,-65,11,10,'#dbb47d');oval(c,dx,-65,5,5,base);
+  }
+  if(type==='dragon')for(const dx of [-14,16])poly(c,[[dx-6,-58],[dx,-83],[dx+7,-62]],cream,outline);
+  const headSize=type==='ape'?26:type==='shell'?18:23;
+  oval(c,3,-55,headSize,20,outline);oval(c,3,-56,headSize-2,18,flash?'#fff1d3':base);
+  if(type==='frog'){
+   oval(c,-10,-69,9,9,outline);oval(c,15,-70,9,9,outline);oval(c,-10,-69,7,7,base);oval(c,15,-70,7,7,base);
+  }
+  if(type==='owl'||type==='bird'){
+   oval(c,2,-55,17,14,cream);
+   if(id===18)poly(c,[[-8,-69],[-6,-83],[1,-76],[8,-83],[16,-69]],'#e46d54',outline);
+  }
+  oval(c,-5,-57,5,6,'#fff7dc');oval(c,14,-57,5,6,'#fff7dc');
+  oval(c,-3,-57,2.8,3.8,outline);oval(c,16,-57,2.8,3.8,outline);
+  line(c,[[-10,-65],[-3,-64]],outline,2);line(c,[[11,-64],[18,-66]],outline,2);
+  if(type==='bird'||type==='owl')poly(c,[[1,-52],[20,-48],[8,-40]],'#f3ad53',outline);
+  else{
+   oval(c,9,-45,15,9,cream);oval(c,14,-48,5.3,4.1,outline);
+   line(c,[[14,-45],[12,-41],[7,-41]],outline,1.5);
+  }
+  if(type==='walrus'){poly(c,[[3,-43],[6,-29],[9,-43]],'#fff1c9',outline);poly(c,[[16,-44],[19,-30],[22,-45]],'#fff1c9',outline);}
+  const extension=swing>0?14:0;
+  box(c,-30,-46,18,23,6,base,outline);
+  box(c,13+extension,-42,22,21,6,accent,outline);
+  box(c,15+extension,-42,5,21,2,'#d9e8c4');
+  box(c,-31,-43,18,13,3,accent,outline);
+  if(id===0)box(c,-31,-47,18,7,2,'#c0a375',outline);
+  if(stage!=='Rookie')box(c,13+extension,-40,19,5,2,'#f0bb63');
+  if(guard>0){c.strokeStyle='#c1f6c7';c.lineWidth=3;c.beginPath();c.ellipse(0,-35,42,48,0,0,TAU);c.stroke();}
+  c.restore();
+ }
+ function roof(c,x,y,w,h,accent='#297765'){
+  const depth=h*.78;
+  box(c,x-w*.44,y-depth,w*.88,depth,4,'#d5a36d','#654c39');
+  for(const f of [-.36,-.12,.12,.36])box(c,x+w*f-4,y-depth,8,depth+4,2,'#80543c');
+  poly(c,[[x-w*.5,y-depth],[x-w*.32,y-depth-h*.48],[x+w*.31,y-depth-h*.48],[x+w*.51,y-depth]],accent,'#395049',3);
+  poly(c,[[x-w*.51,y-depth],[x+w*.51,y-depth],[x+w*.45,y-depth+12],[x-w*.46,y-depth+12]],'#254c43');
+  line(c,[[x-w*.34,y-depth-h*.47],[x+w*.33,y-depth-h*.47]],'#efc679',4);
+  box(c,x-w*.10,y-depth*.83,w*.20,depth*.84,4,'#446951','#ae7f54');
+  for(const f of [-.41,.41]){line(c,[[x+w*f,y-depth+4],[x+w*f,y-19]],'#72513c',3);box(c,x+w*f-8,y-24,16,20,4,'#f2bd60','#a97545');}
+ }
+ function plant(c,d,o){
+  const [x,y,s,flavor]=o,[base,lit,dark]=d.palette;
+  oval(c,x+7*s,y+4*s,24*s,10*s,'#18372c35');
+  if(d.index===2||d.index===3||d.index===4||flavor<.17){
+   poly(c,[[x-16*s,y],[x-22*s,y-15*s],[x-10*s,y-29*s],[x+12*s,y-30*s],[x+23*s,y-15*s],[x+15*s,y]],d.index===4?'#d5ece3':base,dark);
+   poly(c,[[x-22*s,y-15*s],[x-10*s,y-29*s],[x+12*s,y-30*s],[x+5*s,y-19*s]],lit);
+   if(d.index===2)line(c,[[x+3*s,y-25*s],[x-1*s,y-16*s],[x+8*s,y-13*s]],'#f1ba74',2*s);
+  }else if(d.index===5){
+   box(c,x-9*s,y-37*s,18*s,37*s,3,'#4b536c','#343b53');
+   box(c,x-8*s,y-39*s,16*s,10*s,3,'#f9be9a');
+   box(c,x-5*s,y-22*s,10*s,12*s,2,'#91d8c8');
+  }else{
+   line(c,[[x,y],[x+2*s,y-32*s]],'#74593d',7*s);
+   oval(c,x,y-32*s,24*s,22*s,dark);
+   oval(c,x-8*s,y-39*s,20*s,16*s,base);
+   oval(c,x-6*s,y-46*s,15*s,11*s,lit);
+   if(flavor>.77)for(let i=0;i<3;i++)oval(c,x+(i-1)*9*s,y-(40+i%2*5)*s,3*s,3*s,'#ead07f');
+  }
+ }
+ function landscape(c,d){
+  const x=d.x,y=d.y,[base,lit,dark]=d.palette;
+  if(d.index===1){
+   for(let i=0;i<4;i++){
+    const px=x+272+(i%2)*50,py=y-52-i*45;
+    oval(c,px,py,46,28,'#427c77');oval(c,px-2,py-3,39,22,'#80c1b3');
+    line(c,[[px-23,py-1],[px-2,py-6],[px+10,py-3]],'#d5e6c1',2);
+   }
+   poly(c,[[x-120,y-155],[x-38,y-152],[x-63,y-131],[x-109,y-132]],'#9d7252','#5f5650',3);
+   line(c,[[x-80,y-142],[x-80,y-206]],'#715a4a',8);
+   poly(c,[[x-77,y-203],[x-42,y-169],[x-78,y-167]],'#ddc998','#a99371');
+  }else if(d.index===2){
+   for(const offset of [-86,80]){
+    box(c,x+offset-18,y-148,36,54,6,'#8a5751','#654a43');
+    box(c,x+offset-25,y-100,52,12,3,'#dd9a70','#735248');
+    box(c,x+offset-10,y-148,20,6,3,'#f4b870');
+    oval(c,x+offset+9,y-169,14,9,'#fce6b292');oval(c,x+offset+16,y-186,23,10,'#fce6b24f');
+   }
+  }else if(d.index===3){
+   for(let i=0;i<5;i++){
+    const px=x+210+i*27, py=y+28-i*31;
+    oval(c,px,py+16,26,15,'#425e7a63');
+    poly(c,[[px-22,py+8],[px-20,py-8],[px,py-22],[px+24,py-7],[px+16,py+9]],lit,dark);
+   }
+  }else if(d.index===4){
+   oval(c,x-228,y-115,124,57,dark);oval(c,x-228,y-120,115,51,'#bfe7ea');
+   line(c,[[x-310,y-127],[x-255,y-110],[x-235,y-129],[x-181,y-126]],'#76b2c5',3);
+   for(const n of [-1,1])poly(c,[[x+n*53,y-99],[x+n*53+8,y-146],[x+n*53+22,y-100]],'#deefe9','#7fa8b0',3);
+  }else if(d.index===5){
+   for(let i=0;i<4;i++){
+    const px=x-201+i*41,py=y-91+i*15;
+    box(c,px-15,py-42,33,42,6,'#505d7b','#384358');
+    box(c,px-13,py-41,29,6,4,i%2?'#a6d9c9':'#efb1a4');
+    box(c,px-6,py-26,15,13,3,base);
+   }
+  }else{
+   oval(c,x+185,y+26,65,40,'#548c82');oval(c,x+185,y+24,55,32,'#8dc2a5');
+   for(let i=0;i<4;i++)oval(c,x+150+i*21,y+18+(i%2)*13,10,6,'#477b60');
+   for(const px of [x-76,x+121]){
+    line(c,[[px,y+74],[px,y+28]],'#865d42',6);box(c,px-8,y+21,16,20,5,'#f9cb71','#8c633d');
+   }
+  }
+ }
+ const decoration=districts.map(d=>{
+  const r=rng(2709+d.index*42);
+  const plants=[],grass=[];
+  for(let i=0;i<115;i++){
+   const a=r()*TAU,rad=Math.sqrt(r())*428,x=d.x+Math.cos(a)*rad,y=d.y+Math.sin(a)*rad;
+   if(rad>130&&d.nodes.every(n=>Math.hypot(n.x-x,n.y-y)>43)) plants.push([x,y,.64+r()*.83,r()]);
+  }
+  for(let i=0;i<260;i++){
+   const a=r()*TAU,rad=Math.sqrt(r())*448;
+   grass.push([d.x+Math.cos(a)*rad,d.y+Math.sin(a)*rad,r()*5+1,r()]);
+  }
+  return {plants,grass};
+ });
+ const markers={mentor:['!','#f6c15f'],route:['›','#c8f1a5'],puzzle:['✳','#bde9df'],spar:['✦','#f4a785'],boss:['✦','#f4a785'],room:['★','#f5d18c'],events:['✸','#edbc91'],graduation:['◆','#f9e584'],seal:['◇','#f1e291']};
+ function badge(c,x,y,text,color,scale=1){
+  c.save();c.translate(x,y);c.scale(scale,scale);
+  c.font='800 13px system-ui';
+  const width=c.measureText(text).width+18;
+  box(c,-width/2,-12,width,25,8,'#16362ef5','#b9c494');
+  c.fillStyle=color;c.textAlign='center';c.textBaseline='middle';c.fillText(text,0,0);
+  c.restore();
+ }
+ function marker(c,n,highlight,clock){
+  const [symbol,color]=markers[n.kind];
+  if(n.kind==='seal'){
+   oval(c,n.x,n.y,10,4,'#59422f57');
+   poly(c,[[n.x,n.y-18],[n.x+7,n.y-8],[n.x,n.y+1],[n.x-7,n.y-8]],color,'#77543d',1.6);
+   return;
+  }
+  if(highlight){oval(c,n.x,n.y,38,21,'#fff8ae64');oval(c,n.x,n.y,32,17,'#163932a0');}
+  const float=highlight?Math.sin(clock*3)*4:0;
+  box(c,n.x-13,n.y-44+float,26,26,7,color,'#546547');
+  c.fillStyle='#193832';c.font='900 19px system-ui';c.textAlign='center';c.textBaseline='middle';
+  c.fillText(symbol,n.x,n.y-31+float);
+ }
+ function drawRing(c,x,y,r,d,combat){
+  oval(c,x+7,y+11,r+10,r+10,'#233f365d');
+  oval(c,x,y,r+6,r+6,'#5e503c');
+  oval(c,x,y,r,r,d.index===2?'#b38164':d.index===4?'#91b5bf':'#c29c6d');
+  c.save();c.beginPath();c.arc(x,y,r,0,TAU);c.clip();
+  for(let i=-r;i<r;i+=19)line(c,[[x-r,y+i],[x+r,y+i]],'#624b302a',1.5);
+  c.restore();
+  c.beginPath();c.arc(x,y,r-11,0,TAU);c.lineWidth=3;c.strokeStyle='#f9d68d';c.stroke();
+  if(combat){c.beginPath();c.arc(x,y,240,0,TAU);c.lineWidth=4;c.setLineDash([10,10]);c.strokeStyle='#ffbd8a';c.stroke();c.setLineDash([]);}
+  oval(c,x,y,40,40,'#f1c88c55');poly(c,[[x,y-24],[x+24,y],[x,y+24],[x-24,y]],'#ead6a87c');
+  if(!combat){
+   c.beginPath();c.arc(x,y,r-2,0,TAU);c.lineWidth=6;c.strokeStyle='#a54f37';c.stroke();
+   for(const angle of [-2.65,-.49,.61,2.53]){
+    const px=x+Math.cos(angle)*r,py=y+Math.sin(angle)*r;
+    box(c,px-5,py-25,10,26,3,'#943e31','#643b2f');oval(c,px,py-25,6,4,'#fad784');
+   }
+  }
+ }
+ function ringEntrance(c,n,selected){
+  const {x,y}=n;
+  oval(c,x,y+3,42,15,selected?'#ffe092':'#b98252');
+  for(const dx of [-62,62]){
+   box(c,x+dx-5,y-72,10,72,3,'#9f5035','#6e4134');
+   box(c,x+dx-9,y-27,18,23,4,'#f9c968','#8e5537');
+  }
+  const width=148;
+  box(c,x-width/2,y-74,width,35,8,'#ffe08f','#623a2d');
+  c.font='950 17px system-ui';c.fillStyle='#422a26';c.textAlign='center';c.textBaseline='middle';
+  c.fillText('FIGHTING RING',x,y-56);
+  poly(c,[[x-8,y-40],[x+8,y-40],[x,y-29]],'#ffe08f','#623a2d');
+ }
+ function nameplate(c,x,y,label){
+  c.font='850 14px system-ui';c.textAlign='center';c.textBaseline='middle';
+  const words=label.split(' '),lines=[''];
+  for(const word of words){
+   const last=lines.length-1,next=lines[last]?lines[last]+' '+word:word;
+   if(lines[last]&&c.measureText(next).width>120)lines.push(word);else lines[last]=next;
+  }
+  const width=Math.min(138,Math.max(...lines.map(s=>c.measureText(s).width))+18);
+  box(c,x-width/2,y-11,width,12+lines.length*15,7,'#16362ef5','#b9c494');
+  c.fillStyle='#fff4d8';lines.forEach((s,index)=>c.fillText(s,x,y+3+index*15,width-12));
+ }
+ function create(canvas){
+  const c=canvas.getContext('2d');
+  let w=0,h=0,dpr=1,z=1,camera={x:0,y:175},projected={x:0,y:0},view='';
+  function resize(){
+   w=canvas.clientWidth;h=canvas.clientHeight;dpr=Math.min(window.devicePixelRatio||1,1.75);
+   canvas.width=Math.max(1,Math.floor(w*dpr));canvas.height=Math.max(1,Math.floor(h*dpr));
+  }
+  function draw(state,{title=false,reduce=false,moving=false}={}){
+   const f=state.fight, a=state.activity;
+   if(!w||!h)return;
+   z=state.room?Math.max(.32,Math.min((w-20)/628,(h-143)/515,1.52)):
+    title?Math.max(.54,Math.min(1.5,w/725,h/490)):f?Math.max(.45,Math.min(w/525,(h-125)/505,1.34)):Math.max(.67,Math.min(1.22,w/940,h/570));
+   const actor=f?.hero||state.player;
+   const nextView=title?'title':f?'fight':state.room?'room':'world';
+   const goal=state.room?{x:0,y:-17-25/z}:title?{x:w<650?-25:-70,y:10}:f?{x:f.x,y:f.y-17}:{x:actor.x,y:actor.y-28};
+   const gap=distance(camera,goal);
+   const rate=title||reduce||gap>490||view!==nextView?1:.16;
+   view=nextView;
+   camera.x+=(goal.x-camera.x)*rate;camera.y+=(goal.y-camera.y)*rate;
+   projected={x:camera.x-w/(2*z),y:camera.y-h/(2*z)};
+   c.setTransform(dpr,0,0,dpr,0,0);
+   if(state.room){drawRoom();return;}
+   const water=c.createLinearGradient(0,0,w,h);water.addColorStop(0,'#78aaa6');water.addColorStop(1,'#457b81');
+   c.fillStyle=water;c.fillRect(0,0,w,h);
+   c.save();c.scale(z,z);c.translate(-projected.x,-projected.y);
+   const within=(x,y,m=140)=>x>projected.x-m&&y>projected.y-m&&x<projected.x+w/z+m&&y<projected.y+h/z+m;
+   for(let ix=Math.floor(projected.x/97)-1;ix<(projected.x+w/z)/97+1;ix++){
+    for(let iy=Math.floor(projected.y/58)-1;iy<(projected.y+h/z)/58+1;iy++){
+     const x=ix*97+Math.cos(iy*2+ix)*19,y=iy*58+Math.sin(ix+iy)*14;
+     line(c,[[x-10,y],[x+4,y],[x+13,y-3]],'#c8dfca4a',1.4);
+    }
+   }
+   for(const d of districts.slice(1)){
+    const hub=districts[0];
+    line(c,[[hub.x,hub.y],[d.x,d.y]],'#3a6867',196);
+    line(c,[[hub.x,hub.y],[d.x,d.y]],'#9c8b69',175);
+    line(c,[[hub.x,hub.y],[d.x,d.y]],'#d4b784',151);
+    const dx=d.x,dy=d.y,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len;
+    for(let n=432;n<len-429;n+=16){
+     const x=n*ux,y=n*uy;
+     if(within(x,y,100))line(c,[[x-uy*73,y+ux*73],[x+uy*73,y-ux*73]],'#a28b66',2);
+    }
+   }
+   const items=[];
+   for(const d of districts){
+    if(!within(d.x,d.y,500))continue;
+    const [base,lit,dark,path]=d.palette,decor=decoration[d.index];
+    oval(c,d.x+7,d.y+17,475,469,dark);
+    const grass=c.createRadialGradient(d.x-80,d.y-90,35,d.x,d.y,460);
+    grass.addColorStop(0,lit);grass.addColorStop(1,base);
+    oval(c,d.x,d.y,456,456,grass);oval(c,d.x+36,d.y-20,235,181,lit+'58');
+    for(const [x,y,r,flavor] of decor.grass){
+     if(!within(x,y,8))continue;
+     if(flavor<.1)oval(c,x,y,r,2,'#f8da97a6');
+     else line(c,[[x-3,y+2],[x,y-2-r],[x+3,y+1]],dark+'64',1.5);
+    }
+    for(const n of d.nodes.filter(n=>n.kind!=='seal')){
+     line(c,[[d.x,d.y],[d.x*.35+n.x*.65,d.y*.62+n.y*.38],[n.x,n.y]],dark+'63',59);
+     line(c,[[d.x,d.y],[d.x*.35+n.x*.65,d.y*.62+n.y*.38],[n.x,n.y]],path,49);
+    }
+    landscape(c,d);
+    drawRing(c,d.x,d.y-195,f?.district===d.index?232:108,d,f?.district===d.index);
+    const inRing=(x,y)=>f?.district===d.index&&Math.hypot(x-f.x,y-f.y)<315;
+    const gate=d.nodes.find(n=>n.kind==='spar');
+    for(const o of decor.plants){
+     const [x,y]=o;
+     const isArena=Math.hypot(x-d.x,y-(d.y-195))<133||Math.abs(x-gate.x)<94&&Math.abs(y-gate.y)<80;
+     if(within(x,y)&&!inRing(x,y)&&!isArena)items.push({y,paint:()=>plant(c,d,o)});
+    }
+    for(const n of d.nodes){
+     if(!within(n.x,n.y)||inRing(n.x,n.y))continue;
+     if(n.kind==='mentor'){
+      items.push({y:n.y,paint:()=>drawAnimal(c,{x:n.x,y:n.y,id:(7+d.index*3)%24,scale:1.05,stage:'Warrior'})});
+     }else if(n.kind==='room'||n.kind==='boss'){
+      items.push({y:n.y,paint:()=>roof(c,n.x,n.y,115,64,dark)});
+     }else if(n.kind==='puzzle'||n.kind==='route'||n.kind==='events'||n.kind==='graduation'){
+      items.push({y:n.y,paint:()=>{
+       oval(c,n.x,n.y,35,17,'#75654880');oval(c,n.x,n.y-3,30,14,'#eee0a3');
+       for(let j=-1;j<=1;j++){box(c,n.x+j*13-4,n.y-14,8,12,2,dark);oval(c,n.x+j*13,n.y-15,5,3,'#f9c56c');}
+      }});
+     }
+    }
+    if(d.index===0&&!inRing(59,-46))items.push({y:-46,paint:()=>roof(c,59,-46,220,106,'#458773')});
+    else if(d.index!==0&&!inRing(d.x+48,d.y-40))items.push({y:-40+d.y,paint:()=>roof(c,d.x+48,d.y-40,119,69,dark)});
+    if(!title&&!f&&!a)badge(c,d.x+4,d.y+363,d.name,'#ffebbd',.98);
+   }
+   if(a?.points) a.points.forEach((p,i)=>{
+    if(!within(p.x,p.y))return;
+    oval(c,p.x,p.y,26,23,i===a.at?'#fbdc7b':i<a.at?'#b4eab58a':'#36594cd1');
+    oval(c,p.x,p.y,20,17,i===a.at?'#417761':'#416452');
+    badge(c,p.x,p.y,i<a.at?'✓':String(i+1),'#fff2c1',.85);
+   });
+   const motions=state.profile.settings.motion;
+   if(f){
+    for(const v of [f.hero,...f.enemies,...f.allies]){
+     if(v.hp<=0)continue;
+     if(v.phase==='wind'){
+      const radius=v.scale>1?111:65;
+      oval(c,v.x,v.y,radius,radius,'#e8795c77');
+      c.strokeStyle='#ffe4ad';c.lineWidth=3;c.beginPath();c.arc(v.x,v.y,radius,0,TAU);c.stroke();
+      badge(c,v.x,v.y-v.scale*88,'Incoming!','#ffd1a5');
+     }
+     items.push({y:v.y,paint:()=>drawAnimal(c,{...v,stage:v.team==='you'?stageOf(state.profile.fighterXP[v.id]||0):'Rookie',motion:motions&&(v===f.hero?moving:!v.wind)?2:0},state.clock)});
+    }
+   }else{
+    const p=title?{x:w<650?135:179,y:w<650?110:162,id:0,scale:w<650?1.9:2.52,face:1}:{...state.player,id:state.profile.active,scale:1.19};
+    items.push({y:Infinity,paint:()=>drawAnimal(c,{...p,stage:stageOf(state.profile.fighterXP[p.id]||0),motion:motions&&moving?3:0},state.clock)});
+   }
+   items.sort((p,q)=>p.y-q.y).forEach(i=>i.paint());
+   if(!title&&!f&&!a){
+    for(const d of districts)for(const n of d.nodes){
+     if(!within(n.x,n.y)||n.kind==='seal'&&(state.profile.seals.includes(n.district+':'+n.seal)||distance(actor,n)>145))continue;
+     if(n.kind==='spar'){ringEntrance(c,n,state.target?.kind==='spar'&&state.target.district===n.district);continue;}
+     const focus=state.objective?.node;
+     marker(c,n,focus?.district===n.district&&focus.id===n.id,reduce?0:state.clock);
+     if(n.kind!=='seal'&&distance(actor,n)<195)badge(c,n.x,n.y+18,n.label,'#fff3d7',.9);
+    }
+    if(state.target){
+     oval(c,state.target.x,state.target.y,14,7,'#f7e0a3c9');
+     oval(c,state.target.x,state.target.y,8,4,'#3e7564');
+    }
+    if(state.target?.kind==='spar'){
+     let current=actor;
+     for(const next of state.target.queue){
+      const span=distance(current,next);
+      for(let i=34;i<span-12;i+=26){
+       const x=current.x+(next.x-current.x)*i/span,y=current.y+(next.y-current.y)*i/span;
+       oval(c,x,y,6,6,'#593e2c');oval(c,x,y,4,4,'#ffe394');
+      }
+      current=next;
+     }
+    }
+   }
+   if(!reduce)for(const fx of state.fx){
+    c.globalAlpha=fx.life/fx.max;c.strokeStyle=fx.color;c.lineWidth=4;
+    c.beginPath();c.arc(fx.x,fx.y-14,fx.radius*(.5+(1-fx.life/fx.max)*.5),0,TAU);c.stroke();c.globalAlpha=1;
+   }
+   c.restore();
+   const waypoint=a?.points?.[a.at]||(!f&&!title?state.target?.queue[0]||state.objective?.node:null);
+   if(waypoint){
+    const px=(waypoint.x-projected.x)*z,py=(waypoint.y-projected.y)*z;
+    if(px<32||px>w-32||py<42||py>h-56){
+     const dx=px-w/2,dy=py-h/2,edge=Math.min((w/2-31)/Math.max(1,Math.abs(dx)),(h/2-46)/Math.max(1,Math.abs(dy)));
+     c.save();c.translate(w/2+dx*edge,h/2+dy*edge);c.rotate(Math.atan2(dy,dx));
+     oval(c,0,0,17,17,'#163a32ed');poly(c,[[-6,-8],[9,0],[-6,8]],'#ffe290','#354b38');c.restore();
+    }
+   }
+   function drawRoom(){
+    const backdrop=c.createRadialGradient(w*.47,h*.45,55,w*.48,h*.47,Math.max(w,h)*.71);
+    backdrop.addColorStop(0,'#416751');backdrop.addColorStop(1,'#152c29');
+    c.fillStyle=backdrop;c.fillRect(0,0,w,h);
+    c.save();c.scale(z,z);c.translate(-projected.x,-projected.y);
+    const floor=['#ad7d53','#956d53','#858297'][state.profile.theme]||'#ad7d53';
+    const rug=['#2e6352','#8c5339','#4b5682'][state.profile.theme]||'#2e6352';
+    box(c,-303,-224,606,498,22,'#17362b8c');
+    box(c,-302,-240,604,504,22,'#614635','#dbad6c');
+    box(c,-280,-170,560,414,14,floor,'#755346');
+    for(let y=-160;y<240;y+=24)line(c,[[-276,y],[276,y]],'#583d2c51',2);
+    box(c,-278,-218,556,61,12,'#936347','#614536');
+    for(const x of [-205,205]){
+     box(c,x-53,-210,106,41,4,'#fbe6ad','#7b543e');
+     for(let j=-39;j<=39;j+=26)line(c,[[x+j,-209],[x+j,-171]],'#a37b54',3);
+     line(c,[[x-53,-191],[x+53,-191]],'#a37b54',3);
+    }
+    box(c,-181,-212,362,43,8,'#284a3e','#d5af6f');
+    c.textAlign='center';c.textBaseline='middle';c.font='900 20px system-ui';c.fillStyle='#ffe6a8';c.fillText('HALL OF ACHIEVEMENTS',0,-190);
+    box(c,-236,-157,472,269,18,rug,'#d4b577');
+    box(c,-227,-148,454,251,14,rug,'#ffffff2c');
+    box(c,-70,115,140,99,10,rug,'#d4b577');
+    for(const x of [-252,252]){
+     const halo=c.createRadialGradient(x,-142,3,x,-142,67);halo.addColorStop(0,'#ffe8aab5');halo.addColorStop(1,'#ffe8aa00');
+     c.fillStyle=halo;c.fillRect(x-67,-209,134,134);
+     box(c,x-11,-160,22,31,6,'#ffdd86','#926640');
+     box(c,x-13,-164,26,6,2,'#614536');box(c,x-13,-132,26,6,2,'#614536');
+     oval(c,x,182,20,13,'#7a523b');plant(c,districts[0],[x,181,.62,.86]);
+    }
+    for(const n of state.room.nodes){
+     if(n.kind==='room-exit'){badge(c,n.x,n.y,'Dojo grounds','#ffe4a3');continue;}
+     oval(c,n.x,n.y+13,42,16,'#14382c65');box(c,n.x-34,n.y-18,68,32,6,'#a57d55','#513d2d');box(c,n.x-38,n.y-26,76,14,4,'#e4bb78','#775640');
+     const id=state.profile.shelf[n.slot],award=window.BEAST_CONTENT.trophies.find(t=>t.id===id);
+     if(award)drawAward(c,award.category,n.x,n.y-43);
+     nameplate(c,n.x,n.y+25,award?.name||'Empty pedestal');
+    }
+    drawAnimal(c,{...actor,id:state.profile.active,scale:1.15,stage:stageOf(state.profile.fighterXP[state.profile.active]||0),motion:moving?3:0},state.clock);
+    c.restore();
+   }
+  }
+  const point=(event)=>({x:projected.x+event.offsetX/z,y:projected.y+event.offsetY/z});
+  return {resize,draw,point};
+ }
+ function portraits(root){
+  for(const canvas of root.querySelectorAll('[data-portrait]')){
+   const c=canvas.getContext('2d'),id=Number(canvas.dataset.portrait);
+   drawAnimal(c,{id,x:32,y:59,scale:.64,stage:canvas.dataset.stage||'Rookie'});
+  }
+ }
+ function awardArt(root){
+  for(const canvas of root.querySelectorAll('[data-award]')){
+   drawAward(canvas.getContext('2d'),canvas.dataset.award,canvas.width/2,canvas.height/2);
+  }
+ }
+ function drawAward(c,category,x,y){
+   const tint={Journey:'#f7c765',Discovery:'#8bd5ac',Mastery:'#96c9e3',Arena:'#e8a185','World challenges':'#cfb5ed'}[category];
+   oval(c,x,y+21,28,6,'#0b252063');
+   box(c,x-23,y+15,46,8,3,'#856245');box(c,x-18,y+8,36,8,2,'#c59b64');
+   if(!tint)return;
+   if(category==='Discovery')poly(c,[[x,y-31],[x+18,y-8],[x,y+9],[x-18,y-8]],tint,'#fcf0c7');
+   else if(category==='Mastery')poly(c,[[x,y-31],[x+7,y-16],[x+23,y-15],[x+11,y-4],[x+14,y+12],[x,y+4],[x-15,y+12],[x-12,y-4],[x-23,y-15],[x-7,y-16]],tint,'#fcf0c7');
+   else if(category==='World challenges')poly(c,[[x-22,y-15],[x-16,y-28],[x+16,y-28],[x+22,y-15],[x+12,y+7],[x-12,y+7]],tint,'#fcf0c7');
+   else{
+    c.strokeStyle=tint;c.lineWidth=5; c.beginPath();c.ellipse(x,y-13,24,12,0,0,TAU);c.stroke();
+    poly(c,[[x-17,y-29],[x+17,y-29],[x+12,y-7],[x+4,y],[x+4,y+10],[x-4,y+10],[x-4,y],[x-12,y-7]],tint,'#fcf0c7');
+    line(c,[[x-9,y-24],[x-6,y-13]],'#fff3c3',3);
+   }
+ }
+ window.BEAST_ART={create,portraits,awardArt};
+})();
+</script>
+<script>
+'use strict';
+(() => {
+ const engine=window.BEAST_ENGINE, art=window.BEAST_ART;
+ const {districts,fighters,trophies,bosses,arenaModes,stageOf,levelCap,levelProgress,botTiers,boosts,boostRemaining,owned,has,trophyProgress,districtSeals,unlockRule,distance,walkable}=engine;
+ const $=id=>document.getElementById(id), shell=$('game'), canvas=$('world'), panel=$('panel'), overlay=$('overlay');
+ const scene=art.create(canvas);
+ const showroom=new URLSearchParams(location.search).get('showroom')==='1';
+ const input={keys:new Set(),stick:{x:0,y:0},pad:{x:0,y:0},kind:matchMedia('(pointer:coarse)').matches?'touch':'keys',padButtons:[]};
+ let started=false, modal='', priorFocus=null, toastUntil=0, filter='All', fighterFilter='All', frameTime=0, lastUI=0;
+ let fightResult=null, activityResult=null, audio=null, pendingNode=null, queue=null, practice=null;
+ const demoWait=8;
+ const queueSeconds=()=>Math.floor((performance.now()-queue.started)/1000);
+ const text=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const action=(label,key,{primary=false,disabled=false}={})=>'<button type="button" data-command="'+key+'" class="'+(primary?'primary':'')+'" '+(disabled?'disabled':'')+'>'+text(label)+'</button>';
+ const card=(title,html,cls='')=>'<article class="entry '+cls+'"><h3>'+text(title)+'</h3>'+html+'</article>';
+ const paragraph=s=>'<p>'+text(s)+'</p>';
+ const row=html=>'<div class="panel-actions">'+html+'</div>';
+ const grid=items=>'<div class="panel-grid">'+items.join('')+'</div>';
+ function progressLabel(xp){
+  const {level,remaining}=levelProgress(xp);
+  return 'Lv. '+level+' / '+levelCap+' · '+stageOf(xp)+' · '+(remaining?remaining+' XP to next level':'Max level');
+ }
+ function progressNote(progress){
+  return progress.level>progress.before?paragraph(progress.fighter+' reached Level '+progress.level+' · '+stageOf(state.profile.fighterXP[state.profile.active])):'';
+ }
+ function toast(s){$('toast').textContent=s;$('toast').hidden=false;toastUntil=performance.now()+3000;}
+ function sound(kind){
+  if(!state.profile.settings.sound||!audio||audio.state!=='running')return;
+  const frequency={step:590,hit:182,swing:335,guard:700,hurt:115,dash:260}[kind]||440;
+  const voice=audio.createOscillator(),env=audio.createGain(),now=audio.currentTime;
+  voice.type=kind==='hit'?'triangle':'sine';voice.frequency.setValueAtTime(frequency,now);
+  voice.frequency.exponentialRampToValueAtTime(Math.max(45,frequency*.63),now+.12);
+  env.gain.setValueAtTime(.08,now);env.gain.exponentialRampToValueAtTime(.001,now+.16);
+  voice.connect(env);env.connect(audio.destination);voice.start(now);voice.stop(now+.17);
+ }
+ function initAudio(){
+  try{audio ||= new (window.AudioContext||window.webkitAudioContext)();audio.resume().catch(()=>{});}catch{}
+ }
+ const storage=showroom?{getItem:()=>null,setItem:()=>{}}:{
+  getItem:k=>localStorage.getItem(k),setItem:(k,v)=>localStorage.setItem(k,v)
+ };
+ const game=engine.makeGame(storage,{
+  toast,sound,arrive:interact,
+  activity:a=>{if(a.pattern)show('challenge');},
+  activityResult:r=>{activityResult=r;show('activity-result');},
+  fight:()=>{closePanel();updateHUD();},
+  fightResult:r=>{fightResult=r;show('fight-result');}
+ });
+ const state=game.state;
+ const fighter=()=>fighters[state.profile.active];
+ function setInput(kind){
+  if(input.kind!==kind){input.kind=kind;updateHUD();}
+ }
+ function show(id,remember=true){
+  if(!modal&&remember)priorFocus=document.activeElement;
+  if(id!=='queue')queue=null;
+  modal=id;overlay.hidden=false;paintPanel();
+  panel.scrollTop=0;
+ }
+ function closePanel(){
+  if(modal==='challenge'){game.finishActivity(false);return;}
+  modal='';queue=null;overlay.hidden=true;
+  if(priorFocus?.isConnected&&priorFocus.getClientRects().length)priorFocus.focus({preventScroll:true});
+  priorFocus=null;
+ }
+ function paintPanel(){
+  const p=state.profile, district=districts[state.region];
+  let title='',category='',body='';
+  if(modal==='controls'||modal==='settings'){
+   title=modal==='controls'?'Controls':'Settings';category='Beast Dojo';
+   body=grid([
+    card('Keyboard',paragraph('WASD or arrow keys move. E interacts. J strikes, K uses a style skill, I uses a charged signature, L parries, Space dashes and R tags your backup.')),
+    card('Touch',paragraph('Drag the left stick to walk or tap a marked place to approach. Use the action buttons on the right. Signature lights up when it is ready.')),
+    card('Gamepad',paragraph('Left stick moves. A / Cross interacts, X / Square strikes, Y / Triangle uses skill, B / Circle guards, LB / L1 dashes, RT / R2 uses your signature and RB / R1 tags. Menu opens the journal. Use the directional pad to select.')),
+    card('Progress',paragraph('Quests, fighters, trophies and room decorations save in this browser. The world restores the last district you reached.'))
+   ]);
+   if(modal==='settings'){
+    body+=row(action(p.settings.sound?'Sound on':'Sound off','setting:sound')+action(p.settings.motion?'Effects on':'Reduced effects','setting:motion')+action(p.settings.touch?'Touch controls on':'Touch controls auto','setting:touch'));
+    body+=paragraph('Browser save status · '+state.status)+row(action('Restart adventure…','reset-confirm'));
+   }
+  }else if(modal==='reset-confirm'){
+   title='Restart adventure?';category='Settings';
+   body=paragraph('This clears the Beast Dojo progress stored by this browser. The next session starts in Dojo Valley.')+row(action('Keep my progress','panel:settings',{primary:true})+action('Reset browser save','reset'));
+  }else if(modal==='mentor'){
+   const d=districts[pendingNode.district], step=p.quests[d.index];
+   title=d.mentor;category=d.name;
+   const greeting=[
+    'A steady step matters more than a fast one. Follow the reed path, then try the lantern drill.',
+    'The tide makes paths appear and disappear. Follow the markers and learn the harbor signals.',
+    'The workshop is humming again. Try the steam path and listen to the bellows.',
+    'Find your balance before the wind changes. The bridges and the chimes will show you how.',
+    'The gardens reward patience. Follow the ice marks and bring light to the reflectors.',
+    'The circuit is ready to light up. Try the rooftop route and trace the signal.'
+   ][d.index];
+   body=paragraph(step===4?'That chapter is recorded in your journal. The Grand Dojo is proud of your progress.':step===2?'You have learned the district’s drills. The training court is ready for your guided spar.':greeting);
+   body+=card(d.chapter,paragraph(d.steps[Math.min(2,Math.max(0,step-1))])+row(action(step===4?'See the world map':'Continue exploring',step===4?'panel:map':'close',{primary:true})));
+  }else if(modal==='map'){
+   title='World map';category=p.found.length+' of 6 districts discovered';
+   body=paragraph('Follow the bridges from the Grand Dojo. A gold fighting ring sign marks the local arena.');
+   body+='<div class="world-map">'+districts.map(d=>'<button style="--region:'+d.palette[2]+'" data-command="region:'+d.index+'">'+text(d.name)+'<small>'+(p.found.includes(d.index)?(p.quests[d.index]===4?'Chapter complete':'Discovered'):'Unexplored')+(d.index===state.region?' · Here':'')+'</small></button>').join('')+'</div>';
+   body+=row(action('Return to Grand Dojo','travel:0')+action('World journal','panel:journal'));
+  }else if(modal==='region'){
+   const d=districts[pendingNode.district];title=d.name;category=d.landmark;
+   body=paragraph(d.chapter+' · '+districtSeals(p,d.index)+' / 3 seals found');
+   body+=grid(d.nodes.filter(n=>['mentor','route','puzzle','spar','boss'].includes(n.kind)).map(n=>card(n.kind==='spar'?'Fighting ring':n.label,
+    (n.kind==='spar'?paragraph(n.label):'')+action(n.kind==='spar'?'Guide me to the ring':'Set destination','go:'+d.index+':'+n.id,{primary:n.kind==='spar'}))));
+   body+=row(action('Track this chapter','track:'+d.index)+action('Fast travel','travel:'+d.index,{disabled:!p.found.includes(d.index)})+action('Back to map','panel:map'));
+  }else if(modal==='journal'){
+   title='Field journal';category=p.quests.filter(n=>n===4).length+' of 6 mentor chapters';
+   const current=game.objective();
+   body=card(current.title,paragraph(current.detail)+row(current.node?action('Follow objective','objective',{primary:true}):action('Choose a district','panel:map',{primary:true})));
+   body+=grid(districts.map(d=>card(d.name,paragraph(d.chapter)+
+    '<small>'+(['Find the mentor','Complete both activities','Win the guided spar','Return to the mentor','Chapter complete'][p.quests[d.index]])+' · '+districtSeals(p,d.index)+'/3 seals</small>'+action('View district','region:'+d.index))));
+  }else if(modal==='fighters'){
+   title='Fighter collection';category=fighters.filter(f=>owned(p,f.id)).length+' of '+fighters.length+' available';
+   body='<div class="filters"><label for="fighter-filter">Element</label><select id="fighter-filter">'+['All','Land','Aquatic','Magma','Sky'].map(k=>'<option '+(k===fighterFilter?'selected':'')+'>'+k+'</option>').join('')+'</select></div>';
+   body+=grid(fighters.filter(f=>fighterFilter==='All'||f.element===fighterFilter).map(f=>{
+    const unlocked=owned(p,f.id), xp=p.fighterXP[f.id]||0;
+    return '<article class="entry fighter-card '+(unlocked?'earned':'')+'"><canvas class="portrait" width="64" height="64" data-portrait="'+f.id+'" data-stage="'+stageOf(xp)+'"></canvas><div><span class="tag">'+f.element+' · '+f.rarity+' · '+f.role+'</span><h3>'+text(f.name)+'</h3><small>'+text(f.ultimate)+'</small>'+
+     paragraph(unlocked?progressLabel(xp):unlockRule(f.id).label)+
+     (unlocked?row(action(f.id===p.active?'Equipped':'Equip','equip:'+f.id,{primary:f.id!==p.active,disabled:f.id===p.active})+
+       (f.id===p.active?'':action(f.id===p.backup?'Backup set':'Set backup','backup:'+f.id,{disabled:f.id===p.backup}))):'')+'</div></article>';
+   }));
+  }else if(modal==='trophies'){
+   title='Trophy collection';category=Object.keys(p.trophies).length+' of '+trophies.length+' earned';
+   body='<div class="filters"><label for="trophy-filter">Category</label><select id="trophy-filter">'+['All','Journey','Discovery','Mastery','Arena','World challenges'].map(k=>'<option '+(k===filter?'selected':'')+'>'+k+'</option>').join('')+'</select>'+action('My trophy room','panel:room',{primary:true})+'</div>';
+   body+=grid(trophies.filter(t=>filter==='All'||t.category===filter).map(t=>{
+    const earned=has(p,t.id), [amount,goal]=trophyProgress(p,t);
+    return card(t.name,'<span class="tag">'+text(t.category)+' · '+(earned?'Earned':'In progress')+'</span>'+paragraph(t.criterion)+
+     '<small>'+(earned?'Earned '+new Date(p.trophies[t.id]).toLocaleDateString():Math.min(amount,goal)+' / '+goal)+'</small>'+
+     (earned?action('Display trophy','pick:'+t.id):action(p.pin===t.id?'Tracked':'Track goal','pin:'+t.id,{disabled:p.pin===t.id})),earned?'earned':'');
+   }));
+  }else if(modal==='room'){
+   title='Your trophy room';category='Personal dojo';
+   body='<div class="room-display theme-'+p.theme+'">'+p.shelf.map((id,slot)=>{
+    const t=trophies.find(t=>t.id===id);
+    return '<article class="pedestal"><canvas width="80" height="76" data-award="'+(t?.category||'')+'"></canvas><strong>'+text(t?.name||'Empty pedestal')+'</strong>'+action(t?'Change display':'Choose trophy','slot:'+slot)+'</article>';
+   }).join('')+'</div>';
+   body+=row(action(state.room?'Walk around the room':'Enter trophy room',state.room?'close':'enter-room',{primary:true})+action('Change room style','theme')+action('Browse collection','panel:trophies')+(state.room?action('Return to the grounds','exit-room'):'')+'<a class="game-link" href="?showroom=1" target="_blank" rel="noopener">See a furnished room</a>');
+  }else if(modal==='slot'||modal==='pick'){
+   const picking=modal==='pick';
+   title=picking?'Choose a pedestal':'Choose a trophy';category='Personal dojo';
+   body=picking?grid(p.shelf.map((id,i)=>card('Pedestal '+(i+1),paragraph(trophies.find(t=>t.id===id)?.name||'Empty')+action('Place here','place:'+i+':'+pendingNode.trophy,{primary:true})))) :
+    grid(trophies.filter(t=>has(p,t.id)).map(t=>card(t.name,action('Place trophy','place:'+pendingNode.slot+':'+t.id,{primary:true}))));
+   if(!picking)body+=row(action('Clear pedestal','place:'+pendingNode.slot+':none')+action('Back to room','panel:room'));
+   if(!picking&&Object.keys(p.trophies).length===0)body+=paragraph('Meet the Reed court keeper to earn your first trophy.');
+  }else if(modal==='arena'||modal==='ring'){
+   const atRing=modal==='ring',d=atRing?districts[pendingNode.district]:district;
+   title=atRing?'Fighting ring':'Arena matches';category=d.arena+' · Browser edition';
+   body=paragraph(fighter().name+' · '+progressLabel(p.fighterXP[p.active]||0));
+   body+=grid([
+    card('Fight a bot',paragraph('Choose a difficulty, play one round and earn fighter XP.')+action('Choose a bot','practice:'+d.index,{primary:true}),'earned'),
+    card('Matchmaking preview',paragraph('Try the search, wait and match-found flow. All queue activity is simulated.')+row(action('Join casual queue','queue:casual:'+d.index)+action('Join ranked queue','queue:ranked:'+d.index)))
+   ]);
+   body+=atRing?card('Guided spar',paragraph('A win against the training automaton counts toward this district’s mentor chapter.')+action('Start guided spar','fight:spar')):
+    row(action('Guide me to the ring','go:'+d.index+':spar'));
+   body+=grid(arenaModes.map(m=>card(m.name,paragraph(m.id==='duel'?'Best of three against a computer-controlled fighter.':m.detail)+action(m.id==='raid'?'Choose a boss':'Enter '+m.name,'fight:'+m.id))));
+   body+=row(action('Boost preview','panel:boosts')+action('Fighter collection','panel:fighters'));
+  }else if(modal==='practice'){
+   title='Choose a bot';category=districts[practice.district].arena+' · Practice';
+   const detail={beginner:'Slow attacks with clear wind-ups. Start here to learn the controls.',standard:'Faster movement and shorter openings.',advanced:'Fast approaches, short wind-ups and frequent attacks.'};
+   body=paragraph('One round · Fighter XP on completion')+grid(Object.entries(botTiers).map(([id,tier])=>
+    card(tier.name,paragraph(detail[id])+action('Fight '+tier.name+' bot','fight-bot:'+id,{primary:id==='beginner'}))));
+   body+=row(action('Back to arena','panel:arena'));
+  }else if(modal==='queue'){
+   const ranked=queue.mode==='ranked', elapsed=queueSeconds();
+   title=ranked?'Ranked queue':'Casual queue';category='Simulated matchmaking';
+   if(queue.found){
+    body=card('Match found',paragraph('Sample opponent · Similar skill · Good connection')+
+     paragraph('In Roblox, accepting sends the matched players to a reserved ring.')+
+     row(action('Accept preview','finish-queue',{primary:true})+action('Decline','cancel-queue')),'earned');
+   }else{
+    const stage=elapsed<4?'Searching nearby skill ratings':elapsed<demoWait?'Widening the skill range':'Searching for more players';
+    body=card(stage,'<p>Elapsed · <time id="queue-elapsed">'+elapsed+'s</time></p>'+
+     '<progress id="queue-progress" aria-label="Initial search progress" max="'+demoWait+'" value="'+Math.min(elapsed,demoWait)+'"></progress>');
+    body+=paragraph(ranked?'Ranked pairs human players at a normalized combat baseline.':'Casual looks for humans first. You can switch to practice after the initial search.');
+    if(!ranked&&queue.offer&&!queue.keptWaiting)body+=card('Want to fight now?',paragraph('Leave the queue and pick a labeled practice bot.')+
+     row(action('Play with a bot','practice:'+queue.district,{primary:true})+action('Keep waiting','keep-queue')),'earned');
+    body+=row((queue.offer?action('Preview match found','preview-match'):'')+action('Cancel queue','cancel-queue'));
+   }
+  }else if(modal==='queue-complete'){
+   title='Match accepted';category='Simulated matchmaking';
+   body=paragraph('The reserved ring handoff is the next step in the Roblox version.')+row(action('Back to arena','panel:arena',{primary:true}));
+  }else if(modal==='boosts'){
+   title='Boost preview';category='Free browser simulation';
+   body=paragraph('Try a boost for free. Roblox products would show their actual Robux price before purchase.');
+   body+=grid(Object.entries(boosts).map(([id,boost])=>{
+    const remaining=boostRemaining(p,id);
+    const info=id==='xp'?'Earn 2× fighter XP from activities and battles for 15 minutes.':'Deal 15% more damage in guided sparring, bot practice and standard raids for 10 minutes.';
+    return card(boost.name,paragraph(info)+(remaining?'<small data-boost-time="'+id+'">Active · '+timeLeft(remaining)+'</small>':'')+
+     action(remaining?'Active':'Try free boost','boost:'+id,{primary:!remaining,disabled:!!remaining}),remaining?'earned':'');
+   }));
+   body+=paragraph('Timers continue while you are away. Arena PvP rules exclude paid combat boosts.')+row(action('Back to arena','panel:arena'));
+  }else if(modal==='bosses'){
+   title='Co-op raid';category='Choose a boss';
+   body=grid(bosses.map((b,i)=>card(b.name,paragraph('Three dojo fighters join your party. Watch for the boss’s marked attack zone.')+action('Enter raid','fight:raid:'+i,{primary:true}))));
+  }else if(modal==='events'){
+   title='World events';category='Grand Dojo';
+   body=grid([card('Lantern Relay',paragraph('Run the marked lantern route. Finish it to earn the Lantern Keeper trophy.')+action('Start relay','activity:relay')),
+    card('Training Festival',paragraph('Complete the dojo timing challenge. Your festival trophy records up to three completions.')+action('Start activity','activity:festival'))]);
+  }else if(modal==='graduation'){
+   title='Grand Dojo graduation';category=p.quests.filter(q=>q===4).length+' of 6 chapters complete';
+   body=paragraph('Complete the six mentor chapters, then face the Kilnback Custodian in a solo mastery trial.');
+   body+=row(action('Begin graduation trial','fight:graduation:0',{primary:true,disabled:!p.quests.every(q=>q===4)})+action('World journal','panel:journal'));
+  }else if(modal==='challenge'){
+   const a=state.activity;if(!a){closePanel();return;}
+   title=a.title;category=districts[a.i].name;
+   if(a.pattern==='timing'){
+    body=paragraph('Strike when the marker enters the gold band. Land three good strikes.')+
+     '<div class="timing-track"><div></div><i id="timing-marker"></i></div><p id="puzzle-progress"></p>'+
+     row(action('Strike on the beat','timing',{primary:true}));
+   }else{
+    const names=['Reed','Wave','Spark'];
+    body=paragraph(a.started?'Repeat the four lanterns in order.':'Remember the order of these four lanterns.');
+    if(!a.started)body+='<div class="sequence">'+a.seq.map(n=>'<span>'+names[n]+'</span>').join('')+'</div>'+row(action('I’m ready','begin-sequence',{primary:true}));
+    else body+='<p id="puzzle-progress"></p>'+row(names.map((n,i)=>action(n,'sequence:'+i,{primary:i===0})).join(''));
+    if(a.mistakes>0&&!a.started)body+=paragraph('Try the sequence again from the beginning.');
+   }
+  }else if(modal==='fight-result'){
+   const r=fightResult;
+   title=r.won?(r.mode==='graduation'?'Grand Dojo Graduate':'Victory!'):'Round complete';category=r.mode==='brawl'?'Placement '+r.place:districts[r.district].arena;
+   body=paragraph(r.mode==='graduation'&&r.won?'You finished the six mentor chapters and won the graduation trial. Your final trophy is ready to display.':r.won?'Your fighter is ready for the next challenge.':'Read the incoming attack, dash away, or parry just before it lands.');
+   const {progress}=r;
+   if(progress)body+=card('Rewards',paragraph('+'+r.coins+' coins · +'+progress.xp+' fighter XP'+(progress.bonus?' · '+progress.bonus+' boost XP included':''))+
+    progressNote(progress)+'<small>'+text(state.status)+'</small>');
+   if(r.mode==='practice')body+=paragraph('Practice · '+botTiers[r.botTier].name+' bot');
+   body+=row(action('Back to the world','close',{primary:true})+
+    (r.mode==='practice'?action('Rematch','fight-bot:'+r.botTier)+action('Choose another bot','practice:'+r.district):action('Rematch','fight:'+r.mode+':'+r.bossIndex))+
+    action('Trophy collection','panel:trophies'));
+  }else if(modal==='activity-result'){
+   const r=activityResult;
+   title=r.success?(r.expert?'Expert clear!':'Activity complete'):'Activity ended';category=r.title;
+   body=paragraph(r.success?'Your activity progress has been recorded for this session. '+state.status:'Try again from the activity marker when you are ready.');
+   if(r.progress)body+=paragraph('+'+r.progress.xp+' fighter XP'+(r.progress.bonus?' · XP boost applied':''))+progressNote(r.progress);
+   body+=row(action('Return to the world','close',{primary:true})+action('View journal','panel:journal'));
+  }else if(modal==='activity-pause'){
+   title='Activity paused';category=state.activity.title;
+   body=row(action('Keep going','close',{primary:true})+action('End activity','end-activity'));
+  }else{
+   title='Paused';category='Beast Dojo';
+   body=row(action('Keep fighting','close',{primary:true})+action('Leave match','leave'));
+  }
+  const prior=panel.contains(document.activeElement)?document.activeElement.dataset.command:null;
+  panel.innerHTML='<header class="panel-head"><div><small>'+text(category)+'</small><h2 id="panel-title">'+text(title)+'</h2></div>'+action(modal==='challenge'?'End activity':'Close','close')+'</header>'+body;
+  art.portraits(panel);art.awardArt(panel);updateActivity();
+  const selected=prior&&[...panel.querySelectorAll('[data-command]')].find(b=>b.dataset.command===prior&&!b.disabled);
+  (selected||panel.querySelector('.primary:not(:disabled)')||panel.querySelector('[data-command="cancel-queue"]')||panel.querySelector('button'))?.focus({preventScroll:true});
+ }
+ function timeLeft(milliseconds){
+  const seconds=Math.ceil(milliseconds/1000);
+  return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
+ }
+ function updateTimedPanels(){
+  if(modal==='queue'&&!queue.found){
+   const elapsed=queueSeconds(), stage=elapsed<4?0:elapsed<demoWait?1:2;
+   if(stage!==queue.stage){
+    queue.stage=stage;queue.offer=stage===2;paintPanel();
+   }
+   const label=$('queue-elapsed');
+   if(label.textContent!==elapsed+'s')label.textContent=elapsed+'s';
+   $('queue-progress').value=Math.min(elapsed,demoWait);
+  }
+  if(modal==='boosts'){
+   for(const label of panel.querySelectorAll('[data-boost-time]')){
+    const remaining=boostRemaining(state.profile,label.dataset.boostTime);
+    if(!remaining){paintPanel();break;}
+    const value='Active · '+timeLeft(remaining);
+    if(label.textContent!==value)label.textContent=value;
+   }
+  }
+ }
+ function start(){
+  if(started)return;
+  started=true;initAudio();
+  $('title-screen').hidden=true;
+  for(const id of ['hud','menu','objective'])$(id).hidden=false;
+  if(state.status==='Restored')toast('Welcome back to '+districts[state.region].name);
+  else if(!state.canSave)toast('Save unavailable. Continue for this session or reset in Settings.');
+  else toast('Find the Reed court keeper');
+  updateHUD();
+ }
+ function interact(node){
+  if(!started||state.fight||state.activity||modal)return;
+  node=node||game.nearby();
+  if(!node){toast('Move near a marked activity to interact');return;}
+  pendingNode=node;
+  const i=node.district;
+  if(node.kind==='mentor'){game.talk(i);show('mentor');}
+  else if(node.kind==='seal')game.collect(node);
+  else if(node.kind==='room'){game.enterRoom();toast('Your trophy room');}
+  else if(node.kind==='room-exit')game.exitRoom();
+  else if(node.kind==='pedestal'){pendingNode={slot:node.slot};show('slot');}
+  else if(node.kind==='events')show('events');
+  else if(node.kind==='graduation')show('graduation');
+  else if(node.kind==='route'||node.kind==='puzzle')game.beginActivity(i,node.kind);
+  else if(node.kind==='spar')show('ring');
+  else if(node.kind==='boss'){pendingNode={district:i};show('bosses');}
+  updateHUD();
+ }
+ function objectiveGo(){
+  const n=game.objective().node;
+  if(!n)return;
+  closePanel();game.exitRoom();game.approach(n);
+ }
+ function command(raw) {
+  const [cmd,a,b]=raw.split(':'),p=state.profile;
+  if(cmd==='close'){closePanel();return;}
+  if(cmd==='panel'){show(a);return;}
+  if(cmd==='practice'){practice={district:Number(a)};show('practice');return;}
+  if(cmd==='fight-bot'){
+   const district=modal==='fight-result'?fightResult.district:practice.district;
+   game.exitRoom();game.startFight('practice',district,0,a);return;
+  }
+  if(cmd==='queue'){
+   queue={mode:a,district:Number(b),started:performance.now(),stage:0,offer:false,found:false,keptWaiting:false};
+   show('queue');return;
+  }
+  if(cmd==='keep-queue'){queue.keptWaiting=true;paintPanel();return;}
+  if(cmd==='preview-match'){queue.found=true;paintPanel();return;}
+  if(cmd==='finish-queue'){show('queue-complete');return;}
+  if(cmd==='cancel-queue'){show('arena');return;}
+  if(cmd==='boost'){if(game.activateBoost(a))paintPanel();return;}
+  if(cmd==='region'){pendingNode={district:Number(a)};show('region');return;}
+  if(cmd==='go'){
+   const n=districts[Number(a)].nodes.find(n=>n.id===b);closePanel();game.exitRoom();game.approach(n);
+   if(n.kind==='spar')toast('Follow the gold route to the fighting ring');
+   return;
+  }
+  if(cmd==='track'){p.track=Number(a);p.pin=null;game.save();closePanel();objectiveGo();return;}
+  if(cmd==='objective'){objectiveGo();return;}
+  if(cmd==='travel'){if(game.travel(Number(a))){closePanel();toast('Arrived in '+districts[Number(a)].name);}return;}
+  if(cmd==='equip'||cmd==='backup'){if(game.equip(Number(a),cmd==='backup')){paintPanel();updateHUD();}return;}
+  if(cmd==='pin'){p.pin=a;game.save();paintPanel();return;}
+  if(cmd==='slot'){pendingNode={slot:Number(a)};show('slot');return;}
+  if(cmd==='pick'){pendingNode={trophy:a};show('pick');return;}
+  if(cmd==='place'){if(game.display(Number(a),b==='none'?null:b))show('room');return;}
+  if(cmd==='theme'){p.theme=(p.theme+1)%3;game.save();paintPanel();return;}
+  if(cmd==='enter-room'){if(game.enterRoom()){closePanel();toast('Your trophy room');}return;}
+  if(cmd==='exit-room'){game.exitRoom();closePanel();return;}
+  if(cmd==='setting'){p.settings[a]=!p.settings[a];game.save();paintPanel();updateHUD();return;}
+  if(cmd==='reset-confirm'){show('reset-confirm');return;}
+  if(cmd==='reset'){game.reset();closePanel();toast('A new adventure begins');return;}
+  if(cmd==='activity'){closePanel();game.exitRoom();game.travel(0);game.beginActivity(0,a);return;}
+  if(cmd==='fight'){
+   if(a==='raid'&&b===undefined){show('bosses');return;}
+   const result=fightResult;
+   const district=modal==='fight-result'?result.district:a==='graduation'?0:a==='raid'?([2,1,3][Number(b)]??state.region):modal==='ring'?pendingNode.district:state.region;
+   game.exitRoom();game.startFight(a,district,Number(b)||0);return;
+  }
+  if(cmd==='leave'){game.leaveFight();return;}
+  if(cmd==='end-activity'){game.finishActivity(false);return;}
+  if(cmd==='timing'){game.timing();updateActivity();return;}
+  if(cmd==='begin-sequence'){state.activity.started=true;paintPanel();return;}
+  if(cmd==='sequence'){game.sequence(Number(a));updateActivity();}
+ }
+ function movement(){
+  const k=input.keys, pressed=(a,b)=>Number(k.has(a)||k.has(b));
+  const x=pressed('KeyD','ArrowRight')-pressed('KeyA','ArrowLeft')+input.stick.x+input.pad.x;
+  const y=pressed('KeyS','ArrowDown')-pressed('KeyW','ArrowUp')+input.stick.y+input.pad.y;
+  const norm=Math.max(1,Math.hypot(x,y));return {x:x/norm,y:y/norm};
+ }
+ function updateActivity(){
+  const a=state.activity, box=$('activity'); box.hidden=!a?.points;
+  if(a?.points){
+   const value=Math.ceil(Math.max(0,a.limit-a.time));
+   box.innerHTML='<strong>'+text(a.title)+'</strong><small>'+a.at+' / '+a.points.length+' lanterns · '+value+'s left</small>'+
+    '<small>Follow the highlighted ring · Expert '+a.expert+'s</small>';
+  }
+  if(a?.pattern==='timing'){
+   const marker=$('timing-marker');if(marker)marker.style.left=(a.phase*100)+'%';
+  }
+  const progress=$('puzzle-progress');
+  if(a&&progress){
+   const count=a.pattern==='sequence'?a.seq.length:a.targetHits;
+   const label=a.hits+' / '+count+' correct';
+   if(progress.textContent!==label)progress.textContent=label;
+  }
+ }
+ function updateHUD(){
+  shell.dataset.input=state.profile.settings.touch?'touch':input.kind;
+  shell.dataset.fight=String(!!state.fight);
+  shell.dataset.activity=String(!!state.activity);
+  $('touch').hidden=showroom||!started||shell.dataset.input!=='touch'||!!modal;
+  if(showroom)return;
+  if(!started)return;
+  const f=state.fight, p=state.profile, a=state.activity, actual=fighter(), xp=p.fighterXP[actual.id]||0;
+  $('fighter-name').textContent=actual.name;
+  const progress=levelProgress(xp);
+  $('fighter-level').textContent='Lv. '+progress.level+' / '+levelCap+' · '+stageOf(xp);
+  $('fighter-xp').style.width=(progress.ratio*100)+'%';
+  $('coins').textContent=p.coins.toLocaleString()+' Coins';
+  const count=Object.keys(p.trophies).length;
+  $('trophy-count').textContent=count+(count===1?' Trophy':' Trophies');
+  const status=$('save-state');if(status.textContent!==state.status)status.textContent=state.status;
+  state.objective=game.objective();$('location').textContent=state.room?'Personal Dojo':districts[state.region].name;
+  const ringRoute=state.target?.kind==='spar';
+  $('objective-name').textContent=ringRoute?'Fighting ring':state.objective.title;
+  $('objective-detail').textContent=ringRoute?'Heading to '+state.target.label:state.objective.detail;
+  const n=game.nearby(), label=n?.kind==='spar'?'Enter fighting ring':n?.label;
+  const interactButton=$('interact');
+  interactButton.hidden=!!modal||!n;interactButton.className='primary';
+  if(n)interactButton.textContent=(input.kind==='keys'?'E · ':input.kind==='pad'?'A / Cross · ':'')+label;
+  const keys=$('desktop-keys');keys.hidden=!!modal;
+  keys.textContent=input.kind==='pad'?(f?'X / Square Strike · Y / Triangle Skill · RT / R2 Signature · B / Circle Guard · LB / L1 Dash':'Stick Move · A / Cross Interact · Menu Journal'):
+   f?'WASD Move · J Strike · K Skill · I Signature · L Parry · Space Dash'+(f.mode==='tag'?' · R Tag':''):'WASD or arrows to move · E Interact · Space Dash · G Follow objective';
+  const combat=$('combat');combat.hidden=!f;
+  if(f){
+   const h=f.hero, focus=[...f.enemies].filter(e=>e.hp>0).sort((a,b)=>distance(h,a)-distance(h,b))[0]||f.enemies[0];
+   const m=arenaModes.find(m=>m.id===f.mode)?.name||(f.mode==='practice'?'Bot practice':f.mode==='spar'?'Guided spar':'Graduation trial');
+   const announcement=f.transition>0?'Next round…':focus.phase==='wind'?'Incoming! Dash or parry.':'Skill '+(h.skill>0?h.skill.toFixed(1)+'s':'ready')+' · Guard '+(h.guardCooldown>0?h.guardCooldown.toFixed(1)+'s':'ready');
+   const cap=(name,actor)=>'<div><b>'+text(name)+'</b><meter min="0" max="'+actor.max+'" value="'+Math.floor(actor.hp)+'" aria-label="'+text(name)+' health"></meter><span>'+Math.ceil(actor.hp)+' HP</span></div>';
+   combat.innerHTML='<strong>'+m+' · '+Math.ceil(f.timer)+'s'+(f.mode==='duel'?' · '+f.wins+'–'+f.losses:'')+'</strong><div class="bars">'+cap(h.name,h)+cap(focus.name+(f.mode==='practice'?' · '+botTiers[f.botTier].name+' bot':''),focus)+'</div><small>'+announcement+'</small><small class="signature" data-ready="'+(h.charge>=100)+'">'+text(fighters[h.id].ultimate)+' · '+(h.charge>=100?'Ready':h.charge+'%')+'</small>'+
+    (f.mode==='tag'&&!f.tagUsed?'<button class="tag-button" data-command="tag">Tag backup</button>':'');
+  }
+  const touch=$('touch');
+  touch.classList.toggle('exploring',!f);
+  touch.querySelector('[data-touch="ultimate"]').classList.toggle('charged',!!f&&f.hero.charge>=100);
+  if(a?.points)interactButton.hidden=true;
+  updateActivity();
+ }
+ function playAction(id){
+  if(!started||modal)return;
+  if(id==='dash')game.dash(movement());
+  else if(id==='tag')game.tag();
+  else game.attack(id);
+ }
+ const keyPanels={KeyM:'map',KeyQ:'journal',KeyF:'fighters',KeyT:'trophies',KeyB:'arena'};
+ const keyActions={KeyJ:'attack',KeyK:'skill',KeyI:'ultimate',KeyL:'guard',Space:'dash',KeyR:'tag'};
+ document.addEventListener('keydown',event=>{
+  const k=event.code;
+  if(showroom)return;
+  setInput('keys');
+  if(modal){
+   if(k==='Escape'){event.preventDefault();closePanel();}
+   else if(k==='Tab'){
+    const focus=[...panel.querySelectorAll('button:not(:disabled),select,a[href]')], index=focus.indexOf(document.activeElement);
+    if(index<0||(event.shiftKey?index===0:index===focus.length-1)){
+     event.preventDefault();focus[event.shiftKey?focus.length-1:0]?.focus();
+    }
+   }
+   return;
+  }
+  if(!started)return;
+  if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(k)){
+   if(k==='Space'&&event.target.closest('button'))return;
+   event.preventDefault();input.keys.add(k);
+  }
+  if(event.repeat)return;
+  if(k==='Escape'){show(state.fight?'pause':state.activity?'activity-pause':'settings');return;}
+  if(k==='KeyE'){interact();return;}
+  if(k==='KeyG'&&!state.fight&&!state.activity){objectiveGo();return;}
+  if(!state.fight&&!state.activity&&keyPanels[k]){show(keyPanels[k]);return;}
+  if(keyActions[k])playAction(keyActions[k]);
+ });
+ document.addEventListener('keyup',e=>input.keys.delete(e.code));
+ window.addEventListener('blur',()=>{input.keys.clear();input.stick={x:0,y:0};});
+ $('start').addEventListener('click',start);
+ $('controls').addEventListener('click',()=>show('controls'));
+ $('interact').addEventListener('click',()=>interact());
+ shell.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.dataset.panel)show(b.dataset.panel);
+  if(b.dataset.command==='tag')game.tag();
+  else if(b.dataset.command)command(b.dataset.command);
+ });
+ panel.addEventListener('change',e=>{
+  if(e.target.id==='trophy-filter'){filter=e.target.value;paintPanel();$('trophy-filter')?.focus();}
+  if(e.target.id==='fighter-filter'){fighterFilter=e.target.value;paintPanel();$('fighter-filter')?.focus();}
+ });
+ canvas.addEventListener('pointerdown',e=>{
+  if(showroom||!started||modal)return;
+  setInput(e.pointerType==='touch'?'touch':'keys');
+  if(state.fight){if(e.pointerType!=='touch')playAction('attack');return;}
+  const target=scene.point(e);
+  if(state.activity?.points){if(walkable(target))state.target={...target,queue:[target]};return;}
+  const list=state.room?state.room.nodes:districts.flatMap(d=>d.nodes).filter(n=>n.kind!=='seal'||distance(n,state.player)<145);
+  const n=list.find(n=>distance({x:n.x,y:n.y-19},target)<39);
+  const ring=districts[state.region].nodes.find(node=>node.kind==='spar');
+  if(!state.room&&Math.abs(target.x-ring.x)<89&&Math.abs(target.y-(ring.y-56))<42){game.approach(ring);return;}
+  if(n){game.approach(n);return;}
+  if(state.room?(Math.abs(target.x)<280&&target.y>-185&&target.y<245):walkable(target))state.target={...target,queue:[target]};
+ });
+ const stick=$('stick'),knob=stick.querySelector('i');
+ let stickPointer=null;
+ function steer(e){
+  if(e.pointerId!==stickPointer)return;
+  const rect=stick.getBoundingClientRect(),radius=rect.width*.35;
+  let x=(e.clientX-rect.left-rect.width/2)/radius,y=(e.clientY-rect.top-rect.height/2)/radius;
+  const norm=Math.max(1,Math.hypot(x,y));x/=norm;y/=norm;
+  input.stick={x,y};knob.style.transform='translate('+x*radius+'px,'+y*radius+'px)';
+ }
+ stick.addEventListener('pointerdown',e=>{stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);setInput('touch');steer(e);});
+ stick.addEventListener('pointermove',steer);
+ for(const evt of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(evt,e=>{
+  if(e.pointerId!==stickPointer)return;stickPointer=null;input.stick={x:0,y:0};knob.style.transform='';
+ });
+ $('touch').addEventListener('pointerdown',e=>{
+  const target=e.target.closest('[data-touch]');if(target){e.preventDefault();setInput('touch');playAction(target.dataset.touch);}
+ });
+ function gamepad(){
+  const pad=[...(navigator.getGamepads?.()||[])].find(Boolean);
+  if(!pad){input.pad={x:0,y:0};input.padButtons=[];return;}
+  const edges=pad.buttons.map((b,i)=>b.pressed&&!input.padButtons[i]);
+  input.padButtons=pad.buttons.map(b=>b.pressed);
+  const axis=n=>Math.abs(pad.axes[n]||0)>.19?pad.axes[n]:0;
+  input.pad={x:axis(0),y:axis(1)};
+  if(input.pad.x||input.pad.y||edges.some(Boolean))setInput('pad');
+  if(modal){
+   const targets=[...panel.querySelectorAll('button:not(:disabled),select,a[href]')];
+   const selected=document.activeElement;
+   if(selected.matches('select')&&(edges[14]||edges[15])){
+    selected.selectedIndex=(selected.selectedIndex+(edges[14]?-1:1)+selected.options.length)%selected.options.length;
+    selected.dispatchEvent(new Event('change',{bubbles:true}));
+   }else if(edges[12]||edges[13]||edges[14]||edges[15]){
+    const index=targets.indexOf(document.activeElement), delta=(edges[12]||edges[14])?-1:1;
+    targets[(Math.max(0,index)+delta+targets.length)%targets.length]?.focus();
+   }
+   if(edges[0]&&document.activeElement.matches('button,a[href]'))document.activeElement.click();
+   if(edges[1])closePanel();
+   return;
+  }
+  if(!started){if(edges[0])start();return;}
+  if(edges[9]){show(state.fight?'pause':state.activity?'activity-pause':'journal');return;}
+  if(edges[0]&&!state.fight)interact();
+  if(edges[2])playAction('attack');
+  if(edges[3])playAction('skill');
+  if(edges[1])playAction('guard');
+  if(edges[4])playAction('dash');
+  if(edges[5])playAction('tag');
+  if(edges[7])playAction('ultimate');
+  if(edges[12]&&!state.fight&&!state.activity)show('map');
+  if(edges[13]&&!state.fight&&!state.activity)show('trophies');
+ }
+ function frame(now){
+  const dt=Math.min(.045,(now-frameTime)/1000||0);frameTime=now;
+  if(!showroom)gamepad();
+  const motion=movement();
+  if(started&&!showroom&&(!modal||modal==='challenge'))game.tick(dt,modal?{x:0,y:0}:motion);
+  if(now-lastUI>86){updateHUD();updateTimedPanels();lastUI=now;}
+  if(now>toastUntil)$('toast').hidden=true;
+  updateActivity();
+  scene.draw(state,{title:!started,reduce:!state.profile.settings.motion,moving:!!(motion.x||motion.y||state.target)});
+  requestAnimationFrame(frame);
+ }
+ new ResizeObserver(()=>scene.resize()).observe(canvas);scene.resize();
+ shell.dataset.input=input.kind;
+ if(showroom){
+  started=true;$('title-screen').hidden=true;$('showroom').hidden=false;
+  state.profile.shelf=['journey-01','discovery-valley','mastery-coast','arena-01','world-01','journey-06'];
+  const awards=$('showroom-awards');awards.hidden=false;
+  awards.innerHTML=state.profile.shelf.map(id=>'<li>'+text(trophies.find(t=>t.id===id).name)+'</li>').join('');
+  game.enterRoom();canvas.setAttribute('aria-label','Furnished trophy room with six sample awards on display');
+ }
+ state.objective=game.objective();
+ requestAnimationFrame(frame);
+})();
+</script>
+</body></html>

@@ -1,0 +1,19 @@
+{
+  "revision": "0.2",
+  "counts": {
+    "Part": 52,
+    "Motor6D": 7,
+    "WeldConstraint": 44
+  },
+  "danglingReferences": 0,
+  "duplicateReferences": 0,
+  "studioImportTested": false,
+  "playableControllerImplemented": false,
+  "actualHardwareTested": false,
+  "changes": [
+    "Squared wraps",
+    "Reed brace",
+    "Asymmetric ear and shoulder",
+    "Original identity brief"
+  ]
+}

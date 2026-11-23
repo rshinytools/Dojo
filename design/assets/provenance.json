@@ -1,0 +1,7 @@
+{
+  "method": "Built-in image_gen tool",
+  "file": "assets/fighter-portrait-atlas.png",
+  "optimizedFile": "assets/fighter-portrait-atlas.webp",
+  "role": "Original concept portrait atlas, not production rigs or animation",
+  "prompt": "Use case: stylized-concept. Asset type: a single four-column character portrait atlas for Beast Dojo Critter Clash, an original cartoon martial arts arena game. Create four distinct original stylized 3D toy-like animal fighters, each framed from waist up, all at exactly the same scale, each centered in one of four equally wide columns across a wide horizontal image. Left to right: a warm caramel boxing kangaroo with long upright ears and teal cloth handwraps, an icy blue penguin brawler with a cream belly and orange scarf, a bulky charcoal silverback gorilla wearing jade wristwraps, a cheerful red-orange fire salamander with small ember spots and a dark martial arts belt. Confident expressive sporting poses, friendly competitive faces, rounded chunky silhouettes, rich soft materials, crisp edges, high quality game key art, soft studio lighting. Each fighter isolated against actual transparent alpha; leave clear transparent gaps between columns; no fighters overlap or cross their column boundaries; no ground, no scenery, no UI, no text, no logo, no watermark, no recognizable existing franchise character. Intended as four adjacent square portrait cells in one wide 4:1 strip, usable as one sprite sheet."
+}

@@ -1,0 +1,41 @@
+{
+  "sourceModel": "Copper kilns",
+  "replaceSubmodelsNamed": "Cinder kiln flue",
+  "keepNativePartsNamed": "Amber vent inlay",
+  "nativeVents": 9,
+  "pivotStuds": [
+    153.388214,
+    27.67,
+    -211.326736
+  ],
+  "detail": {
+    "file": "Cinder_Kiln_Flues.glb",
+    "triangles": 876,
+    "atlasPixels": 1024,
+    "sizeStuds": [
+      44.979767,
+      26.259998,
+      5.549866
+    ],
+    "centerStuds": [
+      153.388214,
+      27.67,
+      -211.326736
+    ]
+  },
+  "lowerDetail": {
+    "file": "Cinder_Kiln_Flues_LOD1.glb",
+    "triangles": 408,
+    "atlasPixels": 512,
+    "sizeStuds": [
+      44.979767,
+      26.259998,
+      5.549866
+    ],
+    "centerStuds": [
+      153.388214,
+      27.67,
+      -211.326736
+    ]
+  }
+}
