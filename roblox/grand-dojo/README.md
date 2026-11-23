@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.223, look toward **Fighting Ring** from the Festival Plaza, then walk east to the **City Map**. Choose a district to highlight the walking route.
+
+The City Map moved about 12 studs east onto level sandstone. A low Promenade Garden direction strip fits under the chart, and lower rocks, seed heads and beds open the approach to the Fighting Ring. The map sits partly at the edge of the default desktop view and is readable on the east-side walk.
+
+Studio ray samples from the normal spawn camera measured this map and planting geometry. Screened stair samples dropped from four to zero of 300, and screened forecourt samples dropped from 615 to 79 of 825. Exact v0.223 desktop Studio walked from the plaza to the City Map and onward to the Fighting Ring forecourt. Keyboard input opened the map and mouse input plotted all five outer-district routes, cleared the route, and closed the panel. The map contains all six districts and 14 connections. In the Galaxy A06 landscape simulator, the engine prompt opened the map and the simulator pointer selected Skywalk and closed it. Physical touch and hardware performance remain to be checked.
+
 In v0.222, follow the sandstone path to the **Fighting Ring** and climb from the **Festival Plaza** or approach from **Reed Market**. Try the practice target or a session with Juniper Tortoise.
 
 Continuous beveled sandstone shoulders frame the Fighting Ring’s twelve steps and the 6.30-stud-high arena. Deeper slate risers separate the steps, broader plinths support the square amber lanterns, and three larger hanging shades warm the ceiling above the canvas. The lower canal-side garden opens the view from the plaza.

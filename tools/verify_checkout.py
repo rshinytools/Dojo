@@ -37,7 +37,8 @@ def verify_place():
                 "Projected cedar gallery soffit", "Raked cedar gallery support",
                 "Rose horizon range", "Mauve saddle range", "Arrival plume bank",
                 "Soft lantern reflections", "Moss seams and shore grasses",
-                "Swept sandstone stair shoulders", "Continuous sandstone coping"}
+                "Swept sandstone stair shoulders", "Continuous sandstone coping",
+                "Plaza city map board", "Cedar garden direction fascia"}
     seen = set()
     routes = None
     notes = 0

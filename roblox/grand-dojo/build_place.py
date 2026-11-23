@@ -650,7 +650,7 @@ def map_canvas(parent,districts,paths):
 def city_map_board(parent,districts,paths):
     board=item(parent,"Model","Plaza city map board")
     prop(board,"token","ModelStreamingMode",1)
-    x,z,yaw=16.4,59.4,-36
+    x,z,yaw=28.05,55.55,-48
     scale=.89
     c,s=cos(radians(yaw)),sin(radians(yaw))
     tilt=-27
@@ -668,10 +668,8 @@ def city_map_board(parent,districts,paths):
 
     for side in (-1,1):
         dx=side*1.98
-        # The east foot straddles the lower foundation at the pavement edge.
-        foot_extension=.415 if side>0 else 0
-        map_piece("Map slate pedestal",point(dx,.37-foot_extension/2,-.13),
-                  (1.16,.43+foot_extension,1.69),"8A7880",material=SLATE)
+        map_piece("Map slate pedestal",point(dx,.37,-.13),
+                  (1.16,.43,1.69),"8A7880",material=SLATE)
         map_piece("Map cedar trestle",point(dx,1.41,-.23),(.49,1.76,.62),
                   "895640",pitch=11,material=WOOD_PLANK)
         map_piece("Map joinery cap",point(dx,2.14,-.30),(.66,.24,1.13),"9E674C",material=WOOD_PLANK)
@@ -691,7 +689,13 @@ def city_map_board(parent,districts,paths):
     vector(surface,"Vector2","CanvasSize",("X","Y"),(MAP_WIDTH,MAP_HEIGHT))
     map_canvas(surface,districts,paths)
     sign(board,"CITY MAP",*lectern(0,1.62,.10),3.65*scale,.53*scale,yaw,"683830")
-    # Keep the lantern's established pool across the paving beside the map.
+    fascia=map_piece("Cedar garden direction fascia",point(0,.42,1.10),
+                     (3.76,.52,.13),"526651",material=WOOD_PLANK)
+    prop(fascia,"bool","CastShadow",False)
+    direction=sign(board,"← PROMENADE GARDEN",*point(0,.42,1.169),
+                   3.56*scale,.39*scale,yaw,"526651",face_only=True)
+    prop(direction,"bool","CastShadow",False)
+    # The nearby lantern lights the main promenade at the bend.
     lamp(board,10.97339,.91,63.05417,scale=.68,light=True)
     prompt=item(plate,"ProximityPrompt","CityMapPrompt")
     prop(prompt,"string","ActionText","Open city map")
@@ -1798,7 +1802,7 @@ for x,z,length,accent in [(12.8,53,10,"6F8149"),(15.1,30,12,"718747"),(-7.9,4,9,
         flank=-1 if x<0 else 1
         for seed,dz in enumerate((-.34*length,.065*length,.35*length)):
             px,pz=x+flank*.66,z+dz
-            garden_prop(edge,"bankRock",(px,.51,pz),(.29,.23,.27)[seed],27+seed*62,"8E7D88")
+            garden_prop(edge,"bankRock",(px,.51,pz),(.245,.20,.22)[seed],27+seed*62,"8E7D88")
             garden_prop(edge,"mossFlowers",(px-flank*.49,.89,pz+.60),.17,69+seed*23,"F0ADB8")
             garden_prop(edge,"meadowCover",(px,.96,pz-.34),.145,33+seed*61,"A8B96F")
             garden_prop(edge,"grassBlade",(px-flank*.94,.95,pz+.26),.50,38+seed*39,"DDC184")
@@ -1814,7 +1818,7 @@ for x,z,length,accent in [(12.8,53,10,"6F8149"),(15.1,30,12,"718747"),(-7.9,4,9,
             garden_prop(edge,"grassBlade",(x+.50,.88,z+offset-.55),.46,58+group*43,"B6A76D")
             for i in range(5):
                 start=(x+(i-2)*.23,.83,z+offset+(i%3-1)*.22)
-                tip=(start[0]+(i-2)*.28,start[1]+(1.77,.95,1.45,1.94,1.22)[i],start[2]-.29)
+                tip=(start[0]+(i-2)*.28,start[1]+(1.28,.80,1.03,1.39,.95)[i],start[2]-.29)
                 beam(edge,"Golden meadow stalk",start,tip,.065,"AA975C")
                 part(edge,"Sunlit seed plume",tip,(.26,.68,.22),("D4B375","EAC787","DCC28B")[i%3],
                      roll=17*(2-i),pitch=-16,shape=0,collide=False)
@@ -3706,19 +3710,21 @@ def promenade_garden(parent):
              (end[0],end[1]+.57,end[2]),.225,"93614E",collide=True)
         x,y,z=start
         part(garden,"Garden rail stone foot",(x,y+.31,z),(.46,.62,.46),"93828A",material=SLATE,collide=False)
-    for index,(x,z,high,width,depth) in enumerate(((15.42,54.02,.91,3.67,3.5),
-             (24.36,52.97,1.24,2.99,4.72),(24.26,44.49,1.63,2.67,4.82),(16.10,41.76,.77,3.15,3.40))):
+    for index,(x,z,high,width,depth,rock_scale) in enumerate((
+        (15.42,54.02,.91,3.67,3.50,.32), (24.36,52.97,.71,2.99,4.72,.18),
+        (24.26,44.49,.95,2.67,4.82,.14), (16.10,41.76,.77,3.15,3.40,.32),
+    )):
         garden_shelf(garden,x,high,z,width,depth,high-.05,"92828D",SLATE,collide=False)
         garden_shelf(garden,x+.10,high+.14,z+.12,width-.42,depth-.48,.25,"74864D",GRASS_MAT,collide=False)
-        rock_scale = .21 if index == 2 else .32
         garden_prop(garden,"bankRock",(x+.25,high-.16,z-.68),rock_scale,15+index*43,"96848B")
         garden_prop(garden,"meadowGrass",(x-.37,high+.13,z+.28),.18,32+index*37,"A2AD6D")
         garden_prop(garden,"grassBlade",(x+.62,high+.11,z+.55),.40,85+index*36,"CCB17D")
         garden_prop(garden,"mossFlowers",(x-.18,high+.12,z-.43),.16,40+index*32,"E7ACB9")
         garden_prop(garden,"meadowFlowers",(x+.31,high+.15,z+.37),.36,22+index*28,"F3C286")
-    for x,z,yaw in ((17.71,55.10,17),(17.43,39.86,157)):
-        part(garden,"Garden wayfinding post",(x,1.77,z),(.32,3.16,.32),"8C5C46",collide=False)
-        sign(garden,"PROMENADE GARDEN",x,3.03,z+.17,4.96,.82,yaw,"4A6C50")
+    part(garden,"Garden wayfinding post",(17.43,1.77,39.86),(.32,3.16,.32),
+         "8C5C46",material=WOOD_PLANK,collide=False)
+    sign(garden,"PROMENADE GARDEN",17.43,3.03,40.03,4.96,.82,157,"4A6C50")
+
 
 
 promenade_garden(plaza)
