@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.213 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.214 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -28,6 +28,7 @@ The Python builder embeds the Luau from disk. Change source and rebuild so the S
 
 | Area | Evidence |
 | --- | --- |
+| Reedfall and Cinder approach | v0.214 adds richer blue water, brighter planted ledges and a marked switchback. Desktop Studio walked the plaza ascent, crown climb, Cinder gate connection, Crown Crossing return and plaza descent. The official waterfall foam texture loaded in desktop Studio and the Galaxy A06 landscape emulator. |
 | Grand Dojo arrival | v0.212 desktop Studio viewed the closer skyline, fitted Sakura tree, new Trophy Hall timber level, and amber canal reflections. The fighter used both canal exits, the Hall stairs and viewing gallery, and both parts of the Reedfall Crown climb. The Galaxy A06 landscape Studio emulator showed the arrival skyline and the three plaza landmarks with touch controls. |
 | Lantern Circuit and western connections | v0.211 desktop Studio confirmed both gate signs and walked the west road, Orchard High Walk, and Upper Market link to Frostglass Gardens in both directions. Studio captures show the new gate, slope terraces, and lower market shopfronts. |
 | Native world | Six districts and 14 mapped links. Desktop Studio checks include Crown Crossing in both directions and the routes through Frostglass and Tideharbor. Coverage varies by route. |

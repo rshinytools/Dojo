@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.214, walk past Trophy Hall toward **Reedfall Gallery**. Take the signed switchback to **Cascade Lookout** and **Reedfall Crown**, with the bridge onward to **Cinder Terraces**.
+
+Reedfall’s three main drops have darker teal centers, bright broken streaks and shallow pools linking the ledges. Textured damp rock and wider moss rims on two west shelves give the falls a clearer setting beside Trophy Hall. A cedar sign and planted stone pockets mark the 15.13-stud switchback. The sign points toward Cascade Lookout and back to Reedfall Gallery. Exact v0.214 desktop Studio Play walked to Cascade Lookout, climbed to Reedfall Crown at 34.4 studs, crossed to Kiln Ridge, reached the Cinder Terraces gate, crossed the Crown route in reverse and descended the plaza switchback. All six legs reached their endpoints. All six districts and 14 mapped links retain their routes. A structured comparison confirmed all collision geometry, gameplay source, Terrain, lights and the number of water beams remain intact.
+
+The upper lip uses the whitewater texture from Roblox’s official waterfall sample. Desktop Studio confirmed it loaded and the emitter paused at a distance. The existing flowing beams animate nearby. The Galaxy A06 landscape emulator showed the cascade with touch controls and stayed within its two-emitter budget. Physical devices and published performance still need verification.
+
 In v0.213, walk from the plaza up the **Fighting Ring** steps. Look up at the cedar ceiling and use the **Practice Target** and **Bot Spar Corner**.
 
 The Fighting Ring’s twelve real steps now read as paired warmer stone courses. Broad visible stair cheeks, stepped paper-lantern bases and low red standards frame the 6.30-stud stage. Rectangular amber lanterns hang beneath recessed cedar ceiling panels. Russet binding, 32 ochre stitches and an original reed pattern finish the canvas. The rear paper lamps glow through emissive material. The active light fixture count stays the same. Exact v0.213 desktop Studio walked from spawn up all twelve steps, completed three practice strikes for 20 XP in the test profile, entered and left the Juniper Tortoise spar, dismissed the recap and walked back down to the plaza. The Galaxy A06 landscape Studio emulator showed the updated entrance with touch controls enabled. A structured place comparison preserved the six districts, 14 mapped links, colliders, Terrain and gameplay scripts.

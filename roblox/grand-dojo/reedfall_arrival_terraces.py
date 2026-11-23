@@ -117,15 +117,19 @@ def build_reedfall_arrival_terraces(parent, *, item, prop, part, triangle, beam,
 
         top = rings[-1]
         center = locate(-.03, .07, 0)
+        visible_lip = index in (1, 2)
+        cap_width, cap_depth = (.91, .87) if visible_lip else (.81, .78)
         cap = [
-            (center[0] + (a - center[0]) * .81, b + .08, center[2] + (c - center[2]) * .78)
+            (center[0] + (a - center[0]) * cap_width, b + .08, center[2] + (c - center[2]) * cap_depth)
             for a, b, c in top
         ]
         for i in range(len(top)):
             j = (i + 1) % len(top)
             face(model, (center, top[i], top[j]), "AD959A", "Exposed Reedfall capstone", rock)
+            palette = ("9AB65F", "93AB5C", "A4B66A", "8CA85C") if visible_lip else (
+                "859754", "8EA258", "84974D", "829355")
             face(model, ((center[0], center[1] + .09, center[2]), cap[i], cap[j]),
-                 ("859754", "8EA258", "84974D", "829355")[i % 4], "Reedfall moss cap", grass)
+                 palette[i % len(palette)], "Reedfall moss cap", grass)
 
         # From the plaza the player sees the edge of the green turf and the
         # cut underneath, so let the moss curl over the exposed cap in places.
@@ -136,9 +140,10 @@ def build_reedfall_arrival_terraces(parent, *, item, prop, part, triangle, beam,
             (.055, -.14, .43, .20, "93A35B"),
             (.18, -.13, .39, .17, "83934F"),
         ):
+            color = ("A0AB61", "A8B969", "8EA85A", "93A958")[index % 4] if visible_lip else tint
             moss = part(model, "Moss rolling over the rock edge", locate(across, rise, reach),
-                        (width * spread, .56 + .18 * spread, depth * .15),
-                        tint, shape=0, collide=False, yaw=yaw)
+                        (width * spread, (.79 if visible_lip else .56) + .18 * spread, depth * .15),
+                        color, shape=0, collide=False, yaw=yaw)
             prop(moss, "bool", "CastShadow", False)
 
         for key, across, rise, reach, scale, color in (
@@ -150,3 +155,7 @@ def build_reedfall_arrival_terraces(parent, *, item, prop, part, triangle, beam,
             planter(model, key, locate(across, rise, reach), scale, yaw + 31 + 18 * index, color)
         if species:
             crown(model, locate(-.12, .13, .08), (1.28, 1.0, 1.02)[index], species)
+        if visible_lip:
+            planter(model, "meadowCover", locate(.09, .18, .35), .19, yaw + 68, "AABC6A")
+            planter(model, "mossFlowers", locate(-.27, .13, .30), .16, yaw + 104,
+                    "F1ADBB" if species == "blossom" else "EAD1A0")

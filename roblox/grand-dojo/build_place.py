@@ -83,6 +83,7 @@ from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
 from reedfall_arrival_terraces import build_reedfall_arrival_terraces
 from reedfall_crown_wayfinding import build_reedfall_crown_wayfinding
 from reedfall_ledge_gardens import build_reedfall_ledge_gardens
+from reedfall_turning_landings import build_reedfall_turning_landings
 from reedfall_west_spill import build_reedfall_west_spill
 from relay_arrival_portico import build_relay_arrival_portico
 from ring_arrival_details import (build_ring_arrival_details, build_ring_ceiling_panels, build_ring_paper_lantern,
@@ -2986,12 +2987,16 @@ def reedfall_buttress(parent,x,z,width,depth,base,top,offset,yaw):
                        base+(top-base)*proportion+(.12 if i%2==0 else -.12),
                        z-u*width*span*s+v*depth*span*c)
                       for i,(u,v) in enumerate(outline)])
-    tones=("8D7A85","99828B","816F7F","756676","8A7986","AE9093")
-    for lower,upper in zip(bands,bands[1:]):
-        for i,shade in enumerate(tones):
+    tones=(("827780","8E7D84","746C79","705F6B","86737E","A18B8F"),
+           ("92818A","9D898F","877582","796A74","94808B","AD9497"))
+    before=len(parent)
+    for course,(lower,upper) in enumerate(zip(bands,bands[1:])):
+        for i,shade in enumerate(tones[course]):
             j=(i+1)%len(tones)
             for face in ((lower[i],upper[i],lower[j]),(lower[j],upper[i],upper[j])):
-                triangle(parent,*face,shade,name="Reedfall rock face",material=SLATE,shadow=False)
+                triangle(parent,*face,shade,name="Reedfall rock face",material=ROCK,shadow=False)
+    for stone in parent[before:]:
+        prop(stone,"string",MATERIAL_VARIANT_FIELD,BANK_STONE)
     cap=bands[-1]
     for a,b in zip(cap[1:-1],cap[2:]):
         triangle(parent,cap[0],a,b,"A18A94",name="Reedfall rock ledge",material=SLATE,shadow=False)
@@ -3044,8 +3049,8 @@ def reedfall_flow_beam(parent, start, end, width0, width1, curve_size0, curve_si
     for index,attachment in enumerate(anchors):
         prop(stream,"Ref",f"Attachment{index}",attachment.get("referent"))
     asset(stream,"TextureContent","rbxassetid://16808804567")
-    prop(stream,"ColorSequence","Color","0 0.74 0.91 0.95 0 0.40 0.88 0.96 1 0 1 0.92 0.97 0.98 0 ")
-    prop(stream,"NumberSequence","Transparency","0 .87 0 .14 .51 0 .87 .50 0 1 .80 0 ")
+    prop(stream,"ColorSequence","Color","0 .65 .86 .94 0 .45 .57 .83 .95 0 1 .89 .96 .98 0 ")
+    prop(stream,"NumberSequence","Transparency","0 .91 0 .18 .60 0 .73 .62 0 .91 .43 0 1 .79 0 ")
     prop(stream,"bool","FaceCamera",True)
     prop(stream,"int","Segments",10)
     prop(stream,"token","TextureMode",1)
@@ -3057,8 +3062,8 @@ def reedfall_flow_beam(parent, start, end, width0, width1, curve_size0, curve_si
 def reedfall_cascade(parent,x,z,top,bottom,width,basin_reach):
     height=top-bottom
     # Roll off the lip, draw the flow together, then fan out at the impact.
-    bands=((0,.78,-.62,-.063),(.075,.90,-.32,-.044),(.19,.95,.08,-.016),(.39,.86,.43,.016),
-           (.68,.88,.65,.039),(.90,1.02,.98,.057),(1,1.14,1.42,.077))
+    bands=((0,.74,-.62,-.063),(.075,.82,-.32,-.044),(.19,.85,.08,-.016),(.39,.74,.43,.016),
+           (.68,.78,.65,.039),(.90,.93,.98,.057),(1,1.08,1.42,.077))
     across=((-0.50,-.055,-.08),(-.31,.012,.12),(-.07,.035,.25),(.19,-.007,.15),(.50,.033,-.058))
     sheet=[
         [(x+width*(u*spread+shift),top-height*progress+lift,z+depth+bulge)
@@ -3073,35 +3078,35 @@ def reedfall_cascade(parent,x,z,top,bottom,width,basin_reach):
             b=tuple(u+(v-u)*reach for u,v in zip(a,b))
         return a,b
 
-    tones=(("71C2D3","A9E0EC","C3ECF4","86D0E4"),("69B5CF","98D6E9","C5E9F4","73BFE0"),
-           ("6DB9D1","9AD7E9","B8E7F2","78C2DF"),("6FC0D7","AADFEB","C6E9F4","86CCDE"),
-           ("80CADC","BCE1ED","D0E9EE","8CCFE3"),("9DD8E6","D3EAF3","DEF1F7","A5DCE8"))
+    tones=(("599CB6","74B7D0","8BC8D9","5CA3BD"),("4C8AA9","66A9C5","8AC9DF","568EAF"),
+           ("4C87A5","68AFCB","80BFD5","548FAD"),("5998B1","76B6CB","90CBDC","62A5BD"),
+           ("65A9BD","8AC4D4","9BD2DD","72B0C2"),("82C3D2","ABD6DE","C9E7EB","89C8D8"))
     for row,colors in enumerate(tones):
         for column,tint in enumerate(colors):
             a,d=water_span(row,column)
             b,c=water_span(row+1,column)
-            transparency=(.24,.14,.115,.21)[column]
+            transparency=(.28,.13,.18,.24)[column]
             triangle(parent,a,b,c,tint,name="Reedfall water sheet",thickness=.075,shadow=False,transparency=transparency)
             triangle(parent,a,c,d,tint,name="Reedfall water sheet",thickness=.075,shadow=False,transparency=transparency)
 
     for column,trace,tint in (
-        (0,((0,.55,.023),(1,.68,.042),(2,.59,.15),(3,.44,.064),(4,.36,.018)),"D6EDF2"),
-        (1,((1,.63,.035),(2,.54,.16),(3,.61,.20),(4,.72,.085),(5,.59,.022)),"E4F4F8"),
-        (2,((0,.28,.016),(1,.40,.075),(2,.46,.17),(3,.60,.091),(4,.58,.066),(5,.67,.133),(6,.71,.092)),"ECF8FA"),
-        (3,((2,.44,.016),(3,.42,.09),(4,.55,.13),(5,.64,.16),(6,.53,.09)),"DCF0F6"),
+        (0,((0,.55,.023),(1,.68,.042),(2,.59,.15),(3,.44,.064),(4,.36,.018)),"AAD8E2"),
+        (1,((1,.63,.035),(2,.54,.16),(3,.61,.20),(4,.72,.085),(5,.59,.022)),"BEE6EB"),
+        (2,((0,.28,.016),(1,.40,.075),(2,.46,.17),(3,.60,.091),(4,.58,.066),(5,.67,.133),(6,.71,.092)),"D1EBEE"),
+        (3,((2,.44,.016),(3,.42,.09),(4,.55,.13),(5,.64,.16),(6,.53,.09)),"B8DFEA"),
     ):
         edges=[]
         for row,middle,span in trace:
             a,b=water_span(row,column)
             edges.append([tuple(t+(u-t)*fraction for t,u in zip(a,b)) for fraction in
-                          (middle-span/2,middle+span/2)])
+                          (middle-span*.38,middle+span*.38)])
         for (a,d),(b,c) in zip(edges,edges[1:]):
             a,b,c,d=((px,py,pz+.12) for px,py,pz in (a,b,c,d))
-            triangle(parent,a,b,c,tint,name="Reedfall water highlight",thickness=.044,shadow=False,transparency=.13)
-            triangle(parent,a,c,d,tint,name="Reedfall water highlight",thickness=.044,shadow=False,transparency=.13)
+            triangle(parent,a,b,c,tint,name="Reedfall water highlight",thickness=.044,shadow=False,transparency=.24)
+            triangle(parent,a,c,d,tint,name="Reedfall water highlight",thickness=.044,shadow=False,transparency=.24)
 
     basin_scale=basin_reach/4.15
-    for dx,dz,wide,deep,tint in ((0,1.35,1.48,4.96,"79B5C3"),(.09,1.83,.96,4.47,"9DCCD6")):
+    for dx,dz,wide,deep,tint in ((0,1.35,1.48,4.96,"47889A"),(.09,1.83,.96,4.47,"669EAD")):
         pool=part(parent,"Waterfall plunge shelf",(x+dx,bottom+.057+dx*.7,z+dz*basin_scale),
                   (width*wide,.11,deep*basin_scale),tint,
                   shape=0,material=GLASS,transparency=.16,collide=False)
@@ -3129,7 +3134,7 @@ def reedfall_cascade(parent,x,z,top,bottom,width,basin_reach):
             prop(segment,"bool","CastShadow",False)
 
     reedfall_flow_beam(parent, (x-width*.05,top-.06,z-.28), (x+width*.077,bottom+.14,z+1.58),
-                       width*.76, width*.99, height*.31, height*.22)
+                       width*.55, width*.83, height*.31, height*.22)
 
 
 reedfall_drops=((28.45,-43.65,46.10,22.17,8.80,12.8),
@@ -3170,6 +3175,16 @@ for source,downstream in zip(reedfall_drops,reedfall_drops[1:]):
     next_x,next_z,next_top,_,next_width,_=downstream
     start=(x+width*.07,bottom+.09,z+2.58)
     end=(next_x-next_width*.05,next_top+.018,next_z-.32)
+    # Each ledge holds shallow water between the curtains, with a pale
+    # strip on the far bank and darker teal toward its broken rim.
+    bank=((*start,width),(x+(next_x-x)*.46,bottom+.111,(start[2]+end[2])*.5,(width+next_width)*.43),
+          (*end,next_width*.79))
+    for (ax,ay,az,aw),(bx,by,bz,bw) in zip(bank,bank[1:]):
+        for left,right,tint in ((-.51,-.20,"5B8A97"),(-.20,.24,"427D91"),(.24,.51,"6EA8B6")):
+            a,b=(ax+left*aw,ay,az),(ax+right*aw,ay,az)
+            c,d=(bx+right*bw,by,bz),(bx+left*bw,by,bz)
+            triangle(falls,a,b,c,tint,name="Reedfall basin outflow",thickness=.036,shadow=False,transparency=.18)
+            triangle(falls,a,c,d,tint,name="Reedfall basin outflow",thickness=.036,shadow=False,transparency=.18)
     horizontal_water_beam(falls,"Reedfall outflow foam",start,end,(3.15,1.98),
                           "0 .76 .88 .87 0 .62 .94 .98 .92 0 1 .83 .93 .92 0 ",
                           "0 1 0 .29 .42 0 .72 .36 0 1 1 0 ",3.04)
@@ -3207,6 +3222,10 @@ for start,end in zip(spill_bands,spill_bands[1:]):
 spill_pocket=part(side_spill,"Waterfall plunge shelf",(35.73,33.572,-41.08),(1.69,.07,.85),"91C9D2",
                   shape=0,material=GLASS,transparency=.22,collide=False)
 prop(spill_pocket,"bool","CastShadow",False)
+
+air_effect(falls,"Reedfall upper lip foam",(31.76,22.26,-33.77),(4.6,.08,.73),16808075391,
+           tint="DDEFF0",rate=3,lifetime=(.67,1.10),speed=(.36,.74),size=(.74,1.88),
+           opacity=.32,drift=(.1,-1.15,.55),down=True,glow=.10)
 
 garden_shelf(falls,30.52,.46,-25.15,12.45,8.91,.35,"6A858B",SLATE)
 part(falls,"Waterfall catch pool",(30.52,.55,-25.19),(11.4,.12,7.81),"3C879C",
@@ -4317,6 +4336,10 @@ def cascade_lookout(parent):
 
     landing_left,landing_right=49.52,64.64
     platform("Lookout turning landing",landing_left,landing_right,landing_back,landing_front,landing_y)
+    build_reedfall_turning_landings(lookout,left=landing_left,right=landing_right,north=landing_back,
+                                    south=landing_front,level=landing_y,item=item,prop=prop,part=part,
+                                    sign=sign,garden_prop=garden_prop,slate=SLATE,limestone=LIMESTONE,
+                                    cedar=WOOD_PLANK,brass=METAL)
     platform("Cascade lookout deck",west,east,north,south,top)
     for y,segments in ((landing_y,(
          ((landing_left+.19,landing_back+.19),(landing_right-.19,landing_back+.19)),
