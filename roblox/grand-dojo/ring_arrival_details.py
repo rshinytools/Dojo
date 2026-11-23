@@ -35,22 +35,76 @@ def build_ring_paper_lantern(parent, x, y, z, scale, *, item, part, prop, neon, 
 
 def build_ring_stair_lantern_plinth(parent, x, z, *, item, part, prop, slate, limestone, stone_variant,
                                     variant_field):
-    """Dress the existing lantern pedestal without widening its collision."""
+    """Dress the lantern pedestal with broad stone courses and a recessed face."""
     footing = item(parent, "Model", "Split slate stair lantern base")
     for name, y, size, tint, material in (
-        ("Broad slate footing", .47, (2.03, .26, 2.11), "79636C", slate),
-        ("Canted stair lantern lower course", .66, (1.88, .23, 1.96), "A28A8A", slate),
-        ("Rose slate lantern upright", 1.19, (1.71, .95, 1.83), "9D8584", slate),
-        ("Sandstone lantern ledge", 1.79, (1.95, .16, 2.05), "C5A593", limestone),
-        ("Honed square lantern cap", 1.94, (2.02, .14, 2.11), "D7B7A1", limestone),
+        ("Broad slate footing", .43, (2.40, .23, 2.29), "73606D", slate),
+        ("Canted stair lantern lower course", .63, (2.17, .21, 2.10), "9B8281", slate),
+        ("Rose slate lantern upright", 1.18, (1.87, .90, 1.88), "9D8584", slate),
+        ("Shadow below lantern ledge", 1.64, (1.94, .09, 1.96), "716169", slate),
+        ("Sandstone lantern ledge", 1.78, (2.11, .18, 2.12), "BE9B83", limestone),
+        ("Honed square lantern cap", 1.94, (2.22, .14, 2.18), "D5B495", limestone),
     ):
         piece = part(footing, name, (x, y, z), size, tint, material=material, collide=False)
         prop(piece, "bool", "CastShadow", False)
         prop(piece, "string", variant_field, stone_variant)
-    face = part(footing, "Recessed lantern stone face", (x, 1.18, z + .926),
-                (.96, .64, .059), "856F74", material=slate, collide=False)
+    face = part(footing, "Recessed lantern stone face", (x, 1.18, z + .948),
+                (1.06, .64, .047), "836D72", material=slate, collide=False)
     prop(face, "bool", "CastShadow", False)
     prop(face, "string", variant_field, stone_variant)
+
+
+def build_ring_stone_cheeks(parent, *, center, front, back, widths, start_y, end_y, item,
+                           prop, triangle, slate, limestone, stone_variant, cap_variant, variant_field):
+    """Bind the stair flight between sloping, beveled sandstone coping courses."""
+    cheeks = item(parent, "Model", "Swept sandstone stair shoulders")
+    for side in (-1, 1):
+        shoulder = item(cheeks, "Model", "Stone stair cheek")
+
+        def face(corners, tint, name, material):
+            mark = len(shoulder)
+            a, b, c, d = corners
+            triangle(shoulder, a, b, c, tint, name=name, material=material,
+                     thickness=.052, shadow=False)
+            triangle(shoulder, a, c, d, tint, name=name, material=material,
+                     thickness=.052, shadow=False)
+            for stone in list(shoulder)[mark:]:
+                prop(stone, "string", variant_field, cap_variant if material == limestone else stone_variant)
+
+        def position(along, width, height):
+            half_stair = (widths[0] + (widths[1]-widths[0]) * along) / 2
+            return center + side * (half_stair + .085 + width), height, front + (back-front)*along
+
+        def coping_y(along):
+            return start_y + (end_y-start_y) * along
+
+        foot, inside, outside, rim = .18, .23, 1.66, 1.92
+        # The slate below the coping follows the original tapered stair edges.
+        colors = ("8B777B", "A38B84", "937B7E", "9D8482", "8D757A")
+        for band, (low, high) in enumerate(((0, .34), (.34, .66), (.66, 1))):
+            cuts = (0, .22, .47, .74, 1) if band % 2 else (0, .35, .62, 1)
+            for column, (start, end) in enumerate(zip(cuts, cuts[1:])):
+                a, b = start + .003, end - .003
+                for edge, shift in ((0, 2), (rim, 0)):
+                    ha, hb = coping_y(a)-foot-.13, coping_y(b)-foot-.13
+                    face((position(a, edge, foot+ha*low), position(b, edge, foot+hb*low),
+                          position(b, edge, foot+hb*high), position(a, edge, foot+ha*high)),
+                         colors[(band+column+shift) % len(colors)], "Fitted slate cheek course", slate)
+
+        # Top courses align across the bevels and visibly run the full rise.
+        profile = ((0, -.13), (inside, .11), (outside, .11), (rim, -.13))
+        for course, (a, b) in enumerate(zip((0, .29, .56, .79), (.29, .56, .79, 1))):
+            for (left, yl), (right, yr), tint in zip(profile, profile[1:],
+                    ("BC9A84", ("D4B193", "DABA9F")[course % 2], "9F806F")):
+                face((position(a, left, coping_y(a)+yl), position(b, left, coping_y(b)+yl),
+                      position(b, right, coping_y(b)+yr), position(a, right, coping_y(a)+yr)),
+                     tint, "Continuous sandstone coping", limestone)
+        face((position(0, 0, foot), position(0, rim, foot),
+              position(0, rim, start_y-.14), position(0, 0, start_y-.14)),
+             "A08A83", "Stair cheek plinth face", slate)
+        face((position(0, 0, start_y-.13), position(0, rim, start_y-.13),
+              position(0, outside, start_y+.11), position(0, inside, start_y+.11)),
+             "C5A48D", "Beveled cheek plinth cap", limestone)
 
 
 def build_ring_ceiling_panels(parent, *, purlins, cross_ties, height, item, part, prop, wood,

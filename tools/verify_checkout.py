@@ -36,7 +36,8 @@ def verify_place():
                 "Windcut sea arch", "Low slate reefs", "Horizon sea fills", "Trophy Hall front amber portal",
                 "Projected cedar gallery soffit", "Raked cedar gallery support",
                 "Rose horizon range", "Mauve saddle range", "Arrival plume bank",
-                "Soft lantern reflections", "Moss seams and shore grasses"}
+                "Soft lantern reflections", "Moss seams and shore grasses",
+                "Swept sandstone stair shoulders", "Continuous sandstone coping"}
     seen = set()
     routes = None
     notes = 0

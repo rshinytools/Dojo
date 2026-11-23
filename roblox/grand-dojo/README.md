@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.222, follow the sandstone path to the **Fighting Ring** and climb from the **Festival Plaza** or approach from **Reed Market**. Try the practice target or a session with Juniper Tortoise.
+
+Continuous beveled sandstone shoulders frame the Fighting Ring’s twelve steps and the 6.30-stud-high arena. Deeper slate risers separate the steps, broader plinths support the square amber lanterns, and three larger hanging shades warm the ceiling above the canvas. The lower canal-side garden opens the view from the plaza.
+
+Exact v0.222 desktop Studio Play walked up the central stairs to the ring, cleared the three-hit practice drill for 20 session XP, started and left a Juniper Tortoise spar, and walked back to the plaza. The alternate path from Reed Market reached the forecourt ramp. The Galaxy A06 landscape simulator showed the new stair framing with touch controls. All six districts and 14 links are present. Physical-device and published performance tests remain open.
+
 In v0.221, follow **Festival Canal** past the arrival board toward the **red footbridge**. Use the submerged steps at **Lotus Inlet** for the short swim back to the promenade.
 
 Festival Canal has staggered amber highlights and five soft scrolling reflections laid out over measured Terrain water. Deeper teal lanes show between highlights under the red footbridge and behind the arrival board. Six low shoreline beds use moss, grasses, cattails and flowers from the existing foliage collection. The layers use shadow-free, noncolliding geometry and five textured Beams.

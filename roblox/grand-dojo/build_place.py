@@ -88,7 +88,7 @@ from reedfall_turning_landings import build_reedfall_turning_landings
 from reedfall_west_spill import build_reedfall_west_spill
 from relay_arrival_portico import build_relay_arrival_portico
 from ring_arrival_details import (build_ring_arrival_details, build_ring_ceiling_panels, build_ring_paper_lantern,
-                                  build_ring_stair_lantern_plinth)
+                                  build_ring_stair_lantern_plinth, build_ring_stone_cheeks)
 from ring_canvas_detail import CANVAS_TINT, build_ring_canvas_detail
 from ring_gate_standard import build_ring_gate_standard
 from saltwind_bluff_art import FACE_TINTS as SALTWIND_SLATE, build_saltwind_bluff_art
@@ -1930,59 +1930,45 @@ stair_front,stair_back=30.12,19.93
 stair_run=(stair_front-stair_back)/stair_count
 stair_top_y=ring_floor-.18
 stair_rise=(stair_top_y-ring_forecourt_y)/stair_count
+stair_width, stair_taper=15.80,.39
 ring_steps=item(ring,"Model","Fighting Ring entry stairs")
 prop(ring_steps,"token","LevelOfDetail",4)
 for step in range(stair_count):
     top=ring_forecourt_y+stair_rise*(step+1)
     front=stair_front-step*stair_run
     z=front-stair_run/2
-    width=15.80-step*.39
+    width=stair_width-step*stair_taper
     tread_tint=("AE9491","A88F8E","B09994")[(step//2)%3]
     tread=part(ring_steps,"Arena slate tread",(36,top/2,z),(width,top,stair_run+.035),tread_tint,material=SLATE)
     prop(tread,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
     # Separate the thin nosing from the tread surface to avoid overlapping depth.
     nosing=part(ring_steps,"Sandstone stair nosing",(36,top-.054,front-.037),(width,.108,.195),
-                ("C7AC99","BCA290")[(step//2)%2],material=LIMESTONE,collide=False)
+                ("CFAD93","BF9D84")[(step//2)%2],material=LIMESTONE,collide=False)
     prop(nosing,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
     prop(nosing,"bool","CastShadow",False)
     breaks=(-.50,-.20,.15,.50) if step%2==0 else (-.50,-.33,.03,.30,.50)
     for column,(left,right) in enumerate(zip(breaks,breaks[1:])):
         face=part(ring_steps,"Slate stair riser facing",(36+width*(left+right)/2,top-.219,front+.038),
                   (width*(right-left)-.040,.212,.052),
-                  ("AA9090","A18A8A","A88E90","9B8587")[(step//2+column)%4],material=SLATE,collide=False)
+                  ("947B7E","987C7A","9A807F","8D7678")[(step//2+column)%4],material=SLATE,collide=False)
         prop(face,"bool","CastShadow",False)
         prop(face,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
 stair_dressing=item(ring_steps,"Model","Ring stair masonry")
+build_ring_stone_cheeks(stair_dressing,center=36,front=stair_front,back=stair_back,
+                       widths=(stair_width,stair_width-(stair_count-1)*stair_taper),
+                       start_y=ring_forecourt_y+.42,end_y=stair_top_y+.12,
+                       item=item,prop=prop,triangle=triangle,slate=SLATE,limestone=LIMESTONE,
+                       stone_variant=PROMENADE_MORTAR,cap_variant=PROMENADE_STONE,
+                       variant_field=MATERIAL_VARIANT_FIELD)
 for side in (-1,1):
-    # The shoulders taper toward the ring with the stair width. The lowest
-    # course tucks behind the paper lantern and the upper course meets the deck.
-    for index,(front,back,offset,progress,width) in enumerate(((31.00,27.46,9.06,.15,2.15),
-                                                          (27.52,25.15,8.74,.36,2.19),
-                                                          (25.21,22.70,8.21,.62,2.22),
-                                                          (22.76,19.91,7.65,.94,2.26))):
-        stair_x=36+side*offset
-        z=(front+back)/2
-        length=front-back
-        crown=ring_forecourt_y+(stair_top_y-ring_forecourt_y)*progress
-        shoulder_x=stair_x+side*.19
-        part(stair_dressing,"Dressed stair cheek",(shoulder_x,crown/2,z),(width+.36,crown,length),
-             ("8E777E","987F84","89727A","9D8588")[index],material=SLATE,collide=False)
-        cap=part(stair_dressing,"Sandstone stair cheek cap",(shoulder_x,crown+.097,z),
-                 (width+.58,.19,length+.08),"CFAC96",material=LIMESTONE,collide=False)
-        prop(cap,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
-        part(stair_dressing,"Inset slate stair facing",(stair_x-side*width*.49,crown*.53,z),
-             (.089,max(.30,crown*.68),length-.22),"9C858D",material=SLATE,collide=False)
-        part(stair_dressing,"Stair cheek front inset",(shoulder_x,crown*.56,front+.02),
-             (width+.12,crown*.64,.082),"A99292",material=SLATE,collide=False)
-        part(stair_dressing,"Slate coping shadow line",(shoulder_x,crown-.052,z),
-             (width+.48,.09,length+.044),"826A6F",material=SLATE,collide=False)
     plinth_x=36+side*9.73
     part(ring_steps,"Stair lantern plinth",(plinth_x,1.11,29.93),(1.62,1.62,1.75),"846F7A",material=SLATE)
     build_ring_stair_lantern_plinth(stair_dressing,plinth_x,29.93,item=item,part=part,prop=prop,
                                    slate=SLATE,limestone=LIMESTONE,stone_variant=PROMENADE_STONE,
                                    variant_field=MATERIAL_VARIANT_FIELD)
     lamp_scale=.87 if side<0 else .97
-    build_ring_paper_lantern(ring_steps,plinth_x,2.01+lamp_scale*1.19,29.93,lamp_scale,
+    lamp_y=2.01+lamp_scale*1.19
+    build_ring_paper_lantern(ring_steps,plinth_x,lamp_y,29.93,lamp_scale*1.075,
                             item=item,part=part,prop=prop,neon=NEON,wood=WOOD_PLANK,metal=METAL,
                             lantern_light=lantern_light,light_profile=(.98,11.3),standing=True)
     x=36+side*11.77
@@ -2184,7 +2170,7 @@ for z in (-10.1,22.8):
     for index,x in enumerate((23.3,30,36,42,48.7)):
         lamp_y=13.33
         beam(canopy,"Lantern hook",(x,lamp_y+.71,z),(x,13.66+canopy_lift,z),.14,DARK)
-        lantern_scale=(.72,.86,.94,.86,.72)[index] if z>0 else .74
+        lantern_scale=(.72,1.04,1.14,1.04,.72)[index] if z>0 else .74
         build_ring_paper_lantern(canopy,x,lamp_y,z,lantern_scale,
                                 item=item,part=part,prop=prop,neon=NEON,wood=WOOD_PLANK,metal=METAL,
                                 lantern_light=lantern_light,light_profile=(1.08,11.55) if z>0 else None)
@@ -3444,13 +3430,13 @@ def ring_forecourt(parent):
             canal_side=side<0
             if canal_side:
                 x-=.65+shoulder*.87
-                high-=.23+shoulder*.16
+                high-=.43+shoulder*.16
             garden_shelf(garden,x,high-.16,z,6.12,5.18,high-.29,"776971",SLATE,collide=False)
             garden_shelf(garden,x+side*.10,high+.04,z-.12,5.82,4.92,.36,"9D8A8A",SLATE,collide=False)
             garden_shelf(garden,x+side*.28,high+.24,z-.18,5.03,4.61,.31,"6D8848",GRASS_MAT,collide=False)
             if shoulder==0:
                 shoreline_slate(garden,x+side*.46,z-.61,high-.16,4.07,2.91,
-                                1.11 if canal_side else 1.67,23*side,shadow=False)
+                                .82 if canal_side else 1.67,23*side,shadow=False)
             else:
                 golden_sedge(garden,x+side*.36,high+.23,z+1.06,.45 if canal_side else .93,side)
                 for stalk in garden.findall("Item"):
@@ -3468,6 +3454,8 @@ def ring_forecourt(parent):
                     floor+=.34
                 if canal_side and key=="grassBlade":
                     size*=.68
+                if canal_side and key=="bankRock":
+                    size*=.77
                 garden_prop(garden,key,(x+side*dx,floor,z+dz),size,
                             side*39+shoulder*52+dx*19,tint)
 
