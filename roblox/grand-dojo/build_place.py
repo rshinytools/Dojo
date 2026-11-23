@@ -2219,7 +2219,9 @@ for x,y,scale in ((26.65,13.83,1.02),(36,15.04,1.05),(45.35,13.83,1.02)):
                   (hanger_x,y+2.08*scale,rear_z),.10,"94603B")
         prop(hook,"bool","CastShadow",False)
     banner(canopy,x,y,rear_z,scale=scale,vermilion=True)
-swept_roof(canopy,36.8,15.04+canopy_lift,6.2,42.0,39,7.35,signature=True)
+# Keep the east roof edge over the gallery and stop the west tiles above the
+# pillar's inset face. This opens the Reedfall view behind the canopy.
+swept_roof(canopy,38.35,15.04+canopy_lift,6.2,38.9,39,7.35,signature=True)
 # Both fixtures share the nearby-lantern budget and cast no shadows.
 threshold_light(canopy,38.40,13.60,19.10,reach=18.5,spread=88,brightness=1.72,tint="FFD4A0",yaw=-29,pitch=43)
 mat_mount=part(canopy,"Concealed mat lantern mount",(36.80,16.85,8.5),(13.2,.2,6.6),
@@ -3187,19 +3189,19 @@ def reedfall_cascade(parent,x,z,top,bottom,width,basin_reach):
                        width*.55, width*.83, height*.31, height*.22)
 
 
-reedfall_drops=((28.45,-43.65,46.10,22.17,8.80,12.8),
+reedfall_drops=((29.20,-43.65,47.85,22.17,10.60,12.8),
                 (32.20,-33.35,22.06,9.16,6.78,6.9),
                 (30.76,-26.74,9.04,.68,7.14,4.42))
 upper_x,upper_z,upper_top,_,upper_width,_=reedfall_drops[0]
-garden_shelf(falls,upper_x,upper_top-1.09,upper_z-4.12,10.95,8.35,3.20,"887988",SLATE,collide=False)
-garden_shelf(falls,upper_x,upper_top-.11,upper_z-3.13,10.52,7.55,1.43,"9E8891",SLATE,collide=False)
+garden_shelf(falls,upper_x,upper_top-1.09,upper_z-4.12,upper_width+2.15,8.35,3.20,"887988",SLATE,collide=False)
+garden_shelf(falls,upper_x,upper_top-.11,upper_z-3.13,upper_width+1.72,7.55,1.43,"9E8891",SLATE,collide=False)
 spring=part(falls,"Reedfall spring channel",(upper_x-.14,upper_top-.04,upper_z-2.60),(upper_width*.81,.14,5.69),"7AB6C6",
             material=GLASS,transparency=.16,collide=False,shape=0)
 prop(spring,"bool","CastShadow",False)
-garden_prop(falls,"bankRock",(upper_x-4.04,upper_top-.41,upper_z-2.95),.38,-21,"A48E97")
-garden_prop(falls,"bankRock",(upper_x+3.76,upper_top-.44,upper_z-2.38),.34,48,"A9939F")
-garden_prop(falls,"mossFlowers",(upper_x-4.50,upper_top-.17,upper_z-3.70),.18,74,"D9A4BD")
-garden_prop(falls,"meadowCover",(upper_x+3.89,upper_top-.15,upper_z-3.49),.23,-16,"9FB471")
+garden_prop(falls,"bankRock",(upper_x-upper_width*.46,upper_top-.41,upper_z-2.95),.38,-21,"A48E97")
+garden_prop(falls,"bankRock",(upper_x+upper_width*.43,upper_top-.44,upper_z-2.38),.34,48,"A9939F")
+garden_prop(falls,"mossFlowers",(upper_x-upper_width*.51,upper_top-.17,upper_z-3.70),.18,74,"D9A4BD")
+garden_prop(falls,"meadowCover",(upper_x+upper_width*.45,upper_top-.15,upper_z-3.49),.23,-16,"9FB471")
 for x,z,top,bottom,width,basin_reach in reedfall_drops:
     rock_height=top-.90-bottom
     reedfall_buttress(falls,x+.93,z-4.72,width*.70,4.2,max(0,bottom-9),top-.54,-.30,0)
