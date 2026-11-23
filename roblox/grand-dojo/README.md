@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.237, follow **Plum Lantern Walk** from the Lantern Circuit road to the lantern pavilion and back down to the main road.
+
+Plum Lantern Walk adds a 67.5-stud stair-free branch on the south side of the Grand Dojo–Lantern Circuit road. Two cedar ramps lead to a covered indigo pavilion and a railed viewing porch 6.68 studs above the city datum. Slate trestles, pink blossoms, brass rail caps and lanterns frame the walk. Both ends return to the existing road, with two-sided entrance signs and a fifteenth green City Map route.
+
+Exact v0.237 desktop Studio walked all 27 branch waypoints in both directions without jumping, visited the viewing porch and walked the original road both ways through the joins. Twenty deck and porch floor samples hit the intended elevation. The Galaxy A06 landscape simulator walked the east-to-west branch. The City Map reported six districts and 15 connections. Actual-device rendering and frame time remain open.
+
 In v0.236, follow **Festival Canal** from the event board to the red bridge.
 
 Festival Canal now has a deeper blue center, a clearer strip of warm reflections, and brighter shallows beside the lotus beds. The central bridge uses a darker cedar arch and a warmer trim that makes the raised span easier to pick out from the bank.

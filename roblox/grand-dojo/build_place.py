@@ -80,6 +80,7 @@ from orchard_bluff import build_orchard_bluff
 from orchard_high_walk import (ASCENT as ORCHARD_ASCENT, DESCENT as ORCHARD_DESCENT,
                                 KEEPER as ORCHARD_KEEPER, NAME as ORCHARD_WALK,
                                 ROAD_OPENING as ORCHARD_ROAD_OPENING, build_orchard_high_walk)
+from plum_lantern_walk import NAME as PLUM_LANTERN_WALK, PATH as PLUM_LANTERN_PATH, build_plum_lantern_walk
 from orchard_road_terraces import build_orchard_road_terraces
 from pinecrest_trail import build_pinecrest_trail
 from plaza_bank_art import build_bank_stone, build_golden_plumes
@@ -7313,6 +7314,13 @@ map_paths.append(("Mistline Crossing",[map_districts["Frostglass Gardens"],*mist
 map_paths.append((ORCHARD_WALK,[map_districts["Grand Dojo City"],routes[4][1][0],
                                *ORCHARD_ASCENT,*ORCHARD_DESCENT,routes[4][1][-1],
                                map_districts["Lantern Circuit"]],True))
+build_plum_lantern_walk(roads,item=item,prop=prop,part=part,triangle=triangle,beam=beam,
+                        path_edge=path_edge,sign=sign,swept_roof=swept_roof,
+                        festival_lantern=festival_lantern,garden_shelf=garden_shelf,
+                        garden_prop=garden_prop,showcase_tree=showcase_tree,cedar=WOOD_PLANK,
+                        slate=SLATE,stone=LIMESTONE,brass=METAL,grass=LEAFY_GRASS,
+                        variant_field=MATERIAL_VARIANT_FIELD,cedar_variant=LANDMARK_CEDAR,
+                        stone_variant=PROMENADE_STONE)
 map_paths.append((SALTWIND_WALK,[map_districts["Grand Dojo City"],*CEDARBANK_PATH,
                                 *SALTWIND_WALK_POINTS,*saltwind_descent,routes[0][1][-1],
                                 map_districts["Tideharbor Coast"]],True))
@@ -7344,6 +7352,9 @@ map_paths.append((MELTWATER_HIGH_WALK,[map_districts["Lantern Circuit"],
                                      (-249.20,6,38),(-249.20,10.80,13),(-249.20,13.27,-3.1),
                                      *MELTWATER_HIGH_POINTS,(-207,14.027,-151),
                                      map_districts["Frostglass Gardens"]],True))
+map_paths.append((PLUM_LANTERN_WALK,[map_districts["Grand Dojo City"],routes[4][1][0],
+                                    *PLUM_LANTERN_PATH,*routes[4][1][-2:],
+                                    map_districts["Lantern Circuit"]],True))
 city_map_board(plaza,map_districts,map_paths)
 build_south_boundary(plaza, item=item, prop=prop, part=part, beam=beam, route=route,
                      swept_roof=swept_roof, festival_lantern=festival_lantern, sign=sign,
