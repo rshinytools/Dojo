@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.231, look over the cherry canopy from **Festival Plaza** and across the ridge from the **Frostglass Gardens** approach.
+
+The steep west face of the Rose horizon range moved deeper into the valley and has two lower saddles. A nearer range of asymmetric purple peaks and sloping shoulders sits in front of it. The arrival view now separates the cherry canopy, western skyline and far Rose range. A broader view of the mountains and sky opens on the Frostglass road.
+
+Exact v0.231 desktop Studio captured the Grand Dojo arrival, Frostglass road, Glacier Lantern Walk and the Skywalk approach. The sunset stayed clear in all five sampled rays. Reedguard walked Glacier Lantern Walk, Mistline Crossing, the Upper Market road, Pinecrest Trail and Skywalk cedar bridge in both directions. The place still contains six districts and 14 mapped connections. Galaxy A06 landscape Studio simulation rendered the new range. Physical-device performance remains open.
+
 In v0.230, look left of **Trophy Hall** from the default arrival, then walk up the warmer central steps. Follow Jade Crossing on the west or the garden ramp on the east.
 
 The tall Sakura moved about 45 studs to a new slate planter behind the Trophy Hall west gallery. The blue eave and paper windows are visible from the main plaza. Lower rocks and planting fill the old canal-side bed. Four forecourt paving stones and all eight stair courses use a warmer sandstone palette. The hall still has its central steps, Jade Crossing and the east garden ramp.

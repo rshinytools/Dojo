@@ -61,6 +61,19 @@ MIDDLE_RELIEF = ((-1234, 0), (-850, 26), (-590, 48), (-447, 98),
                  (629, 135), (689, 146), (750, 93), (824, 118),
                  (1070, 30), (1401, 0))
 
+# The nearer western range fills the gap between Lantern Relay and Trophy Hall.
+# Its lower shoulders remain beyond Frostglass and the northern mountain routes.
+WESTERN_CREST = (
+    (-392, 3, -420), (-344, 72, -400), (-312, 105, -386), (-279, 127, -380),
+    (-254, 112, -371), (-233, 148, -374), (-216, 127, -365), (-201, 112, -365),
+    (-184, 138, -356), (-173, 157, -351), (-164, 170, -349), (-153, 166, -347),
+    (-147, 157, -347), (-140, 160, -346), (-131, 137, -344),
+    (-121, 157, -343), (-114, 172, -341), (-106, 181, -340),
+    (-100, 173, -341), (-94, 153, -346), (-86, 114, -362),
+    (-68, 89, -425), (-45, 3, -475),
+)
+WESTERN_SADDLES = ((-212, 48, 23.5), (-132, 28, 18))
+
 
 def ridge_bands(crest, reach, toe_limit, west_extension):
     """Carry each summit's rock ribs down to broader shoulders and a haze line."""
@@ -135,30 +148,38 @@ def fit_to_plaza_view(crest, relief, depth_scale, height_scale):
         yield x * depth_scale, (y + lift) * height_scale, arrival_z + (z - arrival_z) * depth_scale
 
 
-def place_beyond_towns(crest, scale, west_scale, saddle):
+def place_beyond_towns(crest, scale, west_scale, saddle, western_saddles=()):
     """Recede along arrival sightlines, with a lower notch behind Wind Court."""
     for x, y, z in crest:
         notch = max(0, 1 - abs(x + 15) / 117)
         height = y - saddle * notch ** 1.7
-        # Keep the western crest visible to the arrival camera. Its shoulder
-        # stays west of the highland routes while the center and east recede.
+        height -= sum(depth * max(0, 1 - abs(x - center) / width) ** 1.25
+                      for center, width, depth in western_saddles)
+        # Recede along the plaza bearing and keep the transition continuous.
         blend = max(0, min(1, (x + 94) / 78)) ** 1.6
         depth_scale = west_scale + (scale - west_scale) * blend
         yield tuple(eye + (value - eye) * depth_scale for eye, value in zip(ARRIVAL_EYE, (x, height, z)))
 
 
 def build_arrival_distant_ridges(landscape, *, item, prop, triangle, smooth):
-    for name, crest, relief, depth, height, scale, west_scale, saddle, reach, toe, extension, west, east in (
-        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 2.12, 1., 21, 192, -520, 126,
-         (149, 121, 143), (195, 145, 145)),
-        ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 1.96, 1.96, 34, 144, -447, 0,
-         (117, 100, 129), (163, 120, 132)),
-    ):
+    def add_range(name, faces):
         backdrop = item(landscape, 'Model', name)
         prop(backdrop, 'token', 'ModelStreamingMode', 2)
         prop(backdrop, 'token', 'LevelOfDetail', 4)
-        fitted = fit_to_plaza_view(crest, relief, depth, height)
-        far_crest = tuple(place_beyond_towns(fitted, scale, west_scale, saddle))
-        for face, tint in distant_facets(far_crest, reach, toe, extension, scale, west, east):
+        for face, tint in faces:
             triangle(backdrop, *face, tint, name='Distant ridge facet', thickness=.28,
                      material=smooth, shadow=False)
+
+    for (name, crest, relief, depth, height, scale, west_scale, saddle, western_saddles,
+         reach, toe, extension, west, east) in (
+        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 2.12, 1.74, 21,
+         WESTERN_SADDLES, 192, -520, 110, (149, 121, 143), (195, 145, 145)),
+        ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 1.96, 1.96, 34,
+         (), 144, -447, 0, (117, 100, 129), (163, 120, 132)),
+    ):
+        fitted = fit_to_plaza_view(crest, relief, depth, height)
+        far_crest = tuple(place_beyond_towns(fitted, scale, west_scale, saddle, western_saddles))
+        add_range(name, distant_facets(far_crest, reach, toe, extension, scale, west, east))
+    add_range('Western skyline peaks', distant_facets(
+        WESTERN_CREST, 122, -306, 0, 1, (111, 96, 137), (151, 116, 144),
+    ))

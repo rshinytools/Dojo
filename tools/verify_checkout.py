@@ -40,7 +40,7 @@ def verify_place():
                 "Swept sandstone stair shoulders", "Continuous sandstone coping",
                 "Plaza city map board", "Cedar garden direction fascia", "Lantern Tower cedar ramp",
                 "Lantern Relay sandstone runner", "Cedar Foothill Walk", "Foothill overlook guardrail",
-                "Cinder ravine clay terraces", "Frostglass snowy foothills", "Trophy Hall west blossom grove"}
+                "Cinder ravine clay terraces", "Frostglass snowy foothills", "Trophy Hall west blossom grove", "Western skyline peaks"}
     seen = set()
     routes = None
     notes = 0
