@@ -11,6 +11,7 @@ FLAGSTONE_PATTERN_EDGE = -8
 ARRIVAL_LAMPS=((-10.57,71.16),(14.63,71.84))
 LANTERN_SPILL=((-8,42,7.9,10.7),(11,37,8.5,11.1),(-8.9,33.7,5.4,8.6),(9.6,61.8,7.4,9.5),
                *((x,z,7.8,10.0) for x,z in ARRIVAL_LAMPS))
+DAMP_POOLS = ((-1.7, 52.7, 7.3, 5.5), (9.4, 58.9, 7.2, 6.0), (8.1, 42.5, 5.3, 8.5))
 
 
 def promenade_sections(bounds=PROMENADE_BOUNDS):
@@ -53,6 +54,12 @@ def smooth_falloff(value):
     return weight*weight*(3-2*weight)
 
 
+def promenade_dampness(point):
+    x, z = point
+    return max(smooth_falloff(1 - hypot((x - cx) / rx, (z - cz) / rz))
+               for cx, cz, rx, rz in DAMP_POOLS)
+
+
 def stone_pigment(pigment, point):
     x,z=point
     amber=max(smooth_falloff(1-hypot((x-lx)/reach_x,(z-lz)/reach_z))
@@ -66,10 +73,13 @@ def stone_pigment(pigment, point):
     golden_lane=arrival*smooth_falloff(1-abs(x-3.2+(z-52)*.15)/9.5)
     garden_shadow=arrival*max(smooth_falloff((x-9.0)/6.6),
                               smooth_falloff((bank+3.3-x)/3.6))
+    damp = promenade_dampness(point)
+    glint = damp * smooth_falloff(1 - abs(x - 8.9 - (z - 53) * .12) / 3.8)
     channels=(int(pigment[i:i+2],16) for i in (0,2,4))
     tints=(base+rose+sunset*sun+amber*warm+canal*cool+golden_lane*glow-garden_shadow*shade
-           for base,rose,sun,warm,cool,glow,shade in zip(
-               channels,(8,-4,4),(16,4,-6),(59,25,-16),(-12,-7,14),(14,12,6),(21,17,11)))
+           -damp*wet+glint*gleam for base,rose,sun,warm,cool,glow,shade,wet,gleam in zip(
+               channels,(8,-4,4),(16,4,-6),(59,25,-16),(-12,-7,14),(14,12,6),(21,17,11),
+               (25,28,24),(26,17,8)))
     return "".join(f"{round(min(255,max(0,value))):02X}" for value in tints)
 
 

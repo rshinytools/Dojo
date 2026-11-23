@@ -221,13 +221,15 @@ local function framePlazaArrival()
             return
         end
         local look = camera.CFrame.LookVector
+        local facing = Vector3.new(look.X, 0, look.Z).Unit
         -- The default reset aims 15 degrees down. Preserve a view the
         -- player has already tilted or turned while waiting for the splash.
-        if math.abs(look.Y + math.sin(math.rad(15))) > .025 or look:Dot(spawn.CFrame.LookVector) < .94 then
+        if math.abs(look.Y + math.sin(math.rad(15))) > .025
+            or facing:Dot(spawn.CFrame.LookVector) < math.cos(math.rad(1)) then
             return
         end
-        local facing = Vector3.new(look.X, 0, look.Z).Unit
-        local aim = facing - Vector3.yAxis * math.tan(math.rad(8))
+        local right = facing:Cross(Vector3.yAxis)
+        local aim = facing + right * math.tan(math.rad(1.5)) - Vector3.yAxis * math.tan(math.rad(8))
         camera.CFrame = CFrame.lookAt(camera.CFrame.Position, camera.CFrame.Position + aim)
     end)
 end

@@ -11,7 +11,7 @@ from art.arrival_canopy_relief import arrival_canopy, arrival_canopy_faces
 from art.arrival_distant_ridges import build_arrival_distant_ridges
 from art.promenade_layout import (ARRIVAL_LAMPS, INLET_EDGE, INLET_NORTH, INLET_SOUTH,
                                    ORIGINAL_SOUTH_EDGE, PROMENADE_BOUNDS, PROMENADE_GRADE,
-                                   flagstones, promenade_sections, stone_pigment)
+                                   flagstones, promenade_dampness, promenade_sections, stone_pigment)
 from art.garden_tree_layout import garden_knuckles, garden_tree, rotate_garden_point
 from art.north_ridge_relief import north_ridge_facets
 from art.valley_ridge_layout import VALLEY_RIDGES
@@ -50,6 +50,7 @@ from hall_arrival_mass import (build_hall_arrival_mass, build_hall_crown_roof,
                                build_hall_upper_bays, build_hall_wing_eave)
 from hall_valley_facades import build_hall_valley_facades
 from hall_garden_spill import build_hall_garden_spill
+from hall_inner_portal import build_hall_inner_portal
 from hall_stair_court import build_hall_stair_court
 from harbor_arrival_hall import build_harbor_arrival_hall
 from harbor_cargo_hoist import build_harbor_cargo_hoist
@@ -359,9 +360,16 @@ def build_promenade(parent):
         stone=item(parent,"Model","Hewn promenade flagstone")
         prop(stone,"token","ModelStreamingMode",1)
         for a,b in zip(face[1:-1],face[2:]):
-            triangle_tint=stone_pigment(pigment,tuple((face[0][i]+a[i]+b[i])/3 for i in (0,2)))
+            center=tuple((face[0][i]+a[i]+b[i])/3 for i in (0,2))
+            damp=promenade_dampness(center)
+            triangle_tint=stone_pigment(pigment,center)
+            first=len(stone)
             triangle(stone,face[0],a,b,triangle_tint,name="Sandstone cut",
                      thickness=.021,material=LIMESTONE,shadow=False)
+            for facet in stone[first:]:
+                prop(facet,"string",MATERIAL_VARIANT_FIELD,SUNSET_FLAGSTONE)
+                if damp>.16:
+                    prop(facet,"float","Reflectance",round(damp*.10,3))
         for i,(outer,inner) in enumerate(zip(shoulder,face)):
             next_inner=face[(i+1)%len(face)]
             dx,dz=next_inner[0]-inner[0],next_inner[2]-inner[2]
@@ -377,8 +385,7 @@ def build_promenade(parent):
             rim=part(stone,"Beveled sandstone rim",center,(length,inner[1]-outer[1],depth),edge_tint,
                      yaw=degrees(atan2(-dz,dx)),material=LIMESTONE,collide=False,class_name="WedgePart")
             prop(rim,"bool","CastShadow",False)
-        for facet in stone.findall('Item'):
-            prop(facet,"string",MATERIAL_VARIANT_FIELD,SUNSET_FLAGSTONE)
+            prop(rim,"string",MATERIAL_VARIANT_FIELD,SUNSET_FLAGSTONE)
 
 
 def coastal_ridge(parent,x,z,width,depth,profile,front,planting,*,cliff_gardens=False):
@@ -4215,6 +4222,10 @@ build_hall_arrival_details(hall, item=item, prop=prop, part=part, beam=beam, sla
 build_hall_arrival_mass(hall,item=item,prop=prop,part=part,beam=beam,triangle=triangle,
                         slate=SLATE,sandstone=LIMESTONE,cedar=WOOD_PLANK,brass=METAL,neon=NEON,
                         variant_field=MATERIAL_VARIANT_FIELD,stone_variant=PROMENADE_MORTAR,
+                        brass_variant=ORNAMENT_BRASS)
+build_hall_inner_portal(hall,item=item,prop=prop,part=part,beam=beam,triangle=triangle,
+                        slate=SLATE,wood=WOOD_PLANK,metal=METAL,neon=NEON,
+                        variant_field=MATERIAL_VARIANT_FIELD,wood_variant=LANDMARK_CEDAR,
                         brass_variant=ORNAMENT_BRASS)
 build_hall_valley_facades(hall,item=item,prop=prop,part=part,wood=WOOD_PLANK,
                           metal=METAL,neon=NEON,wood_variant=LANDMARK_CEDAR,

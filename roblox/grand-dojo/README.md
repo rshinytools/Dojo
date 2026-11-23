@@ -6,6 +6,14 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.217, start at **Festival Plaza** to see the whole Fighting Ring title. Follow the promenade and climb the central steps into **Trophy Hall** beneath the amber fan.
+
+Trophy Hall’s walk-through cedar frame adds an amber paper fan below the front eave. Its carved jambs, brass collars and warm lintel frame the original doorway. The new trim starts above 6.76 studs of overhead stair clearance. All 62 pieces are decorative and add zero lights. The normal arrival camera pans 1.5 degrees toward the Fighting Ring once while keeping the default zoom. The Fighting Ring title has more breathing room along the right side. The change uses the existing splash camera guard for portrait, VR, Reduce Motion and players who have already moved the camera. Only desktop and Galaxy A06 landscape Studio simulation are verified for this framing.
+
+Three pockets in the promenade use local sandstone pigment and restrained reflectance. The Studio place reuses its existing limestone variant on all 172 treated facets. The shared Blender pipeline separately refreshed the 1024×2048 atlas with baked seam occlusion and warm bounce for the 4,196-triangle promenade mesh. Its geometry, indices, and UV buffers are identical. Reviewed free Paving Stones by cube3D, Lime Stone Floor and Rock Floor PBR plus a paid cliff pack. The existing irregular slab layout, shared native stones and authored Blender finish fit the plaza. No purchase was needed.
+
+Exact v0.217 desktop Studio Play opened the event board and the Trophy Hall panel with the native prompt, walked the central stair through the Hall threshold and up to the viewing gallery, and walked from arrival to the Fighting Ring to earn 20 first-practice XP in the session. The Galaxy A06 landscape simulator showed the arrival and the new Hall frame with touch controls. Existing routes, terrain and lights match v0.216. Actual-device and published tests remain open.
+
 In v0.216, follow **Harbor Sky Pier** to the **Sea Lantern Lookout**. Turn out to sea to see Windcut arch and the reefs beyond the sailboat.
 
 The Sea Lantern view now runs from the compass deck and batten-sail skiff to Windcut sea arch, layered low reefs, four small cedar crowns and the distant islets. Three subtle tide glints use the existing canal texture. The arch and reefs are visual-only and add no lights. Exact v0.216 desktop Studio Play walked Harbor Sky Pier and the Tideharbor–Cinder Terraces road in both directions. Reedguard swam across the original east and south limits and returned to Harbor Pier each time. All six districts, 14 mapped links and existing route colliders are intact.
