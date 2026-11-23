@@ -61,16 +61,16 @@ MIDDLE_RELIEF = ((-1234, 0), (-850, 26), (-590, 48), (-447, 98),
                  (629, 135), (689, 146), (750, 93), (824, 118),
                  (1070, 30), (1401, 0))
 
-# The nearer western range fills the gap between Lantern Relay and Trophy Hall.
-# Its lower shoulders remain beyond Frostglass and the northern mountain routes.
+# Two broad west-facing ridges share a low saddle. Receding the east summit
+# leaves room for a long, broken talus slope behind the Frostglass road.
 WESTERN_CREST = (
-    (-392, 3, -420), (-344, 72, -400), (-312, 105, -386), (-279, 127, -380),
-    (-254, 112, -371), (-233, 148, -374), (-216, 127, -365), (-201, 112, -365),
-    (-184, 138, -356), (-173, 157, -351), (-164, 170, -349), (-153, 166, -347),
-    (-147, 157, -347), (-140, 160, -346), (-131, 137, -344),
-    (-121, 157, -343), (-114, 172, -341), (-106, 181, -340),
-    (-100, 173, -341), (-94, 153, -346), (-86, 114, -362),
-    (-68, 89, -425), (-45, 3, -475),
+    (-479, 3, -483), (-419, 51, -454), (-380, 91, -437), (-343, 119, -425),
+    (-320, 133, -421), (-297, 155, -427), (-274, 150, -432), (-250, 139, -435),
+    (-228, 133, -439), (-208, 146, -437), (-190, 164, -431), (-171, 174, -434),
+    (-156, 169, -442), (-140, 163, -453), (-123, 154, -460),
+    (-106, 160, -473), (-91, 175, -484), (-76, 180, -491),
+    (-60, 168, -498), (-42, 147, -505), (-18, 119, -513),
+    (9, 84, -526), (46, 3, -564),
 )
 WESTERN_SADDLES = ((-212, 48, 23.5), (-132, 28, 18))
 
@@ -121,7 +121,7 @@ def face_light(a, b, c):
     return facing * (nx * .82 + ny * .38) / length
 
 
-def distant_facets(crest, reach, toe_limit, west_extension, palette_scale, west, east):
+def distant_facets(crest, reach, toe_limit, west_extension, palette_scale, west, east, *, relief_strength=1):
     contours = ridge_bands(crest, reach, toe_limit, west_extension)
     for band, (above, below) in enumerate(zip(contours, contours[1:])):
         for index, (left, right, low_left, low_right) in enumerate(
@@ -132,7 +132,7 @@ def distant_facets(crest, reach, toe_limit, west_extension, palette_scale, west,
             rib_light = 5.2 * sin(index * 1.39 + .38) + 2.6 * sin(index * 2.1)
             contrast = (1, .89, .65, .32)[band]
             for face in faces:
-                value = ((.78 * broad_light + .22 * face_light(*face)) * 14 + rib_light) * contrast
+                value = ((.78 * broad_light + .22 * face_light(*face)) * 14 + rib_light) * contrast * relief_strength
                 yield face, ridge_shade(center, band, value, west, east)
 
 
@@ -181,5 +181,6 @@ def build_arrival_distant_ridges(landscape, *, item, prop, triangle, smooth):
         far_crest = tuple(place_beyond_towns(fitted, scale, west_scale, saddle, western_saddles))
         add_range(name, distant_facets(far_crest, reach, toe, extension, scale, west, east))
     add_range('Western skyline peaks', distant_facets(
-        WESTERN_CREST, 122, -306, 0, 1, (111, 96, 137), (151, 116, 144),
+        WESTERN_CREST, 148, -370, 0, 1, (121, 104, 131), (163, 125, 138),
+        relief_strength=.74,
     ))

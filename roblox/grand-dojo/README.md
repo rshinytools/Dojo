@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.234, compare **Festival Plaza** with the elevated approach to **Frostglass Gate**.
+
+The western mountain range now sits farther behind the towns, with broader shoulders and a lower saddle between the peaks. The nearer faces use a softer rose-gray palette. From Festival Plaza the western skyline frames Trophy Hall, and Frostglass Gate looks across stepped mountain layers.
+
+Exact v0.234 Studio Play captured the new range from Festival Plaza, Frostglass Gate, Glacier Lantern Walk, the Skywalk approach and a raised Fighting Ring view. The plaza and Frostglass Gate also rendered in the Galaxy A06 landscape simulator. Reedguard walked Mistline Crossing both ways without jumping, reaching a root height of about 27 studs. The City Map reported six districts and 14 connections. The sunset stayed clear across five sampled rays. Physical-device rendering and performance remain open.
+
 In v0.233, look up at the **Trophy Hall crown** from the plaza, then follow the elevated road into **Frostglass Gardens**.
 
 The Fighting Ring, Trophy Hall and Lantern Tower use muted indigo clay, thicker rounded tile ribs and warmer metal at the eave corners. The same ceramic finish and brass corners appear on signature roofs in Lantern Circuit, Frostglass Gardens, Tideharbor Coast, Cinder Terraces and Skywalk Peaks.
