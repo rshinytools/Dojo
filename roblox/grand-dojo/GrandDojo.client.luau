@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local GuiService = game:GetService("GuiService")
+local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -639,6 +640,7 @@ style(inset, 12, palette.edge)
 local close = button(panel, "×", false)
 close.Position = UDim2.new(1, -42, 0, 0)
 close.Size = UDim2.fromOffset(42, 40)
+close.ZIndex = 2
 local eyebrow = label(panel, "Eyebrow", 13, palette.gold, titleFont)
 eyebrow.Text = "GRAND DOJO"
 local heading = label(panel, "Heading", 38, palette.parchment, Enum.Font.Garamond)
@@ -935,6 +937,7 @@ local function updateBoardHint()
 end
 
 local openPanel, offered = "", false
+local restorePlayerList = false
 local journal
 local isPractice = false
 local function layoutRoutePlanner(viewportSize)
@@ -1076,6 +1079,10 @@ watchCamera()
 local function hide()
     openPanel = ""
     panel.Visible = false
+    if restorePlayerList then
+        StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, true)
+        restorePlayerList = false
+    end
     if journal then
         journal:Hide()
     end
@@ -1123,6 +1130,11 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     offered = kind == "relay"
     local map = kind == "map"
     local journalView = kind == "journal"
+    if not panel.Visible and StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.PlayerList) then
+        -- The platform player list can cover the panel's upper-right close button.
+        StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+        restorePlayerList = true
+    end
     panel.Visible = true
     ProximityPromptService.Enabled = false
     mapCanvas.Visible = map

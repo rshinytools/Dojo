@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.218, open the **Event Board** and click **×** to return to the plaza. The shared event panel keeps its close button above the header and temporarily disables the Roblox player list while open. Desktop Studio Play clicked × three times, reopened the Relay panel, and restored plaza prompts each time. The player list re-enabled when previously enabled and stayed disabled when previously disabled.
+
 In v0.217, start at **Festival Plaza** to see the whole Fighting Ring title. Follow the promenade and climb the central steps into **Trophy Hall** beneath the amber fan.
 
 Trophy Hall’s walk-through cedar frame adds an amber paper fan below the front eave. Its carved jambs, brass collars and warm lintel frame the original doorway. The new trim starts above 6.76 studs of overhead stair clearance. All 62 pieces are decorative and add zero lights. The normal arrival camera pans 1.5 degrees toward the Fighting Ring once while keeping the default zoom. The Fighting Ring title has more breathing room along the right side. The change uses the existing splash camera guard for portrait, VR, Reduce Motion and players who have already moved the camera. Only desktop and Galaxy A06 landscape Studio simulation are verified for this framing.
