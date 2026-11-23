@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.236, follow **Festival Canal** from the event board to the red bridge.
+
+Festival Canal now has a deeper blue center, a clearer strip of warm reflections, and brighter shallows beside the lotus beds. The central bridge uses a darker cedar arch and a warmer trim that makes the raised span easier to pick out from the bank.
+
+Exact v0.236 desktop Studio Play captured the plaza, cove and bridge from matched cameras. The canal rendered in Galaxy A06 landscape simulation. Both layouts loaded the existing animated texture and kept all five reflection beams active near the player. Terrain ray samples found water beneath every reflection part, with the largest sampled surface gap under 0.30 studs. Reedguard walked the raised bridge in both directions and returned to dry ground through both native swim exits. The City Map reported six districts and 14 connections. Physical-device rendering and frame time remain open.
+
 In v0.235, follow the **Festival Plaza** paving along the canal and up to the **Fighting Ring**.
 
 The Festival Plaza promenade now uses muted rose and violet sandstone, grain in the stone faces and brighter bevels where they face the setting sun. Canal-side stones stay cooler. Existing lanterns are picked out by warmer patches on the promenade and 49 pavers at the Fighting Ring entry.

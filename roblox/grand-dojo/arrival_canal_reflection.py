@@ -32,14 +32,16 @@ SIDE_GLINTS = (
 )
 
 
-# Two tapered lanes leave stretches of bare Terrain water around their
-# edges and keep the decorative color out of the swimming steps.
+# The main channel runs beneath the arch. Keep the shallow edges and swim
+# steps uncovered so the water still shows changes in depth at the banks.
 BLUE_SHEEN = (
-    ((-19.09, 36.76, .21), (-18.56, 39.03, 1.41), (-18.88, 42.78, 1.27),
-     (-18.98, 46.76, 1.37), (-18.94, 50.16, 2.21), (-18.53, 52.96, 2.56),
-     (-17.76, 56.36, 2.23), (-17.49, 59.35, .20)),
-    ((-22.46, 51.96, .18), (-22.63, 53.97, .90), (-22.01, 56.57, 1.21),
-     (-21.28, 58.44, .88), (-21.24, 59.54, .13)),
+    ((-18.62, 28.86, .25), (-18.62, 31.05, 1.63), (-18.58, 34.12, 1.78),
+     (-18.58, 37.30, 1.75), (-18.43, 40.18, 1.58), (-18.91, 42.05, 1.40),
+     (-18.93, 44.14, 1.41), (-18.94, 46.02, 1.43), (-18.56, 47.45, 1.81),
+     (-18.60, 51.16, 2.18), (-18.03, 53.38, 3.83),
+     (-17.56, 57.28, 3.02), (-17.46, 61.42, .30)),
+    ((-22.61, 50.83, .21), (-23.22, 52.93, 1.12), (-22.91, 55.55, 1.30),
+     (-22.29, 58.69, .91), (-22.09, 60.18, .15)),
 )
 
 
@@ -59,10 +61,10 @@ def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, 
         for index, ((ax, az, aw), (bx, bz, bw)) in enumerate(zip(sweep, sweep[1:])):
             for side in (-1, 1):
                 for inner, outer, tint, alpha in (
-                    (0, .39, "225671", .68), (.39, .70, "276881", .76),
-                    (.70, .87, "367B8C", .85), (.87, 1, "5495A4", .91),
+                    (0, .39, "183D59", .43), (.39, .68, "1F4F67", .57),
+                    (.68, .86, "2F667C", .73), (.86, 1, "4B8393", .87),
                 ):
-                    y = .058
+                    y = .061
                     corners = (
                         (ax + side * aw * inner, y, az), (ax + side * aw * outer, y, az),
                         (bx + side * bw * outer, y, bz), (bx + side * bw * inner, y, bz),
@@ -84,9 +86,9 @@ def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, 
         left, fold, tip = point(-.54, -.11), point(-.18, -.52), point(.51, .05)
         seam, lip, tail = point(ridge, -.08), point(.21, .50), point(-.35, .21)
         for corners, pigment, lift in (
-            ((left, fold, seam, tail), "C46C33", .20),
-            ((fold, tip, lip, seam), "EA923E", .02),
-            ((tail, seam, lip, point(-.16, .39)), "DD813F", .14),
+            ((left, fold, seam, tail), "C77939", .22),
+            ((fold, tip, lip, seam), "EBA250", .03),
+            ((tail, seam, lip, point(-.16, .39)), "DC8341", .16),
         ):
             draw_quad(corners, pigment, warmth + lift, "Soft amber ripple edge", neon)
         if not core:
@@ -94,13 +96,13 @@ def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, 
         glints = ((-.40, .02), (.09, .38)) if phase % 3 else ((-.44, .34),)
         for index, (start, end) in enumerate(glints):
             crest = start + (end - start) * .65
-            tint = "FFE8B6" if (phase + index) % 3 else "FFD080"
+            tint = "FFEDC1" if (phase + index) % 3 else "FFD48E"
             draw_quad((point(start, -.11, .108), point(crest, -.25, .108),
                        point(end, -.065, .108), point(crest, .14, .108)),
-                      tint, warmth - .07, "Gold ripple core", neon)
+                      tint, warmth - .09, "Gold ripple core", neon)
 
     for rows, start, end in (
-        (BRIDGE_GLINTS, .45, .57), (BOARD_GLINTS, .63, .42), (SIDE_GLINTS, .67, .76),
+        (BRIDGE_GLINTS, .35, .50), (BOARD_GLINTS, .58, .37), (SIDE_GLINTS, .70, .79),
     ):
         for index, (x, z, width, depth) in enumerate(rows):
             progress = index / (len(rows) - 1)
@@ -109,6 +111,11 @@ def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, 
                 warmth += .07
             glint = rows is not SIDE_GLINTS and index % 5 != 4
             widen = 1 + .13 * sin(index * 2.73 + .72)
+            if rows is BRIDGE_GLINTS:
+                x += .22 + 1.02 * max(0, (z - 42.9) / 8.0)
+                widen *= 1.01 + .19 * progress
+            elif rows is BOARD_GLINTS:
+                x += 1.23
             warm_stroke(x, z, width * widen, depth, index + 1, warmth, glint)
 
     # The original canal ripple texture breaks up the amber streaks as they
@@ -116,11 +123,11 @@ def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, 
     reflected_light = item(surface, "Folder", "Soft lantern reflections")
     lantern_tints = "0 .90 .50 .25 0 .46 1 .72 .37 0 .73 1 .87 .62 0 1 .95 .57 .31 0 "
     for start, end, widths, texture_length, alpha in (
-        ((-18.99, .078, 37.30), (-18.49, .084, 44.42), (.74, 1.61), 2.06, .29),
-        ((-18.75, .089, 39.01), (-18.57, .081, 46.75), (.46, 1.20), 1.44, .47),
-        ((-18.53, .081, 46.12), (-17.91, .088, 50.94), (1.22, 1.91), 2.22, .41),
-        ((-16.88, .089, 53.45), (-15.85, .086, 58.31), (.76, 1.68), 1.77, .22),
-        ((-16.60, .078, 53.99), (-15.89, .084, 58.61), (.46, 1.41), 1.17, .45),
+        ((-18.80, .078, 37.30), (-18.08, .084, 44.42), (.78, 1.62), 2.06, .26),
+        ((-18.58, .089, 39.01), (-17.54, .081, 46.75), (.48, 1.28), 1.44, .43),
+        ((-17.56, .081, 46.12), (-16.80, .088, 50.94), (1.16, 1.87), 2.22, .37),
+        ((-15.66, .089, 53.45), (-14.62, .086, 58.31), (.76, 1.68), 1.77, .22),
+        ((-15.32, .078, 53.99), (-14.63, .084, 58.61), (.46, 1.41), 1.17, .43),
     ):
         fade = f"0 1 0 .27 {alpha} 0 .66 {alpha} 0 1 1 0 "
         water_beam(reflected_light, "Canal surface ripple", start, end, widths, lantern_tints,
