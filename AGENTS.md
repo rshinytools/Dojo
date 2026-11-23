@@ -1,6 +1,6 @@
 # Beast Dojo Agent Handoff
 
-Read [README.md](README.md), [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md), and the relevant phase in [docs/ROADMAP.md](docs/ROADMAP.md) before editing. Read the [game design](docs/GAME_DESIGN.md) for the complete v1 scope. The v0.210 Studio checkpoint is the handoff baseline.
+Read [README.md](README.md), [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md), and the relevant phase in [docs/ROADMAP.md](docs/ROADMAP.md) before editing. Read the [game design](docs/GAME_DESIGN.md) for the complete v1 scope. Start from the Studio checkpoint recorded in [releases/current.json](releases/current.json).
 
 ## Working rules
 

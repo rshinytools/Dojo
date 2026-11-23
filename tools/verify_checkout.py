@@ -11,7 +11,7 @@ from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 PLACE = ROOT / "roblox/grand-dojo/Beast_Dojo_Grand_Dojo.rbxlx"
-CHECKPOINT = ROOT / "releases/Beast_Dojo_Grand_Dojo_v0.210.zip"
+RELEASES = ROOT / "releases"
 
 
 def build(path):
@@ -27,7 +27,8 @@ def digest(stream):
 
 def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
-                "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring"}
+                "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring",
+                "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts"}
     seen = set()
     routes = None
     notes = 0
@@ -59,18 +60,24 @@ def verify_browser():
 
 
 def verify_checkpoint():
-    with ZipFile(CHECKPOINT) as archive, archive.open(PLACE.name) as content:
-        expected = digest(content)
+    checkpoint = json.loads((RELEASES / "current.json").read_text(encoding="utf-8"))
+    version = checkpoint["version"]
+    expected = checkpoint["sha256"]
+    archive_path = RELEASES / f"Beast_Dojo_Grand_Dojo_v{version}.zip"
+    with ZipFile(archive_path) as archive, archive.open(PLACE.name) as content:
+        packaged = digest(content)
+    if packaged != expected:
+        raise SystemExit(f"The packaged v{version} place differs from its recorded SHA-256: {packaged} vs {expected}")
     with PLACE.open("rb") as current:
         actual = digest(current)
     if actual != expected:
-        raise SystemExit(f"The rebuilt place differs from v0.210: {actual} vs {expected}")
-    print(f"Studio checkpoint SHA-256 {actual}")
+        raise SystemExit(f"The rebuilt place differs from v{version}: {actual} vs {expected}")
+    print(f"Studio v{version} checkpoint SHA-256 {actual}")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--checkpoint", action="store_true", help="Compare against the pinned v0.210 Studio ZIP.")
+    parser.add_argument("--checkpoint", action="store_true", help="Compare against the current pinned Studio ZIP.")
     args = parser.parse_args()
     for path in ("roblox/grand-dojo/build_place.py", "browser-game/build_content.py", "browser-game/package.py"):
         build(path)

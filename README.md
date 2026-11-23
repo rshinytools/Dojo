@@ -2,11 +2,11 @@
 
 Beast Dojo is a Roblox martial-arts adventure centered on the Grand Dojo Fighting Ring. Players travel between six districts, train with animal fighters, and earn trophies through matches, exploration, and festival activities.
 
-**Current Roblox checkpoint** v0.210. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
+**Current Roblox checkpoint** v0.211. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
 
 ## Play the Roblox checkpoint
 
-Download [Beast_Dojo_Grand_Dojo_v0.210.zip](releases/Beast_Dojo_Grand_Dojo_v0.210.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**. Start at the festival plaza and follow the signs for the Fighting Ring, Lantern Relay, or Trophy Hall. Travel to Skywalk Peaks and take the Wind Court ramp to play the three chimes.
+Download [Beast_Dojo_Grand_Dojo_v0.211.zip](releases/Beast_Dojo_Grand_Dojo_v0.211.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**. Start at the festival plaza and follow the signs for the Fighting Ring, Lantern Relay, or Trophy Hall. Follow the west road to the Lantern Circuit gate or travel to Skywalk Peaks and take the Wind Court ramp to play the three chimes.
 
 The ZIP is the verified desktop Studio checkpoint. The place refers to Roblox-hosted meshes, textures, and audio. Some need account or experience permissions. See [asset access](docs/IMPLEMENTATION.md#asset-access). Studio uses session data. Published data, purchases and physical devices have separate release tests.
 
@@ -24,7 +24,7 @@ Open `roblox/grand-dojo/Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. The build
 
 Open `browser-game/Beast_Dojo.html` for the offline browser concept. It has a separate save format and simulated matches. [Browser controls and testing](browser-game/README.md)
 
-Run `python3 -B tools/verify_checkout.py` for a clean-clone build check. Add `--checkpoint` on the v0.210 baseline to compare the rebuilt Studio file with the one in the ZIP. The check runs locally with the Python standard library.
+Run `python3 -B tools/verify_checkout.py` for a clean-clone build check. Add `--checkpoint` to compare the rebuilt Studio file with the pinned ZIP and its recorded hash. The check runs locally with the Python standard library.
 
 ## Project layout
 

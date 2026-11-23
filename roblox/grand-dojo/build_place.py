@@ -57,10 +57,12 @@ from harbor_roof_walk import BEACON_GUARDS as SKY_PIER_BEACON_GUARDS, build_harb
 from kiln_pass import NAME as KILN_PASS, POINTS as KILN_PASS_POINTS, WIND_OPENING, build_kiln_pass
 from kiln_ridge_walk import PATH as KILN_RIDGE_PATH, build_kiln_ridge_walk
 from lantern_arrival_relief import build_lantern_arrival_relief
+from lantern_court_shopfronts import build_lantern_court_shopfronts
 from lantern_garden_walk import GARDENER, build_lantern_garden_walk
 from lantern_market_crossing import build_lantern_market_crossing
 from lantern_market_frontage import build_lantern_market_frontage
 from lantern_market_goods import build_lantern_market_goods
+from lantern_town_gate import build_lantern_town_gate
 from meltwater_bridge_art import build_meltwater_bridge_art
 from meltwater_high_walk import (MARKET_OPENING as MELTWATER_MARKET_OPENING,
                                  NAME as MELTWATER_HIGH_WALK, POINTS as MELTWATER_HIGH_POINTS,
@@ -72,6 +74,7 @@ from orchard_bluff import build_orchard_bluff
 from orchard_high_walk import (ASCENT as ORCHARD_ASCENT, DESCENT as ORCHARD_DESCENT,
                                 KEEPER as ORCHARD_KEEPER, NAME as ORCHARD_WALK,
                                 ROAD_OPENING as ORCHARD_ROAD_OPENING, build_orchard_high_walk)
+from orchard_road_terraces import build_orchard_road_terraces
 from pinecrest_trail import build_pinecrest_trail
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
@@ -725,9 +728,9 @@ def curved_plaque(parent,x,z,profile,height,face,edge,*,rim_height=.17,rim_depth
 
 
 # Fredoka One advances in em units, measured from the original font.
-MARQUEE_ADVANCES={" ":.253,"A":.765,"E":.638,"F":.637,"G":.714,"H":.699,
+MARQUEE_ADVANCES={" ":.253,"A":.765,"C":.681,"E":.638,"F":.637,"G":.714,"H":.699,
                   "I":.257,"L":.587,"N":.720,"O":.775,"P":.632,"R":.631,
-                  "T":.731,"Y":.686}
+                  "T":.731,"U":.714,"Y":.686}
 
 
 def marquee_title(parent,title,x,z,profile,em):
@@ -2938,6 +2941,10 @@ build_orchard_bluff(landscape,item=item,prop=prop,part=part,triangle=triangle,
 build_lanternwood_ridge(landscape,item=item,prop=prop,part=part,triangle=triangle,slate=SLATE,
                         rock=ROCK,grass=GRASS_MAT,cedar=WOOD_PLANK,neon=NEON,
                         rock_variant=VALLEY_ROCK,variant_field=MATERIAL_VARIANT_FIELD)
+build_orchard_road_terraces(landscape,item=item,prop=prop,part=part,triangle=triangle,
+                             garden_prop=garden_prop,showcase_tree=showcase_tree,
+                             rock=ROCK,grass=GRASS_MAT,cedar=WOOD_PLANK,
+                             rock_variant=VALLEY_ROCK,variant_field=MATERIAL_VARIANT_FIELD)
 for label,x,z,width,depth,profile,front,planting in (
     ("North Tideharbor ridge",156,-54,117,24,
      (0,4,10,14,21,25,28,27,31,36,31,28,26,20,18,12,8,4,0),1,(5,8,11,14)),
@@ -5934,7 +5941,12 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
     part(town,"District courtyard",(x,y-.093,z),(59,.24,61),paving,material=LIMESTONE)
     map_x,map_z,map_yaw=((7.5,4.8,0),(9.6,22.1,0),(-7.7,15.1,0),(14.8,23.5,0),(3.4,18.5,65))[index]
     district_map_post(town,name,x+map_x,y+.027,z+map_z,map_yaw)
-    if yaw:
+    if name=="Lantern Circuit":
+        build_lantern_town_gate(town,x+27,y,z,item=item,prop=prop,part=part,beam=beam,gate=gate,sign=sign,
+                                 swept_roof=swept_roof,curved_plaque=curved_plaque,marquee_title=marquee_title,
+                                 festival_lantern=festival_lantern,banner=banner,slate=SLATE,wood=WOOD_PLANK,
+                                 brass=METAL,wood_variant=LANDMARK_CEDAR,variant_field=MATERIAL_VARIANT_FIELD)
+    elif yaw:
         gate(town,x-27*(1 if yaw>0 else -1),z,-yaw,span=15,label=sign_name,trim=accent,y=y)
     else:
         gate(town,x,z+25,span=18,label=sign_name,trim=accent,y=y)
@@ -6207,6 +6219,10 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
         build_lantern_arrival_relief(town, x, y, z, item=item, prop=prop, part=part, beam=beam,
                                      triangle=triangle, slate=SLATE, wood=WOOD_PLANK, cloth=FABRIC,
                                      metal=METAL, neon=NEON)
+        build_lantern_court_shopfronts(town,x,y,z,item=item,prop=prop,part=part,slate=SLATE,
+                                        wood=WOOD_PLANK,metal=METAL,neon=NEON,
+                                        cedar_variant=LANDMARK_CEDAR,brass_variant=ORNAMENT_BRASS,
+                                        variant_field=MATERIAL_VARIANT_FIELD)
         build_lanternmakers_overlook(
             town, item=item, prop=prop, part=part, beam=beam, route=route, sign=sign,
             swept_roof=swept_roof, festival_lantern=festival_lantern, garden_shelf=garden_shelf,

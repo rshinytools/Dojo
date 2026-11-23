@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.210 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.211 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -28,6 +28,7 @@ The Python builder embeds the Luau from disk. Change source and rebuild so the S
 
 | Area | Evidence |
 | --- | --- |
+| Lantern Circuit and western connections | v0.211 desktop Studio confirmed both gate signs and walked the west road, Orchard High Walk, and Upper Market link to Frostglass Gardens in both directions. Studio captures show the new gate, slope terraces, and lower market shopfronts. |
 | Native world | Six districts and 14 mapped links. Desktop Studio checks include Crown Crossing in both directions and the routes through Frostglass and Tideharbor. Coverage varies by route. |
 | Wind Court | v0.210 desktop Studio walked the new ramp and nearby bridge routes both ways, and climbed the original stairs. The three keyboard prompts counted one melody. The client loaded the Wind Court notes and Cloudbreak summit bell. |
 | Relay and Trophy Hall | Earlier desktop Studio runs completed the official Lantern Relay and displayed Lantern Keeper in Trophy Hall using the local session profile. |
@@ -35,7 +36,7 @@ The Python builder embeds the Luau from disk. Change source and rebuild so the S
 | Profiles | `PlayerProfiles.luau` implements a ten-level Reedguard curve, starter XP grants, the Relay record, and the Lantern Keeper award. Studio runs with a temporary store. The published DataStore path still needs reconnect, failure recovery, and cross-server checks. |
 | Device input | Desktop Studio and a Galaxy A06 landscape simulator have scoped evidence. The simulator verified the compact Music toggle clear of the joystick. Physical phones, tablets, consoles, Chromebooks and VR still need verification. |
 
-Use the [Studio walkthrough](../roblox/grand-dojo/README.md) for feature-specific controls, locations and previous checks. The native checkpoint has SHA-256 `9ecbfa02fdb290ee1241812687fe66f94e5045517be2416a9afd88666603f0ef`. Use `python3 -B tools/verify_checkout.py --checkpoint` to compare the rebuilt file with the packaged place. Clean-clone checks exercise the build path and content shape. Studio behavior and device performance need their own tests.
+Use the [Studio walkthrough](../roblox/grand-dojo/README.md) for feature-specific controls, locations and previous checks. The native checkpoint hash is recorded in [releases/current.json](../releases/current.json). Use `python3 -B tools/verify_checkout.py --checkpoint` to compare the rebuilt file with the packaged place. Clean-clone checks exercise the build path and content shape. Studio behavior and device performance need their own tests.
 
 ## Preserve the release scope
 
@@ -49,7 +50,7 @@ The numbers in [Creator Store prop manifests](../roblox/grand-dojo/art/creator-s
 
 The art tree holds original GLBs, textures, layout definitions, and Blender exporters. For example, `bake_fighting_ring_gate.py` generates the authored gate, and the native builder can use its generated geometry and Roblox references without starting Blender. The native place uses Studio geometry where an imported asset is still an art study. These distinctions are documented in the [Studio walkthrough](../roblox/grand-dojo/README.md).
 
-The handoff includes a pinned Studio ZIP because the raw generated XML exceeds GitHub's single-file regular Git limit. Keep the raw place ignored. Update the ZIP when marking a new verified checkpoint. Local backups, purchased asset payloads, private deployment files and account credentials stay with the owner.
+The handoff includes a pinned Studio ZIP because the raw generated XML exceeds GitHub's single-file regular Git limit. Keep the raw place ignored. To record a new verified checkpoint, package the built place with `python3 -m zipfile -c releases/Beast_Dojo_Grand_Dojo_vVERSION.zip roblox/grand-dojo/Beast_Dojo_Grand_Dojo.rbxlx` and set the version and the place's SHA-256 in [releases/current.json](../releases/current.json). Local backups, purchased asset payloads, private deployment files and account credentials stay with the owner.
 
 ## Keep the handoff current
 
