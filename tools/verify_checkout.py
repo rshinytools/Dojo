@@ -29,7 +29,8 @@ def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring",
                 "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts",
-                "Relay garden Sakura tree", "Trophy Hall upper timber bays"}
+                "Relay garden Sakura tree", "Trophy Hall upper timber bays",
+                "Fighting Ring canvas tailoring", "Recessed cedar ceiling panels"}
     seen = set()
     routes = None
     notes = 0

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.212 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.213 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -33,7 +33,7 @@ The Python builder embeds the Luau from disk. Change source and rebuild so the S
 | Native world | Six districts and 14 mapped links. Desktop Studio checks include Crown Crossing in both directions and the routes through Frostglass and Tideharbor. Coverage varies by route. |
 | Wind Court | v0.210 desktop Studio walked the new ramp and nearby bridge routes both ways, and climbed the original stairs. The three keyboard prompts counted one melody. The client loaded the Wind Court notes and Cloudbreak summit bell. |
 | Relay and Trophy Hall | Earlier desktop Studio runs completed the official Lantern Relay and displayed Lantern Keeper in Trophy Hall using the local session profile. |
-| Fighting Ring | Earlier desktop Studio verified practice strikes and a guided sparring loop. Production clips, ranked matchmaking, full mode coverage, and the final roster remain release work. |
+| Fighting Ring | v0.213 adds square amber fixtures, a recessed cedar ceiling, warmer stair courses and a stitched canvas. Desktop Studio walked all twelve steps, earned 20 first-practice XP in the local profile, started and left a Juniper Tortoise spar, then descended to the plaza. The Galaxy A06 landscape Studio emulator showed the updated entrance. Production clips, ranked matchmaking, full mode coverage, and the final roster remain release work. |
 | Profiles | `PlayerProfiles.luau` implements a ten-level Reedguard curve, starter XP grants, the Relay record, and the Lantern Keeper award. Studio runs with a temporary store. The published DataStore path still needs reconnect, failure recovery, and cross-server checks. |
 | Device input | Desktop Studio and a Galaxy A06 landscape simulator have scoped evidence. The simulator verified the compact Music toggle clear of the joystick. Physical phones, tablets, consoles, Chromebooks and VR still need verification. |
 

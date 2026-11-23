@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.213, walk from the plaza up the **Fighting Ring** steps. Look up at the cedar ceiling and use the **Practice Target** and **Bot Spar Corner**.
+
+The Fighting Ring’s twelve real steps now read as paired warmer stone courses. Broad visible stair cheeks, stepped paper-lantern bases and low red standards frame the 6.30-stud stage. Rectangular amber lanterns hang beneath recessed cedar ceiling panels. Russet binding, 32 ochre stitches and an original reed pattern finish the canvas. The rear paper lamps glow through emissive material. The active light fixture count stays the same. Exact v0.213 desktop Studio walked from spawn up all twelve steps, completed three practice strikes for 20 XP in the test profile, entered and left the Juniper Tortoise spar, dismissed the recap and walked back down to the plaza. The Galaxy A06 landscape Studio emulator showed the updated entrance with touch controls enabled. A structured place comparison preserved the six districts, 14 mapped links, colliders, Terrain and gameplay scripts.
+
+Acquired and inspected cube3D’s free Stone Plinth detached in Studio. The procedural model contained three ModuleScripts and 61 geometry pieces, including 19 CSG unions. The build uses authored split-slate footing and compact amber fixtures. Scalene01’s free floor lantern and the paid Moss & Glow shrine lantern remain candidates for a separate garden placement.
+
 In v0.212, look toward **Trophy Hall** from normal spawn, then walk to the **Festival Canal** and **Lantern Relay** footbridge. Swim to either plaza exit or take the two-part climb from **Cascade Lookout** to **Reedfall Crown**.
 
 Two distant mountain ranges sit closer to Grand Dojo, keeping the foothill layers visible from the plaza and preserving the opening around sunset. Five recessed upper shoji bays and a projecting indigo eave give Trophy Hall a distinct timber level above its cup crest. The new gallery dress is decorative and the existing public viewing gallery is accessible from inside. Broken amber reflections follow the canal bend below the red footbridge. Darker blue bands deepen the water on the main approach. Exact v0.212 desktop Studio swam through both canal exits, walked the inlet lane, climbed the Trophy Hall threshold and interior gallery, and took the two-part climb from the plaza to Reedfall Crown. All six districts and 14 mapped connections retain their routes.

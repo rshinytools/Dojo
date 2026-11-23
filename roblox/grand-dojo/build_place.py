@@ -85,7 +85,9 @@ from reedfall_crown_wayfinding import build_reedfall_crown_wayfinding
 from reedfall_ledge_gardens import build_reedfall_ledge_gardens
 from reedfall_west_spill import build_reedfall_west_spill
 from relay_arrival_portico import build_relay_arrival_portico
-from ring_arrival_details import build_ring_arrival_details
+from ring_arrival_details import (build_ring_arrival_details, build_ring_ceiling_panels, build_ring_paper_lantern,
+                                  build_ring_stair_lantern_plinth)
+from ring_canvas_detail import CANVAS_TINT, build_ring_canvas_detail
 from ring_gate_standard import build_ring_gate_standard
 from saltwind_bluff_art import FACE_TINTS as SALTWIND_SLATE, build_saltwind_bluff_art
 from saltwind_high_walk import (NAME as SALTWIND_WALK, POINTS as SALTWIND_WALK_POINTS,
@@ -1874,22 +1876,12 @@ deck=part(ring,"Cedar arena platform",(36,2.91+ring_deck_lift,5),
 prop(deck,"string",MATERIAL_VARIANT_FIELD,ARENA_CEDAR)
 part(ring,"Ring edge",(36,2.6+ring_rise,5),(36,.35,30),"A44A31")
 part(ring,"Warm ring canvas",(36,ring_floor-.12,5),(32,.24,26),"E5BC7E")
-cloth=part(ring,"Woven arena canvas",(36,ring_floor-.007,5),(31.98,.020,25.98),"EDC99A",
+cloth=part(ring,"Woven arena canvas",(36,ring_floor-.007,5),(31.98,.020,25.98),CANVAS_TINT,
            material=FABRIC,collide=False)
 prop(cloth,"string",MATERIAL_VARIANT_FIELD,ARENA_WEAVE)
 prop(cloth,"bool","CastShadow",False)
-part(ring,"Ring center border",(36,ring_floor+.012,5),(.024,9.35,9.35),"A86547",roll=90,shape=2,collide=False)
-part(ring,"Ring center canvas",(36,ring_floor+.029,5),(.018,8.94,8.94),"E4BC88",roll=90,shape=2,collide=False)
-for tip in ((-1.15,1.9),(1.43,1.7),(2.25,.52)):
-    stem=(34.85,ring_floor+.044,3.05)
-    end=(36+tip[0],ring_floor+.044,5+tip[1])
-    beam(ring,"Woven reed on the mat",stem,end,.072,"A86D46")
-    for t in (.55,.75):
-        blade=tuple(a+(b-a)*t for a,b in zip(stem,end))
-        beam(ring,"Woven reed leaf",blade,(blade[0]+.65,blade[1],blade[2]+.08),.056,"BC8550")
-for side in (-1,1):
-    part(ring,"Canvas side seam",(36+side*14.92,ring_floor+.009,5),(.105,.018,23.92),"B88458",collide=False)
-    part(ring,"Canvas end seam",(36,ring_floor+.009,5+side*11.96),(29.9,.018,.105),"B88458",collide=False)
+build_ring_canvas_detail(ring, center=(36,ring_floor,5),item=item,part=part,prop=prop,
+                         triangle=triangle,fabric=FABRIC)
 stair_count=12
 stair_front,stair_back=30.12,19.93
 stair_run=(stair_front-stair_back)/stair_count
@@ -1902,18 +1894,19 @@ for step in range(stair_count):
     front=stair_front-step*stair_run
     z=front-stair_run/2
     width=15.80-step*.39
-    tread=part(ring_steps,"Arena slate tread",(36,top/2,z),(width,top,stair_run+.035),"98858D",material=SLATE)
+    tread_tint=("AE9491","A88F8E","B09994")[(step//2)%3]
+    tread=part(ring_steps,"Arena slate tread",(36,top/2,z),(width,top,stair_run+.035),tread_tint,material=SLATE)
     prop(tread,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
     # Separate the thin nosing from the tread surface to avoid overlapping depth.
     nosing=part(ring_steps,"Sandstone stair nosing",(36,top-.054,front-.037),(width,.108,.195),
-                "D5B49B",material=LIMESTONE,collide=False)
+                ("C7AC99","BCA290")[(step//2)%2],material=LIMESTONE,collide=False)
     prop(nosing,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
     prop(nosing,"bool","CastShadow",False)
     breaks=(-.50,-.20,.15,.50) if step%2==0 else (-.50,-.33,.03,.30,.50)
     for column,(left,right) in enumerate(zip(breaks,breaks[1:])):
         face=part(ring_steps,"Slate stair riser facing",(36+width*(left+right)/2,top-.219,front+.038),
                   (width*(right-left)-.040,.212,.052),
-                  ("897684","796879","8F7D8C","826F80")[(step+column)%4],material=SLATE,collide=False)
+                  ("AA9090","A18A8A","A88E90","9B8587")[(step//2+column)%4],material=SLATE,collide=False)
         prop(face,"bool","CastShadow",False)
         prop(face,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
 stair_dressing=item(ring_steps,"Model","Ring stair masonry")
@@ -1928,23 +1921,27 @@ for side in (-1,1):
         z=(front+back)/2
         length=front-back
         crown=ring_forecourt_y+(stair_top_y-ring_forecourt_y)*progress
-        part(stair_dressing,"Dressed stair cheek",(stair_x,crown/2,z),(width,crown,length),
-             ("82737D","897782","7E707A","897786")[index],material=SLATE,collide=False)
-        cap=part(stair_dressing,"Sandstone stair cheek cap",(stair_x,crown+.075,z),
-                 (width+.20,.15,length+.08),"C7AC9D",material=LIMESTONE,collide=False)
+        shoulder_x=stair_x+side*.19
+        part(stair_dressing,"Dressed stair cheek",(shoulder_x,crown/2,z),(width+.36,crown,length),
+             ("8E777E","987F84","89727A","9D8588")[index],material=SLATE,collide=False)
+        cap=part(stair_dressing,"Sandstone stair cheek cap",(shoulder_x,crown+.097,z),
+                 (width+.58,.19,length+.08),"CFAC96",material=LIMESTONE,collide=False)
         prop(cap,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
         part(stair_dressing,"Inset slate stair facing",(stair_x-side*width*.49,crown*.53,z),
              (.089,max(.30,crown*.68),length-.22),"9C858D",material=SLATE,collide=False)
-        part(stair_dressing,"Stair cheek front inset",(stair_x,crown*.56,front+.02),
-             (width-.36,crown*.64,.082),"9D8890",material=SLATE,collide=False)
-        part(stair_dressing,"Slate coping shadow line",(stair_x,crown-.052,z),
-             (width+.07,.09,length+.044),"746470",material=SLATE,collide=False)
+        part(stair_dressing,"Stair cheek front inset",(shoulder_x,crown*.56,front+.02),
+             (width+.12,crown*.64,.082),"A99292",material=SLATE,collide=False)
+        part(stair_dressing,"Slate coping shadow line",(shoulder_x,crown-.052,z),
+             (width+.48,.09,length+.044),"826A6F",material=SLATE,collide=False)
     plinth_x=36+side*9.73
     part(ring_steps,"Stair lantern plinth",(plinth_x,1.11,29.93),(1.62,1.62,1.75),"846F7A",material=SLATE)
-    part(stair_dressing,"Stair lantern plinth cap",(plinth_x,1.92,29.93),
-         (1.78,.18,1.91),"BA9C8C",material=LIMESTONE,collide=False)
-    lamp(ring_steps,plinth_x,2.98,29.93,scale=.87 if side<0 else .97,light=True,warm_pool=True,
-         light_profile=(.98,11.3))
+    build_ring_stair_lantern_plinth(stair_dressing,plinth_x,29.93,item=item,part=part,prop=prop,
+                                   slate=SLATE,limestone=LIMESTONE,stone_variant=PROMENADE_STONE,
+                                   variant_field=MATERIAL_VARIANT_FIELD)
+    lamp_scale=.87 if side<0 else .97
+    build_ring_paper_lantern(ring_steps,plinth_x,2.01+lamp_scale*1.19,29.93,lamp_scale,
+                            item=item,part=part,prop=prop,neon=NEON,wood=WOOD_PLANK,metal=METAL,
+                            lantern_light=lantern_light,light_profile=(.98,11.3),standing=True)
     x=36+side*11.77
     part(ring,"Gold ring deck edging",(x,3.43+ring_deck_lift,20.46),(13.05,.13,.16),"BC8C57",collide=False)
     for i in range(4):
@@ -2082,6 +2079,7 @@ def ring_entry_pier(parent,x,z,side):
                              fabric=FABRIC,wood=WOOD_PLANK,brass=METAL,
                              fabric_variant=ARENA_WEAVE,variant_field=MATERIAL_VARIANT_FIELD,
                              height_gain=portal_rise)
+    banner(pier,x,1.33,z+2.51,scale=.51,vermilion=True)
 
 
 for side in (-1,1):
@@ -2119,12 +2117,18 @@ for side in (-1,1):
         beam(canopy,"Pavilion brace brass inlay",(x-side*.77,11.81+canopy_lift,z+.53),
              (inside_x+side*.32,13.54+canopy_lift,z+.53),.105,"C79354")
     beam(canopy,"Canopy side sill",(x,13.74+canopy_lift,-11.4),(x,13.74+canopy_lift,24.3),.87,"9C4C33")
-for z in (-5.1,1.1,7.4,13.7,20.1):
+cross_ties=(-5.1,1.1,7.4,13.7,20.1)
+purlins=(22.75,29.01,35.28,41.55,47.81)
+purlin_height=14.87+canopy_lift
+for z in cross_ties:
     part(canopy,"Cedar ceiling cross tie",(35.28,14.53+canopy_lift,z),(35.8,.58,.65),
          "834630",material=WOOD_PLANK,collide=False)
-for x in (22.75,29.01,35.28,41.55,47.81):
-    beam(canopy,"Cedar ceiling purlin",(x,14.87+canopy_lift,-10.12),
-         (x,14.87+canopy_lift,22.75),.43,"784230")
+for x in purlins:
+    beam(canopy,"Cedar ceiling purlin",(x,purlin_height,-10.12),
+         (x,purlin_height,22.75),.43,"784230")
+build_ring_ceiling_panels(canopy,purlins=purlins,cross_ties=cross_ties,height=purlin_height,item=item,
+                          part=part,prop=prop,wood=WOOD_PLANK,
+                          variant_field=MATERIAL_VARIANT_FIELD,cedar_variant=LANDMARK_CEDAR)
 for z in (-10.1,22.8):
     part(canopy,"Crossed cedar roof beam",(35.28,13.85+canopy_lift,z),(37.0,.80,1.25),"9E482F",collide=False)
     part(canopy,"Gold canopy fascia",(35.28,14.44+canopy_lift,z),(37.2,.23,1.40),"CF994F",collide=False)
@@ -2134,13 +2138,13 @@ for z in (-10.1,22.8):
         front=1 if z>0 else -1
         part(canopy,"Eave beam end bronze shoe",(x,14.79+canopy_lift,z+front*1.14),
              (.48,.27,.13),"CB9452",material=METAL,collide=False)
-    for x in (23.3,30,36,42,48.7):
+    for index,x in enumerate((23.3,30,36,42,48.7)):
         lamp_y=13.33
         beam(canopy,"Lantern hook",(x,lamp_y+.71,z),(x,13.66+canopy_lift,z),.14,DARK)
-        if z>0:
-            festival_lantern(canopy,x,lamp_y,z,.77)
-        else:
-            lamp(canopy,x,lamp_y,z,scale=.74)
+        lantern_scale=(.72,.86,.94,.86,.72)[index] if z>0 else .74
+        build_ring_paper_lantern(canopy,x,lamp_y,z,lantern_scale,
+                                item=item,part=part,prop=prop,neon=NEON,wood=WOOD_PLANK,metal=METAL,
+                                lantern_light=lantern_light,light_profile=(1.08,11.55) if z>0 else None)
 for x,y,scale in ((26.65,13.83,1.02),(36,15.04,1.05),(45.35,13.83,1.02)):
     rear_z=-10.61
     for side in (-1,1):
@@ -2148,7 +2152,7 @@ for x,y,scale in ((26.65,13.83,1.02),(36,15.04,1.05),(45.35,13.83,1.02)):
         hook=beam(canopy,"Rear pennant hanger",(hanger_x,13.95+canopy_lift,-10.37),
                   (hanger_x,y+2.08*scale,rear_z),.10,"94603B")
         prop(hook,"bool","CastShadow",False)
-    banner(canopy,x,y,rear_z,scale=scale)
+    banner(canopy,x,y,rear_z,scale=scale,vermilion=True)
 swept_roof(canopy,36.8,15.04+canopy_lift,6.2,42.0,39,7.35,signature=True)
 # Both fixtures share the nearby-lantern budget and cast no shadows.
 threshold_light(canopy,38.40,13.60,19.10,reach=18.5,spread=88,brightness=1.72,tint="FFD4A0",yaw=-29,pitch=43)

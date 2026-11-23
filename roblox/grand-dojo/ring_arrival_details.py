@@ -1,6 +1,84 @@
 """Decorative Fighting Ring details in final, world-space ring coordinates."""
 
 
+def build_ring_paper_lantern(parent, x, y, z, scale, *, item, part, prop, neon, wood, metal,
+                             lantern_light, light_profile, standing=False):
+    """A square amber shade with a lacquer frame and brass corner fittings."""
+    housing = item(parent, "Model", "Arena stair lantern" if standing else "Arena eave lantern")
+
+    def piece(name, offset, dimensions, tint, material):
+        dx, dy, dz = offset
+        node = part(housing, name, (x + dx * scale, y + dy * scale, z + dz * scale),
+                    tuple(axis * scale for axis in dimensions), tint, material=material, collide=False)
+        prop(node, "bool", "CastShadow", False)
+        return node
+
+    paper = piece("Amber paper core", (0, 0, 0), (1.40, 1.64, 1.40), "FFC970", neon)
+    for tier, direction in enumerate((-1, 1)):
+        piece("Recessed cedar lantern plate", (0, direction * .886, 0), (1.74, .19, 1.74),
+              ("754B37", "814930")[tier], wood)
+        piece("Bronze lantern collar", (0, direction * .755, 0), (1.55, .080, 1.55), "C69351", metal)
+        piece("Cedar lantern mounting block", (0, direction * 1.025, 0), (1.14, .115, 1.14),
+              ("62382D", "985C3A")[tier], wood)
+        piece("Thin horizontal paper seam", (0, direction * .30, 0), (1.42, .052, 1.42),
+              "BD8150", wood)
+        for side in (-1, 1):
+            piece("Lacquer frame post", (side * .706, 0, direction * .706), (.147, 1.63, .147),
+                  "663B2D", wood)
+    if standing:
+        piece("Cedar lantern socket", (0, -1.13, 0), (1.88, .13, 1.88), "967A6B", wood)
+    else:
+        piece("Brass suspension button", (0, 1.11, 0), (.37, .19, .37), "C69453", metal)
+    if light_profile is not None:
+        lantern_light(paper, scale, warm_pool=True, light_profile=light_profile)
+
+
+def build_ring_stair_lantern_plinth(parent, x, z, *, item, part, prop, slate, limestone, stone_variant,
+                                    variant_field):
+    """Dress the existing lantern pedestal without widening its collision."""
+    footing = item(parent, "Model", "Split slate stair lantern base")
+    for name, y, size, tint, material in (
+        ("Broad slate footing", .47, (2.03, .26, 2.11), "79636C", slate),
+        ("Canted stair lantern lower course", .66, (1.88, .23, 1.96), "A28A8A", slate),
+        ("Rose slate lantern upright", 1.19, (1.71, .95, 1.83), "9D8584", slate),
+        ("Sandstone lantern ledge", 1.79, (1.95, .16, 2.05), "C5A593", limestone),
+        ("Honed square lantern cap", 1.94, (2.02, .14, 2.11), "D7B7A1", limestone),
+    ):
+        piece = part(footing, name, (x, y, z), size, tint, material=material, collide=False)
+        prop(piece, "bool", "CastShadow", False)
+        prop(piece, "string", variant_field, stone_variant)
+    face = part(footing, "Recessed lantern stone face", (x, 1.18, z + .926),
+                (.96, .64, .059), "856F74", material=slate, collide=False)
+    prop(face, "bool", "CastShadow", False)
+    prop(face, "string", variant_field, stone_variant)
+
+
+def build_ring_ceiling_panels(parent, *, purlins, cross_ties, height, item, part, prop, wood,
+                              variant_field, cedar_variant):
+    """Fit recessed cedar panels between the ring's existing main roof timbers."""
+    ceiling = item(parent, "Model", "Recessed cedar ceiling panels")
+    prop(ceiling, "token", "LevelOfDetail", 4)
+
+    def panel(name, center, dimensions, tint):
+        board = part(ceiling, name, center, dimensions, tint, material=wood, collide=False)
+        prop(board, "string", variant_field, cedar_variant)
+        prop(board, "bool", "CastShadow", False)
+
+    grain = ("87503A", "794835", "84513D")
+    for row, (far, near) in enumerate(zip(cross_ties, cross_ties[1:])):
+        for column, (left, right) in enumerate(zip(purlins, purlins[1:])):
+            x, z = (left + right) / 2, (far + near) / 2
+            width, depth = right - left - .52, near - far - .76
+            panel("Cedar ceiling shadow bed", (x, height + .33, z), (width, .225, depth), "513934")
+            for wide in (-1, 0, 1):
+                center_x = x + wide * width / 3
+                tone = grain[(row + 2 * column + wide) % len(grain)]
+                panel("Fitted cedar ceiling plank", (center_x, height + .18, z),
+                      (width / 3 - .078, .095, depth - .155), tone)
+            for lip in (far + .36, near - .36):
+                panel("Honed cedar ceiling rim", (x, height + .12, lip), (width+.08, .17, .20), "9E6549")
+
+
 def build_ring_arrival_details(parent, *, center, deck_lift, item, part, prop, beam, banner,
                                slate, limestone, wood, metal, stone_variant, variant_field):
     """Give the existing stair threshold and covered bay more visual depth."""
