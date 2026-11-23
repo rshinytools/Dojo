@@ -7759,6 +7759,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
                                     (storage,"ModuleScript","MusicPlaylist","MusicPlaylist.luau"),
                                     (storage,"ModuleScript","TrophyJournal","TrophyJournal.luau"),
+                                    (storage,"ModuleScript","EagleEye","EagleEye.luau"),
                                     (opening,"LocalScript","GrandDojoSplash","GrandDojoSplash.client.luau"),
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
                                     (scripts,"LocalScript","GrandDojoMusic","GrandDojoMusic.client.luau"),

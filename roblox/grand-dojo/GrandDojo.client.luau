@@ -800,6 +800,12 @@ local actions = make("Frame", panel, {
 })
 local start = button(actions, "Start relay", true)
 local practice = button(actions, "Practice route", false)
+local eagleButton = button(actions, "Eagle Eye", true)
+eagleButton.Name = "OpenEagleEye"
+eagleButton.Position = UDim2.new(.5, 4, 0, 0)
+eagleButton.Size = UDim2.new(.5, -4, 1, 0)
+eagleButton.Visible = false
+eagleButton.Selectable = true
 practice.Position = UDim2.new(.5, 4, 0, 0)
 start.NextSelectionRight = practice
 practice.NextSelectionLeft = start
@@ -939,6 +945,7 @@ end
 local openPanel, offered = "", false
 local restorePlayerList = false
 local journal
+local eagleEye
 local isPractice = false
 local function layoutRoutePlanner(viewportSize)
     local wide = viewportSize.X >= viewportSize.Y * 1.30
@@ -956,10 +963,11 @@ local function layoutRoutePlanner(viewportSize)
         control.NextSelectionLeft = if column > 0 then routeButtons[index - 1] else nil
         control.NextSelectionRight = if column < columns - 1 then routeButtons[index + 1] else nil
         control.NextSelectionUp = routeButtons[index - columns] or close
-        control.NextSelectionDown = routeButtons[index + columns] or start
+        control.NextSelectionDown = routeButtons[index + columns] or (eagleButton.Visible and eagleButton or start)
     end
     routeInfo.Position = UDim2.fromOffset(0, #routeButtons / columns * 75 + 2)
     start.NextSelectionUp = routeButtons[#routeButtons]
+    eagleButton.NextSelectionUp = routeButtons[#routeButtons]
     close.NextSelectionDown = routeButtons[1]
     return width, height
 end
@@ -1016,6 +1024,7 @@ local function layout()
     local size = camera.ViewportSize
     local map = openPanel == "map"
     local journalView = openPanel == "journal"
+    local aerial = eagleEye and eagleEye:IsActive()
     local width, height = 435, 421
     if map then
         width, height = layoutRoutePlanner(size)
@@ -1030,8 +1039,11 @@ local function layout()
     scale.Scale = math.max(.1, math.min(1, (size.X - 26)/width, (size.Y - 54)/height))
     local showingResult = sparResult and sparResult.Visible
     cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not showingResult
-        and not race.Visible and not panel.Visible
-    badge.Visible = not sparringActive and not showingResult and not race.Visible and not (panel.Visible and narrow)
+        and not race.Visible and not panel.Visible and not aerial
+    if aerial then
+        boardHint.Visible = false
+    end
+    badge.Visible = not sparringActive and not showingResult and not race.Visible and not aerial and not (panel.Visible and narrow)
         and (not boardHint.Visible or parcelObjectives[player:GetAttribute("ParcelStage")] ~= nil)
     musicToggle.Visible = badge.Visible and not panel.Visible
     if not musicToggle.Visible and GuiService.SelectedObject == musicToggle then
@@ -1077,6 +1089,9 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(watchCamera)
 watchCamera()
 
 local function hide()
+    if eagleEye then
+        eagleEye:Close(false)
+    end
     openPanel = ""
     panel.Visible = false
     if restorePlayerList then
@@ -1123,6 +1138,9 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     if sparringActive then
         return
     end
+    if eagleEye then
+        eagleEye:Close(false)
+    end
     if journal then
         journal:Hide()
     end
@@ -1155,9 +1173,11 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     local earned = first or player:GetAttribute("LanternKeeper")
     local best = player:GetAttribute("RelayBest") or 0
     practice.Visible = offered
+    eagleButton.Visible = map
     start.Text = if offered then "Start relay" elseif kind == "trophy" then "Open journal" else "Back to city"
-    start.Size = offered and UDim2.new(.5, -4, 1, 0) or UDim2.fromScale(1, 1)
-    start.NextSelectionRight = offered and practice or nil
+    start.Size = (offered or eagleButton.Visible) and UDim2.new(.5, -4, 1, 0) or UDim2.fromScale(1, 1)
+    start.NextSelectionRight = if offered then practice elseif eagleButton.Visible then eagleButton else nil
+    eagleButton.NextSelectionLeft = start
     start.NextSelectionUp = close
     close.NextSelectionDown = start
     prizeTitle.Text = "Lantern Keeper"
@@ -1207,6 +1227,29 @@ local function flash(message)
     end)
 end
 
+eagleEye = require(ReplicatedStorage:WaitForChild("EagleEye")).new({
+    player = player, gui = gui,
+    make = make, button = button, label = label, style = style, palette = palette, titleFont = titleFont,
+    message = flash,
+    onOpened = function()
+        panel.Visible = false
+        layout()
+    end,
+    onClosed = function(restoreMap)
+        if restoreMap and openPanel == "map" and not sparringActive and not race.Visible then
+            panel.Visible = true
+            if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
+                GuiService.SelectedObject = if eagleButton.Visible then eagleButton else start
+            end
+        end
+        layout()
+    end,
+})
+eagleButton.Activated:Connect(function()
+    if openPanel == "map" and panel.Visible then
+        eagleEye:Open()
+    end
+end)
 local function updateRace()
     local nextGate = player:GetAttribute("RelayNextGate") or 0
     local nextPart = gates:FindFirstChild(tostring(nextGate))
@@ -1238,7 +1281,10 @@ cancel.Activated:Connect(function()
     remote:FireServer("cancel")
 end)
 UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and input.KeyCode == Enum.KeyCode.ButtonB and panel.Visible then
+    if not processed and eagleEye:IsActive()
+        and (input.KeyCode == Enum.KeyCode.ButtonB or input.KeyCode == Enum.KeyCode.Backspace) then
+        eagleEye:Close(true)
+    elseif not processed and input.KeyCode == Enum.KeyCode.ButtonB and panel.Visible then
         if openPanel == "journal" then
             show("trophy")
         else
@@ -1357,7 +1403,7 @@ UserInputService.WindowFocusReleased:Connect(releaseBoardInput)
 registerBoardPrompts()
 
 ProximityPromptService.PromptTriggered:Connect(function(prompt, who)
-    if who == player and not panel.Visible and not race.Visible and prompt.Name == "CityMapPrompt"
+    if who == player and not panel.Visible and not race.Visible and not eagleEye:IsActive() and prompt.Name == "CityMapPrompt"
         and prompt:IsDescendantOf(city) then
         show("map", prompt.ObjectText)
     end

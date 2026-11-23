@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.238, open a **City Map** board, then choose **Eagle Eye**. Each of the six district boards opens the same City Map. Its single Eagle Eye button shows a still Roblox Studio aerial of all six districts, the Grand Dojo, roads, mountains and the harbor. The character stays in place. Back to map returns to the active route planner. Eagle Eye requests one 885 × 497 image when opened and removes its UI image on close. The implementation uses the existing gameplay camera and requires no extra city streaming, server requests, world geometry or startup preload. If loading fails, the normal City Map reopens.
+
 In v0.237, follow **Plum Lantern Walk** from the Lantern Circuit road to the lantern pavilion and back down to the main road.
 
 Plum Lantern Walk adds a 67.5-stud stair-free branch on the south side of the Grand Dojo–Lantern Circuit road. Two cedar ramps lead to a covered indigo pavilion and a railed viewing porch 6.68 studs above the city datum. Slate trestles, pink blossoms, brass rail caps and lanterns frame the walk. Both ends return to the existing road, with two-sided entrance signs and a fifteenth green City Map route.
