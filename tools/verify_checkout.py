@@ -35,7 +35,8 @@ def verify_place():
                 "Tideharbor tidal arch", "Sea Lantern Lookout", "Batten-sail harbor boat",
                 "Windcut sea arch", "Low slate reefs", "Horizon sea fills", "Trophy Hall front amber portal",
                 "Projected cedar gallery soffit", "Raked cedar gallery support",
-                "Rose horizon range", "Mauve saddle range", "Arrival plume bank"}
+                "Rose horizon range", "Mauve saddle range", "Arrival plume bank",
+                "Soft lantern reflections", "Moss seams and shore grasses"}
     seen = set()
     routes = None
     notes = 0

@@ -260,7 +260,8 @@ def air_effect(parent, name, position, volume, texture_id, *, tint, rate, lifeti
     vector(emitter, "Vector2", "SpreadAngle", ("X", "Y"), (28, 28))
 
 
-def horizontal_water_beam(parent,name,start,end,widths,color_sequence,transparency,texture_length):
+def horizontal_water_beam(parent,name,start,end,widths,color_sequence,transparency,texture_length,
+                          *,light_influence=.33,light_emission=.19):
     anchors=[]
     for suffix,position in (("origin",start),("lip",end)):
         label=f"{name} {suffix}"
@@ -275,7 +276,7 @@ def horizontal_water_beam(parent,name,start,end,widths,color_sequence,transparen
     prop(ribbon,"bool","FaceCamera",False)
     prop(ribbon,"int","Segments",6)
     prop(ribbon,"token","TextureMode",1)
-    for label,value in (("LightInfluence",.33),("LightEmission",.19),("TextureSpeed",0),
+    for label,value in (("LightInfluence",light_influence),("LightEmission",light_emission),("TextureSpeed",0),
                         ("TextureLength",texture_length),("Width0",widths[0]),("Width1",widths[1])):
         prop(ribbon,"float",label,value)
 
@@ -1517,7 +1518,8 @@ for x,z in ((-18.85,48.85),(-18.4,28.8),(-17.46,14.72),(-17.3,-12),(-18.6,-33.7)
         prop(reflection,"bool","CastShadow",False)
 arrival_water=item(canal,"Model","Arrival canal shallows")
 prop(arrival_water,"token","ModelStreamingMode",1)
-build_arrival_canal_reflection(arrival_water,item=item,triangle=triangle,neon=NEON,smooth=SMOOTH)
+build_arrival_canal_reflection(arrival_water,item=item,prop=prop,triangle=triangle,
+                              water_beam=horizontal_water_beam,neon=NEON,smooth=SMOOTH)
 
 for x,z,radius in ((-19.59,52.35,.86),(-16.24,42.05,.65),(-21.55,25.4,.78),(-25.80,57.62,.71)):
     for index,angle in enumerate((.17,.59,1.23,1.73,3.22,3.66,4.82)):
@@ -1598,6 +1600,29 @@ for x,z,side,length,scale,yaw in ((-24.30,41.64,-1,4.26,1.04,37),
 for plant in bridge_banks.findall("Item"):
     if plant.find("Properties/bool[@name='CastShadow']") is None:
         prop(plant,"bool","CastShadow",False)
+
+moss_seams=item(arrival_water,"Model","Moss seams and shore grasses")
+prop(moss_seams,"token","ModelStreamingMode",1)
+prop(moss_seams,"token","LevelOfDetail",4)
+for x,z,top,width,length,side in (
+    (-12.62,37.98,.46,1.38,2.10,1),(-25.80,51.24,.49,1.54,2.36,-1),
+    (-11.20,47.80,.41,1.49,2.25,1),(-6.31,50.06,.35,1.52,1.45,1),
+    (-6.03,58.96,.29,1.59,1.64,1),(-12.47,61.47,.21,1.42,1.74,1),
+):
+    garden_shelf(moss_seams,x,top-.07,z,width,length,.19,"87746B",SLATE,collide=False)
+    garden_shelf(moss_seams,x+side*.06,top,z,width*.91,length*.95,.12,"82974D",LEAFY_GRASS,collide=False)
+    for key,dx,dz,yaw,scale,tint in (
+        ("meadowCover",-.39,.17,38,.137,"9DBA55"),
+        ("meadowGrass",-.28,-.40,117,.092,"B7C65E"),
+        ("meadowGrass",.33,.48,71,.116,"9DB052"),
+        ("mossFlowers",.38,-.24,142,.079,"E9AAAE"),
+        ("cattails",-.58,-.05,23,.16,"A6AD5B"),
+    ):
+        garden_prop(moss_seams,key,(x+side*dx,top-.047,z+dz*length*.68),scale,
+                    yaw+18*side,tint)
+for detail in moss_seams.findall("Item"):
+    if detail.find("Properties/bool[@name='CastShadow']") is None:
+        prop(detail,"bool","CastShadow",False)
 
 inlet=item(arrival_water,"Model","Promenade inlet planting")
 prop(inlet,"token","ModelStreamingMode",1)

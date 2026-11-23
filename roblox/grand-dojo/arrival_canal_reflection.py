@@ -6,43 +6,44 @@ from math import sin
 # The brighter lane follows the bridge through the canal bend. The
 # strokes spread and break apart as they approach the foreground.
 BRIDGE_GLINTS = (
-    (-20.12, 36.83, .56, .20), (-20.42, 37.42, .91, .22),
-    (-20.18, 38.08, 1.38, .27), (-20.30, 38.62, 1.57, .24),
-    (-20.05, 39.36, 1.90, .36), (-20.43, 39.89, 1.38, .28),
-    (-19.99, 40.57, 2.03, .33), (-20.16, 41.24, 1.42, .29),
-    (-19.69, 41.81, 2.22, .35), (-19.93, 42.44, 1.32, .32),
-    (-19.47, 43.15, 2.24, .34), (-19.63, 43.79, 1.66, .28),
-    (-19.17, 44.52, 2.08, .41), (-19.42, 45.14, 1.12, .29),
-    (-18.89, 45.88, 2.35, .45), (-19.12, 46.45, 1.80, .27),
-    (-18.74, 47.15, 2.13, .42), (-18.99, 47.86, 1.37, .29),
-    (-18.34, 48.49, 1.92, .35), (-18.59, 49.29, 1.11, .30),
-    (-18.18, 50.26, 1.55, .29), (-18.42, 51.10, .78, .25),
+    (-19.05, 37.26, .92, .16), (-18.81, 37.93, 1.38, .23),
+    (-18.96, 38.42, .88, .17), (-18.72, 39.24, 1.66, .25),
+    (-19.00, 39.80, 1.03, .18), (-18.84, 40.31, 1.52, .23),
+    (-18.97, 41.13, .99, .19), (-18.86, 41.73, 1.72, .29),
+    (-19.04, 42.44, .98, .22), (-18.98, 43.15, 1.56, .26),
+    (-19.13, 43.66, 1.13, .25), (-18.98, 44.94, 1.77, .29),
+    (-19.24, 45.44, .74, .19), (-18.76, 46.12, 1.48, .29),
+    (-19.18, 46.93, 1.23, .23), (-18.65, 47.21, 1.41, .28),
+    (-18.77, 48.03, .88, .19), (-18.41, 48.91, 1.49, .25),
+    (-18.67, 49.58, .76, .18), (-18.02, 50.62, 1.29, .22),
 )
 BOARD_GLINTS = (
-    (-11.09, 55.93, .71, .19), (-11.31, 56.37, 1.07, .25),
-    (-11.08, 56.97, 1.73, .34), (-11.46, 57.54, 1.09, .24),
-    (-11.22, 58.15, 1.64, .34), (-11.66, 58.84, 1.43, .35),
-    (-11.47, 59.38, 1.25, .26), (-11.72, 59.81, .76, .19),
-    (-12.38, 60.29, .72, .20),
+    (-16.70, 53.79, .76, .17), (-16.43, 54.41, 1.42, .23),
+    (-15.89, 55.07, 2.06, .29), (-15.62, 55.61, 1.41, .20),
+    (-15.30, 56.28, 2.26, .33), (-16.06, 57.03, 1.57, .25),
+    (-15.72, 57.74, 1.88, .29), (-15.81, 58.36, 1.33, .21),
+    (-16.12, 59.04, .63, .18),
 )
 SIDE_GLINTS = (
-    (-22.31, 47.22, .82, .23), (-22.43, 48.18, .57, .24),
-    (-22.16, 49.08, .83, .24), (-21.93, 50.34, .62, .22),
-    (-21.58, 51.17, .48, .19), (-21.79, 52.24, .59, .22),
+    (-17.45, 37.79, .58, .14), (-17.28, 40.11, .47, .15),
+    (-17.35, 47.45, .58, .15), (-17.01, 48.56, .40, .13),
+    (-20.83, 50.51, .63, .14), (-21.23, 52.07, .68, .17),
+    (-21.66, 54.63, .45, .14), (-20.12, 56.20, .67, .17),
 )
 
 
-# Darker teal undertones give the glints room to read. Native water remains
-# visible between the soft-edged bands and around the swimming steps.
+# Two tapered lanes leave stretches of bare Terrain water around their
+# edges and keep the decorative color out of the swimming steps.
 BLUE_SHEEN = (
-    ((-20.40, 38.60, .31), (-20.80, 40.60, 2.01), (-20.67, 44.28, 2.88),
-     (-20.36, 47.90, 2.92), (-19.90, 51.22, .41)),
-    ((-18.14, 46.86, .38), (-18.01, 50.87, 2.44), (-17.63, 54.89, 2.83),
-     (-17.12, 58.31, 2.12), (-16.20, 61.43, .29)),
+    ((-19.09, 36.76, .21), (-18.56, 39.03, 1.41), (-18.88, 42.78, 1.27),
+     (-18.98, 46.76, 1.37), (-18.94, 50.16, 2.21), (-18.53, 52.96, 2.56),
+     (-17.76, 56.36, 2.23), (-17.49, 59.35, .20)),
+    ((-22.46, 51.96, .18), (-22.63, 53.97, .90), (-22.01, 56.57, 1.21),
+     (-21.28, 58.44, .88), (-21.24, 59.54, .13)),
 )
 
 
-def build_arrival_canal_reflection(parent, *, item, triangle, neon, smooth):
+def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, neon, smooth):
     surface = item(parent, "Folder", "Arrival sunset water ribbons")
 
     def draw_quad(corners, tint, transparency, name, material):
@@ -58,45 +59,48 @@ def build_arrival_canal_reflection(parent, *, item, triangle, neon, smooth):
         for index, ((ax, az, aw), (bx, bz, bw)) in enumerate(zip(sweep, sweep[1:])):
             for side in (-1, 1):
                 for inner, outer, tint, alpha in (
-                    (0, .50, "235F72", .74), (.50, .79, "317E8B", .83),
-                    (.79, 1, "5295A1", .93),
+                    (0, .39, "225671", .68), (.39, .70, "276881", .76),
+                    (.70, .87, "367B8C", .85), (.87, 1, "5495A4", .91),
                 ):
-                    y = .071
+                    y = .058
                     corners = (
                         (ax + side * aw * inner, y, az), (ax + side * aw * outer, y, az),
                         (bx + side * bw * outer, y, bz), (bx + side * bw * inner, y, bz),
                     )
-                    fade = .045 if index in (0, len(sweep) - 2) else 0
+                    fade = .055 if index in (0, len(sweep) - 2) else 0
                     draw_quad(corners, tint, alpha + fade, "Dusk blue water fold", smooth)
 
     def warm_stroke(rx, rz, width, depth, phase, warmth, core):
-        y = .138
-        depth *= .70
-        shift = sin(phase) * depth * .30
-        left = rx - width / 2
-        right = rx + width / 2
-        lip = (left, y, rz - shift)
-        shoulder = (rx - width * .12, y, rz - depth * .61)
-        tip = (right, y, rz + shift)
-        keel = (rx + width * .17, y, rz + depth * .55)
-        triangle(surface, lip, shoulder, keel, "DB7D39", name="Soft amber ripple edge",
-                 thickness=.012, material=neon, transparency=warmth + .12, shadow=False, collide=False)
-        triangle(surface, shoulder, tip, keel, "F6A34C", name="Soft amber ripple edge",
-                 thickness=.012, material=neon, transparency=warmth + .08, shadow=False, collide=False)
+        # Irregular offsets and a break in the longer streaks follow the
+        # surface waves without drawing a straight row of solid diamonds.
+        y = .094
+        depth *= 1.03 + .16 * sin(phase * 2.04)
+        shear = sin(phase * 1.63) * depth * .24
+        ridge = sin(phase * 2.32) * .09
+
+        def point(u, v, height=y):
+            return rx + u * width, height, rz + v * depth + shear * u
+
+        left, fold, tip = point(-.54, -.11), point(-.18, -.52), point(.51, .05)
+        seam, lip, tail = point(ridge, -.08), point(.21, .50), point(-.35, .21)
+        for corners, pigment, lift in (
+            ((left, fold, seam, tail), "C46C33", .20),
+            ((fold, tip, lip, seam), "EA923E", .02),
+            ((tail, seam, lip, point(-.16, .39)), "DD813F", .14),
+        ):
+            draw_quad(corners, pigment, warmth + lift, "Soft amber ripple edge", neon)
         if not core:
             return
-        y = .152
-        bias = sin(phase * 1.24 + .37) * width * .07
-        triangle(surface,
-                 (rx - width * .38 + bias, y, rz - shift * .44),
-                 (rx + width * .35 + bias, y, rz + shift * .62),
-                 (rx + width * .13, y, rz + depth * .35),
-                 "FFD265" if phase % 3 else "FFE5A7", name="Gold ripple core",
-                 material=neon, transparency=warmth - .18,
-                 thickness=.012, shadow=False, collide=False)
+        glints = ((-.40, .02), (.09, .38)) if phase % 3 else ((-.44, .34),)
+        for index, (start, end) in enumerate(glints):
+            crest = start + (end - start) * .65
+            tint = "FFE8B6" if (phase + index) % 3 else "FFD080"
+            draw_quad((point(start, -.11, .108), point(crest, -.25, .108),
+                       point(end, -.065, .108), point(crest, .14, .108)),
+                      tint, warmth - .07, "Gold ripple core", neon)
 
     for rows, start, end in (
-        (BRIDGE_GLINTS, .21, .50), (BOARD_GLINTS, .29, .48), (SIDE_GLINTS, .59, .75),
+        (BRIDGE_GLINTS, .45, .57), (BOARD_GLINTS, .63, .42), (SIDE_GLINTS, .67, .76),
     ):
         for index, (x, z, width, depth) in enumerate(rows):
             progress = index / (len(rows) - 1)
@@ -104,4 +108,22 @@ def build_arrival_canal_reflection(parent, *, item, triangle, neon, smooth):
             if index in (0, len(rows) - 1):
                 warmth += .07
             glint = rows is not SIDE_GLINTS and index % 5 != 4
-            warm_stroke(x, z, width, depth, index + 1, warmth, glint)
+            widen = 1 + .13 * sin(index * 2.73 + .72)
+            warm_stroke(x, z, width * widen, depth, index + 1, warmth, glint)
+
+    # The original canal ripple texture breaks up the amber streaks as they
+    # scroll. It shares the existing client distance checks.
+    reflected_light = item(surface, "Folder", "Soft lantern reflections")
+    lantern_tints = "0 .90 .50 .25 0 .46 1 .72 .37 0 .73 1 .87 .62 0 1 .95 .57 .31 0 "
+    for start, end, widths, texture_length, alpha in (
+        ((-18.99, .078, 37.30), (-18.49, .084, 44.42), (.74, 1.61), 2.06, .29),
+        ((-18.75, .089, 39.01), (-18.57, .081, 46.75), (.46, 1.20), 1.44, .47),
+        ((-18.53, .081, 46.12), (-17.91, .088, 50.94), (1.22, 1.91), 2.22, .41),
+        ((-16.88, .089, 53.45), (-15.85, .086, 58.31), (.76, 1.68), 1.77, .22),
+        ((-16.60, .078, 53.99), (-15.89, .084, 58.61), (.46, 1.41), 1.17, .45),
+    ):
+        fade = f"0 1 0 .27 {alpha} 0 .66 {alpha} 0 1 1 0 "
+        water_beam(reflected_light, "Canal surface ripple", start, end, widths, lantern_tints,
+                   fade, texture_length, light_influence=.05, light_emission=.54)
+    for anchor in reflected_light.findall("Item[@class='Part']"):
+        prop(anchor, "bool", "CastShadow", False)

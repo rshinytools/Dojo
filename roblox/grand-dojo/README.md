@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.221, follow **Festival Canal** past the arrival board toward the **red footbridge**. Use the submerged steps at **Lotus Inlet** for the short swim back to the promenade.
+
+Festival Canal has staggered amber highlights and five soft scrolling reflections laid out over measured Terrain water. Deeper teal lanes show between highlights under the red footbridge and behind the arrival board. Six low shoreline beds use moss, grasses, cattails and flowers from the existing foliage collection. The layers use shadow-free, noncolliding geometry and five textured Beams.
+
+Exact v0.221 desktop Studio Play opened and closed Lantern Relay directions from spawn, swam out through both canal exits, walked the dry inlet lane and crossed the red footbridge in both directions. The Galaxy A06 landscape simulator showed the new canal and touch controls. Both clients loaded the existing ripple texture and animated the five new beams. Terrain samples, all colliders, lights, gameplay scripts and all 14 district links match the previous build. Physical-device and published streaming checks remain open.
+
 In v0.220, look from the **Festival Plaza** spawn toward **Trophy Hall** and the saddle above Reedfall. Follow the right-hand edge of the promenade past the new slate planter.
 
 The Grand Dojo arrival has higher rose and mauve mountain crests behind Lantern Relay, Trophy Hall and the Fighting Ring. Sharp summits and overlapping shoulders add visible depth while the saddle leaves the painted sun visible. A low slate planter brings fifteen ivory seed heads and the existing cream pampas closer to the lower-right edge of the normal spawn view.
