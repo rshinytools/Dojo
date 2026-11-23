@@ -74,7 +74,8 @@ def build_hall_arrival_details(hall, *, item, prop, part, beam, slate, wood, met
 
         # Dress the existing stair pier faces without extending into the
         # central 13-stud stair, the western approach, or the garden ramp.
-        for y, z in ((.91, -21.25), (2.21, -24.71), (3.89, -29.15)):
+        middle_z = -26.06 if side < 0 else -24.71
+        for y, z in ((.91, -21.25), (2.21, middle_z), (3.89, -29.15)):
             x = side * 7.43
             trim("Stair pier split slate face", (x, y - .55, z + .685),
                  (1.37, .88, .14), "887583", slate)

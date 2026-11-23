@@ -54,6 +54,7 @@ from hall_arrival_mass import (build_hall_arrival_mass, build_hall_crown_roof,
 from hall_valley_facades import build_hall_valley_facades
 from hall_garden_spill import build_hall_garden_spill
 from hall_inner_portal import build_hall_inner_portal
+from hall_split_stair import build_hall_split_stair
 from hall_stair_court import build_hall_stair_court
 from harbor_arrival_hall import build_harbor_arrival_hall
 from harbor_cargo_hoist import build_harbor_cargo_hoist
@@ -2580,32 +2581,15 @@ for side in (-1,1):
         garden_prop(hall,"meadowFlowers",(x+offset+.32,3.50,-28.91),.26,51,"FFC09D")
     garden_prop(hall,"bankRock",(x+side*1.98,.16,-26.6),.30,71,"827971")
     garden_prop(hall,"mossFlowers",(x+side*2.33,.17,-27.4),.26,13,"A6A375")
-stair_first=len(hall)
-stair(hall,0,-21.76,13,8,height=.445,depth=1.12)
-hall_treads=item(hall,"Model","Trophy Hall dressed stair courses")
-prop(hall_treads,"token","LevelOfDetail",4)
-for index, tread in enumerate(list(hall)[stair_first:-1]):
-    top=.445*(index+1)
-    z=-21.76-index*1.12
-    tint=("BA9A88","C2A391","B79989","C6A894")[index%4]
-    tread.find("Properties/Color3uint8[@name='Color3uint8']").text=str(0xFF000000+int(tint,16))
-    prop(tread,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
-    # A warm bevel highlights the rise while the original block carries every tread.
-    for segment,(left,right) in enumerate(zip((-6.43,-2.76,2.94),(-2.81,2.89,6.43))):
-        x=(left+right)/2
-        nosing=part(hall_treads,"Sunlit hall stair edge",(x,top-.060,z+.597),
-                    (right-left,.115,.046),("D5B19A","CFA88F","DBBDA4")[(index+segment)%3],
-                    material=LIMESTONE,collide=False)
-        prop(nosing,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
-        prop(nosing,"bool","CastShadow",False)
-        face=part(hall_treads,"Hewn hall riser panel",(x,top-.232,z+.592),
-                  (right-left,.218,.021),("907982","9B827F","9C8588")[(index+2*segment)%3],
-                  material=SLATE,collide=False)
-        prop(face,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
-        prop(face,"bool","CastShadow",False)
+build_hall_split_stair(hall,item=item,prop=prop,part=part,garden_shelf=garden_shelf,
+                       garden_prop=garden_prop,standing_lantern=store_standing_lantern,
+                       slate=SLATE,sandstone=LIMESTONE,grass=GRASS_MAT,
+                       variant_field=MATERIAL_VARIANT_FIELD,stone_variant=PROMENADE_MORTAR,
+                       trim_variant=PROMENADE_STONE)
 for side in (-1,1):
     x=side*7.43
-    foundation=((x,.91,-21.25),(x,2.21,-24.71),(x,3.89,-29.15))
+    middle_z=-26.06 if side<0 else -24.71
+    foundation=((x,.91,-21.25),(x,2.21,middle_z),(x,3.89,-29.15))
     for position, next_position in zip(foundation,foundation[1:]):
         beam(hall,"Slate stair coping",position,next_position,.38,"C2A391")
     for px,py,pz in foundation:

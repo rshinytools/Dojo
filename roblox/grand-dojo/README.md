@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.239, enter **Trophy Hall** from Festival Plaza, the west canal bridge or the east garden ramp. Trophy Hall rises from Festival Plaza through a wider lower flight and a 6.14-stud-long landing to the upper porch. Ten slate treads frame the approach, with a short ramp from the red west bridge to the landing and the east garden ramp directly to the porch. Five stepped planting beds, two amber lanterns and 30 placements from the owned foliage sets lead toward the entrance.
+
 In v0.238, open a **City Map** board, then choose **Eagle Eye**. Each of the six district boards opens the same City Map. Its single Eagle Eye button shows a still Roblox Studio aerial of all six districts, the Grand Dojo, roads, mountains and the harbor. The character stays in place. Back to map returns to the active route planner. Eagle Eye requests one 885 × 497 image when opened and removes its UI image on close. The implementation uses the existing gameplay camera and requires no extra city streaming, server requests, world geometry or startup preload. If loading fails, the normal City Map reopens.
 
 In v0.237, follow **Plum Lantern Walk** from the Lantern Circuit road to the lantern pavilion and back down to the main road.
