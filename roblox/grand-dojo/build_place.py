@@ -64,6 +64,7 @@ from lantern_garden_walk import GARDENER, build_lantern_garden_walk
 from lantern_market_crossing import build_lantern_market_crossing
 from lantern_market_frontage import build_lantern_market_frontage
 from lantern_market_goods import build_lantern_market_goods
+from lantern_tower_ramp import build_lantern_tower_ramp
 from lantern_town_gate import build_lantern_town_gate
 from meltwater_bridge_art import build_meltwater_bridge_art
 from meltwater_high_walk import (MARKET_OPENING as MELTWATER_MARKET_OPENING,
@@ -1853,7 +1854,11 @@ for x,z,width,depth,pink,root_offset,yaw,scale,height_scale in (
     garden_shelf(garden,x,1.02,z,width,depth,.89,"877983",SLATE)
     garden_shelf(garden,x,1.46,z,width-.70,depth-.70,.50,"5B7143",GRASS_MAT)
     garden_shelf(garden,x+width*root_offset,2.10,z-depth*.1,width*.56,depth*.56,.70,"66814B",GRASS_MAT)
-    showcase_tree(garden,x+width*root_offset,z-depth*.1,pink,scale,yaw,2.10,
+    # Keep the west blossom rooted in the upper planter, clear of the tower ramp.
+    tree_x,tree_z=x+width*root_offset,z-depth*.1
+    if x==-55:
+        tree_x,tree_z=tree_x-.60,tree_z-2.05
+    showcase_tree(garden,tree_x,tree_z,pink,scale,yaw,2.10,
                   height_scale=height_scale,
                   relief_crown=x==-41.2,crown_turn=-55 if x==-41.2 else 0)
     understory=item(garden,"Folder","Garden island understory")
@@ -2687,7 +2692,7 @@ for side in (-1,1):
     garden_prop(balcony,"meadowFlowers",(tower_x+side*7.03,6.72,22.62),.33,27*side,"FFD98D")
     garden_prop(balcony,"mossFlowers",(tower_x+side*6.92,6.68,21.94),.17,36*side,"EAA5A3")
     garden_shelf(balcony,tower_x+side*7.05,6.72,22.25,1.18,1.92,.32,"816C72",SLATE,collide=False)
-for left,right in (((-68.9,20.44),(-68.9,24.84)),((-53.70,20.44),(-53.70,24.84)),
+for left,right in (((-68.9,20.44),(-68.9,24.84)),
                    ((-68.9,24.84),(tower_stair_x-tower_stair_width/2,24.84)),
                    ((tower_stair_x+tower_stair_width/2,24.84),(-53.70,24.84))):
     for height in (.39,1.27):
@@ -2846,7 +2851,7 @@ sign(lookout,"GARDEN LOOKOUT",-69,4.25,46.1,7,1.19,tint="315F54")
 for x,z in [(-79,44),(-59,44),(-79,34),(-59,34)]:
     part(lookout,"Carved railing post",(x,3.12,z),(.78,1.44,.78),RED)
     lamp(lookout,x,4.20,z,scale=.69)
-for start,end in [((-79,3.35,44),(-79,3.35,34)),((-59,3.35,44),(-59,3.35,34)),
+for start,end in [((-79,3.35,44),(-79,3.35,34)),((-59,3.35,44),(-59,3.35,38.8)),
                   ((-79,3.35,34),(tower_stair_x-tower_stair_width/2,3.35,34)),
                   ((tower_stair_x+tower_stair_width/2,3.35,34),(-59,3.35,34))]:
     beam(lookout,"Lookout rail",start,end,.25,DARK)
@@ -3379,6 +3384,10 @@ def path_edge(path,distance):
     return edge
 
 
+build_lantern_tower_ramp(relay_skyline,item=item,prop=prop,part=part,triangle=triangle,
+                        beam=beam,path_edge=path_edge,sign=sign,lantern=arrival_hanging_lantern,
+                        cedar=WOOD_PLANK,slate=SLATE,metal=METAL,cedar_variant=LANDMARK_CEDAR,
+                        variant_field=MATERIAL_VARIANT_FIELD)
 build_relay_runner(relay,item=item,prop=prop,triangle=triangle,path_edge=path_edge,
                    slate=SLATE,limestone=LIMESTONE,stone_variant=PROMENADE_STONE,
                    slate_variant=PROMENADE_MORTAR,variant_field=MATERIAL_VARIANT_FIELD)
@@ -7385,7 +7394,7 @@ resident("Lantern Tender","The gold trail marks the relay. Follow jade stones to
          -48,.15,28,"BD936F","773E63",1.02,177,species="hare")
 resident("Lantern Gardener","The garden walk climbs to Garden Lookout. Follow the lower stones toward the red bridge and Lantern Relay.",
          *GARDENER,"A77B57","69794D",.49,7,species="red panda")
-resident("Tower Keeper","You can watch the relay gates from here. The stairs lead back to Garden Lookout.",
+resident("Tower Keeper","You can watch the relay gates from here. Take the cedar ramp or the stairs back to Garden Lookout.",
          -55.55,tower_deck,22.71,"BC744E","745879",.48,170,species="red panda")
 resident("Orchard Keeper","The lower road leads to Grand Dojo. Take the west ramp and follow the lanterns to Lantern Circuit.",
          *ORCHARD_KEEPER,"B57D64","705884",.48,180,species="red panda")

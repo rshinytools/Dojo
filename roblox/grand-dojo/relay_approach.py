@@ -1,13 +1,15 @@
-"""Warm paving from the plaza to the first two Lantern Relay gates."""
+"""Warm paving from the plaza through the fourth Lantern Relay gate."""
 
 from math import ceil, hypot
 
 
 # Keep the runner west of the event board and join the centers of the bends.
-# The original sandstone tiles remain the walkable surface.
+# Taper the far end to keep both borders on the existing sandstone tiles.
 RELAY_RUNNER = (
-    (-37.60, 41.35), (-39.05, 36.20), (-38.30, 31.30),
-    (-42.00, 22.00), (-43.56, 14.20), (-45.00, 7.00), (-46.52, 5.80),
+    (-37.60, 41.35, 3.47), (-39.05, 36.20, 3.47), (-38.30, 31.30, 3.47),
+    (-42.00, 22.00, 3.47), (-43.56, 14.20, 3.47), (-45.00, 7.00, 3.47),
+    (-46.52, 5.80, 3.47), (-59.00, -4.00, 3.18), (-63.00, -20.00, 2.80),
+    (-62.51, -22.20, 2.80),
 )
 
 
@@ -25,11 +27,14 @@ def build_relay_runner(parent, *, item, prop, triangle, path_edge, slate, limest
         first=len(runner)
         for face in ((a,b,c),(a,c,d)):
             triangle(runner,*face,tint,name=label,material=material,thickness=.050,shadow=False)
-        for wedge in list(runner)[first:]:
+        for wedge in runner[first:]:
             prop(wedge,"string",variant_field,variant)
 
-    path=[(x,.165,z) for x,z in RELAY_RUNNER]
-    west,east=(path_edge(path,side*3.47) for side in (-1,1))
+    path=[(x,.165,z) for x,z,_ in RELAY_RUNNER]
+    west,east=([
+        interpolate(center,edge,half_width)
+        for center,edge,(_,_,half_width) in zip(path,path_edge(path,side),RELAY_RUNNER)
+    ] for side in (-1,1))
     rose=("B99582","C7A08A","BE9783","CAA590","B69387","C19B88")
     row_index=0
     for index,(left,following_left,right,following_right) in enumerate(zip(west,west[1:],east,east[1:])):

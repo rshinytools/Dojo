@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.224, take the garden stairs to **Garden Lookout** next to Lantern Relay. Follow the **Tower Ramp** sign or the original stone steps to the balcony. Talk to the Tower Keeper, then return either way.
+
+A guarded cedar ramp climbs 4.14 studs from Garden Lookout to the Lantern Tower balcony. The original ten stone steps also reach the 6.56-stud balcony. Two amber fixtures mark the turns, a mounted plaque points to the ramp, and a blossom tree sits back from the walking lane. Rose sandstone flagstones continue 34.6 studs through the fourth Lantern Relay gate. The new pavers are decorative and the local light count is unchanged.
+
+Exact v0.224 desktop Studio walked up and down both the ramp and stairs, reaching all 18 waypoints per leg without jumping or becoming airborne. The Tower Keeper gave directions from the balcony. The Studio harness clicked the official Relay Start button, moved through all seven gates in 7.3 seconds, and confirmed Lantern Keeper on its Trophy Hall pedestal. The Galaxy A06 landscape simulator showed the touch HUD and completed both ramp directions using scripted movement. All six districts and 14 mapped links remain in the place. Physical touch, streaming performance and published saving remain open.
+
 In v0.223, look toward **Fighting Ring** from the Festival Plaza, then walk east to the **City Map**. Choose a district to highlight the walking route.
 
 The City Map moved about 12 studs east onto level sandstone. A low Promenade Garden direction strip fits under the chart, and lower rocks, seed heads and beds open the approach to the Fighting Ring. The map sits partly at the edge of the default desktop view and is readable on the east-side walk.
