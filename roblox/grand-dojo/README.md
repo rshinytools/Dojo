@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.229, follow the north road into **Frostglass Gardens**, then climb to **Glacier Lantern Walk**. Look northwest through the pavilion and east along Mistline Crossing.
+
+The lower western slope of the Rose horizon range moved back from Frostglass Gardens. The original crest still frames the Grand Dojo sunset. Two snow shoulders create a lower layer around Frostglass Gate and Glacier Lantern Walk, with the existing purple ridges behind them. Only cosmetic mountain parts changed.
+
+Exact v0.229 desktop Studio captured the gate, the Glacier Lantern pavilion, the Ice Garden and the default Grand Dojo arrival. The sun stayed clear in five sampled arrival rays. The number of sampled rays where the Rose horizon was the nearest landscape fell from 49 to 29 at Frostglass Gate and from 53 to 23 at Glacier Lantern Walk. Reedguard walked both 48-waypoint legs of Glacier Lantern Walk, both 64-waypoint legs of Mistline Crossing, and the Upper Market road in both directions. Six districts and 14 map connections remain. Desktop and Galaxy A06 landscape Studio simulation loaded the new mesh and its color texture. The high ridge still reads steep from the north road. Published asset access and physical device performance remain open.
+
 In v0.228, walk **Copper Kiln Walk** from **Potters’ Yard** to **Glaze Terrace**. Look out from the pavilion and down into the eastern ravine.
 
 Three staggered clay terraces now frame the ravine outside Copper Kiln Walk, rising to 10.4, 15.8 and 20.8 studs. Warm sandstone banks, planted crowns and dry-slope cedars create a foreground, middle shelf and taller rear shoulder. Three screened meshes from the free Desert Rocks Pack are used in four tinted rock parts. The added slopes are scenery. The route retains its existing floor and guardrails.

@@ -149,7 +149,7 @@ def place_beyond_towns(crest, scale, west_scale, saddle):
 
 def build_arrival_distant_ridges(landscape, *, item, prop, triangle, smooth):
     for name, crest, relief, depth, height, scale, west_scale, saddle, reach, toe, extension, west, east in (
-        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 2.12, 1., 21, 192, -520, 239,
+        ('Rose horizon range', FAR_CREST, FAR_RELIEF, .365, .246, 2.12, 1., 21, 192, -520, 126,
          (149, 121, 143), (195, 145, 145)),
         ('Mauve saddle range', MIDDLE_CREST, MIDDLE_RELIEF, .379, .254, 1.96, 1.96, 34, 144, -447, 0,
          (117, 100, 129), (163, 120, 132)),

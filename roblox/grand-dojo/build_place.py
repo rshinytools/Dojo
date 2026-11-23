@@ -43,6 +43,7 @@ from crown_ravine_gardens import build_crown_ravine_gardens
 from district_gateways import build_district_gateway
 from festival_bridge_details import build_festival_bridge_details
 from frostglass_arrival_hall import build_frostglass_arrival_hall
+from frostglass_snow_ridges import build_frostglass_snow_ridges
 from frostglass_glacier_walk import build_frostglass_glacier_walk
 from frostglass_reflectors import build_frostglass_reflectors
 from frostglass_store_planting import build_frostglass_approach_planting, build_frostglass_store_planting
@@ -6312,6 +6313,7 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
                                       metal=METAL,neon=NEON,cedar_variant=LANDMARK_CEDAR,
                                       variant_field=MATERIAL_VARIANT_FIELD)
         build_frostglass_store_planting(town,item=item,prop=prop,part=part,vector=vector,asset=asset)
+        build_frostglass_snow_ridges(town,item=item,prop=prop,part=part,vector=vector,asset=asset,color=color)
         ice=item(town,"Model","Frostglass reflecting garden")
         prop(ice,"token","LevelOfDetail",4)
         part(ice,"Frozen reflecting pond",(x,y+.041,z+9),(13,.08,10.5),"A0C9DE",collide=False,material=GLASS)
