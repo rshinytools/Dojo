@@ -6,6 +6,12 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.216, follow **Harbor Sky Pier** to the **Sea Lantern Lookout**. Turn out to sea to see Windcut arch and the reefs beyond the sailboat.
+
+The Sea Lantern view now runs from the compass deck and batten-sail skiff to Windcut sea arch, layered low reefs, four small cedar crowns and the distant islets. Three subtle tide glints use the existing canal texture. The arch and reefs are visual-only and add no lights. Exact v0.216 desktop Studio Play walked Harbor Sky Pier and the Tideharbor–Cinder Terraces road in both directions. Reedguard swam across the original east and south limits and returned to Harbor Pier each time. All six districts, 14 mapped links and existing route colliders are intact.
+
+Compared two temporary native water extents in Studio. The smaller layout moved the hard diagonal beyond the foreground and gave the arch and reefs the same wave surface as the harbor. Six grid-aligned water-only fills extend to x=980, z=528 south and z=-548 north. The existing painted sea continues at the horizon. Exact desktop ray samples confirmed the existing near water and measured new offshore water at about 0.42 studs. Studio captured the same lookout in the Galaxy A06 landscape simulator. Device performance and published streaming remain to be measured. Compared a $2.99 Lagoon Natural Rock Arches pack, a free Sea Stack and several free water accents. The authored arch and reefs fit the shoreline and reuse the existing ripple texture. No additional asset purchase was needed.
+
 In v0.215, approach Tideharbor from the **Grand Dojo causeway**. Continue to **Beacon Terrace**, follow **Harbor Sky Pier**, then take the signed ramp through **Sea Lantern Pavilion** to the compass deck.
 
 The west causeway now arrives at a taller Tideharbor gate with a curved brass-edged teal sign, swept indigo roof and two amber lanterns. The return reads Grand Dojo City, and painted cedar backs make the nearby route signs quieter from the causeway. A guarded 4.10-stud climb from Sea Lantern Pavilion leads to the compass deck and amber beacon at 22.45 studs above the city datum. Exact v0.215 desktop Studio Play walked both ways through the gate, along the new stair-free lookout spur, around Harbor Sky Pier between Beacon Terrace and Lantern Quay, and across the Tideharbor to Cinder Terraces connection. The six districts and 14 mapped links retain their routes. Terrain and script source are preserved.

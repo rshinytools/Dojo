@@ -32,7 +32,8 @@ def verify_place():
                 "Relay garden Sakura tree", "Trophy Hall upper timber bays",
                 "Fighting Ring canvas tailoring", "Recessed cedar ceiling panels",
                 "Reedfall switchback wayfinding", "Reedfall upper lip foam",
-                "Tideharbor tidal arch", "Sea Lantern Lookout", "Batten-sail harbor boat"}
+                "Tideharbor tidal arch", "Sea Lantern Lookout", "Batten-sail harbor boat",
+                "Windcut sea arch", "Low slate reefs", "Horizon sea fills"}
     seen = set()
     routes = None
     notes = 0

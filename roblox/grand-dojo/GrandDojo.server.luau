@@ -103,6 +103,12 @@ if offshore then
             Enum.Material.Sand)
         terrain:FillBlock(volume.CFrame, volume.Size, Enum.Material.Water)
     end
+    local horizon = offshore:FindFirstChild("Horizon sea fills")
+    if horizon then
+        for _, volume in horizon:GetChildren() do
+            terrain:FillBlock(volume.CFrame, volume.Size, Enum.Material.Water)
+        end
+    end
 end
 
 local gates = relay:WaitForChild("Checkpoints"):GetChildren()

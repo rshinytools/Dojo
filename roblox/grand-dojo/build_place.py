@@ -93,6 +93,7 @@ from ring_gate_standard import build_ring_gate_standard
 from saltwind_bluff_art import FACE_TINTS as SALTWIND_SLATE, build_saltwind_bluff_art
 from saltwind_high_walk import (NAME as SALTWIND_WALK, POINTS as SALTWIND_WALK_POINTS,
                                 SALTWIND_OPENING, build_saltwind_high_walk)
+from south_channel_arch import build_south_channel_arch
 from south_ridge_trail import build_south_ridge_trail
 from south_valley_backdrop import build_south_valley_backdrop, hillside_cedar, ridge_surface_height
 from tidebank_landing import build_tidebank_landing
@@ -6068,6 +6069,9 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
         build_coastal_horizon(offshore,item=item,prop=prop,part=part,triangle=triangle,slate=SLATE,smooth=SMOOTH)
         build_tideharbor_sea_stacks(offshore,item=item,part=part,prop=prop,vector=vector,asset=asset,
                                    variant_field=MATERIAL_VARIANT_FIELD)
+        build_south_channel_arch(offshore,item=item,prop=prop,part=part,triangle=triangle,
+                                 horizontal_water_beam=horizontal_water_beam,
+                                 slate=SLATE,grass=GRASS_MAT,wood=WOOD_PLANK)
     if index==2:
         build_wind_court(town,x,y,z)
         build_pinecrest_trail(town,item=item,prop=prop,part=part,triangle=triangle,path_edge=path_edge,

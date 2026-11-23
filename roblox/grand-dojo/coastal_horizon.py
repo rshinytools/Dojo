@@ -13,6 +13,14 @@ SEA_SHORE = (
 SEA_BANDS = ((1610, "A6B8BA"), (2630, "A3B1B7"),
              (3970, "9DAAB3"), (5500, "98A3AD"))
 
+# These fills share the offshore apron water height. The south edge follows
+# the visual shore in steps, with a cell of overlap at each join.
+HORIZON_WATER = (
+    (248, 980, 168, 220), (264, 980, 216, 296),
+    (288, 980, 292, 400), (318, 980, 396, 528),
+    (640, 980, -296, 168), (456, 980, -548, -292),
+)
+
 ROCK_OUTLINE = (
     (-.49, -.19), (-.32, -.43), (-.03, -.49), (.23, -.45),
     (.46, -.27), (.52, .03), (.34, .37), (.09, .49),
@@ -98,6 +106,13 @@ def _build_headland(parent, origin, dimensions, bearing, shade, triangle, slate)
 
 def build_coastal_horizon(offshore, *, item, prop, part, triangle, slate, smooth):
     """Continue the visible sea with lower surfaces and distant landforms."""
+    fills = item(offshore, "Folder", "Horizon sea fills")
+    for index, (west, east, north, south) in enumerate(HORIZON_WATER, 1):
+        extent = part(fills, f"Horizon water extent {index}",
+                      ((west + east) / 2, -2, (north + south) / 2),
+                      (east - west, 4.8, south - north), "28859C",
+                      collide=False, transparency=1)
+        prop(extent, "bool", "CastShadow", False)
     sea = item(offshore, "Folder", "Continuous coastal sea")
     _build_sea(sea, part, prop, triangle, smooth)
 
