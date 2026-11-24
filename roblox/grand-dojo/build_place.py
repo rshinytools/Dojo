@@ -83,7 +83,7 @@ from orchard_high_walk import (ASCENT as ORCHARD_ASCENT, DESCENT as ORCHARD_DESC
                                 ROAD_OPENING as ORCHARD_ROAD_OPENING, build_orchard_high_walk)
 from plum_lantern_walk import NAME as PLUM_LANTERN_WALK, PATH as PLUM_LANTERN_PATH, build_plum_lantern_walk
 from orchard_road_terraces import build_orchard_road_terraces
-from pinecrest_trail import build_pinecrest_trail
+from pinecrest_trail import RIDGE_WIDTH, WIND_LOOKOUT_DECK, build_pinecrest_crossing, build_pinecrest_trail
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from skywalk_foothill import build_skywalk_foothill
@@ -3364,7 +3364,7 @@ def road_sign(parent, origin, destination, label, tint, *, width=8, finished_bac
     lamp(parent,x,y+5.63,z,scale=.52)
 
 
-def scenic_walk(parent, label, start, end, tone, rail_tint, *, west_entry=False, rear_entry=False):
+def scenic_walk(parent, label, start, end, tone, rail_tint, *, west_entry=False, rear_entry=False, rear_opening=0):
     lookout=item(parent,"Model",label)
     prop(lookout,"token","ModelStreamingMode",1)
     route(lookout,"Lookout approach",[start,end],5.20,tone)
@@ -3377,7 +3377,12 @@ def scenic_walk(parent, label, start, end, tone, rail_tint, *, west_entry=False,
         if side>0 or not west_entry:
             beam(lookout,"Lookout side rail",(px,y+1.08,z-4.82),(px,y+1.08,z+.62),.30,rail_tint,collide=True)
         lamp(lookout,px,y+1.63,z-4.82,scale=.56)
-    if rear_entry:
+    if rear_opening:
+        for side in (-1, 1):
+            beam(lookout,"Lookout rear rail",
+                 (x+side*3.82,y+1.08,z-4.82),(x+side*rear_opening/2,y+1.08,z-4.82),
+                 .30,rail_tint,collide=True)
+    elif rear_entry:
         sign(lookout,label,x+3.68,y+2.18,z-4.67,4.60,1.19,tint=rail_tint)
     else:
         beam(lookout,"Lookout rear rail",(x-3.82,y+1.08,z-4.82),(x+3.82,y+1.08,z-4.82),.30,rail_tint,collide=True)
@@ -6322,16 +6327,23 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
                      material=SLATE,collide=False)
             garden_prop(cliff,"rockVine",(center+3*side,18.63,front+1.12),.68,180)
             garden_prop(cliff,"bankRock",(center,23.37,front+1.40),.27,48+side*27,"887C8F")
-        wind=scenic_walk(town,"Wind lookout",(x-28.2,y,z+5),(x-28.2,y+5.5,z-25),"A18EAB",accent)
-        for dx in (-2.62,0,2.62):
-            part(wind,"Wind bell post",(x-28.2+dx,y+7.95,z-29.1),(.39,4.9,.41),"625377",collide=False)
-        part(wind,"Chime beam",(x-28.2,y+10.35,z-29.1),(6.29,.44,.60),"8B6482",collide=False)
-        for idx,dx in enumerate((-1.77,-.61,.61,1.77)):
-            length=1.28+idx*.31
-            part(wind,"Brass wind chime",(x-28.2+dx,y+10.08-length/2,z-29.1),
+        wind=scenic_walk(town,"Wind lookout",(x-28.2,y,z+5),WIND_LOOKOUT_DECK,
+                         "A18EAB",accent,rear_opening=RIDGE_WIDTH)
+        bell_x,bell_z=x-24.49,z-26.82
+        for dz in (-1.48,1.48):
+            part(wind,"Wind bell post",(bell_x,y+7.95,bell_z+dz),(.39,4.9,.41),"625377",collide=False)
+        part(wind,"Chime beam",(bell_x,y+10.35,bell_z),(.52,.44,3.48),"8B6482",collide=False)
+        for idx,dz in enumerate((-1.03,-.34,.34,1.03)):
+            length=1.12+idx*.23
+            part(wind,"Brass wind chime",(bell_x,y+10.08-length/2,bell_z+dz),
                  (length,.34,.34),"F0C485",shape=2,roll=90,collide=False)
         for px,pz in ((x-19,z-24),(x+23,z-24),(x+22,z-4)):
             garden_prop(wind,"bankRock",(px,y,pz),.49,39,"9495BB")
+        build_pinecrest_crossing(town,item=item,prop=prop,part=part,triangle=triangle,path_edge=path_edge,
+                                 beam=beam,sign=sign,swept_roof=swept_roof,festival_lantern=festival_lantern,
+                                 garden_shelf=garden_shelf,garden_prop=garden_prop,slate=SLATE,cedar=WOOD_PLANK,
+                                 rock=ROCK,grass=GRASS_MAT,fabric=FABRIC,cedar_variant=LANDMARK_CEDAR,
+                                 variant_field=MATERIAL_VARIANT_FIELD)
     elif index==3:
         build_frostglass_arrival_hall(town,x,y,z,item=item,prop=prop,part=part,beam=beam,
                                       swept_roof=swept_roof,festival_lantern=festival_lantern,

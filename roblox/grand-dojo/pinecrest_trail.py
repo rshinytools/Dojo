@@ -10,6 +10,14 @@ PINECREST_PATH = (
 )
 PINECREST_WIDTH = 5.20
 PINECREST_DECK = (-24.00, 34.00, -292.10)
+WIND_LOOKOUT_DECK = (-6.20, 30.50, -290.00)
+RIDGE_WIDTH = 5.20
+RIDGE_PATH = (
+    (-6.20, 30.50, -294.55), (-6.20, 30.50, -295.10),
+    (-6.20, 31.40, -303.80), (-14.25, 32.19, -303.80),
+    (-14.25, 33.45, -291.10), (-17.70, 34.00, -291.10),
+    (-18.10, 34.00, -291.10),
+)
 
 
 def build_pinecrest_trail(town, *, item, prop, part, triangle, path_edge, beam, sign,
@@ -63,8 +71,14 @@ def build_pinecrest_trail(town, *, item, prop, part, triangle, path_edge, beam, 
         x, y, z = handrail[0]
         handrail[0] = (x-2.58, y, z)
         boundary = dx-side*6.14
-        railing([*handrail, (dx-side*2.50, dy, front), (boundary, dy, front),
-                 (boundary, dy, back), (dx, dy, back)])
+        entry_rail = [*handrail, (dx-side*2.50, dy, front), (boundary, dy, front)]
+        if side == -1:
+            crossing_z = RIDGE_PATH[-1][2]
+            opening = RIDGE_WIDTH / 2
+            railing([*entry_rail, (boundary, dy, crossing_z + opening)])
+            railing([(boundary, dy, crossing_z - opening), (boundary, dy, back), (dx, dy, back)])
+        else:
+            railing([*entry_rail, (boundary, dy, back), (dx, dy, back)])
 
         inner = path_edge(PINECREST_PATH, side*(half+.10))
         middle = path_edge(PINECREST_PATH, side*4.85)
@@ -113,3 +127,104 @@ def build_pinecrest_trail(town, *, item, prop, part, triangle, path_edge, beam, 
          "AF7972",material=wood)
     for x in (shelter_x-1.95,shelter_x+1.95):
         part(trail,"Pinecrest bench foot",(x,dy+.34,shelter_z-2.15),(.42,.68,.85),"8F7C8E",material=slate)
+    sign(trail, "WIND LOOKOUT", dx + 6.02, dy + 1.84, dz - 3.13, 3.06, .59, -90, "624A67")
+
+
+def build_pinecrest_crossing(town, *, item, prop, part, triangle, path_edge, beam, sign,
+                            swept_roof, festival_lantern, garden_shelf, garden_prop,
+                            slate, cedar, rock, grass, fabric, cedar_variant, variant_field):
+    crossing = item(town, "Model", "Pinecrest Crossing")
+    prop(crossing, "token", "ModelStreamingMode", 1)
+    prop(crossing, "token", "LevelOfDetail", 4)
+    bounds = item(crossing, "Folder", "Pinecrest Crossing location bounds")
+    west, east = (path_edge(RIDGE_PATH, side * RIDGE_WIDTH / 2) for side in (-1, 1))
+    deck_tints = ("A87863", "B38369", "B88A70")
+    for index, (a, b, c, d) in enumerate(zip(west, west[1:], east[1:], east)):
+        a, b, c, d = [(x, y - .22, z) for x, y, z in (a, b, c, d)]
+        for p, q, r in ((a, b, c), (a, c, d)):
+            triangle(crossing, p, q, r, deck_tints[index % 3], name="Cedar crossing deck",
+                     thickness=.44, material=cedar, collide=True)
+        start, end = RIDGE_PATH[index:index+2]
+        dx, dy, dz = (v - u for u, v in zip(start, end))
+        board_rows = max(1, ceil(hypot(dx, dz) / 2.05))
+        for row in range(1, board_rows):
+            fraction = row / board_rows
+            edges = [tuple(u + (v - u) * fraction for u, v in zip(p, q))
+                     for p, q in ((a, b), (a, c), (d, c))]
+            edges = [(x, y + .231, z) for x, y, z in edges]
+            for p, q in zip(edges, edges[1:]):
+                groove = beam(crossing, "Cedar board seam", p, q, .034, "946F61")
+                prop(groove, "bool", "CastShadow", False)
+        x, y, z = ((u + v) / 2 for u, v in zip(start, end))
+        volume = part(bounds, "Ridge path volume", (x, y + 2.8, z),
+                      (RIDGE_WIDTH, 5.6, hypot(dx, dy, dz) + 1.20), "FFF0D2",
+                      yaw=degrees(atan2(dx, dz)), pitch=-degrees(atan2(dy, hypot(dx, dz))),
+                      transparency=1, collide=False)
+        prop(volume, "bool", "CastShadow", False)
+    for surface in crossing.findall("Item[@class='WedgePart']"):
+        prop(surface, "string", variant_field, cedar_variant)
+
+    def raised(point, amount):
+        x, y, z = point
+        return x, y + amount, z
+
+    for side in (-1, 1):
+        shoulder = path_edge(RIDGE_PATH, side * (RIDGE_WIDTH / 2 - .12))
+        for index, (a, b) in enumerate(zip(shoulder, shoulder[1:])):
+            for height, size, tint, label in ((-.39, .34, "614C59", "Cedar deck rim"),
+                                              (.64, .18, "80576A", "Lower handrail"),
+                                              (1.48, .24, "9E646F", "Cedar handrail")):
+                beam(crossing, label, raised(a, height), raised(b, height), size, tint, collide=height > 0)
+            if index == 0 or index == len(shoulder) - 2:
+                continue
+            count = max(1, ceil(hypot(b[0] - a[0], b[2] - a[2]) / 3.5))
+            for step in range(count):
+                point = tuple(u + (v - u) * step / count for u, v in zip(a, b))
+                part(crossing, "Crossing railing post", raised(point, .62), (.34, 1.83, .34),
+                     "775061", material=cedar)
+                part(crossing, "Crossing brass cap", raised(point, 1.57), (.46, .12, .46),
+                     "D8AD66", collide=False)
+        festival_lantern(crossing, *raised(shoulder[2 if side < 0 else 3], 1.89), .44, light=False)
+
+    # Terraced rock feet hold up the span and leave the ravine visible between them.
+    for index, (x, top, z) in enumerate(((-6.32, 31.16, -301.30), (-13.78, 32.16, -303.78),
+                                         (-14.55, 33.12, -294.52))):
+        for drop, height, width, depth, tint in ((.44, 2.4, 3.25, 3.12, "9F8D9B"),
+                                                  (2.55, 5.9, 4.45, 4.22, "8F7E91"),
+                                                  (7.92, 8.75, 5.84, 5.51, "807287"),
+                                                  (16.22, 17.8, 7.10, 7.40, "71647B")):
+            support = part(crossing, "Hewn crossing pier", (x, top - drop - height / 2, z),
+                           (width, height, depth), tint, yaw=3 - 4 * index, material=rock, collide=False)
+            prop(support, "bool", "CastShadow", False)
+        shelf_x = x + (2.40 if index % 2 == 0 else -2.40)
+        garden_shelf(crossing, shelf_x, top - 4.50, z + .70, 3.30, 3.06, 1.35, "8A7A8C", slate, collide=False)
+        garden_shelf(crossing, shelf_x, top - 4.34, z + .70, 3.01, 2.67, .29, "73894E", grass, collide=False)
+        garden_prop(crossing, "bankRock", (shelf_x + .45, top - 4.36, z + .62), .27, 22 + index * 30, "9C8A9D")
+        garden_prop(crossing, "meadowGrass", (shelf_x - .37, top - 4.32, z + .95), .21, 45 + index * 55)
+        garden_prop(crossing, "rockVine", (x, top - 4.74, z + 2.42), .49, index * 30)
+
+    x, y, z = WIND_LOOKOUT_DECK
+    portal_z = z - 4.05
+    for side in (-1, 1):
+        post_x = x + side * 3.09
+        part(crossing, "Crossing portal footing", (post_x, y + .29, portal_z),
+             (.75, .58, .78), "9B8A9B", material=slate)
+        part(crossing, "Crossing portal post", (post_x, y + 3.18, portal_z),
+             (.44, 5.82, .48), "925C68", material=cedar)
+        festival_lantern(crossing, post_x, y + 4.04, portal_z + .54, .47, light=False)
+    part(crossing, "Crossing portal lintel", (x, y + 5.78, portal_z),
+         (7.04, .47, .69), "815061", material=cedar, collide=False)
+    swept_roof(crossing, x, y + 6.00, portal_z, 8.42, 3.42, .98, fine_tiles=False)
+    for side in (-1, 1):
+        strut_x = x + side * 2.65
+        beam(crossing, "Crossing sign brace", (strut_x, y + 5.68, portal_z),
+             (strut_x, y + 5.48, portal_z + 1.31), .22, "815061")
+    sign(crossing, "PINECREST CROSSING", x, y + 5.42, portal_z + 1.32, 6.22, .87, 0, "604862")
+
+    for index, (x, y, z) in enumerate((west[2], east[3])):
+        direction = 1 if index == 0 else -1
+        x += direction * .26
+        part(crossing, "Ridge pennant pole", (x, y + 2.15, z), (.13, 2.70, .13),
+             "9C6767", material=cedar, collide=False)
+        part(crossing, "Ridge pennant", (x + direction * .45, y + 2.82, z),
+             (.88, .66, .07), "C6778B" if index == 0 else "E2AE69", material=fabric, collide=False)

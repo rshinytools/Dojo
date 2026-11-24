@@ -359,6 +359,7 @@ local districtDescriptions = {
     ["Skywalk Peaks"] = "Wind Court",
     ["Cloudbreak Wind Trial"] = "Skywalk Peaks",
     ["Pinecrest Trail"] = "Skywalk Peaks",
+    ["Pinecrest Crossing"] = "Skywalk Peaks",
     ["Pinecrest Overlook"] = "Skywalk Peaks",
     ["Frostglass Gardens"] = "Ice gardens",
     ["Pond Terrace"] = "Frostglass Gardens",
@@ -389,6 +390,7 @@ local districtMusic = {
     ["Skywalk Peaks"] = "skywalk",
     ["Cloudbreak Wind Trial"] = "skywalk",
     ["Pinecrest Trail"] = "skywalk",
+    ["Pinecrest Crossing"] = "skywalk",
     ["Pinecrest Overlook"] = "skywalk",
     ["Frostglass Gardens"] = "frostglass",
     ["Pond Terrace"] = "frostglass",
@@ -525,6 +527,10 @@ local function landmarkAt(position)
         end
     end
     local skywalk = towns and towns:FindFirstChild("Skywalk Peaks")
+    local ridgeCrossing = skywalk and skywalk:FindFirstChild("Pinecrest Crossing")
+    if alongMarkedWalk(position, ridgeCrossing, "Pinecrest Crossing location bounds") then
+        return "Pinecrest Crossing"
+    end
     local pinecrest = skywalk and skywalk:FindFirstChild("Pinecrest Trail")
     if pinecrest then
         if aboveDeck(position, pinecrest:FindFirstChild("Pinecrest overlook deck")) then
