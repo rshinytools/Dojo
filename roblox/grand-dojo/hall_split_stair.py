@@ -3,7 +3,7 @@
 from math import atan2, cos, degrees, hypot
 
 
-LOWER_FLIGHT = (-15.18, -18.78, (15.2, 14.7, 13.6), (.48, .84, 1.20))
+LOWER_FLIGHT = (-15.18, -18.78, (18.40, 16.95, 15.0), (.48, .84, 1.20))
 UPPER_FLIGHT = (-24.92, -30.30, (13.0,) * 7,
                 (1.55, 1.90, 2.25, 2.60, 2.95, 3.30, 3.65))
 
@@ -24,7 +24,7 @@ def build_hall_split_stair(hall, *, item, prop, part, garden_shelf, garden_prop,
 
     # The courtyard foundation is lower under the center than at its edges.
     # The approach stone gives both sides of the first tread a level start.
-    stone("South hall approach slab", (0, .045, -14.23), (15.48, .27, 2.00),
+    stone("South hall approach slab", (0, .045, -14.23), (18.66, .27, 2.00),
           "B89A8D", material=sandstone, variant=trim_variant, collide=True)
     landing_depth = LOWER_FLIGHT[1] - UPPER_FLIGHT[0]
     landing_z = (LOWER_FLIGHT[1] + UPPER_FLIGHT[0]) / 2
@@ -49,8 +49,8 @@ def build_hall_split_stair(hall, *, item, prop, part, garden_shelf, garden_prop,
             stone(name, (0, (top-.22)/2, z), (width, top+.22, depth+.06), shade, collide=True)
             for column, (lo, hi) in enumerate(((-.491, -.19), (-.182, .213), (.221, .491))):
                 x, span = (lo+hi)*width/2, (hi-lo)*width
-                stone("Sunlit hall stair edge", (x, top-.058, front+.048), (span, .103, .041),
-                      ("D5B19A", "CFA88F", "DBBDA4")[(index+column)%3],
+                stone("Sunlit hall stair edge", (x, top-.058, front+.051), (span, .126, .075),
+                      ("DFC2AA", "D8B69D", "E6CCB3")[(index+column)%3],
                       material=sandstone, variant=trim_variant)
                 stone("Hewn hall riser panel", (x, top-.193, front+.044), (span, .177, .025),
                       ("907982", "9B827F", "9C8588")[(index+2*column)%3])

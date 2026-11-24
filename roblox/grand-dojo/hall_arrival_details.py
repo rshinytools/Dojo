@@ -1,5 +1,7 @@
 """Dressed stone and carved cedar for the Trophy Hall entrance."""
 
+from hall_arrival_mass import hall_portico_box, hall_portico_y
+
 
 def build_hall_arrival_details(hall, *, item, prop, part, beam, slate, wood, metal,
                                variant_field, ornament_brass):
@@ -7,6 +9,8 @@ def build_hall_arrival_details(hall, *, item, prop, part, beam, slate, wood, met
     prop(detail, "token", "LevelOfDetail", 4)
 
     def trim(name, center, size, tint, material=wood, *, shadow=False):
+        if material in (wood, metal):
+            center, size = hall_portico_box(center, size)
         piece = part(detail, name, center, size, tint, material=material, collide=False)
         prop(piece, "bool", "CastShadow", shadow)
         if material == metal:
@@ -56,22 +60,6 @@ def build_hall_arrival_details(hall, *, item, prop, part, beam, slate, wood, met
             trim("Carved portico capital shoulder", (x, y, -29.46),
                  (width, height, 1.32), tint)
 
-        # The deep reveal follows the original jamb, allowing the amber
-        # lattice flanking the doorway to remain visible from the approach.
-        x = side * 3.52
-        trim("Recessed doorway cedar lining", (x, 7.14, -31.88),
-             (.80, 6.87, .90), "754332")
-        trim("Doorway inner shade", (side * 3.157, 7.18, -31.68),
-             (.075, 6.40, .40), "51352D")
-        trim("Doorway outer lacquer bead", (side * 3.77, 7.17, -31.411),
-             (.20, 6.36, .082), "A65C3B")
-        trim("Recessed doorway honey inlay", (side * 3.30, 7.23, -31.38),
-             (.10, 6.43, .052), "C8955D", metal)
-        trim("Doorway slate shoe", (x, 3.86, -31.86),
-             (.86, .42, .94), "8C7980", slate)
-        trim("Doorway carved capital", (x, 10.59, -31.84),
-             (1.05, .33, .96), "AD6B46")
-
         # Dress the existing stair pier faces without extending into the
         # central 13-stud stair, the western approach, or the garden ramp.
         middle_z = -26.06 if side < 0 else -24.71
@@ -86,19 +74,12 @@ def build_hall_arrival_details(hall, *, item, prop, part, beam, slate, wood, met
             trim("Stair pier warm edge", (x + .43, y - .49, z + .77),
                  (.088, .41, .052), "B29A92", slate)
 
-    trim("Recessed doorway cedar lintel", (0, 10.68, -31.77),
-         (7.91, .46, 1.04), "79422E", shadow=True)
-    trim("Recessed doorway carved header", (0, 10.66, -31.22),
-         (7.74, .28, .10), "A75C38")
-    trim("Recessed doorway honey lintel", (0, 10.48, -31.21),
-         (6.63, .105, .073), "BB8A52", metal)
-
     # The underside alternates shade and warm exposed ends. Nothing projects
     # upward into the entry title or lowers its original portal clearance.
     trim("Portico shaded soffit recess", (0, 11.38, -29.36),
          (25.67, .15, 3.78), "634034")
     for x in (-12.58, -5.11, -2.57, 2.57, 5.11, 12.58):
-        rafter = beam(detail, "Portico exposed soffit rafter", (x, 11.03, -31.04),
-                      (x, 11.30, -26.88), .29, "8C5137", collide=False)
+        rafter = beam(detail, "Portico exposed soffit rafter", (x, hall_portico_y(11.03), -31.04),
+                      (x, hall_portico_y(11.30), -26.88), .29, "8C5137", collide=False)
         prop(rafter, "bool", "CastShadow", False)
         trim("Rafter exposed cedar end", (x, 11.28, -26.73), (.35, .22, .10), "B98256")

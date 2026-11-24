@@ -3,6 +3,46 @@
 from math import atan2, degrees, hypot
 
 
+def hall_portico_y(y):
+    """Raise the portico above the fixed porch without moving its footings."""
+    return y + max(0, y - 3.665) * .26
+
+
+def hall_portico_box(position, size):
+    x, y, z = position
+    width, height, depth = size
+    low = hall_portico_y(y - height / 2)
+    high = hall_portico_y(y + height / 2)
+    return (x, (low + high) / 2, z), (width, high - low, depth)
+
+
+def build_hall_cup_relief(parent, *, item, prop, part, vector, asset, metal, variant_field, brass_variant):
+    """Fit the three screened Golden Trophy meshes to the existing plaque."""
+    cup = item(parent, "Model", "Gold champion cup relief")
+    prop(cup, "token", "LevelOfDetail", 4)
+    # mohasnn's Golden Trophy, Creator Store model 10382755079.
+    body_scale, depth_scale = .154, .049
+    for name, mesh_id, height, source_size, tint in (
+        ("Gold cup pedestal", 10382646067, 4.963987, (38.181744, 9.927988, 38.181747), "D99C40"),
+        ("Gold cup bowl", 10382647396, 25.784378, (33.998817, 47.974209, 33.998810), "FFD06B"),
+        ("Gold cup handles", 10382646513, 36.629318, (48.677387, 13.741339, 2.693493), "FFCE5B"),
+    ):
+        width, rise, depth = source_size
+        mesh = part(cup, name, (0, 19.05 + height * body_scale, -31.44),
+                    (width * body_scale, rise * body_scale, depth * depth_scale), tint,
+                    material=metal, collide=False, class_name="MeshPart")
+        vector(mesh, "Vector3", "InitialSize", ("X", "Y", "Z"), source_size)
+        asset(mesh, "MeshContent", f"rbxassetid://{mesh_id}")
+        prop(mesh, "bool", "CastShadow", False)
+        prop(mesh, "string", variant_field, brass_variant)
+    for side in (-1, 1):
+        edge = part(cup, "Far-gold rim bevel", (side * 1.13, 26.54, -30.665),
+                    (2.09, .103, .14), "FFE19A" if side < 0 else "F4BA5F",
+                    material=metal, collide=False)
+        prop(edge, "bool", "CastShadow", False)
+        prop(edge, "string", variant_field, brass_variant)
+
+
 def build_hall_crown_roof(parent, eave_y, *, item, prop, part, triangle, clay, brass,
                           variant_field, tile_variant, brass_variant):
     """Build a tapered ridge above broad, upswept eaves."""
@@ -233,23 +273,25 @@ def build_hall_arrival_mass(hall, *, item, prop, part, beam, triangle, slate, sa
             layer("Honed stair flank coping", (x,top+.018,(z0+z1)/2-.095),
                   (3.30,.154,depth+.13), "BFA197", sandstone)
 
-        # The visual jambs stay outside the original collision and optical aperture.
+        # The recessed opening aligns with the house posts at x = ±5.27.
         for name,x,y,z,size,tint,material in (
-            ("Portal lacquer cheek",4.95,7.32,-31.82,(1.02,7.21,1.04),"813F2F",cedar),
-            ("Portal honey outer bead",5.50,7.31,-31.24,(.17,6.76,.13),"C3894E",brass),
-            ("Inset portal lacquer lining",3.25,7.29,-32.08,(.10,6.75,1.72),"593525",cedar),
-            ("Portal inner reflected bounce",3.20,7.46,-32.42,(.075,5.88,.78),"B46C43",cedar),
-            ("Dressed doorway stone cheek",4.95,3.94,-31.75,(1.24,.48,1.28),"98828B",slate),
-            ("Honed doorway foot cap",4.95,4.208,-31.75,(1.31,.137,1.34),"BB9889",sandstone),
+            ("Portal lacquer cheek",5.23,8.28,-31.82,(1.13,8.18,1.38),"984B37",cedar),
+            ("Portal honey outer bead",5.72,8.27,-31.06,(.17,7.98,.15),"D5A268",brass),
+            ("Inset portal lacquer lining",4.69,8.16,-32.08,(.13,8.13,1.72),"563223",cedar),
+            ("Portal inner reflected bounce",4.61,8.15,-32.23,(.047,7.72,.90),"C17F54",cedar),
+            ("Dressed doorway stone cheek",5.29,3.95,-31.72,(1.34,.49,1.56),"A6908C",slate),
+            ("Honed doorway foot cap",5.29,4.265,-31.72,(1.37,.14,1.64),"CCAE9C",sandstone),
+            ("Portal carved cedar capital",5.26,12.42,-31.71,(1.58,.37,1.61),"9C563B",cedar),
+            ("Portal amber carved collar",5.26,12.60,-30.94,(1.62,.13,.19),"D1A36D",brass),
         ):
             layer(name,(side*x,y,z),size,tint,material)
 
     # A single broad amber fan is legible across the plaza. The existing lanterns
     # provide light and the center door and display remain fully open.
-    base=11.29
-    face_z=-31.19
-    fan=((-3.37,base),(-2.92,base+.56),(-1.82,base+1.00),(0,base+1.15),
-         (1.82,base+1.00),(2.92,base+.56),(3.37,base))
+    base=12.46
+    face_z=-31.08
+    fan=((-4.58,base),(-3.97,base+.57),(-2.50,base+1.06),(0,base+1.25),
+         (2.50,base+1.06),(3.97,base+.57),(4.58,base))
     for i, ((x0,y0),(x1,y1)) in enumerate(zip(fan,fan[1:])):
         shade="FFD18A" if i in (2,3) else "F6AC5B"
         triangle(mass,(0,base-.026,face_z),(x0,y0,face_z),(x1,y1,face_z),shade,
@@ -261,5 +303,13 @@ def build_hall_arrival_mass(hall, *, item, prop, part, beam, triangle, slate, sa
         rib = beam(mass, "Amber fan transom muntin", (x*.71,base,face_z+.112), (x,y,face_z+.112),
                    .073, "975235")
         prop(rib, "bool", "CastShadow", False)
-    layer("Carved entrance lintel front", (0,11.211,face_z+.12), (7.05,.208,.24), "99553A", cedar)
-    layer("Bronze threshold highlight", (0,11.334,face_z+.236), (7.11,.066,.092), "C38B51", brass)
+    layer("Carved entrance lintel front", (0,base-.105,face_z+.12), (9.34,.224,.24), "99553A", cedar)
+    layer("Bronze threshold highlight", (0,base+.02,face_z+.236), (9.40,.071,.092), "C38B51", brass)
+
+    # Seen through the taller opening, the inset ceiling catches a little
+    # color from the existing lanterns around the otherwise dark reveal.
+    layer("Deep cedar doorway soffit", (0,12.19,-34.72), (9.55,.21,4.55), "704639", cedar)
+    for index, z in enumerate((-33.01,-34.19,-35.37,-36.55)):
+        layer("Recessed soffit cedar rib", (0,12.00,z), (9.43,.23,.22), "8A583D", cedar)
+        layer("Soffit amber lower bead", (0,11.865,z+.114), (9.32,.049,.063),
+              ("B48050","9E6946")[index%2], brass)

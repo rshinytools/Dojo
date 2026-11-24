@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.260, find the raised **Trophy Hall** marquee and walk the widened lower steps. The side routes still join the same entry. The gold cup above the entrance is the Hall crest. An earned **Lantern Keeper** displays on its pedestal inside.
+
 In v0.259, look between the **Trophy Hall** and **Fighting Ring** for the wide pine above **Reedfall**. The stepped planting is clearer from **Reedfall Overlook**. The existing gallery ramp climbs to **Cascade Lookout** and **Reedfall Crown**.
 
 In v0.258, look down from **Clay Lantern Lookout** for the curved coves and slate shelves. The sandy shoreline slopes into the harbor. You can swim between the cove and the existing channel, then walk onto the bank.

@@ -1,19 +1,26 @@
 """A shallow cedar portal that frames the Trophy Hall's recessed doorway."""
 
+from hall_arrival_mass import hall_portico_box, hall_portico_y
+
 
 def build_hall_inner_portal(hall, *, item, prop, part, beam, triangle, slate, wood, metal,
                             neon, variant_field, wood_variant, brass_variant):
     portal = item(hall, "Model", "Trophy Hall front amber portal")
     prop(portal, "token", "LevelOfDetail", 4)
 
+    def raised(position):
+        x, y, z = position
+        return x, hall_portico_y(y), z
+
     def trim(name, position, size, tint, material=wood):
+        position, size = hall_portico_box(position, size)
         piece = part(portal, name, position, size, tint, material=material, collide=False)
         prop(piece, "bool", "CastShadow", False)
         if material in (wood, metal):
             prop(piece, "string", variant_field, wood_variant if material == wood else brass_variant)
 
     def carving(name, start, end, width, tint):
-        piece = beam(portal, name, start, end, width, tint, collide=False)
+        piece = beam(portal, name, raised(start), raised(end), width, tint, collide=False)
         prop(piece, "bool", "CastShadow", False)
 
     for side in (-1, 1):
@@ -69,7 +76,7 @@ def build_hall_inner_portal(hall, *, item, prop, part, beam, triangle, slate, wo
                (2.06, 10.88), (3.68, 10.60), (4.62, sill))
     tones = ("F6BC76", "FFD493", "FFE1AC", "FFE4B5", "FFD898", "FAC481")
     for index, ((x0, y0), (x1, y1)) in enumerate(zip(profile, profile[1:])):
-        triangle(portal, (0, sill - .025, face_z), (x0, y0, face_z), (x1, y1, face_z),
+        triangle(portal, raised((0, sill - .025, face_z)), raised((x0, y0, face_z)), raised((x1, y1, face_z)),
                  tones[index], name="Cream paper front transom pane", thickness=.086,
                  material=neon, shadow=False, collide=False)
         carving("Curved cedar transom casing", (x0, y0, face_z + .062),

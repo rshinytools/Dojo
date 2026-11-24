@@ -53,7 +53,8 @@ from frostglass_glacier_walk import build_frostglass_glacier_walk
 from frostglass_reflectors import build_frostglass_reflectors
 from frostglass_store_planting import build_frostglass_approach_planting, build_frostglass_store_planting
 from hall_arrival_details import build_hall_arrival_details
-from hall_arrival_mass import (build_hall_arrival_mass, build_hall_crown_roof,
+from hall_arrival_mass import (build_hall_arrival_mass, build_hall_crown_roof, build_hall_cup_relief,
+                               hall_portico_box, hall_portico_y,
                                build_hall_upper_bays, build_hall_wing_eave)
 from hall_valley_facades import build_hall_valley_facades
 from hall_garden_spill import build_hall_garden_spill
@@ -2452,10 +2453,10 @@ build_hall_crown_roof(facade,25.07+hall_crown_lift,item=item,prop=prop,part=part
                       variant_field=MATERIAL_VARIANT_FIELD,tile_variant=INDIGO_TILE,brass_variant=ORNAMENT_BRASS)
 
 marquee=item(facade,"Model","Swept Trophy Hall marquee")
-plaque_profile=((-16,12.74),(-13.0,13.55),(-8.0,14.18),(0,14.56),
-                (8.0,14.18),(13.0,13.55),(16,12.74))
-curved_plaque(marquee,0,-28.22,plaque_profile,4.86,"933027","F3B249",rim_height=.24)
-marquee_title(marquee,"TROPHY HALL",0,-28.22,plaque_profile,3.69)
+plaque_profile=((-16,13.89),(-13.0,14.70),(-8.0,15.33),(0,15.71),
+                (8.0,15.33),(13.0,14.70),(16,13.89))
+curved_plaque(marquee,0,-25.76,plaque_profile,4.86,"9D382D","F3B249",rim_height=.24)
+marquee_title(marquee,"TROPHY HALL",0,-25.76,plaque_profile,3.69)
 for side in (-1,1):
     x=side*18.0
     beam(facade,"Forecourt standard bracket",(x,15.48,-30.67),(x,13.91,-28.80),.25,"9C6542")
@@ -2466,16 +2467,9 @@ for side in (-1,1):
     for y in (1.23,7.84):
         part(facade,"Porch brass collar",(x,y,-31.92),(.82,.24,.88),"C89855",collide=False)
     beam(facade,"Bronze entrance bracket",(x,7.13,-31.75),(side*4.87,8.60,-31.75),.27,"C18648")
-    lamp(facade,side*5.75,7.08,-31.26,scale=.85,light=True,warm_pool=True)
-    lantern_window(facade,side*4.25,4.53,-32.52,1.66,6.60,tint="FFB74A")
-    part(facade,"Porch carved jamb",(side*3.27,4.81,-32.49),(.46,7.66,.68),"9D3928",
-         material=WOOD_PLANK,collide=False)
-part(facade,"Porch upper lintel",(0,8.68,-31.91),(12.68,.58,.71),"B9773F",collide=False)
-part(facade,"Glowing porch transom",(0,9.34,-31.55),(6.92,.91,.21),"FFB440",
-     material=NEON,collide=False)
-threshold_light(facade,0,8.28,-30.78,reach=13,spread=106,brightness=1.56,tint="FFC17D")
-for x in (-2.56,-1.28,0,1.28,2.56):
-    part(facade,"Transom muntin",(x,9.34,-31.40),(.11,1,.13),"934D30",collide=False)
+    lamp(facade,side*6.79,7.63,-31.26,scale=.85,light=True,warm_pool=True)
+    lantern_window(facade,side*6.78,5.28,-32.52,2.31,7.57,tint="FFD095")
+threshold_light(facade,0,9.06,-30.78,reach=14,spread=104,brightness=1.56,tint="FFC889")
 for x in (-13.25,13.25):
     lantern_window(facade,x,6.31,-32.59,3.34,6.31)
     part(facade,"Hall lantern fascia",(x,10.22,-31.0),(4.35,.49,.66),"A25934",collide=False)
@@ -2489,23 +2483,7 @@ for factor,z,tint,thickness in ((1,-33.56,"F2A940",.40),(.94,-33.30,"9C3028",.26
     edge=[(x*factor,20.4+(y-20.4)*factor,z) for x,y in crest_outline]
     for left,right in zip(edge,edge[1:]+edge[:1]):
         triangle(crest,(0,20.4,z),left,right,tint,name="Arched cup plaque",thickness=thickness)
-cup_profile=((17.56,1.38),(17.99,1.26),(18.24,.72),(18.52,.37),(18.85,.35),
-             (19.15,.80),(19.55,1.41),(20.12,1.82),(20.84,2.03),(21.67,2.10),(22.02,2.20))
-for (low,width),(high,next_width) in zip(cup_profile,cup_profile[1:]):
-    for side in (-1,1):
-        a=(0,low,-32.88)
-        b=(side*width,low,-33.06)
-        c=(side*next_width,high,-33.06)
-        d=(0,high,-32.88)
-        tint="FFD15F" if side<0 else "E99A29"
-        triangle(crest,a,b,c,tint,name="Beveled gold cup",thickness=.16,material=METAL)
-        triangle(crest,a,c,d,tint,name="Beveled gold cup",thickness=.16,material=METAL)
-part(crest,"Cup rolled rim",(0,22.03,-32.98),(4.64,.29,.32),"FFD875",material=METAL,collide=False)
 for side in (-1,1):
-    handle=[(side*x,y,-33.06) for x,y in ((1.98,21.62),(2.73,21.76),(3.06,21.55),
-                                         (3.13,20.95),(2.87,20.18),(2.40,19.70),(1.42,19.39))]
-    for a,b in zip(handle,handle[1:]):
-        beam(crest,"Rounded champion cup handle",a,b,.29,"F2B44F")
     reed_mark(crest,side*5.22,18.67,-32.98,1.33)
 # Enlarge the complete emblem about its center so the facets and handles stay aligned.
 crest_scale=1.49
@@ -2516,6 +2494,8 @@ for transform in crest.iter("CoordinateFrame"):
 for size in crest.iterfind(".//Vector3[@name='size']"):
     for extent in size:
         extent.text=f"{float(extent.text)*crest_scale:.7g}"
+build_hall_cup_relief(crest,item=item,prop=prop,part=part,vector=vector,asset=asset,metal=METAL,
+                      variant_field=MATERIAL_VARIANT_FIELD,brass_variant=ORNAMENT_BRASS)
 part(hall,"Trophy backdrop",(0,4.9,-52.91),(7.1,6.05,.14),"812D2C",material=FABRIC,collide=False)
 reed_mark(hall,0,5.31,-52.79,1.55)
 for x in (-7.4,7.4):
@@ -2646,10 +2626,17 @@ build_hall_stair_court(hall,item=item,part=part,prop=prop,triangle=triangle,
 
 portico=item(hall,"Model","Trophy Hall arrival portico")
 prop(portico,"token","LevelOfDetail",4)
-swept_roof(portico,0,11.54,-29.60,30.9,7.10,1.81,fine_tiles=False)
-part(portico,"Portico cedar tie beam",(0,11.38,-27.37),(26.0,.64,.79),"8D472F",
-     material=WOOD_PLANK,collide=False)
-part(portico,"Portico gilt fascia",(0,11.42,-26.97),(25.7,.18,.16),"CF9C56",collide=False)
+swept_roof(portico,0,hall_portico_y(11.54),-29.60,30.9,7.10,1.81,fine_tiles=False)
+
+
+def portico_piece(label,position,size,tint,**options):
+    position,size=hall_portico_box(position,size)
+    return part(portico,label,position,size,tint,collide=False,**options)
+
+
+portico_piece("Portico cedar tie beam",(0,11.38,-27.37),(26.0,.64,.79),"8D472F",
+              material=WOOD_PLANK)
+portico_piece("Portico gilt fascia",(0,11.42,-26.97),(25.7,.18,.16),"CF9C56")
 for side in (-1,1):
     x=side*9.12
     z=-29.47
@@ -2657,16 +2644,17 @@ for side in (-1,1):
          material=SLATE,collide=False)
     part(portico,"Portico dressed slate cap",(x,3.99,z),(1.96,.24,1.86),"AA9194",
          material=SLATE,collide=False)
-    part(portico,"Portico vermilion column",(x,7.75,z),(1.25,7.35,1.22),"A64C33",
-         material=WOOD_PLANK,collide=False)
-    part(portico,"Portico column inset",(x,7.71,z+.64),(.56,5.68,.08),"BA6742",collide=False)
+    portico_piece("Portico vermilion column",(x,7.75,z),(1.25,7.35,1.22),"A64C33",
+                  material=WOOD_PLANK)
+    portico_piece("Portico column inset",(x,7.71,z+.64),(.56,5.68,.08),"BA6742")
     for y in (4.49,10.31,11.01):
-        part(portico,"Portico brass collar",(x,y,z),(1.39,.21,1.34),"CB934B",collide=False)
-    beam(portico,"Carved portico knee brace",(x,9.29,z),(side*6.85,11.24,-28.44),.45,"915039")
-    beam(portico,"Portico lantern hook",(side*6.41,10.25,-27.71),(side*6.41,11.20,-27.96),.16,"82543B")
-    arrival_hanging_lantern(portico,side*6.41,9.34,-27.60,1.02,light=False,tint="FFD59D")
-    lantern_window(portico,side*8.12,7.64,-30.73,1.83,5.05)
-    banner(portico,side*11.48,7.66,-27.9,scale=.86)
+        portico_piece("Portico brass collar",(x,y,z),(1.39,.21,1.34),"CB934B")
+    beam(portico,"Carved portico knee brace",(x,hall_portico_y(9.29),z),(side*6.85,hall_portico_y(11.24),-28.44),.45,"915039")
+    beam(portico,"Portico lantern hook",(side*6.41,hall_portico_y(10.25),-27.71),
+         (side*6.41,hall_portico_y(11.20),-27.96),.16,"82543B")
+    arrival_hanging_lantern(portico,side*6.41,hall_portico_y(9.34),-27.60,1.02,light=False,tint="FFD59D")
+    lantern_window(portico,side*8.12,hall_portico_y(7.64),-30.73,1.83,5.85)
+    banner(portico,side*11.48,hall_portico_y(7.66),-27.9,scale=.86)
     bed_x=side*11.78
     garden_prop(portico,"bankRock",(bed_x,3.12,-27.94),.25,39*side,"95818A")
     garden_prop(portico,"mossFlowers",(bed_x+side*.43,3.48,-28.40),.15,28*side,"E3B3B7")
