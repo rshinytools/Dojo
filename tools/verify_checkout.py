@@ -27,7 +27,7 @@ def digest(stream):
 
 def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
-                "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring",
+                "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SplashArtwork",
                 "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts",
                 "Relay garden Sakura tree", "Trophy Hall upper timber bays",
                 "Fighting Ring canvas tailoring", "Recessed cedar ceiling panels",

@@ -7577,6 +7577,8 @@ map_canvas(storage,map_districts,map_paths)
 city_route_data(storage,map_districts,map_paths)
 
 opening=item(root,"ReplicatedFirst","ReplicatedFirst")
+splash_art=item(opening,"StringValue","SplashArtwork")
+prop(splash_art,"string","Value","rbxassetid://128322278825644")
 splash_gate=item(opening,"Model","Splash Gate")
 # A small version of the portal made from early-replicated native geometry.
 part(splash_gate,"Slate courtyard", (0,.02,-1.1), (23,.65,10), "63546A",collide=False)
