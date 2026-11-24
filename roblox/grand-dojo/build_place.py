@@ -89,6 +89,7 @@ from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from skywalk_foothill import build_skywalk_foothill
+from skywalk_road_bank import build_skywalk_road_bank
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
 from reedfall_arrival_terraces import build_reedfall_arrival_terraces
 from reedfall_crown_wayfinding import build_reedfall_crown_wayfinding
@@ -3419,6 +3420,9 @@ build_skywalk_foothill(landscape,item=item,prop=prop,part=part,triangle=triangle
                       path_edge=path_edge,sign=sign,garden_prop=garden_prop,lantern=arrival_hanging_lantern,
                       rock=ROCK,grass=GRASS_MAT,cedar=WOOD_PLANK,limestone=LIMESTONE,metal=METAL,
                       rock_variant=VALLEY_ROCK,path_variant=PROMENADE_STONE,variant_field=MATERIAL_VARIANT_FIELD)
+build_skywalk_road_bank(landscape,item=item,prop=prop,part=part,vector=vector,asset=asset,
+                        triangle=triangle,garden_prop=garden_prop,rock=ROCK,grass=GRASS_MAT,
+                        cedar=WOOD_PLANK,rock_variant=VALLEY_ROCK,variant_field=MATERIAL_VARIANT_FIELD)
 build_relay_runner(relay,item=item,prop=prop,triangle=triangle,path_edge=path_edge,
                    slate=SLATE,limestone=LIMESTONE,stone_variant=PROMENADE_STONE,
                    slate_variant=PROMENADE_MORTAR,variant_field=MATERIAL_VARIANT_FIELD)

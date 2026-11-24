@@ -39,7 +39,7 @@ def verify_place():
                 "Soft lantern reflections", "Moss seams and shore grasses",
                 "Swept sandstone stair shoulders", "Continuous sandstone coping",
                 "Plaza city map board", "Cedar garden direction fascia", "Lantern Tower cedar ramp",
-                "Lantern Relay sandstone runner", "Cedar Foothill Walk", "Foothill overlook guardrail",
+                "Lantern Relay sandstone runner", "Cedar Foothill Walk", "Foothill overlook guardrail", "Skywalk road cedar banks",
                 "Cinder ravine clay terraces", "Frostglass snowy foothills", "Trophy Hall west blossom grove", "Western skyline peaks", "Whitewater crest streak", "Raised eave brass cheek", "Plum Lantern Walk", "EagleEye",
                 "Trophy Hall split stair", "Jade crossing hall ramp"}
     seen = set()
