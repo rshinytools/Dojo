@@ -10,7 +10,7 @@ import random
 from art.arrival_canopy_relief import arrival_canopy, arrival_canopy_faces
 from art.arrival_distant_ridges import build_arrival_distant_ridges
 from art.promenade_layout import (ARRIVAL_LAMPS, INLET_EDGE, INLET_NORTH, INLET_SOUTH,
-                                   ORIGINAL_SOUTH_EDGE, PROMENADE_BOUNDS, PROMENADE_GRADE,
+                                   INLET_SWIM_Z, ORIGINAL_SOUTH_EDGE, PROMENADE_BOUNDS, PROMENADE_GRADE,
                                    flagstones, promenade_dampness, promenade_sections,
                                    ring_forecourt_pigment, stone_pigment, tint_stone)
 from art.garden_tree_layout import garden_knuckles, garden_tree, rotate_garden_point
@@ -22,6 +22,7 @@ from arrival_canal_reflection import build_arrival_canal_reflection
 from arrival_flagstone_detail import build_arrival_flagstone_detail
 from arrival_hero_canopies import build_arrival_hero_canopy
 from arrival_lantern_craft import craft_board_lantern, craft_hanging_lantern
+from arrival_lotus_cove import build_arrival_lotus_cove
 from arrival_lotus_leaves import build_arrival_lotus_leaves
 from canal_lip_gardens import build_canal_lip_gardens
 from cedarbank_rise import PATH as CEDARBANK_PATH, build_cedarbank_rise
@@ -1539,8 +1540,10 @@ inlet_x,inlet_z=(canal_east+INLET_EDGE)/2,(INLET_NORTH+INLET_SOUTH)/2
 inlet_width,inlet_length=INLET_EDGE-canal_east,INLET_SOUTH-INLET_NORTH
 part(canal,"Promenade inlet bed",(inlet_x,-3.81,inlet_z),
      (inlet_width,.40,inlet_length),"315F67",material=SLATE)
-part(canal,"Promenade inlet water bounds",(inlet_x,-2,inlet_z),
-     (inlet_width,4,inlet_length),"398A9B",collide=False,transparency=1)
+# Pad the fill one voxel beneath the paving and into the main channel.
+# Terrain rounds its outer voxels down. The overlap keeps the corner level.
+part(canal,"Promenade inlet water bounds",(inlet_x,-2,inlet_z+2),
+     (inlet_width+8,4,inlet_length+4),"398A9B",collide=False,transparency=1)
 inlet_preview=part(canal,"Promenade inlet edit preview",(inlet_x,-.045,inlet_z),
                    (inlet_width,.07,inlet_length),"3F8899",material=GLASS,collide=False,transparency=.19)
 prop(inlet_preview,"bool","CastShadow",False)
@@ -1589,7 +1592,7 @@ for x,drift,reach in ((-23.06,1.11,9.68),(-13.31,-.42,3.39)):
                           (x+drift,.096,38.25+reach),(1.18,.52),
                           "0 .91 .63 .38 0 .38 1 .81 .54 0 1 .82 .57 .38 0 ",
                           "0 1 0 .26 .72 0 .65 .84 0 1 1 0 ",3.6)
-for x,z,side,scale in ((-27.55,58.17,-1,1.12),(-5.22,58.02,1,.65),
+for x,z,side,scale in ((-27.55,58.17,-1,1.12),(-5.22,58.02,1,.49),
                          (-27.67,50.20,-1,.99),(-12.49,38.15,1,.94)):
     shore=item(arrival_water,"Model","Planted shoreline ledge")
     slate_x=x+side*.53
@@ -1684,8 +1687,11 @@ for x,z,width,tint in ((-9.39,57.52,.71,"F2C895"),(-9.88,56.84,.46,"F8D69F"),
 for leaf in inlet.findall(".//Item[@class='Part']"):
     if leaf.find("Properties/bool[@name='CastShadow']") is None:
         prop(leaf,"bool","CastShadow",False)
+build_arrival_lotus_cove(inlet,item=item,prop=prop,part=part,triangle=triangle,
+                         garden_prop=garden_prop,flowering_lotus=flowering_lotus,
+                         smooth=SMOOTH,neon=NEON)
 for x, intervals in ((canal_west,((-44,cove_north),)),(cove_west,((cove_north,cove_south),)),
-                      (canal_east,((-44,-4.1),(.1,41.9),(46.1,INLET_NORTH),(INLET_SOUTH,64)))):
+                      (canal_east,((-44,-4.1),(.1,41.9),(46.1,INLET_NORTH)))):
     for start,end in intervals:
         count=max(1,round((end-start)/9))
         segment=(end-start)/count
@@ -1697,18 +1703,24 @@ for z in (cove_north,cove_south):
 for z in (INLET_NORTH,INLET_SOUTH):
     part(canal,"Promenade inlet return coping",(inlet_x,.18,z),
          (inlet_width,.35,.58),"93808A",material=SLATE)
-for offset in (-4.07,4.07):
-    part(canal,"Promenade inlet low coping",(INLET_EDGE,.16,inlet_z+offset),
-         (.62,.31,3.81),"94808B",material=SLATE)
+# The original swim opening stays centered on z=54. Extend the low
+# south-bank curb along the new reach without narrowing that opening.
+for start,end in ((INLET_NORTH+.03,INLET_SWIM_Z-2.165),
+                  (INLET_SWIM_Z+2.165,INLET_SOUTH-.025)):
+    segments=ceil((end-start)/4)
+    length=(end-start)/segments
+    for index in range(segments):
+        part(canal,"Promenade inlet low coping",(INLET_EDGE,.16,start+(index+.5)*length),
+             (.62,.31,length-.025),"94808B",material=SLATE)
 
 inlet_steps=item(canal,"Model","Lotus inlet swim steps")
 prop(inlet_steps,"token","ModelStreamingMode",1)
 for step in range(5):
     top=-.04-step*.34
-    tread=part(inlet_steps,"Rose slate swim tread",(INLET_EDGE-.37-step*.74,top-.25,inlet_z),
+    tread=part(inlet_steps,"Rose slate swim tread",(INLET_EDGE-.37-step*.74,top-.25,INLET_SWIM_Z),
                (.78,.50,3.75),"968589",material=SLATE)
     prop(tread,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
-    rim=part(inlet_steps,"Honed swim tread edge",(INLET_EDGE-.70-step*.74,top-.046,inlet_z),
+    rim=part(inlet_steps,"Honed swim tread edge",(INLET_EDGE-.70-step*.74,top-.046,INLET_SWIM_Z),
              (.10,.09,3.67),"AF9B8C",material=LIMESTONE,collide=False)
     prop(rim,"bool","CastShadow",False)
 
@@ -3979,7 +3991,7 @@ def arrival_festival_board(parent):
     stand=item(parent,"Model","Arrival Festival Board")
     prop(stand,"token","ModelStreamingMode",1)
     prop(stand,"token","LevelOfDetail",4)
-    x,z,yaw=-8.90,64.75,32
+    x,z,yaw=-9.15,65.49,32
     scale=.65
     c,s=cos(radians(yaw)),sin(radians(yaw))
 

@@ -5,9 +5,10 @@ import random
 PROMENADE_BOUNDS=(-12,18,-8,82)
 PROMENADE_GRADE=.15
 ORIGINAL_SOUTH_EDGE=70
-INLET_EDGE, INLET_NORTH, INLET_SOUTH = -4, 48, 60
+INLET_EDGE, INLET_NORTH, INLET_SOUTH = -4, 48, 64
+INLET_SWIM_Z = 54
 # Preserve the established hand-cut pattern when the shoreline moves.
-FLAGSTONE_PATTERN_EDGE = -8
+FLAGSTONE_PATTERN_EDGE, FLAGSTONE_PATTERN_SOUTH = -8, 60
 ARRIVAL_LAMPS=((-10.57,71.16),(14.63,71.84))
 LANTERN_SPILL=(
     (-6.9,42.6,7.6,10.7,.82), (9.7,37.6,8.5,10.8,.86), (-7.8,33.9,5.4,8.0,.70),
@@ -42,14 +43,14 @@ def clip_polygon(poly, distance):
     return result
 
 
-def trim_inlet(poly, edge=INLET_EDGE):
+def trim_inlet(poly, edge=INLET_EDGE, south=INLET_SOUTH):
     if (min(x for x,_ in poly)>=edge or max(z for _,z in poly)<=INLET_NORTH
-        or min(z for _,z in poly)>=INLET_SOUTH):
+        or min(z for _,z in poly)>=south):
         return [poly]
     west=clip_polygon(poly,lambda point:point[0]-edge)
     return [clip_polygon(poly,lambda point:edge-point[0]),
             clip_polygon(west,lambda point:point[1]-INLET_NORTH),
-            clip_polygon(west,lambda point:INLET_SOUTH-point[1])]
+            clip_polygon(west,lambda point:south-point[1])]
 
 
 def smooth_falloff(value):
@@ -84,7 +85,7 @@ def stone_pigment(pigment, point):
     sunset=smooth_falloff((x+4+(z-48)*.09)/17)
     inlet=smooth_falloff((z-INLET_NORTH+2)/4)*smooth_falloff((INLET_SOUTH+2-z)/4)
     bank=-12+(INLET_EDGE+12)*inlet
-    canal=smooth_falloff(1-abs(x-bank)/9)*smooth_falloff((66-z)/6)
+    canal=smooth_falloff(1-abs(x-bank)/9)*smooth_falloff((INLET_SOUTH+6-z)/6)
     # Broad light between the buildings and softer contact color by the garden edges.
     arrival=smooth_falloff((z-27)/17)
     golden_lane=arrival*smooth_falloff(1-abs(x-3.2+(z-52)*.15)/9.5)
@@ -168,7 +169,7 @@ def flagstones(bounds=PROMENADE_BOUNDS):
         trim=source.uniform(.956,.979)
         height=PROMENADE_GRADE+source.uniform(.040,.068)
         pigment=source.choice(palettes)
-        for region in trim_inlet(poly, FLAGSTONE_PATTERN_EDGE):
+        for region in trim_inlet(poly, FLAGSTONE_PATTERN_EDGE, FLAGSTONE_PATTERN_SOUTH):
             area=polygon_area(region)
             if area<.12:
                 continue
