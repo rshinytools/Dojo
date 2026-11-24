@@ -85,6 +85,7 @@ from plum_lantern_walk import NAME as PLUM_LANTERN_WALK, PATH as PLUM_LANTERN_PA
 from orchard_road_terraces import build_orchard_road_terraces
 from pinecrest_trail import RIDGE_WIDTH, WIND_LOOKOUT_DECK, build_pinecrest_crossing, build_pinecrest_trail
 from pinecrest_ravine import build_pinecrest_ravine
+from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from skywalk_foothill import build_skywalk_foothill
@@ -766,8 +767,8 @@ def curved_plaque(parent,x,z,profile,height,face,edge,*,rim_height=.17,rim_depth
 # Fredoka One advances in em units, measured from the original font.
 MARQUEE_ADVANCES={" ":.253,"A":.765,"B":.657,"C":.681,"D":.718,"E":.638,"F":.637,
                   "G":.714,"H":.699,
-                  "I":.257,"L":.587,"N":.720,"O":.775,"P":.632,"R":.631,
-                  "S":.645,"T":.731,"U":.714,"Y":.686}
+                  "I":.257,"K":.639,"L":.587,"N":.720,"O":.775,"P":.632,"R":.631,
+                  "S":.645,"T":.731,"U":.714,"W":.999,"Y":.686}
 
 
 def marquee_title(parent,title,x,z,profile,em):
@@ -6137,6 +6138,13 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
                                   marquee_title=marquee_title,festival_lantern=festival_lantern,
                                   slate=SLATE,wood=WOOD_PLANK,metal=METAL,cedar_variant=LANDMARK_CEDAR,
                                   variant_field=MATERIAL_VARIANT_FIELD)
+    elif name=="Skywalk Peaks":
+        build_skywalk_gatehouse(town,x,y,z+25,item=item,prop=prop,part=part,beam=beam,gate=gate,sign=sign,
+                               swept_roof=swept_roof,curved_plaque=curved_plaque,marquee_title=marquee_title,
+                               festival_lantern=festival_lantern,standing_lantern=store_standing_lantern,
+                               banner=banner,garden_prop=garden_prop,slate=SLATE,limestone=LIMESTONE,
+                               wood=WOOD_PLANK,metal=METAL,neon=NEON,cedar_variant=LANDMARK_CEDAR,
+                               stone_variant=PROMENADE_STONE,variant_field=MATERIAL_VARIANT_FIELD)
     elif yaw:
         gate(town,x-27*(1 if yaw>0 else -1),z,-yaw,span=15,label=sign_name,trim=accent,y=y)
     else:

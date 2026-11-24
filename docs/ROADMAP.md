@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable phase snapshot for Studio checkpoint 0.242, updated 2026-11-23. See [Implementation](IMPLEMENTATION.md) for code entry points, verified play and open work.
+Portable phase snapshot for Studio checkpoint 0.243, updated 2026-11-23. See [Implementation](IMPLEMENTATION.md) for code entry points, verified play and open work.
 
 ## P0 Identity remediation and release boundaries
 
