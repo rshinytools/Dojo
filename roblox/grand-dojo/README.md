@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.286, earn **Rooster Kickboxer** at Level 4 and **Sugar Glider** at Level 5. Equip them at Fighter Select. **V** or D-pad Up uses Spur Lift or Canopy Slip. **F** or **Y** uses Feather Flurry or Gust Vortex. Steer Canopy Slip left or right with movement. Gust Vortex marks a fixed spot on the mat, draws unguarded fighters inward, and then pushes out.
+
 In v0.285, use **Fighter Select** to equip **Karate Frog** after any fighter earns Level 2 or **River Otter** at Level 3. **V** or D-pad Up activates Lily Vault or Eddy Palm. **F** or **Y** activates Tadpole Tornado or Pebble Barrage. Touch shows both move names. Use Tornado’s active spin to deflect pebbles in a bout with River Otter. The first-time picker still offers the four starters.
 
 In v0.283, use **Solar Raid** in Lantern Circuit. Leave the Sunspot circles and marked Sundive lane. When Solar Phoenix touches down, strike the exposed chest before it takes off. Eligible first clears earn **Dawn Return** in Trophy Hall. All three raid gates are available in Studio. The published configuration rotates them on the twenty-minute bell.

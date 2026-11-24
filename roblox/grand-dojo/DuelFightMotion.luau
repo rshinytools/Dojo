@@ -6,6 +6,7 @@ local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Frog = require(script.Parent.FrogCombatPoses)
 local Otter = require(script.Parent.OtterCombatPoses)
+local Sky = require(script.Parent.SkyFighterCombat)
 
 local Motion = {}
 local defeatSeconds = Geometry.defeatSeconds
@@ -19,6 +20,8 @@ local sideStep = {
     salamander = {distance = 2.40, time = .235, start = .035},
     frog = {distance = 2.48, time = .23, start = .025},
     otter = {distance = 2.39, time = .24, start = .025},
+    rooster = {distance = 2.45, time = .24, start = .025},
+    glider = {distance = 2.58, time = .23, start = .025},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -308,6 +311,12 @@ local function updateWarning(duel, actor, cast, age)
     elseif action == "tadpoleTornado" then
         skill = Frog.Skill.tadpoleTornado
         start, finish = skill.warningAt, Frog.Contact.tadpoleTornado
+    elseif action == "gustVortex" then
+        skill = Sky.gust
+        start, finish = skill.warningAt, Sky.burstAt
+        if not floorActive(duel, cast.fieldCenter, duel.motion.at) then
+            finish = 0
+        end
     else
         return
     end
@@ -325,11 +334,14 @@ local function updateWarning(duel, actor, cast, age)
         local path = Penguin.Travel.bellySlide
         cast.warning = slideGuide(duel, actor, origin, -path[#path].offset.Z)
     else
-        local center = floorPoint(duel, origin:PointToWorldSpace(skill.center))
+        local gust = action == "gustVortex"
+        local center = if gust then cast.fieldCenter else floorPoint(duel, origin:PointToWorldSpace(skill.center))
         local fan = action == "emberSweep"
         local tornado = action == "tadpoleTornado"
-        local name = if fan then "Ember Sweep warning" elseif tornado then "Tadpole Tornado warning" else "Seismic Chest Pound warning"
-        local tint = if fan then amber elseif tornado then Color3.fromRGB(143, 241, 124) else gold
+        local name = if fan then "Ember Sweep warning" elseif tornado then "Tadpole Tornado warning"
+            elseif gust then "Gust Vortex warning" else "Seismic Chest Pound warning"
+        local tint = if fan then amber elseif tornado then Color3.fromRGB(143, 241, 124)
+            elseif gust then Color3.fromRGB(188, 179, 255) else gold
         cast.warning = floorContour(duel, actor, name,
             center, skill.radius, if fan then origin.LookVector else nil, skill.halfAngle, tint)
     end
@@ -410,8 +422,12 @@ local function moveKnock(duel, actor, other, now)
         local frame = actor.root.CFrame
         local position = intendedPosition(duel, actor, other, frame, current + shift, 0, 1.70)
         Match.move(actor.root, CFrame.new(position) * frame.Rotation)
+        if knock.carryCast and actor.cast then
+            actor.cast.origin += position - current
+        end
     end
-    actor.lift = 4 * progress * (1 - progress) * knock.height
+    actor.lift = if knock.dropFrom then knock.dropFrom * (1 - progress) ^ 3
+        else 4 * progress * (1 - progress) * knock.height
     knock.moved = eased
     if progress >= 1 then
         actor.knock = nil
@@ -424,7 +440,8 @@ local function updateActor(duel, index, now)
     local other = if brawl then nil else duel.actors[3 - index]
     local state = duel.round.sides[index]
     local root, clip = actor.root, state.clip
-    local traveling = clip and travelActions[clip.action]
+    local travel = clip and state.kit.poses.Travel and state.kit.poses.Travel[clip.action]
+    local traveling = clip and (travelActions[clip.action] or (travel and travel.axis))
     local planting = clip and plantedActions[clip.action]
     local live = now >= duel.round.startsAt and not duel.round.resolvedAt
     if brawl then
@@ -451,6 +468,9 @@ local function updateActor(duel, index, now)
                 else root.CFrame.LookVector
             local origin = CFrame.lookAlong(root.Position, orientation)
             actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId, poses = state.kit.poses}
+            if clip.action == "gustVortex" then
+                actor.cast.fieldCenter = Match.clampFloor(duel.bounds, origin:PointToWorldSpace(Sky.gust.center), duel.floor)
+            end
             setHeld(actor, true)
             Match.move(root, origin)
         end
@@ -631,7 +651,7 @@ local function directContact(duel, other, action, move, at, root, target, point,
         end
     else
         for _, volume in volumes do
-            if not volume.grounded and (volume.zone ~= "head" or move.zone == "head") then
+            if (move.foot or not volume.grounded) and (volume.zone ~= "head" or move.zone == "head") then
                 local frame, size = volume.frame, volume.size
                 if action == "uppercut" and volume.zone == "body" then
                     frame *= CFrame.new(0, size.Y * .22, 0)
@@ -677,6 +697,16 @@ local function pebbleSegment(duel, actor, move, index, castStartedAt)
     return Geometry.pebbleSweep(actor.fx, params, origin, move, index)
 end
 
+local function radialCenter(duel, actor, root, move, at, castStartedAt)
+    if not move.lockedCenter then
+        return floorPoint(duel, root:PointToWorldSpace(move.center))
+    end
+    local cast = actor.cast
+    local center = if cast and cast.clip.startedAt == castStartedAt and cast.fieldCenter then cast.fieldCenter
+        else Match.clampFloor(duel.bounds, clockFrame(actor, castStartedAt):PointToWorldSpace(move.center), duel.floor)
+    return if floorActive(duel, center, at) then center else nil
+end
+
 function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local other = 3 - side
     local actor = duel.actors[side]
@@ -710,7 +740,10 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     end
     local fan = move.shape == "fan"
     if fan or move.shape == "radial" then
-        local center = floorPoint(duel, root:PointToWorldSpace(move.center))
+        local center = radialCenter(duel, actor, root, move, at, castStartedAt)
+        if not center then
+            return false
+        end
         local hit, guardFacing = floorContact(duel, other, at, target, center, move.radius, if fan then root.LookVector else nil,
             move.halfAngle)
         return hit ~= nil, if fan then hit or center else center, "body", guardFacing
@@ -768,7 +801,10 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
         end
         return if closest then {closest} else {}, finish
     elseif fan or move.shape == "radial" then
-        center = floorPoint(brawl, root:PointToWorldSpace(move.center))
+        center = radialCenter(brawl, actor, root, move, at, castStartedAt)
+        if not center then
+            return {}
+        end
     else
         point = clipPoint(brawl, side, root, action, index)
         if action == "bellySlide" then
@@ -848,7 +884,10 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
             return false, point
         end
     elseif fan or move.shape == "radial" then
-        center = floorPoint(raid, root:PointToWorldSpace(move.center))
+        center = radialCenter(raid, actor, root, move, at, castStartedAt)
+        if not center then
+            return false
+        end
     else
         point = clipPoint(raid, side, root, action, index)
         previous = if action == "bellySlide" then slideSegment(actor, point) else nil
@@ -963,7 +1002,7 @@ function Motion.raidImpact(raid, index, origin, at, strength)
 end
 
 function Motion.impact(duel, event)
-    if (event.damage or 0) <= 0 then
+    if (event.damage or 0) <= 0 and event.kind ~= "pull" then
         return
     end
     local action = event.attack
@@ -971,7 +1010,12 @@ function Motion.impact(duel, event)
     local root = clockFrame(attacker, event.at)
     local direction = root.LookVector
     local offset, duration, height
-    if action == "bellySlide" then
+    local force, popHeight, spike = Sky.impulse(event)
+    if force then
+        local center = if action == "gustVortex" then event.point else root.Position
+        local outward = heading(center, target.root.Position, direction)
+        offset, duration, height = outward * force, if spike then .16 else .20, popHeight
+    elseif action == "bellySlide" then
         offset, duration, height = direction * 1.38, .20, 0
     elseif action == "ridgePalm" then
         offset, duration, height = direction * Silverback.Skill.ridgePalm.shove, .22, 0
@@ -992,7 +1036,8 @@ function Motion.impact(duel, event)
         return
     end
     local scale = event.knockbackScale or 1
-    target.knock = {at = event.at, offset = offset * scale, duration = duration, height = height * scale, moved = 0}
+    target.knock = {at = event.at, offset = offset * scale, duration = duration, height = height * scale, moved = 0,
+        dropFrom = if spike then target.lift or 0 else nil, carryCast = event.kind == "pull"}
 end
 
 Motion.defeatSeconds = defeatSeconds

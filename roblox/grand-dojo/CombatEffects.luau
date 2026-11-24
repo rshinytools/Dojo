@@ -16,6 +16,8 @@ local tint = {
     parried = Color3.fromRGB(139, 235, 255),
     blocked = Color3.fromRGB(183, 215, 210),
     deflected = Color3.fromRGB(173, 247, 122),
+    gustPull = Color3.fromRGB(198, 211, 255),
+    diveKick = Color3.fromRGB(255, 152, 105),
     braced = Color3.fromRGB(174, 211, 180),
     burst = Color3.fromRGB(255, 143, 75),
 }
@@ -25,6 +27,8 @@ local groundPulses = {
     magmaTrail = {name = "Magma tile burst", color = tint.burst, initial = .65, width = 2.36, compact = 2.15, life = .30},
     tadpoleTornado = {name = "Tadpole Tornado pulse", color = Color3.fromRGB(143, 241, 124),
         initial = 1.05, width = 6.4, compact = 5.3, life = .29},
+    gustVortex = {name = "Gust Vortex outward pulse", color = Color3.fromRGB(203, 175, 255),
+        initial = 1.06, width = 6, compact = 5.2, life = .27},
     ["Breakwater Stamp"] = {name = "Breakwater contact pulse", color = Color3.fromRGB(135, 202, 236),
         initial = 1.2, width = 8.5, compact = 5.9, life = .28},
 }
@@ -74,6 +78,30 @@ local function groundPulse(point, style, compact, reduced)
     Debris:AddItem(pulse, style.life + .06)
 end
 
+local inwardGust = {name = "Gust Vortex inward pulse", color = tint.gustPull,
+    initial = 6, width = .85, compact = 1, life = .30}
+
+local function funnel(point, compact)
+    local count = if compact then 6 else 10
+    for index = 1, count do
+        local progress = index / count
+        local angle = progress * math.pi * 3
+        local radius = 2.42 - progress * 1.9
+        local edge = Vector3.new(math.cos(angle), 0, math.sin(angle))
+        local mark = Instance.new("Part")
+        mark.Name = "Vortex wind ribbon"
+        mark.Anchored, mark.CanCollide, mark.CanQuery, mark.CanTouch, mark.CastShadow = true, false, false, false, false
+        mark.Material, mark.Color, mark.Transparency = Enum.Material.Neon, tint.gustPull, .23
+        mark.Size = Vector3.new(.07, .065, if compact then .72 else 1.08)
+        local position = point + edge * radius + Vector3.yAxis * (progress * 1.68 + .14)
+        mark.CFrame = CFrame.lookAt(position, position + edge:Cross(Vector3.yAxis))
+        mark.Parent = worldFolder()
+        local inward = mark.CFrame - edge * radius * .56 + Vector3.yAxis * .28
+        TweenService:Create(mark, TweenInfo.new(.24, Enum.EasingStyle.Quad), {CFrame = inward, Transparency = 1}):Play()
+        Debris:AddItem(mark, .28)
+    end
+end
+
 function CombatEffects.play(kind, point, attack)
     local camera = workspace.CurrentCamera
     local color = tint[kind]
@@ -89,6 +117,13 @@ function CombatEffects.play(kind, point, attack)
     local reduced = GuiService.ReducedMotionEnabled or UserInputService.VREnabled
     local mobile = UserInputService.TouchEnabled
     local compact = reduced or mobile or distance > 32
+    if kind == "gustPull" then
+        groundPulse(point, inwardGust, compact, reduced)
+        if not reduced then
+            funnel(point, compact)
+        end
+        return
+    end
     local pulse = groundPulses[attack]
     if pulse and not parry and kind ~= "blocked" then
         groundPulse(point, pulse, compact, reduced)
@@ -96,8 +131,11 @@ function CombatEffects.play(kind, point, attack)
     end
     if attack == "emberSweep" then
         color = tint.burst
+    elseif attack == "canopySlip" then
+        color = tint.gustPull
     end
-    local diameter = if parry then (if compact then 1.28 else 1.72) else (if compact then .93 else 1.2)
+    local diameter = if parry then (if compact then 1.28 else 1.72)
+        elseif kind == "diveKick" then (if compact then 1.08 else 1.44) else (if compact then .93 else 1.2)
     local life = if parry then .27 else .21
 
     local anchor = Instance.new("Part")

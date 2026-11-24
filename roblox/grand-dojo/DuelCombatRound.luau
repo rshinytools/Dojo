@@ -63,7 +63,9 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
     local function resolve(_, at, fields, hit, facing, move)
         local deflected = hit and Combatant.deflects(defender, at, move)
         local kind = if not hit then "miss" elseif deflected then "blocked" else defense(defender, at, facing)
-        if not kind then
+        if hit and move.controlOnly then
+            kind = if kind then "blocked" else "pull"
+        elseif not kind then
             kind = if defender.counterUntil and at < defender.counterUntil then "counter" else "strike"
         end
         local landed = kind == "strike" or kind == "counter"
@@ -114,7 +116,7 @@ local function resolveBatch(duel, time, batch)
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = time + PARRY_STUN
             end
-        elseif event.kind == "blocked" and not event.deflected then
+        elseif event.kind == "blocked" and not event.deflected and not event.controlOnly then
             reaction(defender, "block", 1, 0)
         end
         table.insert(duel.notices, event)

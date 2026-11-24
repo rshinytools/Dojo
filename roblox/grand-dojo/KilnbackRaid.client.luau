@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local Health = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -43,14 +44,26 @@ local raids = {
         health = Color3.fromRGB(246, 132, 79), lastMatchId = 0, nextStatusAt = 0},
 }
 
+local earnedCues = {}
 local kits = {
     reedguard = {name = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {name = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
     silverback = {name = "Silverback", technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
     salamander = {name = "Salamander", technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
-    frog = {name = "Karate Frog", technique = "Lily Vault", techniqueAction = "secondary", signature = "Tadpole Tornado"},
-    otter = {name = "River Otter", technique = "Eddy Palm", techniqueAction = "secondary", signature = "Pebble Barrage"},
 }
+for _, fighter in fighterCatalog.ById do
+    local combat = fighter.combat
+    if combat then
+        kits[combat.kit] = {
+            name = fighter.shortName or fighter.name,
+            technique = combat.technique, techniqueAction = combat.techniqueAction, signature = combat.signature,
+        }
+        if combat.techniqueCue then
+            earnedCues[combat.techniqueCue] = combat.technique
+        end
+        earnedCues[combat.signatureCue] = combat.signature
+    end
+end
 local function make(class, parent, properties)
     local node = Instance.new(class)
     for key, value in properties do
@@ -214,6 +227,7 @@ local feedback = {
     revived = "Revived", reviveCancelled = "Revive interrupted",
     needParry = "Parry to unlock Rising", down = "Knocked down",
     dodged = "Attack evaded", counter = "Counter hit confirmed", airborne = "Out of reach · Wait for landing",
+    gustPull = "Vortex pulls inward",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},
@@ -429,7 +443,8 @@ end
 local function refreshCue(own, now)
     local color = paper
     local message = if match.feedback == "hit" then "Hit by " .. matchRaid.short
-        elseif match.feedback == "core" then matchRaid.target .. " hit" else feedback[match.feedback] or ""
+        elseif match.feedback == "core" then matchRaid.target .. " hit"
+        else feedback[match.feedback] or earnedCues[match.feedback] or ""
     local attack, revival = match.attack, match.revive
     local copy = attack and attackCues[attack.id]
     local attackName = attack and (attack.name or (copy and copy.name) or "Attack")
@@ -570,7 +585,7 @@ local function send(action)
     if action == "technique" then action = kit.techniqueAction end
     if not action then return end
     local direction
-    if action == "dodge" then
+    if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")

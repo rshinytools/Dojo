@@ -7,6 +7,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoTagTeam")
+local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -25,6 +26,7 @@ local darkTrack = Color3.fromRGB(37, 26, 30)
 local bold = Enum.Font.GothamBold
 local regular = Enum.Font.GothamMedium
 
+local earnedCues = {}
 local roster = {
     {id = "reedguard-kangaroo", kit = "reedguard", name = "Reedguard", style = "Parry and counter",
         technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
@@ -34,11 +36,20 @@ local roster = {
         technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
     {id = "fire-salamander", kit = "salamander", name = "Salamander", style = "Sweep and floor control",
         technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
-    {id = "karate-frog", kit = "frog", name = "Karate Frog", style = "Leaping kicks and spins",
-        technique = "Lily Vault", techniqueAction = "secondary", signature = "Tadpole Tornado", earned = true},
-    {id = "river-otter", kit = "otter", name = "River Otter", style = "Palm strikes and pebbles",
-        technique = "Eddy Palm", techniqueAction = "secondary", signature = "Pebble Barrage", earned = true},
 }
+for _, id in fighterCatalog.Order do
+    local fighter = fighterCatalog.ById[id]
+    local combat = fighter.combat
+    if combat then
+        table.insert(roster, {id = id, kit = combat.kit, name = fighter.shortName or fighter.name,
+            style = combat.cardStyle or fighter.style, technique = combat.technique, techniqueAction = combat.techniqueAction,
+            signature = combat.signature, earned = (fighter.unlockLevel or 1) > 1})
+        if combat.techniqueCue then
+            earnedCues[combat.techniqueCue] = combat.technique
+        end
+        earnedCues[combat.signatureCue] = combat.signature
+    end
+end
 local byKit = {}
 for _, fighter in roster do
     byKit[fighter.id], byKit[fighter.kit] = fighter, fighter
@@ -229,11 +240,11 @@ local keys = {
 }
 local tips = {
     blocked = "Blocked", parried = "Parried! Counter now", attackBlocked = "Your strike was blocked",
-    projectileDeflected = "Pebble deflected!",
     attackParried = "Your strike was parried", hit = "You took a hit", strike = "Strike landed", counter = "Counter landed",
     needParry = "Parry to unlock Rising", tag = "Tag in!", tagIn = "Tag in!", tagStrike = "Tag assist landed",
     tagUnavailable = "Wait until Tag In is ready", knockedOut = "Knockout", guard = "Guard up",
     projectileDeflected = "Projectile deflected!",
+    gustPull = "Vortex pulls inward",
 }
 
 local offer, waiting, match
@@ -494,7 +505,7 @@ local function refresh()
         championship.hint.Text = if own.entryAt then "Knockout · Backup is entering" else "Knockout"
         championship.hint.TextColor3 = gold
     else
-        championship.hint.Text = tips[match.feedback] or ""
+        championship.hint.Text = tips[match.feedback] or earnedCues[match.feedback] or ""
         if match.feedback == "tagIn" or match.feedback == "tagStrike" or match.feedback == "parried" then
             championship.hint.TextColor3 = mint
         end
@@ -542,7 +553,7 @@ local function send(action)
         return
     end
     local direction
-    if action == "dodge" then
+    if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")

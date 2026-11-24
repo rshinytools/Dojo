@@ -174,7 +174,10 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
             local deflected = Combatant.deflects(defender, contactAt, move)
             notice.kind = if deflected then "blocked" else defense(defender, contactAt, target.facing)
             notice.deflected = if deflected then true else nil
-            if notice.kind then
+            if move.controlOnly then
+                notice.kind = if notice.kind then "blocked" else "pull"
+                notice.damage = 0
+            elseif notice.kind then
                 notice.damage = 0
             else
                 notice.kind = if defender.counterUntil and contactAt < defender.counterUntil then "counter" else "strike"
@@ -224,7 +227,7 @@ local function resolveBatch(round, at, notices, eliminateMany)
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = at + PARRY_STUN
             end
-        elseif event.kind == "blocked" and not event.deflected then
+        elseif event.kind == "blocked" and not event.deflected and not event.controlOnly then
             reaction(defender, "block", 1, 0)
         end
         table.insert(round.notices, event)

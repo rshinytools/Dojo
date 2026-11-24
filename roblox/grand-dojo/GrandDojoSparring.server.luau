@@ -339,7 +339,7 @@ local function tickShowcase(bout, now, dt)
             remote:FireAllClients("impact", cue, event.point, event.attack)
         end
         if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
-            bout.message, bout.messageUntil = event.kind, now + .86
+            bout.message, bout.messageUntil = (if event.kind == "pull" then "gustPull" else event.kind), now + .86
         end
         if RunService:IsStudio() then
             bout.bot:SetAttribute("LastContactKind", event.kind)

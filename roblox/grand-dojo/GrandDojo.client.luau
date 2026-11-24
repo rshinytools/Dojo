@@ -301,11 +301,11 @@ local activeStarterNames = {
     ["penguin-brawler"] = "Penguin",
     ["silverback-gorilla"] = "Silverback",
     ["fire-salamander"] = "Salamander",
-    ["karate-frog"] = "Karate Frog",
-    ["river-otter"] = "River Otter",
 }
 local function updateFighterProgress()
-    local name = activeStarterNames[player:GetAttribute("SelectedStarterFighter") or ""]
+    local id = player:GetAttribute("SelectedStarterFighter") or ""
+    local fighter = fighterCatalog.ById[id]
+    local name = activeStarterNames[id] or (fighter and (fighter.shortName or fighter.name))
     fighterName.Text = name or "Reedguard"
     local status = player:GetAttribute("ProgressStatus")
     local snapshot = player:GetAttribute("FighterHudProgress")
@@ -1571,16 +1571,6 @@ local showcaseKits = {
         techniqueCooldown = "Ember Sweep\n%ds",
         dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "MagmaTrail", signatureLabel = "Magma Trail",
         signatureCooldown = "Magma Trail\n%ds", wideFighters = true, tint = Color3.fromRGB(255, 174, 109)},
-    frog = {challenger = "Karate Frog", challengerShort = "Karate Frog",
-        techniqueAction = "secondary", techniqueName = "LilyVault", techniqueLabel = "Lily Vault",
-        techniqueCooldown = "Lily Vault\n%ds",
-        dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "TadpoleTornado", signatureLabel = "Tadpole Tornado",
-        signatureCooldown = "Tornado\n%ds", tint = Color3.fromRGB(185, 225, 131)},
-    otter = {challenger = "River Otter", challengerShort = "River Otter",
-        techniqueAction = "secondary", techniqueName = "EddyPalm", techniqueLabel = "Eddy Palm",
-        techniqueCooldown = "Eddy Palm\n%ds",
-        dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "PebbleBarrage", signatureLabel = "Pebble Barrage",
-        signatureCooldown = "Barrage\n%ds", tint = Color3.fromRGB(143, 221, 240)},
 }
 
 local showcaseCourts = {
@@ -1740,15 +1730,14 @@ local cues = {
     dodged = "You evaded the strike.",
     stunned = "Your opponent parried. Reset your guard.",
     attackBlocked = "Your opponent blocked the strike.",
-    projectileDeflected = "Pebble deflected!",
     attackParried = "Your opponent parried the strike.",
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike", uppercut = "Uppercut",
     reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
     floeTurn = "Floe Turn", bellySlide = "Belly-Slide Blitz",
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
-    lilyVault = "Lily Vault", tadpoleTornado = "Tadpole Tornado", projectileDeflected = "Projectile deflected!",
-    eddyPalm = "Eddy Palm", pebbleBarrage = "Pebble Barrage",
+    projectileDeflected = "Projectile deflected!",
+    gustPull = "Vortex pulls inward",
     needParry = "Parry a strike to unlock Rising.",
     ["Shell Set"] = "Shell Set · Wait out the brace",
     ["Kiln Rush"] = "Kiln Rush · Leave the lane",
@@ -1763,11 +1752,35 @@ local cooldownCues = {
     seismicCooling = {label = "Seismic", field = "nextSignature"},
     emberCooling = {label = "Ember Sweep", field = "nextSecondary"},
     magmaCooling = {label = "Magma Trail", field = "nextSignature"},
-    lilyCooling = {label = "Lily Vault", field = "nextSecondary"},
-    tornadoCooling = {label = "Tadpole Tornado", field = "nextSignature"},
-    eddyCooling = {label = "Eddy Palm", field = "nextSecondary"},
-    pebbleCooling = {label = "Pebble Barrage", field = "nextSignature"},
 }
+local priorityCues = {
+    uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
+    emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
+    gustPull = true,
+}
+for _, fighter in fighterCatalog.ById do
+    local combat = fighter.combat
+    if combat then
+        showcaseKits[combat.kit] = {
+            challenger = fighter.name, challengerShort = fighter.shortName or fighter.name,
+            techniqueAction = combat.techniqueAction, techniqueName = combat.techniqueName, techniqueLabel = combat.techniqueLabel,
+            techniqueCooldown = combat.techniqueCooldown,
+            dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = combat.signatureName,
+            signatureLabel = combat.signatureLabel, signatureCooldown = combat.signatureCooldown, tint = Color3.fromHex(combat.tint),
+        }
+        if combat.techniqueCue then
+            cues[combat.techniqueCue] = combat.technique
+            priorityCues[combat.techniqueCue] = true
+        end
+        cues[combat.signatureCue], priorityCues[combat.signatureCue] = combat.signature, true
+        if combat.techniqueCoolingCue then
+            cooldownCues[combat.techniqueCoolingCue] = {label = combat.technique, field = "nextSecondary"}
+        end
+        if combat.signatureCoolingCue then
+            cooldownCues[combat.signatureCoolingCue] = {label = combat.signature, field = "nextSignature"}
+        end
+    end
+end
 
 local resultAwaitingReward = false
 
@@ -1877,7 +1890,7 @@ local function sendSparAction(action)
         return
     end
     local direction
-    if action == "dodge" then
+    if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -2053,11 +2066,7 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
         sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
     elseif matchPresentation.showcase and feedback == "parried" then
         sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
-    elseif not parryCue and (feedback == "uppercut" or feedback == "floeTurn" or feedback == "bellySlide"
-        or feedback == "ridgePalm" or feedback == "seismicChestPound" or feedback == "emberSweep"
-        or feedback == "magmaTrail" or feedback == "attackBlocked" or feedback == "attackParried"
-        or feedback == "lilyVault" or feedback == "tadpoleTornado" or feedback == "eddyPalm"
-        or feedback == "pebbleBarrage" or feedback == "projectileDeflected") then
+    elseif not parryCue and priorityCues[feedback] then
         sparHint.Text = cues[feedback]
     elseif not parryCue and cooldownCue then
         local cooling = cooldownSeconds(matchPresentation[cooldownCue.field], now)

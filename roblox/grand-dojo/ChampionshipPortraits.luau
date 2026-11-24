@@ -1,5 +1,6 @@
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 
 local Portraits = {}
 
@@ -8,8 +9,6 @@ local entries = {
     {modelName = "penguin-brawler", shortName = "Penguin", initials = "PB", tint = Color3.fromHex("9EE8F8")},
     {modelName = "silverback-gorilla", shortName = "Silverback", initials = "SG", tint = Color3.fromHex("E0AE92")},
     {modelName = "fire-salamander", shortName = "Salamander", initials = "FS", tint = Color3.fromHex("FF9970")},
-    {modelName = "karate-frog", shortName = "Karate Frog", kit = "frog", initials = "KF", tint = Color3.fromHex("C4EB92")},
-    {modelName = "river-otter", shortName = "River Otter", kit = "otter", initials = "RO", tint = Color3.fromHex("94E4FF")},
     {modelName = "Juniper Tortoise", shortName = "Juniper", initials = "JT", tint = Color3.fromHex("AAF0C1"), resident = true},
     {modelName = "Bracken Boar", shortName = "Bracken", initials = "BB", tint = Color3.fromHex("FFC391"), resident = true},
     {modelName = "Sablecrest Lynx", shortName = "Sablecrest", initials = "SL", tint = Color3.fromHex("CFC0FF"), resident = true},
@@ -24,8 +23,17 @@ local byName = {}
 for _, entry in entries do
     byName[normalize(entry.modelName)] = entry
     byName[normalize(entry.shortName)] = entry
-    if entry.kit then
-        byName[entry.kit] = entry
+end
+for id, fighter in fighterCatalog.ById do
+    local combat = fighter.combat
+    if combat then
+        local entry = {modelName = id, initials = combat.initials, tint = Color3.fromHex(combat.tint)}
+        byName[normalize(id)] = entry
+        byName[normalize(fighter.name)] = entry
+        if fighter.shortName then
+            byName[normalize(fighter.shortName)] = entry
+        end
+        byName[normalize(combat.kit)] = entry
     end
 end
 

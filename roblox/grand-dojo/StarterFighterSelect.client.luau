@@ -43,8 +43,6 @@ local previewMoves = {
     ["penguin-brawler"] = {right = 13, left = -25, lean = -14, roll = 8, lift = .07, step = .30},
     ["silverback-gorilla"] = {right = -22, left = -18, lean = -5, roll = 2, lift = .09, step = .10},
     ["fire-salamander"] = {right = -28, left = 15, lean = -11, roll = -9, lift = .17, step = .20},
-    ["karate-frog"] = {right = -23, left = -24, lean = -9, roll = 5, lift = .28, step = .23, legs = 16},
-    ["river-otter"] = {right = -36, left = -15, lean = -8, roll = -13, lift = .10, step = .21, legs = 8},
 }
 local starterOrder = roster.StarterOrder or roster.Order
 
@@ -121,7 +119,12 @@ edge(panel, 15, colors.edge)
 local heading = label(panel, "Heading", "Choose your fighter", 31, colors.gold, Enum.Font.FredokaOne)
 local close = button(panel, "CloseFighterSelect", "Close", colors.raised, colors.edge)
 close.Visible = false
-local rosterBar = create("Frame", panel, {Name = "FighterSelector", BackgroundTransparency = 1})
+local rosterBar = create("ScrollingFrame", panel, {
+    Name = "FighterSelector", BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true,
+    ScrollingDirection = Enum.ScrollingDirection.Y, ScrollingEnabled = false,
+    ScrollBarImageColor3 = colors.edge, ScrollBarThickness = 0,
+    CanvasSize = UDim2.fromOffset(0, 0), CanvasPosition = Vector2.zero,
+})
 
 local stage = create("Frame", panel, {
     Name = "Stage", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, ClipsDescendants = true,
@@ -278,7 +281,8 @@ local function pose(t)
     if not selectedId then
         return
     end
-    local move = previewMoves[selectedId] or previewMoves["reedguard-kangaroo"]
+    local combat = roster.ById[selectedId].combat
+    local move = (combat and combat.previewPose) or previewMoves[selectedId] or previewMoves["reedguard-kangaroo"]
     local allowed = motionAllowed()
     local entry = if allowed then math.clamp(t / .90, 0, 1) else 1
     local intro = 1 - entry
@@ -450,6 +454,22 @@ local function updateCards()
     end
 end
 
+local function revealSelection()
+    if not rosterBar.ScrollingEnabled then
+        return
+    end
+    local card = cardById[selectedId]
+    local height = rosterBar.Size.Y.Offset
+    if not card or height <= 0 then
+        return
+    end
+    local first = card.control.Position.Y.Offset
+    local last = first + card.control.Size.Y.Offset
+    local range = math.max(0, rosterBar.CanvasSize.Y.Offset - height)
+    local offset = math.clamp(rosterBar.CanvasPosition.Y, last - height, first)
+    rosterBar.CanvasPosition = Vector2.new(0, math.clamp(offset, 0, range))
+end
+
 local function showFighter(id)
     if id == selectedId or (selectedId and (inFlight or player:GetAttribute("StarterSelectionPending") == true)) then
         return
@@ -476,6 +496,7 @@ local function showFighter(id)
         end
     end
     updateCards()
+    revealSelection()
     details.CanvasPosition = Vector2.zero
     if screen.Enabled then
         drawPreview(id, tint)
@@ -536,12 +557,26 @@ local function layout()
     close.TextSize = if compact then 14 else 16
     local order = selectionOrder()
     local cardHeight = if compact then 44 else 49
-    local columns = if switching and #order > 4 then (if tall or contentWidth < 462 then 3 else 6)
-        elseif tall then 2 else 4
+    local columns = if not switching then (if tall then 2 else 4)
+        elseif contentWidth >= 835 then math.min(8, #order)
+        elseif contentWidth >= 450 then 4 elseif contentWidth >= 300 then 3 else 2
     local rosterY = pad + headingHeight + gap
-    local rosterHeight = math.ceil(#order / columns) * (cardHeight + gap) - gap
-    local slot = (contentWidth - (columns - 1) * gap) / columns
+    local footer = if compact then 42 else 48
+    local footerY = height - pad - footer
+    local reserve = if tall and status.Text ~= "" then 43 else 0
+    local minimumBody = if tall then 108 else 62
+    local rosterRoom = footerY - rosterY - reserve - minimumBody - gap * 2
+    local fittedRows = math.max(1, math.floor((rosterRoom + gap) / (cardHeight + gap)))
+    local rows = math.ceil(#order / columns)
+    local visibleRows = math.min(rows, fittedRows, if tall and not compact then 3 else 2)
+    local rosterHeight = visibleRows * (cardHeight + gap) - gap
+    local scrollRoster = rows > visibleRows
+    local scrollbarWidth = if scrollRoster then 7 else 0
+    local slot = (contentWidth - scrollbarWidth - (columns - 1) * gap) / columns
     rosterBar.Position, rosterBar.Size = UDim2.fromOffset(pad, rosterY), UDim2.fromOffset(contentWidth, rosterHeight)
+    rosterBar.CanvasSize = UDim2.fromOffset(0, rows * (cardHeight + gap) - gap)
+    rosterBar.ScrollingEnabled = scrollRoster
+    rosterBar.ScrollBarThickness = if scrollRoster then 4 else 0
     for index, id in order do
         local card = cardById[id]
         local column, row = (index - 1) % columns, math.floor((index - 1) / columns)
@@ -556,10 +591,8 @@ local function layout()
         control.NextSelectionUp = if row > 0 then cardById[order[index - columns]].control else (if switching then close else control)
         control.NextSelectionDown = if order[index + columns] then cardById[order[index + columns]].control else confirm
     end
+    revealSelection()
 
-    local footer = if compact then 42 else 48
-    local footerY = height - pad - footer
-    local reserve = if tall and status.Text ~= "" then 43 else 0
     local bodyY = rosterY + rosterHeight + gap
     local bodyHeight = math.max(62, footerY - bodyY - gap - reserve)
     local stageWidth = if tall then contentWidth else math.floor((contentWidth - gap) * .49)

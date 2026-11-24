@@ -16,6 +16,12 @@ local STARTERS = {
     ["fire-salamander"] = true,
 }
 local ROSTER_UNLOCKS = {["karate-frog"] = 2, ["river-otter"] = 3}
+local EXPANDED_UNLOCKS = {["rooster-kickboxer"] = 4, ["sugar-glider"] = 5}
+local STARTER_PROGRESS = {relay = "lastRelayReward", spar = "lastSparReward", training = "ringTraining"}
+local ROSTER_PROGRESS = {relay = "lastRosterRelayReward", spar = "lastRosterSparReward", training = "rosterTraining"}
+local EXPANDED_PROGRESS = {
+    relay = "lastExpandedRelayReward", spar = "lastExpandedSparReward", training = "expandedRosterTraining",
+}
 local LANTERN_KEEPER = "world-04"
 local KILN_KEEPER = "world-01"
 local DEEPWATER_TEAM = "world-02"
@@ -39,8 +45,21 @@ local function isStarter(id)
     return type(id) == "string" and STARTERS[id] == true
 end
 
+local function isOriginalUnlock(id)
+    return ROSTER_UNLOCKS[id] ~= nil
+end
+
+local function isExpandedId(id)
+    return type(id) == "string" and #id <= 80 and string.match(id, "^[a-z][a-z0-9%-]*$") ~= nil
+        and not isStarter(id) and not isOriginalUnlock(id)
+end
+
 local function isFighter(id)
-    return isStarter(id) or (type(id) == "string" and ROSTER_UNLOCKS[id] ~= nil)
+    return isStarter(id) or isOriginalUnlock(id) or EXPANDED_UNLOCKS[id] ~= nil
+end
+
+local function fieldsFor(id)
+    return if isStarter(id) then STARTER_PROGRESS elseif isOriginalUnlock(id) then ROSTER_PROGRESS else EXPANDED_PROGRESS
 end
 
 local function highestXp(profile)
@@ -54,7 +73,7 @@ local function highestXp(profile)
 end
 
 function PlayerProfiles.unlockLevel(fighterId)
-    return if isStarter(fighterId) then 1 else ROSTER_UNLOCKS[fighterId]
+    return if isStarter(fighterId) then 1 else ROSTER_UNLOCKS[fighterId] or EXPANDED_UNLOCKS[fighterId]
 end
 
 function PlayerProfiles.canSwitch(profile, fighterId)
@@ -70,9 +89,9 @@ local function addFighterXp(profile, id, amount)
     profile.fighters[id] = fighter
 end
 
-local function validRewardReceipt(receipt, firstXp, repeatXp, roster)
+local function validRewardReceipt(receipt, firstXp, repeatXp, acceptsFighter)
     return receipt == nil or (type(receipt) == "table" and validCompletionId(receipt.id)
-        and (if roster then ROSTER_UNLOCKS[receipt.fighterId] ~= nil else isStarter(receipt.fighterId))
+        and acceptsFighter(receipt.fighterId)
         and (receipt.xp == firstXp or receipt.xp == repeatXp))
 end
 
@@ -101,7 +120,7 @@ local function newProfile()
     }
 end
 
-local function validTraining(training, roster)
+local function validTraining(training, acceptsFighter)
     if training == nil then
         return true
     end
@@ -109,8 +128,7 @@ local function validTraining(training, roster)
         return false
     end
     for fighterId, records in training do
-        if (if roster then ROSTER_UNLOCKS[fighterId] == nil else not isStarter(fighterId))
-            or type(records) ~= "table" then
+        if not acceptsFighter(fighterId) or type(records) ~= "table" then
             return false
         end
         for drillId, receipt in records do
@@ -133,8 +151,9 @@ local function valid(profile)
             return false
         end
     end
-    if profile.fighters[REEDGUARD] == nil or not validTraining(profile.ringTraining, false)
-        or not validTraining(profile.rosterTraining, true) then
+    if profile.fighters[REEDGUARD] == nil or not validTraining(profile.ringTraining, isStarter)
+        or not validTraining(profile.rosterTraining, isOriginalUnlock)
+        or not validTraining(profile.expandedRosterTraining, isExpandedId) then
         return false
     end
     local trophy = profile.trophies[LANTERN_KEEPER]
@@ -147,15 +166,21 @@ local function valid(profile)
     local lease = profile.lease
     return (profile.dojoPracticeId == nil or validCompletionId(profile.dojoPracticeId))
         and (profile.firstSparWinId == nil or validCompletionId(profile.firstSparWinId))
-        and validRewardReceipt(profile.lastRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP)
-        and validRewardReceipt(profile.lastSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP)
-        and validRewardReceipt(profile.lastRosterRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP, true)
-        and validRewardReceipt(profile.lastRosterSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP, true)
+        and validRewardReceipt(profile.lastRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP, isStarter)
+        and validRewardReceipt(profile.lastSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP, isStarter)
+        and validRewardReceipt(profile.lastRosterRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP, isOriginalUnlock)
+        and validRewardReceipt(profile.lastRosterSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP, isOriginalUnlock)
+        and validRewardReceipt(profile.lastExpandedRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP, isExpandedId)
+        and validRewardReceipt(profile.lastExpandedSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP, isExpandedId)
         and (profile.selectedStarterFighter == nil or isStarter(profile.selectedStarterFighter))
         and (profile.activeStarterFighter == nil
             or (isStarter(profile.activeStarterFighter) and profile.selectedStarterFighter ~= nil))
         and (profile.activeRosterFighter == nil or ROSTER_UNLOCKS[profile.activeRosterFighter] ~= nil
             and PlayerProfiles.canSwitch(profile, profile.activeRosterFighter))
+        and (profile.activeExpandedFighter == nil or (isExpandedId(profile.activeExpandedFighter)
+            and (isStarter(profile.expandedFallback) or isOriginalUnlock(profile.expandedFallback))
+            and (EXPANDED_UNLOCKS[profile.activeExpandedFighter] == nil
+                or PlayerProfiles.canSwitch(profile, profile.activeExpandedFighter))))
         and (trophy == nil or type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
             and whole(trophy.criterionVersion, 1, 1e6))
         and (profile.kilnback == nil or validRaidReceipt(profile.kilnback))
@@ -182,8 +207,16 @@ function PlayerProfiles.memoryStore()
     }
 end
 
-function PlayerProfiles.activeFighter(profile)
+local function fallbackFighter(profile)
     return profile.activeRosterFighter or profile.activeStarterFighter or profile.selectedStarterFighter
+end
+
+function PlayerProfiles.activeFighter(profile)
+    local fallback = fallbackFighter(profile)
+    if profile.expandedFallback == fallback and EXPANDED_UNLOCKS[profile.activeExpandedFighter] then
+        return profile.activeExpandedFighter
+    end
+    return fallback
 end
 
 function PlayerProfiles.levelForXp(xp)
@@ -202,16 +235,14 @@ function PlayerProfiles.summary(profile, fighterId)
     local xp = if fighter then fighter.xp else 0
     local level = PlayerProfiles.levelForXp(xp)
     local fighterLevels = {}
-    for id in STARTERS do
-        local owned = profile.fighters[id]
-        fighterLevels[id] = if owned then PlayerProfiles.levelForXp(owned.xp) else 1
-    end
-    for id in ROSTER_UNLOCKS do
-        local owned = profile.fighters[id]
-        fighterLevels[id] = if owned then PlayerProfiles.levelForXp(owned.xp) else 1
+    for _, roster in {STARTERS, ROSTER_UNLOCKS, EXPANDED_UNLOCKS} do
+        for id in roster do
+            local owned = profile.fighters[id]
+            fighterLevels[id] = if owned then PlayerProfiles.levelForXp(owned.xp) else 1
+        end
     end
     local raid = profile.kilnback
-    local training = if isStarter(fighterId) then profile.ringTraining else profile.rosterTraining
+    local training = profile[fieldsFor(fighterId).training]
     return {
         lanternKeeper = profile.trophies[LANTERN_KEEPER] ~= nil,
         kilnKeeper = profile.trophies[KILN_KEEPER] ~= nil,
@@ -317,6 +348,13 @@ function PlayerProfiles:commitFighterSwitch(userId, token, fighterId)
         if not PlayerProfiles.canSwitch(profile, fighterId) then
             return "fighter locked"
         end
+        if EXPANDED_UNLOCKS[fighterId] then
+            -- Older builds still see a fighter they can equip and retain new progress fields.
+            profile.activeExpandedFighter = fighterId
+            profile.expandedFallback = fallbackFighter(profile)
+            return
+        end
+        profile.activeExpandedFighter, profile.expandedFallback = nil, nil
         if isStarter(fighterId) then
             profile.activeStarterFighter = fighterId
             profile.activeRosterFighter = nil
@@ -376,7 +414,7 @@ function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId, 
         return nil, "invalid result"
     end
     local legacy = isStarter(fighterId)
-    local receiptKey = if legacy then "lastRelayReward" else "lastRosterRelayReward"
+    local receiptKey = fieldsFor(fighterId).relay
     local saved, reason = self:_owned(userId, token, function(profile, now)
         if not legacy and not PlayerProfiles.canSwitch(profile, fighterId) then
             return "fighter locked"
@@ -442,7 +480,7 @@ function PlayerProfiles:commitSparWin(userId, token, completionId, fighterId)
         return nil, "invalid result"
     end
     local legacy = isStarter(fighterId)
-    local receiptKey = if legacy then "lastSparReward" else "lastRosterSparReward"
+    local receiptKey = fieldsFor(fighterId).spar
     local saved, reason = self:_owned(userId, token, function(profile)
         if not legacy and not PlayerProfiles.canSwitch(profile, fighterId) then
             return "fighter locked"
@@ -471,7 +509,7 @@ function PlayerProfiles:commitRingTraining(userId, token, drillId, completionId,
         return nil, "invalid training result"
     end
     local legacy = isStarter(fighterId)
-    local trainingKey = if legacy then "ringTraining" else "rosterTraining"
+    local trainingKey = fieldsFor(fighterId).training
     local saved, reason = self:_owned(userId, token, function(profile)
         if not legacy and not PlayerProfiles.canSwitch(profile, fighterId) then
             return "fighter locked"

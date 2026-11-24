@@ -308,6 +308,9 @@ local function resolve(duel, now)
         if kind == "parried" or kind == "blocked" then
             setFeedback(a, if kind == "parried" then "attackParried" else "attackBlocked", now)
             setFeedback(b, if event.deflected then "projectileDeflected" else kind, now)
+        elseif kind == "pull" then
+            setFeedback(a, "gustPull", now)
+            setFeedback(b, "gustPull", now)
         elseif event.damage and event.damage > 0 then
             setFeedback(a, kind, now, event.elementEffect)
             setFeedback(b, "hit", now)

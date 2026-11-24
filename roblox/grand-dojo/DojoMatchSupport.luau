@@ -8,9 +8,12 @@ Match.FighterKits = table.freeze({
     ["fire-salamander"] = "salamander",
     ["karate-frog"] = "frog",
     ["river-otter"] = "otter",
+    ["rooster-kickboxer"] = "rooster",
+    ["sugar-glider"] = "glider",
 })
 
-local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, ["Breakwater Stamp"] = true}
+local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
+    ["Breakwater Stamp"] = true}
 
 function Match.floorAttack(action)
     return floorAttacks[action] == true
@@ -23,6 +26,12 @@ function Match.contactCue(event)
     local kind = event.kind
     if event.deflected then
         return "deflected"
+    end
+    if event.controlOnly then
+        return if kind == "pull" or kind == "miss" then "gustPull" else kind
+    end
+    if event.attack == "featherFlurry" and event.index == 3 and (event.damage or 0) > 0 then
+        return "diveKick"
     end
     if kind == "parried" or kind == "blocked" or (event.damage or 0) > 0 then
         return kind

@@ -317,6 +317,14 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
         return checkPlayer(index, action, move, contactAt, contactIndex, castAt)
     end
     local function resolve(_, contactAt, fields, hit, _facing, _move)
+        if fields.controlOnly then
+            if fields.point then
+                fields.source, fields.attacker, fields.at = "player", index, contactAt
+                fields.kind, fields.damage = "miss", 0
+                table.insert(hits, fields)
+            end
+            return 0
+        end
         fields.source, fields.attacker, fields.at = "player", index, contactAt
         if hit and not round.bossAirborne then
             local baseDamage = fields.damage

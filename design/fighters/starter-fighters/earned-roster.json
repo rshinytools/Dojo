@@ -12,6 +12,18 @@
     "health": 95,
     "normal_hit": 12,
     "unlockLevel": 2,
+    "combat": {
+      "kit": "frog",
+      "techniqueCue": "lilyVault",
+      "signatureCue": "tadpoleTornado",
+      "techniqueCoolingCue": "lilyCooling",
+      "signatureCoolingCue": "tornadoCooling",
+      "signatureCooldownLabel": "Tornado",
+      "tint": "B9E183",
+      "cardStyle": "Leaping kicks and spins",
+      "initials": "KF",
+      "previewPose": {"right": -23, "left": -24, "lean": -9, "roll": 5, "lift": 0.28, "step": 0.23, "legs": 16}
+    },
     "story": "Karate Frog used to teach on stepping stones until the late-summer floods covered them. She moved her class to the giant lily pads and taught everyone to land lightly enough to leave the dew in place. The kids started keeping score by how many pads they could cross without getting wet. She still holds the record.",
     "quote": "Land softly. The next step is already waiting.",
     "powers": [
@@ -40,6 +52,18 @@
     "health": 96,
     "normal_hit": 13,
     "unlockLevel": 3,
+    "combat": {
+      "kit": "otter",
+      "techniqueCue": "eddyPalm",
+      "signatureCue": "pebbleBarrage",
+      "techniqueCoolingCue": "eddyCooling",
+      "signatureCoolingCue": "pebbleCooling",
+      "signatureCooldownLabel": "Barrage",
+      "tint": "8FDDF0",
+      "cardStyle": "Palm strikes and pebbles",
+      "initials": "RO",
+      "previewPose": {"right": -36, "left": -15, "lean": -8, "roll": -13, "lift": 0.10, "step": 0.21, "legs": 8}
+    },
     "story": "River Otter marked the safe route home for the Tideharbor ferry when the river rose one spring. With the sandbars hidden, he skipped pebbles to show the ferrier where the current split. Now he teaches first-time boaters the route and carries three smooth stones from that day in his sash.",
     "quote": "A river always gives you another angle.",
     "powers": [
@@ -52,6 +76,86 @@
         "name": "Pebble Barrage",
         "effect": "Send three pebbles through separate lanes to pressure opponents toward the edge.",
         "counter": "Step outside the spread, guard, or deflect with Tadpole Tornado."
+      }
+    ]
+  },
+  {
+    "id": "rooster-kickboxer",
+    "name": "Rooster Kickboxer",
+    "shortName": "Rooster",
+    "title": "First Bell of Dawn",
+    "home": "Lantern Circuit · Dawn Observatory",
+    "element": "Sky",
+    "rarity": "Common",
+    "role": "Agile",
+    "style": "Aerial kicks and fast follow-ups",
+    "health": 95,
+    "normal_hit": 14,
+    "unlockLevel": 4,
+    "combat": {
+      "kit": "rooster",
+      "techniqueCue": "spurLift",
+      "signatureCue": "featherFlurry",
+      "techniqueCoolingCue": "spurCooling",
+      "signatureCoolingCue": "flurryCooling",
+      "signatureCooldownLabel": "Flurry",
+      "tint": "FF9F7F",
+      "cardStyle": "Rising kicks and a dive",
+      "initials": "RK",
+      "previewPose": {"right": -39, "left": -26, "lean": -6, "roll": 10, "lift": 0.27, "step": 0.22, "legs": 17}
+    },
+    "story": "Rooster rings the first bell at Dawn Observatory. When the east steps froze, he carried the bell by jumping from the raised stones beside the path. The long climb became his favorite morning drill. On festival day he still arrives first to sweep the mat and welcomes anyone awake enough to spar.",
+    "quote": "Every round starts with one sure step.",
+    "powers": [
+      {
+        "name": "Spur Lift",
+        "effect": "Step in with a rising kick that briefly lifts the opponent.",
+        "counter": "Give the planted foot room and move off the kick line."
+      },
+      {
+        "name": "Feather Flurry",
+        "effect": "Vault into two quick bicycle kicks and finish with a diving third kick.",
+        "counter": "Step aside before the vault or guard the kicks you cannot avoid."
+      }
+    ]
+  },
+  {
+    "id": "sugar-glider",
+    "name": "Sugar Glider",
+    "shortName": "Sugar Glider",
+    "title": "The Canopy Courier",
+    "home": "Skywalk Peaks · Cloud-Top Temple",
+    "element": "Sky",
+    "rarity": "Common",
+    "role": "Agile",
+    "style": "Wing sweeps and wind control",
+    "health": 92,
+    "normal_hit": 12,
+    "unlockLevel": 5,
+    "combat": {
+      "kit": "glider",
+      "techniqueCue": "canopySlip",
+      "signatureCue": "gustVortex",
+      "techniqueCoolingCue": "canopyCooling",
+      "signatureCoolingCue": "gustCooling",
+      "signatureCooldownLabel": "Vortex",
+      "tint": "B9AAFF",
+      "cardStyle": "Side slips and gust control",
+      "initials": "SG",
+      "previewPose": {"right": -25, "left": -31, "lean": -8, "roll": -13, "lift": 0.24, "step": 0.21, "legs": 10}
+    },
+    "story": "Sugar Glider carries notes between the shrines above Skywalk Peaks. She learned to read the wind from chimes along the ridge and sewed their knot pattern into her sleeves. She tests new routes by dropping a ribbon into the air and following where it falls. At the dojo, those same turns help her land a sweep from an unexpected angle.",
+    "quote": "Watch the ribbons. They’ll show you where to go.",
+    "powers": [
+      {
+        "name": "Canopy Slip",
+        "effect": "Slip sideways on the mat and sweep across the opponent’s guard line.",
+        "counter": "Turn with the Glider and keep space for the sweep."
+      },
+      {
+        "name": "Gust Vortex",
+        "effect": "Glide forward and leave a marked funnel that first pulls foes in, then bursts outward.",
+        "counter": "Leave the circle early or face its center and guard."
       }
     ]
   }

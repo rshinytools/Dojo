@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.285 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.286 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -13,13 +13,19 @@ The v0.285 Studio checkpoint is the starting point for new work. This repository
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to preview all six playable fighters. The four starters are free from the start. The account unlocks Karate Frog when any fighter earns Level 2 and River Otter at Level 3. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+Choose an original starter on first join. Use the Fighter Select station between activities to preview all eight playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4 and Sugar Glider at Level 5, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
 
 ### Karate Frog and River Otter
 
 Karate Frog starts with 95 HP. Lily Vault travels into a double-foot kick. Tadpole Tornado warns with a floor circle, pushes nearby opponents, and deflects pebbles during the active spin. River Otter starts with 96 HP. Eddy Palm cuts laterally before the strike. Pebble Barrage launches three visible pebbles on separate paths. The server checks each path against fitted hit volumes and scenery. A pebble can land once.
 
 Desktop Studio played Frog from Fighter Select through a Juniper knockout. Lily Vault dealt 20 damage and Tadpole Tornado dealt 28. Galaxy A06 landscape Studio simulation equipped Otter and sent scripted combat inputs for a complete Juniper win. All three pebbles dealt 8 damage each, Eddy Palm dealt 19, and the profile received 60 XP. These fights used a Studio-only profile with earned Level 3 access preloaded. Exact-source Luau checks covered the actual unlock rules, a profile reopen and rollback, projectile timing and deflection in Duel, Tag and Brawl, and both kits in the Raid round. Multiplayer geometry, final balance, cloud saving and physical-device testing remain open.
+
+### Rooster Kickboxer and Sugar Glider
+
+Rooster starts with 95 HP. Spur Lift briefly lifts a nearby target. Feather Flurry vaults into three fitted kicks with a distinct dive finish. Glider starts with 92 HP. Canopy Slip can move left or right into a sweeping strike. Gust Vortex stays at the spot marked on the mat. Its first pulse pulls unguarded opponents without damage or stun. The second pulse deals damage and pushes outward. Guards and parries use the normal combat timing. Raid bosses keep their positions during the first pulse.
+
+Desktop Studio played Rooster against Juniper from Fighter Select through the first-win reward. Feather Flurry dealt 8, 9 and 16 damage on its three contacts, and Spur Lift dealt 18. On the Galaxy A06 landscape simulator, tapping the 56 × 48 Gust Vortex button activated the warning, a zero-damage pull, six wind ribbons and a 25-damage burst. Canopy Slip dealt 18. Both fights ended with a knockout and 60 XP. Studio used temporary Level 5 access and scripted inputs for the rest of combat. Exact-source tests covered a held guard, multiple opponents in Brawl, team filtering, raid boss health and a return from the prior checkpoint. The older build kept the previous usable fighter and progress. The new build restored the equipped fighter and separate XP after reconnect. Published saving, live multiplayer and physical devices remain open.
 
 ## Roblox listing artwork
 

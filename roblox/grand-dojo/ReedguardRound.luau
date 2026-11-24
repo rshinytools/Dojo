@@ -6,6 +6,7 @@ local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Frog = require(script.Parent.FrogCombatPoses)
 local Otter = require(script.Parent.OtterCombatPoses)
+local Sky = require(script.Parent.SkyFighterCombat)
 local Round = {}
 
 Round.INTRO = 10
@@ -152,6 +153,9 @@ local kits = {
         secondary = "eddyPalm", secondaryCooldown = 3, secondaryCooling = "eddyCooling",
     },
 }
+for id, kit in Sky.kits do
+    kits[id] = kit
+end
 
 local residents = {
     juniper = {startRange = 3.65, attackLabel = "palm"},
@@ -292,6 +296,10 @@ local function resolveBotContact(round, at, fields, hit)
         return 0
     end
     local brace = round.botPhase == "setup" and round.attack.brace
+    if fields.controlOnly then
+        report(round, if brace then "braced" else "pull", at, fields)
+        return 0
+    end
     local counter = round.botPhase == "recovery" and round.recoveryKind == "parried"
     local damage = if brace then math.ceil(fields.damage / 2) else fields.damage
     round.botHealth = math.max(0, round.botHealth - damage)
@@ -320,7 +328,7 @@ local function contact(round, at, check, resolve, publishCast)
         return
     end
     local hit, point, resolvedZone, facing
-    if publishCast or round.kit == kits.salamander or move.projectile then
+    if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -337,7 +345,7 @@ local function contact(round, at, check, resolve, publishCast)
     if hit and move.singleHit then
         clip.connected = true
     end
-    local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile,
+    local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
         castStartedAt = if publishCast then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage

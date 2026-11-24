@@ -15,16 +15,16 @@ local cues = {
     countdown = {file = "Countdown bell", volume = .24},
 }
 local groundPitch = {
-    seismicChestPound = .86, magmaTrail = 1.08, tadpoleTornado = 1.16, ["Breakwater Stamp"] = .93,
+    seismicChestPound = .86, magmaTrail = 1.08, tadpoleTornado = 1.16, gustVortex = 1.26, ["Breakwater Stamp"] = .93,
     pulse = .87, sweep = .98, undertow = .90, cataclysm = .82, solarFlare = 1.13,
 }
 local heavyPitch = {
-    heavy = 1, ridgePalm = .96, lilyVault = 1.12, bellySlide = 1.04, palm = .94, sunDive = .88,
+    heavy = 1, ridgePalm = .96, lilyVault = 1.12, spurLift = 1.19, bellySlide = 1.04, palm = .94, sunDive = .88,
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {
     jab = 1.06, cross = .98, body = .94, uppercut = 1.02, reedstep = .92, emberSweep = 1.12,
-    eddyPalm = .89, pebbleBarrage = 1.25,
+    eddyPalm = .89, pebbleBarrage = 1.25, canopySlip = 1.16, featherFlurry = 1.20,
     ["Kiln Jab"] = .96, ["Wind Jab"] = 1.10,
 }
 local countdownPitch = {1.10, 1.02, .96}
@@ -158,6 +158,10 @@ function CombatAudio.impact(kind, point, attack)
         play("parry", point, 1, duck)
     elseif kind == "deflected" then
         play("guard", point, 1.22, duck)
+    elseif kind == "gustPull" then
+        play("ground", point, .78, false)
+    elseif kind == "diveKick" then
+        play("heavy", point, .86, duck)
     elseif kind == "blocked" or kind == "braced" then
         play("guard", point, if kind == "braced" then .92 else 1, duck)
     elseif kind == "burst" then

@@ -10,6 +10,7 @@ local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Granite = require(script.Parent.GraniteCombatPoses)
 local Frog = require(script.Parent.FrogCombatPoses)
 local Otter = require(script.Parent.OtterCombatPoses)
+local Sky = require(script.Parent.SkyFighterCombat)
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 local Motion = {}
@@ -32,6 +33,9 @@ local playerKits = {
     frog = {poses = Frog, mixedSpacing = 2.55},
     otter = {poses = Otter, mixedSpacing = 2.55},
 }
+for id, kit in Sky.kits do
+    playerKits[id] = kit
+end
 
 local residents = {
     juniper = {poses = Juniper, spacing = 3.13, diameter = 4.15, originalKit = "reedguard"},
@@ -221,7 +225,7 @@ function Motion.open(bout)
         autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled,
         humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
-    if bout.kit == "frog" or bout.kit == "otter" then
+    if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] then
         state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
     end
     for _, name in tracked do
@@ -281,6 +285,7 @@ function Motion.close(bout)
     local state = bout.motion
     restoreDefeat(state)
     clearLane(state, "tornadoWarning")
+    clearLane(state, "gustWarning")
     if state.pebbleEffects then
         state.pebbleEffects:Destroy()
     end
@@ -822,6 +827,15 @@ local function playerDodge(bout, now)
     else
         state.dodgeClip = nil
     end
+    if clip and clip.action == "gustVortex" and not bout.outroAt and age >= Sky.gust.warningAt and age < Sky.burstAt then
+        if not state.gustWarning then
+            local center = Match.clampFloor(bout.arena.bounds, state.dodgeFrom:PointToWorldSpace(Sky.gust.center), bout.arena.floor)
+            state.gustWarning = galleonContour(bout, "Gust Vortex warning", center, Sky.gust.radius,
+                nil, nil, Color3.fromRGB(188, 179, 255))
+        end
+    else
+        clearLane(state, "gustWarning")
+    end
     local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil
     if hold ~= state.holding then
         root.Anchored = hold or state.anchored
@@ -1079,7 +1093,8 @@ local function moveCrossKnock(bout, now)
     if motion.Magnitude > .005 then
         residentStep[bout.botId](bout, motion, knock.basis)
     end
-    state.crossLift = 4 * alpha * (1 - alpha) * knock.height
+    state.crossLift = if knock.dropFrom then knock.dropFrom * (1 - alpha) ^ 3
+        else 4 * alpha * (1 - alpha) * knock.height
     knock.progress = progress
     if alpha >= 1 then
         state.crossKnock = nil
@@ -1390,6 +1405,18 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
         local contact = nearestPoint(jointFrame(frame, groups, "Torso", joint) * joint.shell, joint.part.Size, center)
         return Match.flat(contact - center).Magnitude <= move.radius
             and contact.Y <= center.Y + 1.5 and not obstructed(bout, center, contact), center, "body"
+    elseif move.lockedCenter then
+        local origin = state.dodgeFrom or actorRootAt(bout, castStartedAt)
+        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(move.center), bout.arena.floor)
+        for _, name in {"Left Leg", "Right Leg"} do
+            local joint = bout.joints[name]
+            local nearest = nearestPoint(jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size, center)
+            if Match.flat(nearest - center).Magnitude <= move.radius and nearest.Y <= center.Y + .85
+                and not obstructed(bout, center, nearest) then
+                return true, center, "body"
+            end
+        end
+        return false, center
     end
     local direction = bout.round.clip and bout.round.clip.direction
     local point = root:PointToWorldSpace(attackPoint(state.playerPoses, action, index, direction))
@@ -1397,7 +1424,9 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     if offset.Magnitude < .05 or offset.Magnitude > 3.55 or offset.Unit:Dot(root.LookVector) < .48 then
         return false, point
     end
-    for _, name in if move.zone == "head" then {"Head", "Torso"} else {"Torso"} do
+    local zones = if move.zone == "head" then {"Head", "Torso"}
+        elseif move.foot then {"Torso", "Left Leg", "Right Leg"} else {"Torso"}
+    for _, name in zones do
         local joint = bout.joints[name]
         local targetFrame, size = jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size
         if action == "uppercut" and name == "Torso" then
@@ -1658,9 +1687,23 @@ function Motion.render(bout, now)
 end
 
 function Motion.impact(bout, event)
-    if event.source ~= "bot" and event.attack ~= "palm" and (event.damage or 0) > 0 then
+    if event.source == "bot" or event.attack == "palm" then
+        return
+    end
+    local damage = (event.damage or 0) > 0
+    if damage then
         bout.reactionAt = event.at
         bout.reactionAction = if event.zone == "head" then "headHit" else "bodyHit"
+    end
+    local force, height, spike = Sky.impulse(event)
+    if force and (damage or event.kind == "pull") then
+        local state = bout.motion
+        local center = if event.attack == "gustVortex" then event.point else bout.root.Position
+        local heading = directionTo(center, bout.position, bout.root.CFrame.LookVector)
+        state.crossKnock = {at = event.at, offset = heading * force, progress = 0,
+            duration = if spike then .16 else .20, height = height, dropFrom = if spike then state.crossLift or 0 else nil,
+            basis = CFrame.lookAlong(Vector3.zero, heading)}
+    elseif damage then
         if event.attack == "bellySlide" and penguin(bout) then
             local state = bout.motion
             local travel = state.playerTravel

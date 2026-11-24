@@ -7,6 +7,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoBrawl")
+local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local ChampionshipPortraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -126,14 +127,26 @@ make("UISizeConstraint", notice, {MaxSize = Vector2.new(410, 42)})
 make("UIPadding", notice, {PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9)})
 style(notice)
 
+local earnedCues = {}
 local kits = {
     reedguard = {fighter = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {fighter = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
     silverback = {fighter = "Silverback", technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
     salamander = {fighter = "Salamander", technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
-    frog = {fighter = "Karate Frog", technique = "Lily Vault", techniqueAction = "secondary", signature = "Tadpole Tornado"},
-    otter = {fighter = "River Otter", technique = "Eddy Palm", techniqueAction = "secondary", signature = "Pebble Barrage"},
 }
+for _, fighter in fighterCatalog.ById do
+    local combat = fighter.combat
+    if combat then
+        kits[combat.kit] = {
+            fighter = fighter.shortName or fighter.name,
+            technique = combat.technique, techniqueAction = combat.techniqueAction, signature = combat.signature,
+        }
+        if combat.techniqueCue then
+            earnedCues[combat.techniqueCue] = combat.technique
+        end
+        earnedCues[combat.signatureCue] = combat.signature
+    end
+end
 local keyMap = {
     [Enum.KeyCode.E] = "strike", [Enum.KeyCode.ButtonR2] = "strike", [Enum.KeyCode.ButtonX] = "strike",
     [Enum.KeyCode.Q] = "guard", [Enum.KeyCode.ButtonL2] = "guard",
@@ -145,10 +158,10 @@ local keyMap = {
 }
 local tips = {
     blocked = "Blocked", parried = "Parried! Counter now", attackBlocked = "Your strike was blocked",
-    projectileDeflected = "Pebble deflected!",
     attackParried = "Your strike was parried", hit = "You took a hit", strike = "Strike landed",
     counter = "Counter landed", guard = "Guard up", needParry = "Parry to unlock Rising",
     projectileDeflected = "Projectile deflected!",
+    gustPull = "Vortex pulls inward",
 }
 
 local waiting, match, lastResultId
@@ -263,7 +276,7 @@ local function refresh()
     elseif now < stageCueUntil then
         cue.Text, cue.TextColor3 = "The safe floor shrank", gold
     else
-        local text = tips[match.feedback]
+        local text = tips[match.feedback] or earnedCues[match.feedback]
         cue.Text = text or ""
         if match.feedback == "parried" then
             cue.TextColor3 = Color3.fromRGB(141, 231, 231)
@@ -302,7 +315,7 @@ local function send(action)
         return
     end
     local direction
-    if action == "dodge" then
+    if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")

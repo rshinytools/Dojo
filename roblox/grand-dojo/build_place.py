@@ -110,6 +110,7 @@ from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from starter_fighter_assets import build_starter_fighter_visuals
 from roster_fighter_art import build_expansion_visuals
+from sky_fighter_art import build_sky_visuals
 from skywalk_foothill import build_skywalk_foothill
 from skywalk_road_bank import build_skywalk_road_bank
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
@@ -7766,6 +7767,17 @@ for fighter in starter_roster["fighters"] + earned_roster:
     fighter_id = fighter["id"]
     starter_catalog["Order"].append(fighter_id)
     starter_catalog["ById"][fighter_id] = {**fighter, "normalHit": fighter["normal_hit"]}
+    if "combat" in fighter:
+        combat = dict(fighter["combat"])
+        combat["techniqueAction"] = "secondary"
+        for index, action in enumerate(("technique", "signature")):
+            name = fighter["powers"][index]["name"]
+            cue = combat[action + "Cue"]
+            combat[action] = name
+            combat[action + "Label"] = name
+            combat[action + "Name"] = cue[0].upper() + cue[1:]
+            combat[action + "Cooldown"] = combat.pop(action + "CooldownLabel", name) + "\n%ds"
+        starter_catalog["ById"][fighter_id]["combat"] = combat
 encoded_catalog = json.dumps(starter_catalog, ensure_ascii=False, separators=(",", ":"))
 assert "]==]" not in encoded_catalog
 catalog_script = item(storage,"ModuleScript","StarterFighterCatalog")
@@ -7773,6 +7785,7 @@ prop(catalog_script,"ProtectedString","Source",
      f'return game:GetService("HttpService"):JSONDecode([==[{encoded_catalog}]==])')
 fighter_visuals = build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
 build_expansion_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_sky_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
@@ -8007,6 +8020,10 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","FireSalamanderCombatPoses","FireSalamanderCombatPoses.luau"),
                                     (server,"ModuleScript","FrogCombatPoses","FrogCombatPoses.luau"),
                                     (server,"ModuleScript","OtterCombatPoses","OtterCombatPoses.luau"),
+                                    (server,"ModuleScript","FighterChoreography","FighterChoreography.luau"),
+                                    (server,"ModuleScript","RoosterCombatPoses","RoosterCombatPoses.luau"),
+                                    (server,"ModuleScript","GliderCombatPoses","GliderCombatPoses.luau"),
+                                    (server,"ModuleScript","SkyFighterCombat","SkyFighterCombat.luau"),
                                     (server,"ModuleScript","GraniteCombatPoses","GraniteCombatPoses.luau"),
                                     (storage,"ModuleScript","CombatIntro","CombatIntro.luau"),
                                     (storage,"ModuleScript","CombatEffects","CombatEffects.luau"),

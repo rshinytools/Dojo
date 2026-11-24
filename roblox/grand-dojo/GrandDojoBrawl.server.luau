@@ -271,6 +271,9 @@ local function advance(match, now)
         if event.kind == "parried" or event.kind == "blocked" then
             setFeedback(attacker, if event.kind == "parried" then "attackParried" else "attackBlocked", now)
             setFeedback(match.actors[event.defender], if event.deflected then "projectileDeflected" else event.kind, now)
+        elseif event.kind == "pull" then
+            setFeedback(attacker, "gustPull", now)
+            setFeedback(match.actors[event.defender], "gustPull", now)
         elseif (event.damage or 0) > 0 then
             setFeedback(attacker, event.elementEffect or "strike", now)
             setFeedback(match.actors[event.defender], "hit", now)
