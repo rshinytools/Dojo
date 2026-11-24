@@ -118,6 +118,8 @@ local function resolveBatch(duel, time, batch)
             end
         elseif event.kind == "snare" then
             defender.rootTime = math.max(defender.rootTime or 0, event.rootDuration)
+        elseif event.kind == "pull" then
+            defender.interruptedTravel = true
         elseif event.kind == "blocked" and not event.deflected and not event.controlOnly then
             reaction(defender, "block", 1, 0)
         end
@@ -139,6 +141,8 @@ local function resolveBatch(duel, time, batch)
         end
         if plan.rootTime and side.playerHealth > 0 then
             Combatant.applyRoot(side, time, plan.rootTime)
+        elseif plan.interruptedTravel then
+            Combatant.interruptFixedTravel(side)
         end
     end
 end

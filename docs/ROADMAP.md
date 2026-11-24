@@ -61,6 +61,8 @@ V0.272 adds the Level 7 Fire Salamander–Granite round. Desktop and Galaxy A06 
 
 V0.275 adds a damage trail, mirrored health meters and viewport-aware camera framing. Galaxy A06 landscape Studio verified the changed HUD in Reedguard versus Juniper through knockout, XP and camera return. A separate desktop Studio test exercised the Duel HUD through a one-client bout against a fitted stand-in. Server contact cues and the audio mixer are wired. The original WAVs require Roblox audio asset IDs and an audible mix pass.
 
+V0.288 keeps zero-HP fighters on the mat until the final knockout outro ends in Tag Team and Brawl. Exact-source checks covered mat contact, simultaneous knockouts, timeouts with HP remaining, broken Brawl tiles, and restoration of movement after the outro. Live Tag Team and Brawl verification remains open.
+
 ## P3 Persistent player progression
 
 Implement safe saving before a persistent economy or trading.
@@ -185,7 +187,7 @@ Frostglass Gardens and Lantern Circuit remain activity districts. The four theme
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P7.1 | Playable roster expansion | In progress | Ten fighters have original rigs and combat kits, including Level 6 Desert Scorpion and Level 7 Pistol Shrimp. Complete fourteen more base fighters and validate all 24 fighters’ unlocks, timing, balance and match loops. |
+| P7.1 | Playable roster expansion | In progress | Twelve fighters have original rigs and kits, including Level 8 Walrus Sumo and Level 9 Snapping Tortoise. Complete the remaining twelve base fighters and validate all 24 fighters’ unlocks, timing, balance and match loops. |
 | P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | Separate starter XP tracks and the Level 3 route passed Studio play. Verify published persistence, repeat pacing, evolutions, breeds and mutations. |
 | P7.3 | Four combat rings and original bosses | In progress | All four rings support the four authored starter kits in Studio. Kilnback Custodian, Abyssal Kraken and Solar Phoenix have original animated rigs and separate co-op arenas in Studio. Verify published access, boss audio and device play. |
 | P7.4 | Content balance and regression | Planned | Fix outliers and ensure content additions do not regress the alpha save/input contract. |

@@ -9,11 +9,14 @@ local Otter = require(script.Parent.OtterCombatPoses)
 local Sky = require(script.Parent.SkyFighterCombat)
 local EmberAqua = require(script.Parent.EmberAquaCombat)
 local Fields = require(script.Parent.ArenaFields)
+local Heavy = require(script.Parent.HeavyFighterCombat)
+local Ricochet = require(script.Parent.RingRicochet)
 
 local Motion = {}
 local defeatSeconds = Geometry.defeatSeconds
 local joints = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
-local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true, lilyVault = true, eddyPalm = true}
+local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true, lilyVault = true, eddyPalm = true,
+    fortressRicochet = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
     pebbleBarrage = true, cinderSnare = true, cavitationCannon = true}
 local sideStep = {
@@ -26,6 +29,8 @@ local sideStep = {
     glider = {distance = 2.58, time = .23, start = .025},
     scorpion = {distance = 2.30, time = .245, start = .025},
     shrimp = {distance = 2.40, time = .23, start = .025},
+    walrus = {distance = 1.85, time = .27, start = .03},
+    tortoise = {distance = 1.91, time = .27, start = .03},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -192,6 +197,15 @@ local function floorActive(duel, point, at)
     return not duel.floorActive or duel.floorActive(point, at)
 end
 
+function Motion.holdsKnockout(match, index, now)
+    local actor, round = match.actors[index], match.round
+    local state = round.sides[index]
+    return state.eliminationReason == "knockout" and actor.motionActive and actor.root.Parent == actor.character
+        and (round.result ~= nil or state.downed or now < state.eliminatedAt + defeatSeconds)
+        and (not match.floorActive or (actor.root.Position.Y >= match.floor + 1.12
+            and floorActive(match, actor.root.Position)))
+end
+
 function Motion.canAct(duel, side, action, now)
     local actor = duel.actors[side]
     if not activeActor(duel, side) or not Match.inside(duel.bounds, actor.root.Position) then
@@ -321,6 +335,9 @@ local function updateWarning(duel, actor, cast, age)
         if not floorActive(duel, cast.fieldCenter, duel.motion.at) then
             finish = 0
         end
+    elseif action == "tidalBellyFlop" then
+        skill = Heavy.flop
+        start, finish = skill.warningAt, Heavy.flopAt
     else
         return
     end
@@ -339,13 +356,15 @@ local function updateWarning(duel, actor, cast, age)
         cast.warning = slideGuide(duel, actor, origin, -path[#path].offset.Z)
     else
         local gust = action == "gustVortex"
-        local center = if gust then cast.fieldCenter else floorPoint(duel, origin:PointToWorldSpace(skill.center))
+        local flop = action == "tidalBellyFlop"
+        local center = if gust then cast.fieldCenter elseif flop then floorPoint(duel, cast.landing)
+            else floorPoint(duel, origin:PointToWorldSpace(skill.center))
         local fan = action == "emberSweep"
         local tornado = action == "tadpoleTornado"
         local name = if fan then "Ember Sweep warning" elseif tornado then "Tadpole Tornado warning"
-            elseif gust then "Gust Vortex warning" else "Seismic Chest Pound warning"
+            elseif gust then "Gust Vortex warning" elseif flop then "Tidal Belly-Flop warning" else "Seismic Chest Pound warning"
         local tint = if fan then amber elseif tornado then Color3.fromRGB(143, 241, 124)
-            elseif gust then Color3.fromRGB(188, 179, 255) else gold
+            elseif gust then Color3.fromRGB(188, 179, 255) elseif flop then blue else gold
         cast.warning = floorContour(duel, actor, name,
             center, skill.radius, if fan then origin.LookVector else nil, skill.halfAngle, tint)
     end
@@ -394,6 +413,23 @@ local function moveCast(duel, actor, other, cast, now)
     local clip, origin = cast.clip, cast.origin
     local action = clip.action
     local endAt = math.min(now, clip.endsAt)
+    if cast.rollPath then
+        if endAt >= clip.startedAt + Heavy.roll.windup then
+            local frame = Ricochet.frameAt(cast.rollPath, endAt - clip.startedAt - Heavy.roll.windup)
+            Match.move(actor.root, frame)
+        end
+        cast.movedAt = endAt
+        remember(actor, endAt)
+        return
+    elseif cast.landing then
+        local travel = Heavy.flopTravel
+        local alpha = math.clamp((endAt - clip.startedAt - travel.startsAt) / (travel.endsAt - travel.startsAt), 0, 1)
+        local position = origin.Position:Lerp(cast.landing, alpha * alpha * (3 - 2 * alpha))
+        Match.move(actor.root, CFrame.new(position) * origin.Rotation)
+        cast.movedAt = endAt
+        remember(actor, endAt)
+        return
+    end
     while cast.movedAt + .0001 < endAt do
         local at = math.min(cast.movedAt + 1 / 40, endAt)
         if action == "magmaTrail" then
@@ -488,6 +524,14 @@ local function updateActor(duel, index, now)
                 actor.cast.field = Fields.triangle(duel.bounds, duel.floor, origin, EmberAqua.snare.vertices)
             elseif clip.action == "cavitationCannon" then
                 actor.cast.field = Fields.wave(duel.bounds, duel.floor, origin)
+            elseif clip.action == "tidalBellyFlop" then
+                local target = Match.clampFloor(duel.bounds, origin.Position + orientation * Heavy.flopTravel.distance, origin.Y)
+                actor.cast.landing = arenaTravel(duel, origin.Position, target, origin, Vector3.new(1.84, 2.20, 1.50))
+            elseif clip.action == "fortressRicochet" then
+                actor.cast.rollPath = Ricochet.plan(duel.bounds, origin.Position, orientation, Heavy.roll, function(from, delta)
+                    local center = Vector3.new(from.X, duel.floor + 1.22, from.Z)
+                    return workspace:Blockcast(CFrame.new(center), Vector3.new(2.44, 2.22, 2.44), delta, duel.motion.arenaCast)
+                end)
             end
             setHeld(actor, true)
             Match.move(root, origin)
@@ -495,7 +539,9 @@ local function updateActor(duel, index, now)
         if traveling then
             moveCast(duel, actor, other, actor.cast, now)
         end
-        if actor.cast.field then
+        if actor.cast.rollPath then
+            Ricochet.present(actor.cast, actor.fx, duel.floor, now - clip.startedAt, Heavy.roll)
+        elseif actor.cast.field then
             local field = actor.cast.field
             Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
                 not field.vertices or supportedTriangle(duel, field, now))
@@ -545,6 +591,9 @@ local function poseAt(duel, index, now)
         end
     end
     local offsets = state.kit.poses.sample(action, age, direction)
+    if action == "fortressRicochet" then
+        offsets = Ricochet.pose(offsets, age, Heavy.roll, Heavy.roll.shellCenter)
+    end
     if (actor.lift or 0) > 0 then
         offsets = table.clone(offsets)
         offsets.RootJoint = CFrame.new(0, actor.lift, 0) * offsets.RootJoint
@@ -557,8 +606,7 @@ function Motion.render(duel, now)
         local state = duel.round.sides[index]
         local defeatAt
         if duel.motion.brawl then
-            if state.eliminationReason == "knockout" and now < state.eliminatedAt + defeatSeconds
-                and floorActive(duel, actor.root.Position, now) then
+            if Motion.holdsKnockout(duel, index, now) then
                 defeatAt = state.eliminatedAt
             end
         elseif state.playerHealth <= 0 then
@@ -754,12 +802,42 @@ local function fieldContact(duel, index, move, at, target, field)
     return point, facing
 end
 
+local function rollSegments(duel, actor, move, castStartedAt, at)
+    local cast = actor.cast
+    if not cast or not cast.rollPath or cast.clip.startedAt ~= castStartedAt
+        or not floorActive(duel, actor.root.Position, at) then
+        return nil
+    end
+    return Ricochet.sweeps(cast.rollPath, move.from, move.to)
+end
+
+local function rollContact(duel, other, at, target, segments, radius)
+    if not segments or not Match.inside(duel.bounds, target.Position) or not floorActive(duel, target.Position, at) then
+        return nil, false
+    end
+    for _, segment in segments do
+        if Match.flat(target.Position - segment.b).Magnitude <= 4.1 and floorActive(duel, segment.b, at) then
+            local facing = defenderFacing(target, segment.a)
+            for _, volume in defenderVolumes(duel, other, at, target, facing) do
+                local hit = Geometry.sweptContact(segment.a, segment.b, volume.frame, volume.size, radius)
+                if hit and not obstructed(duel, segment.a, hit) then
+                    return hit, facing
+                end
+            end
+        end
+    end
+    return nil, false
+end
+
 function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local other = 3 - side
     local actor = duel.actors[side]
     local root = clockFrame(actor, at)
     local target = clockFrame(duel.actors[other], at)
-    if move.shape == "snare" or move.shape == "wave" then
+    if move.shape == "ricochet" then
+        local point, facing = rollContact(duel, other, at, target, rollSegments(duel, actor, move, castStartedAt, at), move.radius)
+        return point ~= nil, point, "body", facing
+    elseif move.shape == "snare" or move.shape == "wave" then
         local field = fieldFor(duel, actor, move, at, castStartedAt)
         if not field or move.launch then
             return false
@@ -818,7 +896,21 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     end
     local actor = brawl.actors[side]
     local root = clockFrame(actor, at)
-    if move.shape == "snare" or move.shape == "wave" then
+    if move.shape == "ricochet" then
+        local segments = rollSegments(brawl, actor, move, castStartedAt, at)
+        local contacts = {}
+        if segments then
+            for other, defender in brawl.actors do
+                if other ~= side and (not brawl.enemies or brawl.enemies(side, other)) and activeActor(brawl, other) then
+                    local point, facing = rollContact(brawl, other, at, clockFrame(defender, at), segments, move.radius)
+                    if point then
+                        table.insert(contacts, {defender = other, point = point, zone = "body", facing = facing})
+                    end
+                end
+            end
+        end
+        return contacts
+    elseif move.shape == "snare" or move.shape == "wave" then
         if move.launch then
             return false
         end
@@ -939,7 +1031,21 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     end
     local actor = raid.actors[side]
     local root = clockFrame(actor, at)
-    if move.shape == "snare" then
+    if move.shape == "ricochet" then
+        local segments = rollSegments(raid, actor, move, castStartedAt, at)
+        if segments then
+            local targets = if raid.round.coreExposed then raid.exposedBossVolumes else raid.bossVolumes
+            for _, segment in segments do
+                for _, volume in targets do
+                    local hit = Geometry.sweptContact(segment.a, segment.b, volume.part.CFrame, volume.part.Size, move.radius)
+                    if hit and not obstructed(raid, segment.a, hit) then
+                        return true, hit, volume.zone
+                    end
+                end
+            end
+        end
+        return false
+    elseif move.shape == "snare" then
         return false
     elseif move.shape == "wave" then
         if move.launch then
@@ -1112,6 +1218,10 @@ function Motion.impact(duel, event)
         local center = if action == "cavitationCannon" and field then field.center else root.Position
         offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
             (if action == "cavitationCannon" then .34 else .20), 0
+    elseif Heavy.shove[action] then
+        local center = if action == "tidalBellyFlop" then event.point else root.Position
+        local away = if action == "fortressRicochet" then direction else heading(center, target.root.Position, direction)
+        offset, duration, height = away * Heavy.shove[action], .26, if action == "tidalBellyFlop" then .17 else 0
     elseif action == "bellySlide" then
         offset, duration, height = direction * 1.38, .20, 0
     elseif action == "ridgePalm" then

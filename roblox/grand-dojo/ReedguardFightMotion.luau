@@ -13,6 +13,8 @@ local Otter = require(script.Parent.OtterCombatPoses)
 local Sky = require(script.Parent.SkyFighterCombat)
 local EmberAqua = require(script.Parent.EmberAquaCombat)
 local Fields = require(script.Parent.ArenaFields)
+local Heavy = require(script.Parent.HeavyFighterCombat)
+local Ricochet = require(script.Parent.RingRicochet)
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 local Motion = {}
@@ -39,6 +41,9 @@ for id, kit in Sky.kits do
     playerKits[id] = kit
 end
 for id, kit in EmberAqua.kits do
+    playerKits[id] = kit
+end
+for id, kit in Heavy.kits do
     playerKits[id] = kit
 end
 
@@ -230,7 +235,7 @@ function Motion.open(bout)
         autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled,
         humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
-    if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit] then
+    if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit] or Heavy.kits[bout.kit] then
         state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
     end
     for _, name in tracked do
@@ -293,6 +298,9 @@ function Motion.close(bout)
     clearLane(state, "gustWarning")
     if state.arenaFieldCast then
         Fields.clearVisuals(state.arenaFieldCast)
+    end
+    if state.heavyCast then
+        Fields.clearVisuals(state.heavyCast)
     end
     if state.pebbleEffects then
         state.pebbleEffects:Destroy()
@@ -781,6 +789,58 @@ local function penguinTravel(bout, now)
     end
 end
 
+local function moveHeavy(bout, now, clip, age)
+    local state, root = bout.motion, bout.root
+    local action = clip and not bout.outroAt and clip.action
+    local active = action == "tidalBellyFlop" or action == "fortressRicochet"
+    local cast = state.heavyCast
+    if cast and (not active or cast.clip ~= clip) then
+        Fields.clearVisuals(cast)
+        state.heavyCast, cast = nil, nil
+    end
+    if not active then
+        return false
+    end
+    local arena = bout.arena
+    if not cast then
+        local origin = root.CFrame
+        cast = {clip = clip, origin = origin}
+        state.heavyCast = cast
+        if action == "tidalBellyFlop" then
+            local target = origin.Position + origin.LookVector * Heavy.flopTravel.distance
+            cast.landing = safeTravel(bout, origin.Position, target, origin, Vector3.new(1.84, 2.2, 1.5), state.arenaCast)
+        else
+            cast.rollPath = Ricochet.plan(arena.bounds, origin.Position, origin.LookVector, Heavy.roll, function(from, delta)
+                local center = Vector3.new(from.X, arena.floor + 1.22, from.Z)
+                return workspace:Blockcast(CFrame.new(center), Vector3.new(2.44, 2.22, 2.44), delta, state.arenaCast)
+            end)
+        end
+    end
+    if cast.rollPath then
+        if age >= Heavy.roll.windup then
+            Match.move(root, Ricochet.frameAt(cast.rollPath, age - Heavy.roll.windup))
+        end
+        if Ricochet.present(cast, bout.telegraph, arena.floor, age, Heavy.roll) then
+            bout.message, bout.messageUntil = "ricochetBounce", now + .38
+        end
+    else
+        local travel = Heavy.flopTravel
+        local alpha = math.clamp((age - travel.startsAt) / (travel.endsAt - travel.startsAt), 0, 1)
+        local point = cast.origin.Position:Lerp(cast.landing, alpha * alpha * (3 - 2 * alpha))
+        Match.move(root, CFrame.new(point) * cast.origin.Rotation)
+        if age >= Heavy.flop.warningAt and age < Heavy.flopAt then
+            if not cast.warning then
+                local center = Vector3.new(cast.landing.X, arena.floor, cast.landing.Z)
+                cast.warning = galleonContour(bout, "Tidal Belly-Flop warning", center, Heavy.flop.radius,
+                    nil, nil, Color3.fromRGB(126, 226, 255))
+            end
+        else
+            Fields.clearVisuals(cast)
+        end
+    end
+    return true
+end
+
 local function playerDodge(bout, now)
     if penguin(bout) then
         penguinTravel(bout, now)
@@ -805,7 +865,8 @@ local function playerDodge(bout, now)
     else
         clearLane(state, "tornadoWarning")
     end
-    local offset = clip and rosterTravel(state.playerPoses, clip.action, age, clip.direction)
+    local heavyActive = moveHeavy(bout, now, clip, age)
+    local offset = not heavyActive and clip and rosterTravel(state.playerPoses, clip.action, age, clip.direction)
     if offset and not bout.outroAt then
         if state.dodgeClip ~= clip then
             state.dodgeClip, state.dodgeFrom = clip, root.CFrame
@@ -862,7 +923,7 @@ local function playerDodge(bout, now)
         end
         Fields.updateCast(bout.telegraph, fieldCast, age, now, EmberAqua, true)
     end
-    local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil or fieldAction == true
+    local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil or fieldAction == true or heavyActive
     if hold ~= state.holding then
         root.Anchored = hold or state.anchored
         state.holding = hold
@@ -1418,7 +1479,34 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     end
     local state, root = bout.motion, actorRootAt(bout, time)
     local frame, groups = botPose(bout, time)
-    if move.shape == "snare" or move.shape == "wave" then
+    if move.shape == "ricochet" then
+        local cast = state.heavyCast
+        if not cast or not cast.rollPath or cast.clip.startedAt ~= castStartedAt then
+            return false
+        end
+        for _, segment in Ricochet.sweeps(cast.rollPath, move.from, move.to) do
+            for _, name in {"Torso", "Left Leg", "Right Leg"} do
+                local joint = bout.joints[name]
+                local target = jointFrame(frame, groups, name, joint) * joint.shell
+                local contact = sweptContact(segment.a, segment.b, target, joint.part.Size, move.radius)
+                if contact and not obstructed(bout, segment.a, contact) then
+                    return true, contact, "body"
+                end
+            end
+        end
+        return false
+    elseif action == "tidalBellyFlop" then
+        local center = Vector3.new(root.X, bout.arena.floor, root.Z)
+        for _, name in {"Left Leg", "Right Leg"} do
+            local joint = bout.joints[name]
+            local contact = nearestPoint(jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size, center)
+            if Match.flat(contact - center).Magnitude <= move.radius and contact.Y <= center.Y + .78
+                and not obstructed(bout, center, contact) then
+                return true, center, "body"
+            end
+        end
+        return false, center
+    elseif move.shape == "snare" or move.shape == "wave" then
         local cast = state.arenaFieldCast
         if not cast or cast.clip.startedAt ~= castStartedAt or move.launch then
             return false
@@ -1713,6 +1801,9 @@ function Motion.render(bout, now)
     else
         local action, age, direction = playerAction(bout, now)
         local offsets = state.playerPoses.sample(action, age, direction)
+        if action == "fortressRicochet" then
+            offsets = Ricochet.pose(offsets, age, Heavy.roll, Heavy.roll.shellCenter)
+        end
         for name, joint in state.motors do
             joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest
         end
@@ -1763,6 +1854,13 @@ function Motion.impact(bout, event)
         bout.motion.crossKnock = {at = event.at, offset = heading * EmberAqua.shove[event.attack],
             progress = 0, duration = if event.attack == "cavitationCannon" then .34 else .20, height = 0,
             basis = CFrame.lookAlong(Vector3.zero, heading)}
+    elseif damage and Heavy.shove[event.attack] then
+        local center = if event.attack == "tidalBellyFlop" then event.point else bout.root.Position
+        local forward = actorRootAt(bout, event.at).LookVector
+        local direction = if event.attack == "fortressRicochet" then forward else directionTo(center, bout.position, forward)
+        bout.motion.crossKnock = {at = event.at, offset = direction * Heavy.shove[event.attack], progress = 0,
+            duration = .26, height = if event.attack == "tidalBellyFlop" then .17 else 0,
+            basis = CFrame.lookAlong(Vector3.zero, direction)}
     elseif damage then
         if event.attack == "bellySlide" and penguin(bout) then
             local state = bout.motion

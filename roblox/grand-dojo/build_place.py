@@ -112,6 +112,7 @@ from starter_fighter_assets import build_starter_fighter_visuals
 from roster_fighter_art import build_expansion_visuals
 from sky_fighter_art import build_sky_visuals
 from ember_aqua_art import build_ember_aqua_visuals
+from heavy_fighter_art import build_heavy_visuals
 from skywalk_foothill import build_skywalk_foothill
 from skywalk_road_bank import build_skywalk_road_bank
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
@@ -7788,6 +7789,7 @@ fighter_visuals = build_starter_fighter_visuals(storage, item=item, part=part, p
 build_expansion_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_sky_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_ember_aqua_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_heavy_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
@@ -8030,6 +8032,10 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","ShrimpCombatPoses","ShrimpCombatPoses.luau"),
                                     (server,"ModuleScript","EmberAquaCombat","EmberAquaCombat.luau"),
                                     (server,"ModuleScript","ArenaFields","ArenaFields.luau"),
+                                    (server,"ModuleScript","WalrusCombatPoses","WalrusCombatPoses.luau"),
+                                    (server,"ModuleScript","TortoiseCombatPoses","TortoiseCombatPoses.luau"),
+                                    (server,"ModuleScript","HeavyFighterCombat","HeavyFighterCombat.luau"),
+                                    (server,"ModuleScript","RingRicochet","RingRicochet.luau"),
                                     (server,"ModuleScript","GraniteCombatPoses","GraniteCombatPoses.luau"),
                                     (storage,"ModuleScript","CombatIntro","CombatIntro.luau"),
                                     (storage,"ModuleScript","CombatEffects","CombatEffects.luau"),

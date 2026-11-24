@@ -557,10 +557,14 @@ local function layout()
     close.TextSize = if compact then 14 else 16
     local order = selectionOrder()
     local cardHeight = if compact then 44 else 49
-    local columns = if not switching then (if tall then 2 else 4)
-        elseif contentWidth >= 835 then math.min(8, #order)
-        elseif contentWidth >= 530 and #order > 8 then 5
-        elseif contentWidth >= 450 then 4 elseif contentWidth >= 300 then 3 else 2
+    local columns = if tall then 2 else 4
+    if switching then
+        local count = #order
+        local limit = if contentWidth >= 835 then 8 elseif contentWidth >= 604 then 6
+            elseif contentWidth >= 530 then 5 elseif contentWidth >= 450 then 4
+            elseif contentWidth >= 300 then 3 else 2
+        columns = if count > limit and count <= limit * 2 then math.ceil(count / 2) else math.min(count, limit)
+    end
     local rosterY = pad + headingHeight + gap
     local footer = if compact then 42 else 48
     local footerY = height - pad - footer
@@ -578,6 +582,9 @@ local function layout()
     rosterBar.CanvasSize = UDim2.fromOffset(0, rows * (cardHeight + gap) - gap)
     rosterBar.ScrollingEnabled = scrollRoster
     rosterBar.ScrollBarThickness = if scrollRoster then 4 else 0
+    if not scrollRoster then
+        rosterBar.CanvasPosition = Vector2.zero
+    end
     for index, id in order do
         local card = cardById[id]
         local column, row = (index - 1) % columns, math.floor((index - 1) / columns)

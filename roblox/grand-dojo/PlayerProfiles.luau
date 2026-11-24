@@ -18,6 +18,7 @@ local STARTERS = {
 local ROSTER_UNLOCKS = {["karate-frog"] = 2, ["river-otter"] = 3}
 local EXPANDED_UNLOCKS = {
     ["rooster-kickboxer"] = 4, ["sugar-glider"] = 5, ["desert-scorpion"] = 6, ["pistol-shrimp"] = 7,
+    ["walrus-sumo"] = 8, ["snapping-tortoise"] = 9,
 }
 local STARTER_PROGRESS = {relay = "lastRelayReward", spar = "lastSparReward", training = "ringTraining"}
 local ROSTER_PROGRESS = {relay = "lastRosterRelayReward", spar = "lastRosterSparReward", training = "rosterTraining"}

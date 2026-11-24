@@ -16,11 +16,12 @@ local cues = {
 }
 local groundPitch = {
     seismicChestPound = .86, magmaTrail = 1.08, tadpoleTornado = 1.16, gustVortex = 1.26,
-    cavitationCannon = .72, ["Breakwater Stamp"] = .93,
+    cavitationCannon = .72, tidalBellyFlop = .84, ["Breakwater Stamp"] = .93,
     pulse = .87, sweep = .98, undertow = .90, cataclysm = .82, solarFlare = 1.13,
 }
 local heavyPitch = {
     heavy = 1, ridgePalm = .96, lilyVault = 1.12, spurLift = 1.19, bellySlide = 1.04, palm = .94, sunDive = .88,
+    harborPalm = .91, shellCheck = .89, fortressRicochet = .79,
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {

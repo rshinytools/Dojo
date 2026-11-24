@@ -383,7 +383,7 @@ local function settleSeats(match, now)
                 changed = true
             end
         elseif seat.out then
-            if side.eliminationReason ~= "knockout" or now >= side.eliminatedAt + Motion.defeatSeconds then
+            if not Motion.holdsKnockout(match, index, now) then
                 placeSpectator(match, index)
             end
         elseif not round.result and not side.eliminated and not Match.inside(bounds, root.Position) then

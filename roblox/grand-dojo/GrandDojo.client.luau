@@ -1739,6 +1739,7 @@ local cues = {
     projectileDeflected = "Projectile deflected!",
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
+    ricochetBounce = "Shell rebounds",
     needParry = "Parry a strike to unlock Rising.",
     ["Shell Set"] = "Shell Set · Wait out the brace",
     ["Kiln Rush"] = "Kiln Rush · Leave the lane",
@@ -1757,7 +1758,7 @@ local cooldownCues = {
 local priorityCues = {
     uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
-    gustPull = true, snareCaught = true,
+    gustPull = true, snareCaught = true, ricochetBounce = true,
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat

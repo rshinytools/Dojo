@@ -12,5 +12,5 @@ return table.freeze({
     impact = FighterMotion.impact,
     remove = FighterMotion.remove,
     close = FighterMotion.close,
-    defeatSeconds = FighterMotion.defeatSeconds,
+    holdsKnockout = FighterMotion.holdsKnockout,
 })

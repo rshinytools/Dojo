@@ -8,6 +8,7 @@ local Frog = require(script.Parent.FrogCombatPoses)
 local Otter = require(script.Parent.OtterCombatPoses)
 local Sky = require(script.Parent.SkyFighterCombat)
 local EmberAqua = require(script.Parent.EmberAquaCombat)
+local Heavy = require(script.Parent.HeavyFighterCombat)
 local Round = {}
 
 Round.INTRO = 10
@@ -160,6 +161,9 @@ end
 for id, kit in EmberAqua.kits do
     kits[id] = kit
 end
+for id, kit in Heavy.kits do
+    kits[id] = kit
+end
 
 local residents = {
     juniper = {startRange = 3.65, attackLabel = "palm"},
@@ -236,12 +240,19 @@ end
 
 local function inMotion(side, action)
     local travel = side.kit.poses.Travel
-    return action == side.kit.dodge or (travel and travel[action] ~= nil)
+    return action == side.kit.dodge or action == "fortressRicochet" or (travel and travel[action] ~= nil)
 end
 
 local function applyRoot(side, at, duration)
     side.rootedUntil = math.max(side.rootedUntil or 0, at + duration)
     if side.clip and inMotion(side, side.clip.action) then
+        side.clip, side.bufferedLight = nil, false
+    end
+end
+
+local function interruptFixedTravel(side)
+    local action = side.clip and side.clip.action
+    if action == "fortressRicochet" or action == "tidalBellyFlop" then
         side.clip, side.bufferedLight = nil, false
     end
 end
@@ -355,7 +366,7 @@ local function contact(round, at, check, resolve, publishCast)
     end
     local hit, point, resolvedZone, facing
     if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
-        or move.shape == "snare" or move.shape == "wave" then
+        or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -550,6 +561,7 @@ Round.Combatant = table.freeze({
     contact = contact,
     deflects = deflects,
     applyRoot = applyRoot,
+    interruptFixedTravel = interruptFixedTravel,
     advanceTrail = advanceTrail,
     PARRY_COUNTER_TIME = PARRY_COUNTER_TIME,
 })

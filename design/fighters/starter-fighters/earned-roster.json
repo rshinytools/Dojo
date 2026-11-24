@@ -239,5 +239,87 @@
         "counter": "Face the center and guard, or jump as the wave reaches you."
       }
     ]
+  },
+  {
+    "id": "walrus-sumo",
+    "name": "Walrus Sumo",
+    "shortName": "Walrus Sumo",
+    "title": "Keeper of the Tide Bell",
+    "home": "Tideharbor Coast · Saltwind Lookout",
+    "element": "Aquatic",
+    "rarity": "Rare",
+    "role": "Heavy",
+    "style": "Heavy palm strikes and a wide landing wave",
+    "health": 142,
+    "normal_hit": 14,
+    "unlockLevel": 8,
+    "combat": {
+      "kit": "walrus",
+      "techniqueCue": "harborPalm",
+      "signatureCue": "tidalBellyFlop",
+      "techniqueCoolingCue": "harborCooling",
+      "signatureCoolingCue": "flopCooling",
+      "signatureCooldownLabel": "Belly-Flop",
+      "compactSignature": "Belly-Flop",
+      "tint": "A8D9FF",
+      "cardStyle": "Heavy palms and a splash landing",
+      "initials": "WS",
+      "previewPose": {"right": -31, "left": -26, "lean": -6, "roll": 7, "lift": 0.10, "step": 0.19, "legs": 7}
+    },
+    "story": "Walrus Sumo rings the tide bell when the harbor ramps are safe. His students practice moving heavy rope coils across the wet boards without slipping. On festival days he takes the same broad stance into the ring and calls out the first round himself.",
+    "quote": "Plant your feet before you make a splash.",
+    "powers": [
+      {
+        "name": "Harbor Palm",
+        "effect": "Drive a broad open-handed palm into range and push the opponent back.",
+        "counter": "Keep space outside the reach of his leading hand."
+      },
+      {
+        "name": "Tidal Belly-Flop",
+        "effect": "Leap toward the marked circle, land belly-first, and send a water pulse outward.",
+        "counter": "Leave the circle before Walrus lands, or face the landing spot and guard."
+      }
+    ]
+  },
+  {
+    "id": "snapping-tortoise",
+    "name": "Snapping Tortoise",
+    "shortName": "Tortoise",
+    "title": "The Breakwater Builder",
+    "home": "Tideharbor Coast · Old Breakwater",
+    "element": "Land",
+    "rarity": "Rare",
+    "role": "Heavy",
+    "style": "Heavy checks and rebounding shell rolls",
+    "health": 140,
+    "normal_hit": 14,
+    "unlockLevel": 9,
+    "combat": {
+      "kit": "tortoise",
+      "techniqueCue": "shellCheck",
+      "signatureCue": "fortressRicochet",
+      "techniqueCoolingCue": "shellCooling",
+      "signatureCoolingCue": "ricochetCooling",
+      "signatureCooldownLabel": "Ricochet",
+      "compactSignature": "Ricochet",
+      "tint": "BBD48D",
+      "cardStyle": "Shoulder checks and a bouncing roll",
+      "initials": "ST",
+      "previewPose": {"right": -34, "left": -21, "lean": -10, "roll": -13, "lift": 0.10, "step": 0.19, "legs": 7}
+    },
+    "story": "Snapping Tortoise rebuilt the old breakwater one clay block at a time. He scratched an angle on each corner so the younger builders could see where the waves would rebound. Now he teaches that same lesson in the ring, where a second pass can come from a very different direction.",
+    "quote": "Watch the wall. Then watch where I go next.",
+    "powers": [
+      {
+        "name": "Shell Check",
+        "effect": "Turn behind the armored shoulder and step into a short, heavy strike.",
+        "counter": "Step around the lead shoulder while Tortoise turns."
+      },
+      {
+        "name": "Fortress Ricochet",
+        "effect": "Tuck into the shell and roll for up to four seconds, rebounding off the arena edges.",
+        "counter": "Watch the launch line, move out of each pass, or parry to stop the roll."
+      }
+    ]
   }
 ]

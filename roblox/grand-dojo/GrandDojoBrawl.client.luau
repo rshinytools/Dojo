@@ -164,6 +164,7 @@ local tips = {
     projectileDeflected = "Projectile deflected!",
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
+    ricochetBounce = "Shell rebounds",
 }
 
 local waiting, match, lastResultId

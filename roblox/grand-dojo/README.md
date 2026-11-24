@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.288, earn **Walrus Sumo** at Level 8 and **Snapping Tortoise** at Level 9. **V** or D-pad Up uses Harbor Palm or Shell Check. **F** or **Y** uses Tidal Belly-Flop or Fortress Ricochet. Leave Walrus’s landing circle or guard the pulse. Track the shell’s launch line and rebounds when facing Tortoise.
+
 In v0.287, earn **Desert Scorpion** at Level 6 and **Pistol Shrimp** at Level 7. **V** or D-pad Up uses Tail Feint or Claw Dash. **F** or **Y** uses Cinder Snare or Cavitation Cannon. Step outside Scorpion’s three-node triangle, or jump or guard as it triggers. Time a jump or guard against Shrimp’s ground wave.
 
 In v0.286, earn **Rooster Kickboxer** at Level 4 and **Sugar Glider** at Level 5. Equip them at Fighter Select. **V** or D-pad Up uses Spur Lift or Canopy Slip. **F** or **Y** uses Feather Flurry or Gust Vortex. Steer Canopy Slip left or right with movement. Gust Vortex marks a fixed spot on the mat, draws unguarded fighters inward, and then pushes out.

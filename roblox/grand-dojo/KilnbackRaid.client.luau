@@ -230,6 +230,7 @@ local feedback = {
     dodged = "Attack evaded", counter = "Counter hit confirmed", airborne = "Out of reach · Wait for landing",
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
+    ricochetBounce = "Shell rebounds",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},

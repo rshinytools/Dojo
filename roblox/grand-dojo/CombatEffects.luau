@@ -30,6 +30,8 @@ local groundPulses = {
         initial = 1.05, width = 6.4, compact = 5.3, life = .29},
     gustVortex = {name = "Gust Vortex outward pulse", color = Color3.fromRGB(203, 175, 255),
         initial = 1.06, width = 6, compact = 5.2, life = .27},
+    tidalBellyFlop = {name = "Tidal landing pulse", color = Color3.fromRGB(135, 226, 255),
+        initial = .95, width = 7.3, compact = 6.40, life = .33},
     ["Breakwater Stamp"] = {name = "Breakwater contact pulse", color = Color3.fromRGB(135, 202, 236),
         initial = 1.2, width = 8.5, compact = 5.9, life = .28},
 }
@@ -107,6 +109,26 @@ local function funnel(point, compact)
     end
 end
 
+local function tidalCrests(point, compact)
+    local count = if compact then 6 else 10
+    for index = 1, count do
+        local angle = (index - .5) * math.pi * 2 / count
+        local outward = Vector3.new(math.cos(angle), 0, math.sin(angle))
+        local crest = Instance.new("WedgePart")
+        crest.Name = "Tidal splash crest"
+        crest.Anchored, crest.CanCollide, crest.CanQuery, crest.CanTouch, crest.CastShadow = true, false, false, false, false
+        crest.Color, crest.Material, crest.Transparency = Color3.fromRGB(178, 239, 255), Enum.Material.Neon, .23
+        crest.Size = Vector3.new(.32, .45, .24)
+        crest.CFrame = CFrame.lookAlong(point + outward * .58 + Vector3.yAxis * .29, outward) * CFrame.Angles(-.25, 0, 0)
+        crest.Parent = worldFolder()
+        TweenService:Create(crest, TweenInfo.new(.27, Enum.EasingStyle.Quad), {
+            CFrame = crest.CFrame + outward * (if compact then 1.65 else 2.38) + Vector3.yAxis * .49,
+            Size = Vector3.new(.21, .21, .18), Transparency = 1,
+        }):Play()
+        Debris:AddItem(crest, .31)
+    end
+end
+
 function CombatEffects.play(kind, point, attack)
     local camera = workspace.CurrentCamera
     local color = tint[kind]
@@ -136,6 +158,9 @@ function CombatEffects.play(kind, point, attack)
     local pulse = if attack == "cavitationCannon" then waveHit else groundPulses[attack]
     if pulse and not parry and kind ~= "blocked" then
         groundPulse(point, pulse, compact, reduced)
+        if attack == "tidalBellyFlop" and not reduced then
+            tidalCrests(point, compact)
+        end
         return
     end
     if attack == "emberSweep" then

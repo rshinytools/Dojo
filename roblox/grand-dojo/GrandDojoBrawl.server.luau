@@ -312,11 +312,7 @@ local function processExits(match, now)
         end
         local side = round.sides[index]
         if side.eliminated then
-            local root = Match.root(actor.player)
-            local hold = side.eliminationReason == "knockout" and root == actor.root
-                and now < side.eliminatedAt + (Motion.defeatSeconds or 0)
-                and root.Position.Y >= floor + 1.12 and match.floorActive(root.Position)
-            if not hold then
+            if Match.root(actor.player) ~= actor.root or not Motion.holdsKnockout(match, index, now) then
                 placeSpectator(match, index)
             end
         elseif not round.result then
