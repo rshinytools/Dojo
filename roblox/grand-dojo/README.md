@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.269, choose Reedguard and enter Grand Dojo Bot Spar. Add **V** for Uppercut to the existing controls. On controller, use D-pad Up. On touch, tap **Uppercut**. Try it from too far away and then at close range to compare the recovery, damage and contact ring.
+
 In v0.268, choose Reedguard and go to Grand Dojo Bot Spar. The match begins with a 10-second intro. In the round, **E** chains strikes, **Q** guards and parries, **R** throws a heavy, **X** sidesteps and **F** uses the three-hit Rising after a parry. Watch for Juniper’s Shell Set and Stillwater Palm. Desktop Studio verified completion through the 60 XP first-win recap.
 
 In v0.267, start at Fighter Select on the east side of Festival Plaza. Preview and equip another free starter. Enter Bot Spar at Grand Dojo. Earn Level 3 with Juniper, the official Lantern Relay and Lantern Timing. Find Bracken by Glaze Terrace, Sablecrest via the Cloudbreak approach and Granite on the Galleon deck. Everyone can take the roads and look around. Check each ring's required level at the local sign. Two nearby players can opt in to the Grand Dojo Duel Court.

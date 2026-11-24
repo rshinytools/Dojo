@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.268 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.269 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -48,10 +48,10 @@ Make Reedguard Kangaroo enjoyable and controllable before producing the roster.
 | --- | --- | --- | --- |
 | P2.1 | Inspection rig and design v2 | Prototype ready | Geometry checks passed for the inspection geometry and playable outfit welds. Test the current costume for movement, jumps, stairs, motion clipping and supported-device camera views in Studio. |
 | P2.2 | Movement and camera | Planned | Ring edges, respawns, slopes and input changes do not break movement. |
-| P2.3 | Original combat kit | Planned | Clients cannot invent damage or bypass cooldowns. Review actual impacts, audio, finishers and camera against current rating definitions; no copied choreography. |
+| P2.3 | Original combat kit | In progress | Clients cannot invent damage or bypass cooldowns. Review actual impacts, audio, finishers and camera against current rating definitions; no copied choreography. |
 | P2.4 | One arena and end-to-end loop | Prototype ready | Verify final Reedguard shoulder poses and late guard cue in a fresh Studio Play session. Confirm the same complete loop using touch, gamepad and VR. Add remaining skills, animation polish and full combat feedback in the original combat kit. |
 
-Desktop Studio verified the playable Reedguard–Juniper intro, contact-timed attacks, defense, knockout and first-win reward in v0.268. Touch, controller, VR, published play and remaining custom kits still need verification.
+Desktop Studio verified the Reedguard–Juniper intro, Uppercut whiff and recovery, landed Uppercut, contact effects, parry counter, knockout and first-win reward in v0.269. Galaxy A06 landscape simulation repeated the full round through an emulated tap on Uppercut and the XP recap. The phone fight stayed on the mat. Controller and VR verification remain open. Physical-device and published play are release gates. Additional fighter kits, match modes and combat audio remain in development.
 
 ## P3 Persistent player progression
 

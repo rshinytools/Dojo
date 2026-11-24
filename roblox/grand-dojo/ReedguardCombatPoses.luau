@@ -62,6 +62,11 @@ local bodyLoad = pose({0.05, -0.15, 0.06, 10, -10, -5}, {34, 7, -12}, {70, -19, 
 local bodyContact = pose({0.07, -0.22, -0.34, 15, 23, -5}, {48, 11, -18, -0.025, -0.22}, {69, -23, 24}, {18, -6}, {-10, -19, 5}, {-1, -20})
 local bodyRetract = pose({0.03, -0.12, -0.10, 9, 10, -3}, {51, 12, -20}, {64, -20, 21}, {12, -7}, {-7, -8, 2}, {-4, -9})
 
+local uppercutLoad = pose({0.06, -0.18, 0.055, 9, -13, -4}, {27, 7, -11, 0, 0.07}, {65, -20, 22}, {10, -7}, {-7, 12, 3}, {-7, 12})
+local uppercutDrive = pose({0.07, -0.10, -0.10, 7, 8, -3}, {68, 13, -17, 0.015, -0.14}, {64, -20, 22}, {10, -7}, {-5, -7, 2}, {-3, -9})
+local uppercutContact = pose({0.035, 0.01, -0.34, -4, 20, -3}, {119, 14, -21, 0.12, -0.29}, {65, -22, 22}, {11, -5}, {1, -17, 3}, {3, -17})
+local uppercutRetract = pose({0.04, -0.063, -0.14, 6, 15, -3}, {69, 13, -17, 0.015, -0.04}, {62, -20, 21}, {9, -7}, {-5, -13, 2}, {-3, -11})
+
 local heavyLoad = pose({-0.10, -0.15, 0.11, 7, 31, 7}, {64, 19, -21}, {21, -2, 9, 0, 0.04}, {13, -12}, {-5, -24, -5}, {-11, -23})
 local heavyDrive = pose({-0.08, -0.13, -0.04, 11, 1, 6}, {65, 21, -26}, {52, -11, 17}, {16, -7}, {-7, -3, -5}, {-4, -6})
 local heavyContact = pose({-0.14, -0.055, -0.44, 10, -28, 5}, {65, 23, -27}, {74, -13, 25, 0.03, -0.22}, {20, 0}, {-9, 23, -5}, {9, 23})
@@ -99,6 +104,7 @@ local saluteNod = pose({0.02, -0.04, 0, 5, 7, -2}, {88, 24, -22, 0.02}, {51, -15
 local winRaise = pose({0.05, 0.07, 0.025, -7, 13, -4}, {119, 7, -16, 0.04}, {67, -15, 14}, {7, -8}, {-5, -11, 4}, {6, -9})
 local winHold = pose({0.035, 0.045, 0.025, -4, 9, -2}, {108, 10, -15, 0.025}, {55, -14, 12}, {7, -6}, {-2, -8, 2}, {2, -5})
 
+local uppercutContactAt = 0.285
 local clips = {
 	stance = {{0, ready}, {0.63, breathing}, {1.30, ready}},
 	advance = {{0, ready}, {0.16, stepForwardRight}, {0.31, ready}, {0.47, stepForwardLeft}, {0.62, ready}},
@@ -107,6 +113,7 @@ local clips = {
 	jab = {{0, ready}, {0.075, jabLoad}, {0.18, jabContact}, {0.26, jabRetract}, {0.43, ready}},
 	cross = {{0, ready}, {0.105, crossLoad}, {0.23, crossContact}, {0.32, crossRetract}, {0.54, ready}},
 	body = {{0, ready}, {0.12, bodyLoad}, {0.24, bodyContact}, {0.35, bodyRetract}, {0.56, ready}},
+	uppercut = {{0, ready}, {0.14, uppercutLoad}, {0.22, uppercutDrive}, {uppercutContactAt, uppercutContact}, {0.38, uppercutRetract}, {0.60, ready}},
 	heavy = {{0, ready}, {0.23, heavyLoad}, {0.33, heavyDrive}, {0.42, heavyContact}, {0.53, heavyFollow}, {0.82, ready}},
 	reedstep = {{0, ready}, {0.125, risingLoad}, {0.23, risingBody}, {0.31, risingSwitch}, {0.42, risingCross}, {0.54, risingCoil}, {0.67, risingFinish}, {0.84, risingSettle}, {1.13, ready}},
 	guard = {{0, guard}},
@@ -129,7 +136,14 @@ for action, frames in pairs(clips) do
 end
 
 Poses.Duration = table.freeze(durations)
-Poses.Contact = table.freeze({ jab = 0.18, cross = 0.23, body = 0.24, heavy = 0.42, reedstep = table.freeze({0.23, 0.42, 0.67}) })
+Poses.Contact = table.freeze({
+	jab = 0.18,
+	cross = 0.23,
+	body = 0.24,
+	uppercut = uppercutContactAt,
+	heavy = 0.42,
+	reedstep = table.freeze({0.23, 0.42, 0.67}),
+})
 
 -- Centers of the forward glove surfaces sampled on the original mesh at each
 -- contact frame, relative to the unanimated HumanoidRootPart. These positions
@@ -138,6 +152,7 @@ Poses.Impact = table.freeze({
 	jab = table.freeze({Vector3.new(0.264, 0.595, -1.828)}),
 	cross = table.freeze({Vector3.new(-0.196, 0.361, -1.925)}),
 	body = table.freeze({Vector3.new(0.182, -0.103, -2.110)}),
+	uppercut = table.freeze({Vector3.new(0.432, 0.861, -1.896)}),
 	heavy = table.freeze({Vector3.new(-0.081, 0.323, -2.064)}),
 	reedstep = table.freeze({Vector3.new(0.139, -0.067, -2.001), Vector3.new(-0.187, 0.317, -2.000), Vector3.new(0.306, 0.764, -2.015)}),
 })

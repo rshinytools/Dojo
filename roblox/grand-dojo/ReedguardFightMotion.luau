@@ -1,6 +1,4 @@
 -- The Grand Dojo showcase uses the same authored frame for posing and contact.
-local Debris = game:GetService("Debris")
-local TweenService = game:GetService("TweenService")
 local Match = require(script.Parent.DojoMatchSupport)
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local Juniper = require(script.Parent.JuniperCombatPoses)
@@ -18,7 +16,7 @@ function Motion.open(bout)
     local animate = character:FindFirstChild("Animate")
     local animator = humanoid:FindFirstChildOfClass("Animator")
     local state = {motors = {}, anchored = bout.root.Anchored, autoRotate = humanoid.AutoRotate,
-        animate = animate, animateDisabled = animate and animate.Disabled, humanoid = humanoid}
+        autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled, humanoid = humanoid}
     for _, name in tracked do
         local motor = character:FindFirstChild(name, true)
         if motor and motor:IsA("Motor6D") then
@@ -56,6 +54,7 @@ function Motion.open(bout)
     facing.Parent = bout.root
     state.aim, state.facing = aim, facing
     humanoid.AutoRotate = false
+    humanoid.AutoJumpEnabled = false
 
     bout.root.Anchored = true
     state.holding = true
@@ -76,6 +75,7 @@ function Motion.close(bout)
     state.aim:Destroy()
     if state.humanoid.Parent then
         state.humanoid.AutoRotate = state.autoRotate
+        state.humanoid.AutoJumpEnabled = state.autoJump
     end
     if bout.root.Parent then
         bout.root.Anchored = state.anchored
@@ -172,12 +172,16 @@ local function jointFrame(frame, groups, name, joint)
     return frame * joint.joint * (groups[name] or CFrame.identity)
 end
 
-local function overlap(frame, size, point, radius)
+local function nearestPoint(frame, size, point)
     local localPoint = frame:PointToObjectSpace(point)
     local half = size * .5
     local nearest = Vector3.new(math.clamp(localPoint.X, -half.X, half.X),
         math.clamp(localPoint.Y, -half.Y, half.Y), math.clamp(localPoint.Z, -half.Z, half.Z))
-    return (localPoint - nearest).Magnitude <= radius
+    return frame:PointToWorldSpace(nearest)
+end
+
+local function overlap(frame, size, point, radius)
+    return (point - nearestPoint(frame, size, point)).Magnitude <= radius
 end
 
 function Motion.strike(bout, action, move, time, index)
@@ -189,8 +193,16 @@ function Motion.strike(bout, action, move, time, index)
     end
     for _, name in if move.zone == "head" then {"Head", "Torso"} else {"Torso"} do
         local joint = bout.joints[name]
-        if overlap(jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size, point, .52) then
-            return true, point
+        local targetFrame, size = jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size
+        if action == "uppercut" and name == "Torso" then
+            targetFrame *= CFrame.new(0, size.Y * .22, 0)
+            size *= Vector3.new(1, .56, 1)
+        end
+        local nearest = nearestPoint(targetFrame, size, point)
+        local radius = if action == "uppercut" then .43 else .52
+        if (point - nearest).Magnitude <= radius then
+            local zone = if name == "Head" then "head" else "body"
+            return true, point:Lerp(nearest, .5), zone
         end
     end
     return false, point
@@ -254,34 +266,10 @@ function Motion.render(bout, now)
     end
 end
 
-local colors = {
-    strike = Color3.fromRGB(255, 214, 109), counter = Color3.fromRGB(255, 225, 137),
-    hit = Color3.fromRGB(255, 162, 103), parried = Color3.fromRGB(153, 244, 255),
-    blocked = Color3.fromRGB(166, 210, 209), braced = Color3.fromRGB(173, 214, 188),
-}
 function Motion.impact(bout, event)
-    if event.attack ~= "palm" and event.damage then
+    if event.attack ~= "palm" and (event.damage or 0) > 0 then
         bout.reactionAt = event.at
         bout.reactionAction = if event.zone == "head" then "headHit" else "bodyHit"
-    end
-    local color = colors[event.kind]
-    if not color or not event.point then
-        return
-    end
-    local count = if event.kind == "parried" then 6 else 4
-    for index = 1, count do
-        local angle = (index / count) * 2 * math.pi
-        local ray = Vector3.new(math.cos(angle), .40 + .22 * math.sin(angle * 2), math.sin(angle))
-        local point = event.point + ray * .12
-        local spark = Instance.new("Part")
-        spark.Name = "Spar impact"
-        spark.Anchored, spark.CanCollide, spark.CanQuery, spark.CanTouch = true, false, false, false
-        spark.CastShadow, spark.Material, spark.Color = false, Enum.Material.Neon, color
-        spark.Size, spark.CFrame = Vector3.new(.055, .055, .32), CFrame.lookAt(point, point + ray)
-        spark.Parent = bout.telegraph
-        TweenService:Create(spark, TweenInfo.new(.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {CFrame = spark.CFrame + ray * .83, Transparency = 1}):Play()
-        Debris:AddItem(spark, .19)
     end
 end
 

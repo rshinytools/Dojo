@@ -332,12 +332,15 @@ local function tickShowcase(bout, now, dt)
     local hadImpact = #round.notices > 0
     for _, event in round.notices do
         Motion.impact(bout, event)
+        if event.point and ((event.damage or 0) > 0 or event.kind == "parried" or event.kind == "blocked") then
+            remote:FireAllClients("impact", event.kind, event.point)
+        end
         bout.message, bout.messageUntil = event.kind, now + .86
         if RunService:IsStudio() then
-            bout.bot:SetAttribute("LastContactAt", event.at)
             bout.bot:SetAttribute("LastContactKind", event.kind)
             bout.bot:SetAttribute("LastContactAttack", event.attack)
             bout.bot:SetAttribute("LastContactIndex", event.index)
+            bout.bot:SetAttribute("LastContactAt", event.at)
         end
     end
     table.clear(round.notices)

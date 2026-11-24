@@ -7955,6 +7955,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","ReedguardCombatPoses","ReedguardCombatPoses.luau"),
                                     (server,"ModuleScript","JuniperCombatPoses","JuniperCombatPoses.luau"),
                                     (storage,"ModuleScript","CombatIntro","CombatIntro.luau"),
+                                    (storage,"ModuleScript","CombatEffects","CombatEffects.luau"),
                                     (server,"ModuleScript","DojoMatchSupport","DojoMatchSupport.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),

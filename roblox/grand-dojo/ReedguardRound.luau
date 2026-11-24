@@ -13,6 +13,7 @@ Round.CLIPS = {
     jab = {{at = Poses.Contact.jab, damage = 13, zone = "head"}},
     cross = {{at = Poses.Contact.cross, damage = 14, zone = "body"}},
     body = {{at = Poses.Contact.body, damage = 15, zone = "body"}},
+    uppercut = {{at = Poses.Contact.uppercut, damage = 16, zone = "head"}},
     heavy = {{at = Poses.Contact.heavy, damage = 22, zone = "body"}},
     reedstep = {
         {at = Poses.Contact.reedstep[1], damage = 9, zone = "body"},
@@ -81,10 +82,10 @@ function Round.act(round, action, now, direction)
         round.guardFrom, round.guardUntil = now, now + Round.GUARD_DURATION
         play(round, "guard", now)
         return "guard"
-    elseif action == "heavy" then
+    elseif action == "heavy" or action == "uppercut" then
         round.guardUntil = 0
-        play(round, "heavy", now)
-        return "heavy"
+        play(round, action, now)
+        return action
     elseif action == "dodge" and now >= round.nextDodge then
         round.nextDodge, round.guardUntil = now + .85, 0
         play(round, "sidestep", now)
@@ -105,7 +106,7 @@ local function contact(round, clip, at, check)
     local move = attacks[clip.nextContact]
     local index = clip.nextContact
     clip.nextContact += 1
-    local hit, point = check(clip.action, move, at, index)
+    local hit, point, resolvedZone = check(clip.action, move, at, index)
     if not hit then
         report(round, "miss", at, {attack = clip.action, index = index, point = point})
         return
@@ -115,7 +116,7 @@ local function contact(round, clip, at, check)
     local damage = if brace then math.ceil(move.damage / 2) else move.damage
     round.botHealth = math.max(0, round.botHealth - damage)
     report(round, if brace then "braced" elseif counter then "counter" else "strike", at,
-        {attack = clip.action, index = index, point = point, zone = move.zone, damage = damage})
+        {attack = clip.action, index = index, point = point, zone = resolvedZone or move.zone, damage = damage})
     if round.botHealth == 0 then
         round.result = "win"
     end

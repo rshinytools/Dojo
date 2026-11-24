@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.268 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.269 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -50,11 +50,11 @@ The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite
 
 ## Reedguard and Juniper combat
 
-Choose Reedguard and enter the Grand Dojo Bot Spar. A 10-second introduction shows both fighters and ends with the countdown. Use **E** for the jab–cross–body chain, **Q** for guard and timed parry, **R** for heavy, **X** for sidestep and **F** for Reedstep Rising after a parry. The match has equivalents for touch and controller. VR and Reduce Motion retain the normal player camera.
+Choose Reedguard and enter the Grand Dojo Bot Spar. A 10-second introduction shows both fighters and ends with the countdown. Use **E** for the jab–cross–body chain, **V** for Uppercut, **Q** for guard and timed parry, **R** for heavy, **X** for sidestep and **F** for Reedstep Rising after a parry. Uppercut also uses D-pad Up or the Uppercut touch button. The match has equivalents for touch and controller. VR and Reduce Motion retain the normal player camera.
 
-The server resolves contact at the authored glove or palm frame. A strike that falls short leaves health unchanged. Juniper alternates Stillwater Palm with Shell Set, which reduces damage during the brace. A timely guard can deflect the palm and unlock the three-hit Reedstep Rising. The winner gets a short victory pose before the existing results and reward screen.
+The server resolves contact at the authored glove or palm frame. Uppercut has a single contact at 0.285 seconds and returns to stance after 0.60 seconds. It deals 16 damage when its glove reaches the head or upper torso. A whiff leaves health unchanged and plays no contact effect. The client plays a compact hit or parry ring only after the server confirms contact. Juniper alternates Stillwater Palm with Shell Set, which reduces damage during the brace. A timely guard can deflect the palm and unlock the three-hit Reedstep Rising. The winner gets a short victory pose before the existing results and reward screen.
 
-Desktop Studio Play ran the full round using gameplay inputs. It rejected an early input during the intro and verified a whiff, block, parry, three separate Rising hits, a sidestep, brace reduction, a heavy finish, return to the ring entrance and 60 first-win XP in the Studio profile. Hardware, published play, and all other fighters’ custom kits remain open.
+Desktop Studio Play ran the full round using gameplay inputs. It verified the Uppercut button, whiff, committed recovery, a landed 16-damage Uppercut, block, parry, three separate Rising hits, a sidestep, brace reduction, a heavy finish, and 60 first-win XP in the Studio profile. Galaxy A06 landscape Studio simulation repeated the full round through a touch input on Uppercut and a 60 XP win. The six buttons measured 56 × 48 pixels in the bottom strip, and the 324 × 74-pixel match HUD sat above the fighters. Sparring suppresses automatic obstacle jumps to keep approach and strikes grounded. A native glint backs the animated ring. Published play, physical-device testing, and the other custom kits remain open.
 
 ## Source map
 
@@ -162,6 +162,8 @@ The full v1 design includes 24 fighters with three forms, four combat rings, fou
 Priorities remain production Reedguard combat, published persistence, additional trophy grants, cross-device onboarding and HUD, and isolated staging. Expand content, matchmaking, monetization and launch work through the acceptance gates in the [roadmap](ROADMAP.md). The target for the final cartoon fighting is Mild, pending review of the actual Roblox experience. The optional VPS supports telemetry and private operations. Roblox progression and gameplay should remain usable if the VPS is unavailable.
 
 ## Asset access
+
+**Combat contact effects.** The hit ring references Roblox texture `18140248952` and the parry ring uses `126034245450101`. Both came from the owner’s Artinex2 RPG & Combat Effects purchase. [CombatEffects.luau](../roblox/grand-dojo/CombatEffects.luau) defines original compact emitter settings and a small native glint. The purchased package stays in the owner’s asset files. Confirm both texture references load in the published experience. [Product listing](https://builtbybit.com/resources/rpg-combat-effects-pack.110092/) · [Standard license](https://builtbybit.com/help/users/buying/licenses/)
 
 Detached Studio inspection found 37 Parts, 10 wedges and one union in the free Fauxia Japanese Standing Lantern. The free Japanese Dojo roof contained 990 Parts, four unions and three scripts, including two ModuleScripts. The free Torii gate stairs included 356 Parts and 12 wedges. The gatehouse uses authored roofs and two copies of the existing script-free adaptation of Fauxia’s lantern. No additional purchase was needed. [Creator Store Japanese Dojo roof](https://create.roblox.com/store/asset/82126497647737/Japanese-Roof-Japanese-Dojo-Decorative-Anime) · [Creator Store Torii gate stairs](https://create.roblox.com/store/asset/9577398558/Torii-gate-stairs-Idk)
 
