@@ -5,7 +5,7 @@
 | Experience icon | [Beast_Dojo_Game_Icon_512.png](Beast_Dojo_Game_Icon_512.png) | 512 × 512 |
 | Experience detail page cover | [Beast_Dojo_Cover_1920x1080.png](Beast_Dojo_Cover_1920x1080.png) | 1920 × 1080 |
 
-These are illustrated marketing assets based on Reedguard and the playable Grand Dojo plaza. Both are opaque PNG files prepared for Roblox Creator Dashboard. The existing beta listing has its prior artwork.
+These are illustrated marketing assets based on Reedguard and the playable Grand Dojo plaza. Both are opaque PNG files. The 512 × 512 icon is visible in Creator Dashboard for Beast Dojo – Private Beta. The 1920 × 1080 artwork is saved under Experience Detail Page thumbnails, with thumbnail processing pending at verification.
 
 Generated with Codex’s built-in ImageGen. [Roblox icon specifications](https://create.roblox.com/docs/production/publishing/experience-icons) · [Roblox thumbnail specifications](https://create.roblox.com/docs/production/publishing/thumbnails)
 
