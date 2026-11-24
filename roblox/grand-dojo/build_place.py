@@ -109,6 +109,7 @@ from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from starter_fighter_assets import build_starter_fighter_visuals
+from roster_fighter_art import build_expansion_visuals
 from skywalk_foothill import build_skywalk_foothill
 from skywalk_road_bank import build_skywalk_road_bank
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
@@ -7759,8 +7760,9 @@ item(storage,"RemoteEvent","AbyssalRaid")
 item(storage,"RemoteEvent","SolarRaid")
 item(storage,"RemoteEvent","StarterFighterChoice")
 starter_roster = json.loads((ROOT / "design/fighters/starter-fighters/roster.json").read_text(encoding="utf-8"))
-starter_catalog = {"Order": [], "ById": {}}
-for fighter in starter_roster["fighters"]:
+earned_roster = json.loads((ROOT / "design/fighters/starter-fighters/earned-roster.json").read_text(encoding="utf-8"))
+starter_catalog = {"Order": [], "StarterOrder": [fighter["id"] for fighter in starter_roster["fighters"]], "ById": {}}
+for fighter in starter_roster["fighters"] + earned_roster:
     fighter_id = fighter["id"]
     starter_catalog["Order"].append(fighter_id)
     starter_catalog["ById"][fighter_id] = {**fighter, "normalHit": fighter["normal_hit"]}
@@ -7769,7 +7771,8 @@ assert "]==]" not in encoded_catalog
 catalog_script = item(storage,"ModuleScript","StarterFighterCatalog")
 prop(catalog_script,"ProtectedString","Source",
      f'return game:GetService("HttpService"):JSONDecode([==[{encoded_catalog}]==])')
-build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
+fighter_visuals = build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
+build_expansion_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
@@ -8002,6 +8005,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","SilverbackCombatPoses","SilverbackCombatPoses.luau"),
                                     (server,"ModuleScript","SablecrestCombatPoses","SablecrestCombatPoses.luau"),
                                     (server,"ModuleScript","FireSalamanderCombatPoses","FireSalamanderCombatPoses.luau"),
+                                    (server,"ModuleScript","FrogCombatPoses","FrogCombatPoses.luau"),
+                                    (server,"ModuleScript","OtterCombatPoses","OtterCombatPoses.luau"),
                                     (server,"ModuleScript","GraniteCombatPoses","GraniteCombatPoses.luau"),
                                     (storage,"ModuleScript","CombatIntro","CombatIntro.luau"),
                                     (storage,"ModuleScript","CombatEffects","CombatEffects.luau"),

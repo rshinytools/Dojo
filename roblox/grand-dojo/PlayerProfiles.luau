@@ -15,6 +15,7 @@ local STARTERS = {
     ["silverback-gorilla"] = true,
     ["fire-salamander"] = true,
 }
+local ROSTER_UNLOCKS = {["karate-frog"] = 2, ["river-otter"] = 3}
 local LANTERN_KEEPER = "world-04"
 local KILN_KEEPER = "world-01"
 local DEEPWATER_TEAM = "world-02"
@@ -38,6 +39,30 @@ local function isStarter(id)
     return type(id) == "string" and STARTERS[id] == true
 end
 
+local function isFighter(id)
+    return isStarter(id) or (type(id) == "string" and ROSTER_UNLOCKS[id] ~= nil)
+end
+
+local function highestXp(profile)
+    local highest = 0
+    for id, fighter in profile.fighters do
+        if isFighter(id) then
+            highest = math.max(highest, fighter.xp)
+        end
+    end
+    return highest
+end
+
+function PlayerProfiles.unlockLevel(fighterId)
+    return if isStarter(fighterId) then 1 else ROSTER_UNLOCKS[fighterId]
+end
+
+function PlayerProfiles.canSwitch(profile, fighterId)
+    local minimum = PlayerProfiles.unlockLevel(fighterId)
+    return profile.selectedStarterFighter ~= nil and minimum ~= nil
+        and (minimum == 1 or PlayerProfiles.levelForXp(highestXp(profile)) >= minimum)
+end
+
 local function addFighterXp(profile, id, amount)
     profile.fighters = table.clone(profile.fighters)
     local fighter = table.clone(profile.fighters[id] or {xp = 0})
@@ -45,9 +70,10 @@ local function addFighterXp(profile, id, amount)
     profile.fighters[id] = fighter
 end
 
-local function validRewardReceipt(receipt, firstXp, repeatXp)
+local function validRewardReceipt(receipt, firstXp, repeatXp, roster)
     return receipt == nil or (type(receipt) == "table" and validCompletionId(receipt.id)
-        and isStarter(receipt.fighterId) and (receipt.xp == firstXp or receipt.xp == repeatXp))
+        and (if roster then ROSTER_UNLOCKS[receipt.fighterId] ~= nil else isStarter(receipt.fighterId))
+        and (receipt.xp == firstXp or receipt.xp == repeatXp))
 end
 
 local function validRaidReceipt(receipt)
@@ -75,34 +101,41 @@ local function newProfile()
     }
 end
 
+local function validTraining(training, roster)
+    if training == nil then
+        return true
+    end
+    if type(training) ~= "table" then
+        return false
+    end
+    for fighterId, records in training do
+        if (if roster then ROSTER_UNLOCKS[fighterId] == nil else not isStarter(fighterId))
+            or type(records) ~= "table" then
+            return false
+        end
+        for drillId, receipt in records do
+            if not validCompletionId(drillId) or not validCompletionId(receipt) then
+                return false
+            end
+        end
+    end
+    return true
+end
+
 local function valid(profile)
     if type(profile) ~= "table" or profile.schemaVersion ~= SCHEMA_VERSION
         or type(profile.fighters) ~= "table" or type(profile.trophies) ~= "table"
         or not whole(profile.relayBestTenths, 0, 1200) then
         return false
     end
-    for id in STARTERS do
-        local fighter = profile.fighters[id]
-        if (fighter ~= nil or id == REEDGUARD)
-            and (type(fighter) ~= "table" or not whole(fighter.xp, 0, 1e12)) then
+    for id, fighter in profile.fighters do
+        if isFighter(id) and (type(fighter) ~= "table" or not whole(fighter.xp, 0, 1e12)) then
             return false
         end
     end
-    local training = profile.ringTraining
-    if training ~= nil then
-        if type(training) ~= "table" then
-            return false
-        end
-        for fighterId, records in training do
-            if not isStarter(fighterId) or type(records) ~= "table" then
-                return false
-            end
-            for drillId, receipt in records do
-                if not validCompletionId(drillId) or not validCompletionId(receipt) then
-                    return false
-                end
-            end
-        end
+    if profile.fighters[REEDGUARD] == nil or not validTraining(profile.ringTraining, false)
+        or not validTraining(profile.rosterTraining, true) then
+        return false
     end
     local trophy = profile.trophies[LANTERN_KEEPER]
     for _, id in RAID_TROPHIES do
@@ -116,9 +149,13 @@ local function valid(profile)
         and (profile.firstSparWinId == nil or validCompletionId(profile.firstSparWinId))
         and validRewardReceipt(profile.lastRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP)
         and validRewardReceipt(profile.lastSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP)
+        and validRewardReceipt(profile.lastRosterRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP, true)
+        and validRewardReceipt(profile.lastRosterSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP, true)
         and (profile.selectedStarterFighter == nil or isStarter(profile.selectedStarterFighter))
         and (profile.activeStarterFighter == nil
             or (isStarter(profile.activeStarterFighter) and profile.selectedStarterFighter ~= nil))
+        and (profile.activeRosterFighter == nil or ROSTER_UNLOCKS[profile.activeRosterFighter] ~= nil
+            and PlayerProfiles.canSwitch(profile, profile.activeRosterFighter))
         and (trophy == nil or type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
             and whole(trophy.criterionVersion, 1, 1e6))
         and (profile.kilnback == nil or validRaidReceipt(profile.kilnback))
@@ -146,7 +183,7 @@ function PlayerProfiles.memoryStore()
 end
 
 function PlayerProfiles.activeFighter(profile)
-    return profile.activeStarterFighter or profile.selectedStarterFighter
+    return profile.activeRosterFighter or profile.activeStarterFighter or profile.selectedStarterFighter
 end
 
 function PlayerProfiles.levelForXp(xp)
@@ -164,15 +201,17 @@ function PlayerProfiles.summary(profile, fighterId)
     local fighter = profile.fighters[fighterId]
     local xp = if fighter then fighter.xp else 0
     local level = PlayerProfiles.levelForXp(xp)
-    local highestXp = 0
     local fighterLevels = {}
     for id in STARTERS do
         local owned = profile.fighters[id]
-        local ownedXp = if owned then owned.xp else 0
-        highestXp = math.max(highestXp, ownedXp)
-        fighterLevels[id] = PlayerProfiles.levelForXp(ownedXp)
+        fighterLevels[id] = if owned then PlayerProfiles.levelForXp(owned.xp) else 1
+    end
+    for id in ROSTER_UNLOCKS do
+        local owned = profile.fighters[id]
+        fighterLevels[id] = if owned then PlayerProfiles.levelForXp(owned.xp) else 1
     end
     local raid = profile.kilnback
+    local training = if isStarter(fighterId) then profile.ringTraining else profile.rosterTraining
     return {
         lanternKeeper = profile.trophies[LANTERN_KEEPER] ~= nil,
         kilnKeeper = profile.trophies[KILN_KEEPER] ~= nil,
@@ -187,9 +226,9 @@ function PlayerProfiles.summary(profile, fighterId)
         level = level,
         levelFloor = LEVEL_THRESHOLDS[level],
         nextLevelXp = LEVEL_THRESHOLDS[level + 1],
-        highestFighterLevel = PlayerProfiles.levelForXp(highestXp),
+        highestFighterLevel = PlayerProfiles.levelForXp(highestXp(profile)),
         fighterLevels = fighterLevels,
-        ringTraining = (profile.ringTraining and profile.ringTraining[fighterId]) or {},
+        ringTraining = (training and training[fighterId]) or {},
     }
 end
 
@@ -239,7 +278,10 @@ function PlayerProfiles:_owned(userId, token, change, releasing)
         end
         local updated = table.clone(current)
         if change then
-            change(updated, now)
+            local rejection = change(updated, now)
+            if rejection then
+                return nil, rejection
+            end
         end
         updated.lease = if releasing then nil else {token = token, expiresAt = now + LEASE_SECONDS}
         return updated
@@ -268,12 +310,19 @@ function PlayerProfiles:commitStarterChoice(userId, token, fighterId)
 end
 
 function PlayerProfiles:commitFighterSwitch(userId, token, fighterId)
-    if not isStarter(fighterId) then
+    if not isFighter(fighterId) then
         return nil, "invalid fighter"
     end
     return self:_owned(userId, token, function(profile)
-        if profile.selectedStarterFighter ~= nil then
+        if not PlayerProfiles.canSwitch(profile, fighterId) then
+            return "fighter locked"
+        end
+        if isStarter(fighterId) then
             profile.activeStarterFighter = fighterId
+            profile.activeRosterFighter = nil
+        else
+            -- Keep the legacy starter as a playable fallback on the previous build.
+            profile.activeRosterFighter = fighterId
         end
     end)
 end
@@ -323,13 +372,18 @@ end
 
 function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId, fighterId)
     fighterId = fighterId or REEDGUARD
-    if not whole(elapsedTenths, 1, 1200) or not validCompletionId(completionId) or not isStarter(fighterId) then
+    if not whole(elapsedTenths, 1, 1200) or not validCompletionId(completionId) or not isFighter(fighterId) then
         return nil, "invalid result"
     end
+    local legacy = isStarter(fighterId)
+    local receiptKey = if legacy then "lastRelayReward" else "lastRosterRelayReward"
     local saved, reason = self:_owned(userId, token, function(profile, now)
+        if not legacy and not PlayerProfiles.canSwitch(profile, fighterId) then
+            return "fighter locked"
+        end
         local trophy = profile.trophies[LANTERN_KEEPER]
         if (trophy and trophy.completionId == completionId)
-            or (profile.lastRelayReward and profile.lastRelayReward.id == completionId) then
+            or (profile[receiptKey] and profile[receiptKey].id == completionId) then
             return
         end
         if profile.relayBestTenths == 0 or elapsedTenths < profile.relayBestTenths then
@@ -342,11 +396,11 @@ function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId, 
             profile.trophies = table.clone(profile.trophies)
             profile.trophies[LANTERN_KEEPER] = {earnedAt = now, criterionVersion = 1, completionId = completionId}
         end
-        profile.lastRelayReward = {id = completionId, fighterId = fighterId, xp = xp}
+        profile[receiptKey] = {id = completionId, fighterId = fighterId, xp = xp}
         addFighterXp(profile, fighterId, xp)
     end)
     local first = saved ~= nil and saved.trophies[LANTERN_KEEPER].completionId == completionId
-    local receipt = saved and saved.lastRelayReward
+    local receipt = saved and saved[receiptKey]
     return saved, reason, first, if first then FIRST_RELAY_XP
         elseif receipt and receipt.id == completionId then receipt.xp else 0
 end
@@ -368,10 +422,13 @@ end
 
 function PlayerProfiles:commitFirstSparWin(userId, token, completionId, fighterId)
     fighterId = fighterId or REEDGUARD
-    if not validCompletionId(completionId) or not isStarter(fighterId) then
+    if not validCompletionId(completionId) or not isFighter(fighterId) then
         return nil, "invalid result"
     end
     local saved, reason = self:_owned(userId, token, function(profile)
+        if not isStarter(fighterId) and not PlayerProfiles.canSwitch(profile, fighterId) then
+            return "fighter locked"
+        end
         if profile.firstSparWinId == nil then
             profile.firstSparWinId = completionId
             addFighterXp(profile, fighterId, FIRST_SPAR_WIN_XP)
@@ -381,12 +438,17 @@ function PlayerProfiles:commitFirstSparWin(userId, token, completionId, fighterI
 end
 
 function PlayerProfiles:commitSparWin(userId, token, completionId, fighterId)
-    if not isStarter(fighterId) or not validCompletionId(completionId) then
+    if not isFighter(fighterId) or not validCompletionId(completionId) then
         return nil, "invalid result"
     end
+    local legacy = isStarter(fighterId)
+    local receiptKey = if legacy then "lastSparReward" else "lastRosterSparReward"
     local saved, reason = self:_owned(userId, token, function(profile)
+        if not legacy and not PlayerProfiles.canSwitch(profile, fighterId) then
+            return "fighter locked"
+        end
         if profile.firstSparWinId == completionId
-            or (profile.lastSparReward and profile.lastSparReward.id == completionId) then
+            or (profile[receiptKey] and profile[receiptKey].id == completionId) then
             return
         end
         local first = profile.firstSparWinId == nil
@@ -394,33 +456,38 @@ function PlayerProfiles:commitSparWin(userId, token, completionId, fighterId)
         if first then
             profile.firstSparWinId = completionId
         end
-        profile.lastSparReward = {id = completionId, fighterId = fighterId, xp = xp}
+        profile[receiptKey] = {id = completionId, fighterId = fighterId, xp = xp}
         addFighterXp(profile, fighterId, xp)
     end)
     local first = saved ~= nil and saved.firstSparWinId == completionId
-    local receipt = saved and saved.lastSparReward
+    local receipt = saved and saved[receiptKey]
     return saved, reason, first, if first then FIRST_SPAR_WIN_XP
         elseif receipt and receipt.id == completionId then receipt.xp else 0
 end
 
 function PlayerProfiles:commitRingTraining(userId, token, drillId, completionId, fighterId, xp)
-    if not isStarter(fighterId) or not validCompletionId(drillId) or not validCompletionId(completionId)
+    if not isFighter(fighterId) or not validCompletionId(drillId) or not validCompletionId(completionId)
         or not whole(xp, 1, LEVEL_THRESHOLDS[#LEVEL_THRESHOLDS]) then
         return nil, "invalid training result"
     end
+    local legacy = isStarter(fighterId)
+    local trainingKey = if legacy then "ringTraining" else "rosterTraining"
     local saved, reason = self:_owned(userId, token, function(profile)
-        local training = profile.ringTraining or {}
+        if not legacy and not PlayerProfiles.canSwitch(profile, fighterId) then
+            return "fighter locked"
+        end
+        local training = profile[trainingKey] or {}
         local recorded = training[fighterId] or {}
         if recorded[drillId] == completionId then
             return
         end
-        profile.ringTraining = table.clone(training)
+        profile[trainingKey] = table.clone(training)
         local updated = table.clone(recorded)
         updated[drillId] = completionId
-        profile.ringTraining[fighterId] = updated
+        profile[trainingKey][fighterId] = updated
         addFighterXp(profile, fighterId, xp)
     end)
-    return saved, reason, saved ~= nil and saved.ringTraining[fighterId][drillId] == completionId
+    return saved, reason, saved ~= nil and saved[trainingKey][fighterId][drillId] == completionId
 end
 
 return PlayerProfiles

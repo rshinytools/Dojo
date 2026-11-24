@@ -312,8 +312,24 @@ end
 
 local function saveStarterChoice(player, data, token)
     local pending = data.pendingStarterChoice
-    local profile = if pending.first then profiles:commitStarterChoice(player.UserId, token, pending.id)
-        else profiles:commitFighterSwitch(player.UserId, token, pending.id)
+    local profile, reason
+    if pending.first then
+        profile, reason = profiles:commitStarterChoice(player.UserId, token, pending.id)
+    else
+        profile, reason = profiles:commitFighterSwitch(player.UserId, token, pending.id)
+    end
+    if reason == "fighter locked" then
+        data.pendingStarterChoice = nil
+        if not (data.departed or shuttingDown) then
+            player:SetAttribute("StarterSelectionPending", false)
+            player:SetAttribute("ProgressStatus", "ready")
+            player:SetAttribute("StarterSelectionError", "Reach the required fighter level to equip this fighter.")
+            if player.Character then
+                StarterFighters.release(player.Character)
+            end
+        end
+        return data.profile
+    end
     if not profile then
         return nil
     end
@@ -581,6 +597,14 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter)
     end
     if not data.profile or pendingProgress(data) then
         player:SetAttribute("StarterSelectionError", "Your fighter profile is still loading or saving. Try again shortly.")
+        return
+    end
+    local unlockLevel = PlayerProfiles.unlockLevel(fighterId)
+    if not unlockLevel or (not switching and unlockLevel > 1) then
+        return
+    end
+    if switching and not PlayerProfiles.canSwitch(data.profile, fighterId) then
+        player:SetAttribute("StarterSelectionError", string.format("Reach fighter level %d to unlock this fighter.", unlockLevel))
         return
     end
     if not StarterFighters.canEquip(player.Character, fighterId) then

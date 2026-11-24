@@ -1,0 +1,58 @@
+[
+  {
+    "id": "karate-frog",
+    "name": "Karate Frog",
+    "shortName": "Karate Frog",
+    "title": "The Lily-Step Keeper",
+    "home": "Reedgrove Court",
+    "element": "Land",
+    "rarity": "Common",
+    "role": "Agile",
+    "style": "Spring kicks and close-range control",
+    "health": 95,
+    "normal_hit": 12,
+    "unlockLevel": 2,
+    "story": "Karate Frog used to teach on stepping stones until the late-summer floods covered them. She moved her class to the giant lily pads and taught everyone to land lightly enough to leave the dew in place. The kids started keeping score by how many pads they could cross without getting wet. She still holds the record.",
+    "quote": "Land softly. The next step is already waiting.",
+    "powers": [
+      {
+        "name": "Lily Vault",
+        "effect": "Spring forward into a double-foot kick, then land back in guard.",
+        "counter": "Move off the line while the Frog crouches."
+      },
+      {
+        "name": "Tadpole Tornado",
+        "effect": "Spin to push nearby fighters away and deflect incoming pebbles.",
+        "counter": "Back out of the marked circle before the spin connects."
+      }
+    ]
+  },
+  {
+    "id": "river-otter",
+    "name": "River Otter",
+    "shortName": "River Otter",
+    "title": "The Three-Stone Ferrier",
+    "home": "Tideharbor Coast",
+    "element": "Aquatic",
+    "rarity": "Common",
+    "role": "Agile",
+    "style": "Lateral counters and ranged pressure",
+    "health": 96,
+    "normal_hit": 13,
+    "unlockLevel": 3,
+    "story": "River Otter marked the safe route home for the Tideharbor ferry when the river rose one spring. With the sandbars hidden, he skipped pebbles to show the ferrier where the current split. Now he teaches first-time boaters the route and carries three smooth stones from that day in his sash.",
+    "quote": "A river always gives you another angle.",
+    "powers": [
+      {
+        "name": "Eddy Palm",
+        "effect": "Cut sideways and strike from the new angle with an open palm.",
+        "counter": "Turn with the Otter and wait for the palm."
+      },
+      {
+        "name": "Pebble Barrage",
+        "effect": "Send three pebbles through separate lanes to pressure opponents toward the edge.",
+        "counter": "Step outside the spread, guard, or deflect with Tadpole Tornado."
+      }
+    ]
+  }
+]

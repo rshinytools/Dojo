@@ -270,13 +270,13 @@ local function advance(match, now)
         local attacker = match.actors[event.attacker]
         if event.kind == "parried" or event.kind == "blocked" then
             setFeedback(attacker, if event.kind == "parried" then "attackParried" else "attackBlocked", now)
-            setFeedback(match.actors[event.defender], event.kind, now)
+            setFeedback(match.actors[event.defender], if event.deflected then "projectileDeflected" else event.kind, now)
         elseif (event.damage or 0) > 0 then
             setFeedback(attacker, event.elementEffect or "strike", now)
             setFeedback(match.actors[event.defender], "hit", now)
         end
         local cue = Match.contactCue(event)
-        local floorStrike = event.attack == "seismicChestPound" or event.attack == "magmaTrail"
+        local floorStrike = Match.floorAttack(event.attack)
         if cue and floorStrike and cue ~= "parried" and cue ~= "blocked" then
             -- One pressure ring per resolved ground pulse, even when several bodies are hit.
             local byAttacker = playedFloor[attacker]

@@ -8,6 +8,8 @@ local entries = {
     {modelName = "penguin-brawler", shortName = "Penguin", initials = "PB", tint = Color3.fromHex("9EE8F8")},
     {modelName = "silverback-gorilla", shortName = "Silverback", initials = "SG", tint = Color3.fromHex("E0AE92")},
     {modelName = "fire-salamander", shortName = "Salamander", initials = "FS", tint = Color3.fromHex("FF9970")},
+    {modelName = "karate-frog", shortName = "Karate Frog", kit = "frog", initials = "KF", tint = Color3.fromHex("C4EB92")},
+    {modelName = "river-otter", shortName = "River Otter", kit = "otter", initials = "RO", tint = Color3.fromHex("94E4FF")},
     {modelName = "Juniper Tortoise", shortName = "Juniper", initials = "JT", tint = Color3.fromHex("AAF0C1"), resident = true},
     {modelName = "Bracken Boar", shortName = "Bracken", initials = "BB", tint = Color3.fromHex("FFC391"), resident = true},
     {modelName = "Sablecrest Lynx", shortName = "Sablecrest", initials = "SL", tint = Color3.fromHex("CFC0FF"), resident = true},
@@ -22,6 +24,9 @@ local byName = {}
 for _, entry in entries do
     byName[normalize(entry.modelName)] = entry
     byName[normalize(entry.shortName)] = entry
+    if entry.kit then
+        byName[entry.kit] = entry
+    end
 end
 
 local function create(className, parent, properties)
@@ -53,19 +58,19 @@ function Portraits.new(parent, mirrored, zIndex)
     return {viewport = viewport, camera = camera, fallback = fallback, mirrored = mirrored}
 end
 
-local function frameHead(camera, head, mirrored)
+local function frameHead(camera, frame, size, mirrored, crop)
     -- The authored model faces -Z. Place each camera on the side that turns its fighter toward the timer.
-    local aim = head.Position - Vector3.new(0, head.Size.Y * .12, 0)
+    local aim = frame.Position - Vector3.new(0, size.Y * .12, 0)
     local direction = Vector3.new(if mirrored then -.54 else .54, .09, -1).Unit
     local basis = CFrame.lookAt(Vector3.zero, -direction)
     local halfView = math.tan(math.rad(camera.FieldOfView / 2))
-    local halfSize = head.Size * .5
+    local halfSize = size * .5
     local distance = 0
     -- Estimate the head's projected bounds before cropping close to the face.
     for x = -1, 1, 2 do
         for y = -1, 1, 2 do
             for z = -1, 1, 2 do
-                local corner = head.CFrame:PointToWorldSpace(Vector3.new(x * halfSize.X, y * halfSize.Y, z * halfSize.Z)) - aim
+                local corner = frame:PointToWorldSpace(Vector3.new(x * halfSize.X, y * halfSize.Y, z * halfSize.Z)) - aim
                 local width = math.abs(corner:Dot(basis.RightVector)) / .94
                 local height = math.abs(corner:Dot(basis.UpVector)) / .91
                 distance = math.max(distance, corner:Dot(direction) + math.max(width, height) / halfView)
@@ -73,8 +78,37 @@ local function frameHead(camera, head, mirrored)
         end
     end
     -- The tighter crop fills the small badge while centering the muzzle below longer ears.
-    aim -= Vector3.new(0, head.Size.Y * .053, 0)
-    camera.CFrame = CFrame.lookAt(aim + direction * distance * .83, aim)
+    aim -= Vector3.new(0, size.Y * .053, 0)
+    camera.CFrame = CFrame.lookAt(aim + direction * distance * crop, aim)
+end
+
+local function visiblePieces(group, load)
+    local pieces = {}
+    local descendants = group:GetDescendants()
+    table.insert(descendants, group)
+    for _, piece in descendants do
+        if piece:IsA("BasePart") and piece.Transparency < 1 then
+            table.insert(pieces, piece)
+            if piece:IsA("MeshPart") then
+                table.insert(load, piece)
+            end
+        end
+    end
+    return pieces
+end
+
+local function copyPieces(pieces, parent)
+    for _, source in pieces do
+        local part = source:Clone()
+        part.Anchored, part.CanCollide, part.CanQuery, part.CanTouch = true, false, false, false
+        part.CastShadow = false
+        for _, child in part:GetChildren() do
+            if not child:IsA("SurfaceAppearance") then
+                child:Destroy()
+            end
+        end
+        part.Parent = parent
+    end
 end
 
 local function stagePortrait(portrait, entry, request)
@@ -86,37 +120,40 @@ local function stagePortrait(portrait, entry, request)
     if portrait.request ~= request then
         return
     end
-    if not (head and torso and head:IsA("MeshPart") and torso:IsA("MeshPart")) then
+    if not (head and torso and head:IsA("BasePart") and torso:IsA("BasePart")) then
         portrait.viewport:SetAttribute("PortraitState", "fallback")
         return
     end
 
-    local loaded = true
-    local ok = pcall(ContentProvider.PreloadAsync, ContentProvider, {head, torso}, function(_, status)
-        loaded = loaded and status == Enum.AssetFetchStatus.Success
-    end)
+    local load = {}
+    local face = visiblePieces(head, load)
+    local chest = visiblePieces(torso, load)
+    local ok, loaded = true, true
+    if #load > 0 then
+        ok = pcall(ContentProvider.PreloadAsync, ContentProvider, load, function(_, status)
+            loaded = loaded and status == Enum.AssetFetchStatus.Success
+        end)
+    end
     if portrait.request ~= request then
         return
     end
-    if not (ok and loaded) then
+    if not (ok and loaded and #face > 0) then
         portrait.viewport:SetAttribute("PortraitState", "fallback")
         return
     end
 
     local bust = create("Model", portrait.viewport, {Name = "PortraitBust"})
     portrait.bust = bust
-    for _, bodyPart in {head, torso} do
-        local mesh = bodyPart:Clone()
-        mesh.Anchored, mesh.CanCollide, mesh.CanQuery, mesh.CanTouch = true, false, false, false
-        mesh.CastShadow = false
-        for _, child in mesh:GetChildren() do
-            if not child:IsA("SurfaceAppearance") then
-                child:Destroy()
-            end
-        end
-        mesh.Parent = bust
+    local faceFrame, faceSize = face[1].CFrame, face[1].Size
+    if #face == 1 then
+        copyPieces(face, bust)
+    else
+        local faceGroup = create("Model", bust, {Name = "HeadGroup"})
+        copyPieces(face, faceGroup)
+        faceFrame, faceSize = faceGroup:GetBoundingBox()
     end
-    frameHead(portrait.camera, head, portrait.mirrored)
+    copyPieces(chest, bust)
+    frameHead(portrait.camera, faceFrame, faceSize, portrait.mirrored, if #face == 1 then .83 else .92)
     portrait.viewport:SetAttribute("PortraitState", "ready")
     portrait.viewport.Visible = true
     portrait.fallback.Visible = false

@@ -8,6 +8,10 @@ local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Sablecrest = require(script.Parent.SablecrestCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Granite = require(script.Parent.GraniteCombatPoses)
+local Frog = require(script.Parent.FrogCombatPoses)
+local Otter = require(script.Parent.OtterCombatPoses)
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 local Motion = {}
 
 local fallSeconds = .57
@@ -25,6 +29,8 @@ local playerKits = {
     penguin = {poses = Penguin, mixedSpacing = 2.68},
     silverback = {poses = Silverback, mixedSpacing = 3.13},
     salamander = {poses = Salamander, mixedSpacing = 2.49},
+    frog = {poses = Frog, mixedSpacing = 2.55},
+    otter = {poses = Otter, mixedSpacing = 2.55},
 }
 
 local residents = {
@@ -130,6 +136,18 @@ local function defeatSnapshot(base, parts, floor)
     return {base = base, pieces = pieces, pivot = pivot, floor = floor, bottom = if empty then base.Y - 2.5 else bottom}
 end
 
+local function mountedBounds(shell)
+    local parts = {}
+    if shell then
+        for _, part in shell:GetDescendants() do
+            if part:IsA("BasePart") and part.Transparency < 1 then
+                table.insert(parts, part)
+            end
+        end
+    end
+    return parts
+end
+
 local function fallenFrame(defeat, age)
     if defeat.settledFrame then
         return defeat.settledFrame
@@ -164,7 +182,7 @@ local function renderPlayerDefeat(state, root, floor, age)
     if not defeat then
         local character = root.Parent
         local shell = character:FindFirstChild("Starter Fighter Shell")
-        defeat = defeatSnapshot(root.CFrame, if shell then shell:GetChildren() else {}, floor)
+        defeat = defeatSnapshot(root.CFrame, mountedBounds(shell), floor)
         defeat.firstJoint = joint.motor.C0
         defeat.collisions = {}
         for _, part in character:GetDescendants() do
@@ -203,6 +221,9 @@ function Motion.open(bout)
         autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled,
         humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
+    if bout.kit == "frog" or bout.kit == "otter" then
+        state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
+    end
     for _, name in tracked do
         local motor = character:FindFirstChild(name, true)
         if motor and motor:IsA("Motor6D") then
@@ -229,6 +250,10 @@ function Motion.open(bout)
     state.contactSpace = contactSpace
     state.arenaCast = castParameters({character, bout.bot, bout.arena.bounds})
     state.avatarCast = castParameters({character, bout.arena.bounds})
+    if bout.kit == "otter" then
+        state.pebbleEffects = Instance.new("Folder")
+        state.pebbleEffects.Name, state.pebbleEffects.Parent = "Otter effects", bout.telegraph
+    end
     if salamander(bout) then
         state.magmaMarks = {}
     end
@@ -255,6 +280,10 @@ end
 function Motion.close(bout)
     local state = bout.motion
     restoreDefeat(state)
+    clearLane(state, "tornadoWarning")
+    if state.pebbleEffects then
+        state.pebbleEffects:Destroy()
+    end
     clearLane(state, "slideLane")
     clearLane(state, "rushLane")
     clearLane(state, "returnLane")
@@ -284,7 +313,8 @@ function Motion.close(bout)
 end
 
 function Motion.canAct(bout, action)
-    local groundedOnly = (penguin(bout) or silverback(bout) or salamander(bout))
+    local groundedOnly = (bout.motion.rosterHistory and (action == "dodge" or action == "secondary" or action == "signature"))
+        or (penguin(bout) or silverback(bout) or salamander(bout))
         and (action == "dodge" or action == "signature") or ((silverback(bout) or salamander(bout)) and action == "secondary")
     if not groundedOnly then
         return true
@@ -385,6 +415,59 @@ local function stopAtActor(position, movement, target, radius)
     end
     local available = along - math.sqrt(radiusSquared - lateralSquared)
     return direction * math.clamp(available, 0, length)
+end
+
+local function rosterTravel(poses, action, age, direction)
+    local travel = poses.Travel and poses.Travel[action]
+    if not travel or not travel.axis then
+        return nil
+    end
+    local ratio = math.clamp((age - travel.startsAt) / (travel.endsAt - travel.startsAt), 0, 1)
+    local amount = travel.distance * ratio * ratio * (3 - 2 * ratio)
+    return if travel.axis == "lateral" then Vector3.new(amount * (direction or 1), 0, 0)
+        else Vector3.new(0, 0, -amount)
+end
+
+local function attackPoint(poses, action, index, direction)
+    return if poses.impact then poses.impact(action, index, direction) else poses.Impact[action][index]
+end
+
+local function pebbleSweep(fx, params, origin, move, index)
+    local skill = Otter.Skill.pebbleBarrage
+    local start = origin:PointToWorldSpace(Otter.Impact.pebbleBarrage[index])
+    local travel = origin:VectorToWorldSpace(skill.directions[index].Unit) * skill.range
+    local cast = workspace:Raycast(start, travel, params)
+    local fraction = if cast then cast.Distance / travel.Magnitude else 1
+    local label = "Pebble " .. index
+    if move.launch then
+        local pebble = Instance.new("Part")
+        pebble.Name, pebble.Shape, pebble.Size = label, Enum.PartType.Ball, Vector3.new(.28, .26, .28)
+        pebble.Color, pebble.Material = Color3.fromRGB(159, 234, 224), Enum.Material.Neon
+        pebble.Anchored, pebble.CanCollide, pebble.CanTouch, pebble.CanQuery, pebble.CastShadow = true, false, false, false, false
+        pebble.Position, pebble.Parent = start, fx
+        local duration = math.max(.025, move.flight * fraction)
+        TweenService:Create(pebble, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Position = start + travel * fraction}):Play()
+        Debris:AddItem(pebble, duration + .035)
+        return nil, start
+    end
+    if move.from >= fraction then
+        return nil, start + travel * fraction
+    end
+    return start + travel * move.from, start + travel * math.min(move.to, fraction), fx:FindFirstChild(label)
+end
+
+local function pebbleHit(start, finish, volumes, radius)
+    local nearest, zone, best = nil, nil, math.huge
+    for _, volume in volumes do
+        local point = Motion.geometry.sweptContact(start, finish, volume.frame, volume.size, radius)
+        if point then
+            local distance = (point - start).Magnitude
+            if distance < best then
+                nearest, zone, best = point, volume.zone, distance
+            end
+        end
+    end
+    return nearest, zone, best
 end
 
 local function obstructed(bout, source, hit)
@@ -697,7 +780,30 @@ local function playerDodge(bout, now)
         return
     end
     local state, root, clip = bout.motion, bout.root, bout.round.clip
-    if clip and clip.action == "sidestep" and not bout.outroAt then
+    local age = clip and now - clip.startedAt
+    local tornado = Frog.Skill.tadpoleTornado
+    if clip and clip.action == "tadpoleTornado" and not bout.outroAt and age >= tornado.warningAt
+        and age < Frog.Contact.tadpoleTornado then
+        if not state.tornadoWarning then
+            local center = Vector3.new(root.Position.X, bout.arena.floor, root.Position.Z)
+            state.tornadoWarning = galleonContour(bout, "Tadpole Tornado warning", center, tornado.radius,
+                nil, nil, Color3.fromRGB(143, 241, 124))
+        end
+    else
+        clearLane(state, "tornadoWarning")
+    end
+    local offset = clip and rosterTravel(state.playerPoses, clip.action, age, clip.direction)
+    if offset and not bout.outroAt then
+        if state.dodgeClip ~= clip then
+            state.dodgeClip, state.dodgeFrom = clip, root.CFrame
+        end
+        local origin = state.dodgeFrom
+        local wanted = origin:PointToWorldSpace(offset)
+        local delta = stopAtActor(root.Position, Match.flat(wanted - root.Position), bout.position, 1.85)
+        local position = safeTravel(bout, root.Position, root.Position + delta, root.CFrame,
+            Vector3.new(1.16, 1.85, 1.12), state.arenaCast)
+        Match.move(root, CFrame.new(position) * origin.Rotation)
+    elseif clip and clip.action == "sidestep" and not bout.outroAt then
         if state.dodgeClip ~= clip then
             state.dodgeClip, state.dodgeFrom = clip, root.CFrame
             local origin = state.dodgeFrom
@@ -1081,8 +1187,12 @@ local function sweptContact(from, to, frame, size, radius)
 end
 
 local function actorRootAt(bout, time)
-    local travel = if silverback(bout) then bout.motion.skywalkCast
-        elseif salamander(bout) then bout.motion.salamanderCast else bout.motion.playerTravel
+    local state = bout.motion
+    if state.rosterHistory and #state.rosterHistory > 0 then
+        return positionAt(state.rosterHistory, time)
+    end
+    local travel = if silverback(bout) then state.skywalkCast
+        elseif salamander(bout) then state.salamanderCast else state.playerTravel
     if travel then
         return CFrame.new(positionAt(travel.samples, time)) * travel.origin.Rotation
     end
@@ -1255,10 +1365,36 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     elseif action == "bellySlide" and penguin(bout) then
         return slideContact(bout, time, index)
     end
-    local point = bout.root.CFrame:PointToWorldSpace(bout.motion.playerPoses.Impact[action][index])
+    local state, root = bout.motion, actorRootAt(bout, time)
     local frame, groups = botPose(bout, time)
-    local offset = Match.flat(bout.position - bout.root.Position)
-    if offset.Magnitude < .05 or offset.Magnitude > 3.55 or offset.Unit:Dot(bout.root.CFrame.LookVector) < .52 then
+    if move.projectile then
+        local releaseRoot = actorRootAt(bout, castStartedAt + move.release)
+        local start, finish, effect = pebbleSweep(state.pebbleEffects, state.arenaCast, releaseRoot, move, index)
+        if not start then
+            return false, finish
+        end
+        local volumes = {}
+        for _, name in {"Torso", "Head", "Right Leg", "Left Leg"} do
+            local joint = bout.joints[name]
+            table.insert(volumes, {frame = jointFrame(frame, groups, name, joint) * joint.shell,
+                size = joint.part.Size, zone = if name == "Head" then "head" else "body"})
+        end
+        local hit, zone = pebbleHit(start, finish, volumes, move.radius)
+        if hit and effect then
+            effect:Destroy()
+        end
+        return hit ~= nil, hit or finish, zone
+    elseif action == "tadpoleTornado" then
+        local center = Vector3.new(root.X, bout.arena.floor, root.Z)
+        local joint = bout.joints.Torso
+        local contact = nearestPoint(jointFrame(frame, groups, "Torso", joint) * joint.shell, joint.part.Size, center)
+        return Match.flat(contact - center).Magnitude <= move.radius
+            and contact.Y <= center.Y + 1.5 and not obstructed(bout, center, contact), center, "body"
+    end
+    local direction = bout.round.clip and bout.round.clip.direction
+    local point = root:PointToWorldSpace(attackPoint(state.playerPoses, action, index, direction))
+    local offset = Match.flat(bout.position - root.Position)
+    if offset.Magnitude < .05 or offset.Magnitude > 3.55 or offset.Unit:Dot(root.LookVector) < .48 then
         return false, point
     end
     for _, name in if move.zone == "head" then {"Head", "Torso"} else {"Torso"} do
@@ -1269,8 +1405,8 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
             size *= Vector3.new(1, .56, 1)
         end
         local nearest = nearestPoint(targetFrame, size, point)
-        local radius = if action == "uppercut" then .43 else .52
-        if (point - nearest).Magnitude <= radius then
+        local radius = move.radius or (if action == "uppercut" then .43 else .52)
+        if (point - nearest).Magnitude <= radius and not obstructed(bout, root.Position, nearest) then
             local zone = if name == "Head" then "head" else "body"
             return true, point:Lerp(nearest, .5), zone
         end
@@ -1437,6 +1573,13 @@ end
 function Motion.move(bout, now, dt)
     playerDodge(bout, now)
     local round, state = bout.round, bout.motion
+    if state.rosterHistory then
+        local history = state.rosterHistory
+        rememberPosition(history, now, bout.root.CFrame)
+        while #history > 2 and history[2].at < now - .8 do
+            table.remove(history, 1)
+        end
+    end
     moveCrossKnock(bout, now)
     local command, reaction = residentCommand[bout.botId], residentReaction[bout.botId]
     if reaction then
@@ -1558,6 +1701,11 @@ function Motion.impact(bout, event)
                     state.crossKnock = shove
                 end
             end
+        elseif Frog.Skill[event.attack] or Otter.Skill[event.attack] then
+            local skill = Frog.Skill[event.attack] or Otter.Skill[event.attack]
+            local heading = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
+            bout.motion.crossKnock = {at = event.at, offset = heading * skill.shove, progress = 0,
+                duration = .20, height = 0, basis = CFrame.lookAlong(Vector3.zero, heading)}
         end
     end
 end
@@ -1571,6 +1719,10 @@ Motion.geometry = table.freeze({
     safeTravel = safeTravel,
     castParameters = castParameters,
     positionAt = positionAt,
+    rosterTravel = rosterTravel,
+    attackPoint = attackPoint,
+    pebbleSweep = pebbleSweep,
+    pebbleHit = pebbleHit,
     rememberPosition = rememberPosition,
     groundContour = galleonContour,
     renderPlayerDefeat = renderPlayerDefeat,

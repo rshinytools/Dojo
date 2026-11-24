@@ -131,6 +131,8 @@ local kits = {
     penguin = {fighter = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
     silverback = {fighter = "Silverback", technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
     salamander = {fighter = "Salamander", technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
+    frog = {fighter = "Karate Frog", technique = "Lily Vault", techniqueAction = "secondary", signature = "Tadpole Tornado"},
+    otter = {fighter = "River Otter", technique = "Eddy Palm", techniqueAction = "secondary", signature = "Pebble Barrage"},
 }
 local keyMap = {
     [Enum.KeyCode.E] = "strike", [Enum.KeyCode.ButtonR2] = "strike", [Enum.KeyCode.ButtonX] = "strike",
@@ -143,8 +145,10 @@ local keyMap = {
 }
 local tips = {
     blocked = "Blocked", parried = "Parried! Counter now", attackBlocked = "Your strike was blocked",
+    projectileDeflected = "Pebble deflected!",
     attackParried = "Your strike was parried", hit = "You took a hit", strike = "Strike landed",
     counter = "Counter landed", guard = "Guard up", needParry = "Parry to unlock Rising",
+    projectileDeflected = "Projectile deflected!",
 }
 
 local waiting, match, lastResultId

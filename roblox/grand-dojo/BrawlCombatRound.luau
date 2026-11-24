@@ -128,7 +128,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
     local targets
     local function sample(action, move, contactAt, sampleIndex, castStartedAt)
         local contacts, missPoint = check(index, action, move, contactAt, sampleIndex, castStartedAt)
-        if move.marker then
+        if move.marker or move.launch then
             return contacts == true, missPoint
         end
         local clip = attacker.clip
@@ -171,7 +171,9 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
             if clipAt == contactAt and attacker.clip.tagEntry then
                 notice.tagEntry = true
             end
-            notice.kind = defense(defender, contactAt, target.facing)
+            local deflected = Combatant.deflects(defender, contactAt, move)
+            notice.kind = if deflected then "blocked" else defense(defender, contactAt, target.facing)
+            notice.deflected = if deflected then true else nil
             if notice.kind then
                 notice.damage = 0
             else
@@ -181,7 +183,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
                 notice.elementEffect, notice.knockbackScale = matchup.elementEffect, matchup.knockbackScale
                 spent = fields.damage
             end
-            notice.detached = move.shape == "tile"
+            notice.detached = move.shape == "tile" or move.projectile ~= nil
             table.insert(batch, notice)
         end
         -- Each tile spends the authored cast budget once, regardless of how many fighters it catches.
@@ -222,7 +224,7 @@ local function resolveBatch(round, at, notices, eliminateMany)
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = at + PARRY_STUN
             end
-        elseif event.kind == "blocked" then
+        elseif event.kind == "blocked" and not event.deflected then
             reaction(defender, "block", 1, 0)
         end
         table.insert(round.notices, event)

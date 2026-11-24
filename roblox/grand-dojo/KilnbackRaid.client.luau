@@ -48,6 +48,8 @@ local kits = {
     penguin = {name = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
     silverback = {name = "Silverback", technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
     salamander = {name = "Salamander", technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
+    frog = {name = "Karate Frog", technique = "Lily Vault", techniqueAction = "secondary", signature = "Tadpole Tornado"},
+    otter = {name = "River Otter", technique = "Eddy Palm", techniqueAction = "secondary", signature = "Pebble Barrage"},
 }
 local function make(class, parent, properties)
     local node = Instance.new(class)

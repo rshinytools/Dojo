@@ -61,12 +61,14 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
         return check(attackerIndex, defenderIndex, action, move, at, index, castStartedAt)
     end
     local function resolve(_, at, fields, hit, facing, move)
-        local kind = if not hit then "miss" else defense(defender, at, facing)
+        local deflected = hit and Combatant.deflects(defender, at, move)
+        local kind = if not hit then "miss" elseif deflected then "blocked" else defense(defender, at, facing)
         if not kind then
             kind = if defender.counterUntil and at < defender.counterUntil then "counter" else "strike"
         end
         local landed = kind == "strike" or kind == "counter"
         fields.attacker, fields.defender, fields.kind, fields.at = attackerIndex, defenderIndex, kind, at
+        fields.deflected = if deflected then true else nil
         local baseDamage = if landed then fields.damage else 0
         local matchup = attacker.rankedMatchup
         fields.damage = baseDamage
@@ -75,7 +77,7 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
             fields.elementEffect = matchup.elementEffect
             fields.knockbackScale = matchup.knockbackScale
         end
-        table.insert(batch, {notice = fields, direct = move.shape ~= "tile"})
+        table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and not move.projectile})
         -- The authored Magma Trail budget spends unscaled move damage.
         return baseDamage
     end
@@ -112,7 +114,7 @@ local function resolveBatch(duel, time, batch)
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = time + PARRY_STUN
             end
-        elseif event.kind == "blocked" then
+        elseif event.kind == "blocked" and not event.deflected then
             reaction(defender, "block", 1, 0)
         end
         table.insert(duel.notices, event)

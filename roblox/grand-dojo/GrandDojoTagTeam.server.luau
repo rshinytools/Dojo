@@ -8,7 +8,8 @@ local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
 local Round = require(script.Parent:WaitForChild("TagCombatRound"))
 local Equip = require(script.Parent:WaitForChild("StarterFighters"))
-local catalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
+local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local catalog = fighterCatalog.ById
 local remote = ReplicatedStorage:WaitForChild("GrandDojoTagTeam")
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 
@@ -42,6 +43,12 @@ local function eligible(player, extraRange)
         and not player:GetAttribute("BrawlQueued") and not player:GetAttribute("KilnbackRaidQueued")
         and catalog[id] and Match.FighterKits[id]
         and Match.near(root, gate, prompt.MaxActivationDistance + extraRange) and root
+end
+
+local function eligibleBackup(player, primaryId, id)
+    local fighter = catalog[id]
+    return id ~= primaryId and fighter and Match.FighterKits[id]
+        and (player:GetAttribute("HighestFighterLevel") or 1) >= (fighter.unlockLevel or 1)
 end
 
 local function queueCount()
@@ -161,7 +168,8 @@ local function start(now)
     local actors, entrants, sideFor = {}, {}, {}
     for index, waiting in lineup do
         local player = waiting.player
-        if not Equip.canEquip(player.Character, waiting.primaryId) or not Equip.canEquip(player.Character, waiting.backupId) then
+        if not eligibleBackup(player, waiting.primaryId, waiting.backupId)
+            or not Equip.canEquip(player.Character, waiting.primaryId) or not Equip.canEquip(player.Character, waiting.backupId) then
             clearQueue(player, "Your fighters could not load. Rejoin the Tag Team queue.")
             return
         end
@@ -315,13 +323,13 @@ local function advance(match, now)
         end
         if event.kind == "blocked" or event.kind == "parried" then
             feedback(attacker, if event.kind == "blocked" then "attackBlocked" else "attackParried", now)
-            feedback(match.actors[event.defender], event.kind, now)
+            feedback(match.actors[event.defender], if event.deflected then "projectileDeflected" else event.kind, now)
         elseif (event.damage or 0) > 0 then
             feedback(attacker, if event.tagEntry then "tagStrike" else "strike", now)
             feedback(match.actors[event.defender], "hit", now)
         end
         local cue = Match.contactCue(event)
-        if cue and (event.attack == "seismicChestPound" or event.attack == "magmaTrail")
+        if cue and Match.floorAttack(event.attack)
             and cue ~= "parried" and cue ~= "blocked" then
             if floorCueAt[event.attacker] == event.at then
                 cue = nil
@@ -399,7 +407,13 @@ prompt.Triggered:Connect(function(player)
     local now = workspace:GetServerTimeNow()
     local offer = {root = root, primaryId = player:GetAttribute("SelectedStarterFighter"), expiresAt = now + OFFER_SECONDS}
     offers[player] = offer
-    remote:FireClient(player, "offer", {primaryId = offer.primaryId, expiresAt = offer.expiresAt})
+    local backupIds = {}
+    for _, id in fighterCatalog.Order do
+        if eligibleBackup(player, offer.primaryId, id) then
+            table.insert(backupIds, id)
+        end
+    end
+    remote:FireClient(player, "offer", {primaryId = offer.primaryId, expiresAt = offer.expiresAt, backupIds = backupIds})
 end)
 
 remote.OnServerEvent:Connect(function(player, action, value, id)
@@ -413,7 +427,7 @@ remote.OnServerEvent:Connect(function(player, action, value, id)
             or player:GetAttribute("SelectedStarterFighter") ~= offer.primaryId then
             notice(player, "Use the Tag Team sign again to choose your backup.")
             return
-        elseif type(value) ~= "string" or value == offer.primaryId or not Match.FighterKits[value] then
+        elseif type(value) ~= "string" or not eligibleBackup(player, offer.primaryId, value) then
             notice(player, "Choose a different fighter as your backup.")
             return
         end

@@ -34,6 +34,10 @@ local roster = {
         technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
     {id = "fire-salamander", kit = "salamander", name = "Salamander", style = "Sweep and floor control",
         technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
+    {id = "karate-frog", kit = "frog", name = "Karate Frog", style = "Leaping kicks and spins",
+        technique = "Lily Vault", techniqueAction = "secondary", signature = "Tadpole Tornado", earned = true},
+    {id = "river-otter", kit = "otter", name = "River Otter", style = "Palm strikes and pebbles",
+        technique = "Eddy Palm", techniqueAction = "secondary", signature = "Pebble Barrage", earned = true},
 }
 local byKit = {}
 for _, fighter in roster do
@@ -104,10 +108,24 @@ local offerPanel = panel("Offer", 398, 248)
 local offerTitle = label(offerPanel, "Title", 14, 8, UDim2.new(1, -28, 0, 27), 19, bold, gold)
 offerTitle.Text = "Choose your backup"
 local offerInfo = label(offerPanel, "Primary", 15, 36, UDim2.new(1, -30, 0, 19), 12, regular, muted)
+local backupList = object("ScrollingFrame", offerPanel, {
+    Name = "BackupChoices", Position = UDim2.fromOffset(12, 54), Size = UDim2.new(1, -24, 0, 144),
+    BackgroundTransparency = 1, BorderSizePixel = 0, CanvasSize = UDim2.fromOffset(0, 0),
+    ScrollBarThickness = 4, ScrollBarImageColor3 = gold, ScrollingDirection = Enum.ScrollingDirection.Y,
+    Selectable = false,
+})
 local offerChoices = {}
 for _, fighter in roster do
-    local node = button(offerPanel, fighter.id, "", false)
-    node.Size = UDim2.new(1, -28, 0, 44)
+    local node = button(backupList, fighter.id, "", false)
+    node.Size = UDim2.new(1, -10, 0, 44)
+    node.SelectionGained:Connect(function()
+        local top = node.Position.Y.Offset
+        local scroll = backupList.CanvasPosition.Y
+        local window = backupList.AbsoluteWindowSize.Y
+        if window >= 48 then
+            backupList.CanvasPosition = Vector2.new(0, math.clamp(scroll, math.max(0, top + 46 - window), math.max(0, top - 2)))
+        end
+    end)
     local badge = frame(node, "Portrait", chestnut)
     badge.Position, badge.Size = UDim2.fromOffset(5, 3), UDim2.fromOffset(38, 38)
     trim(badge, 5)
@@ -211,9 +229,11 @@ local keys = {
 }
 local tips = {
     blocked = "Blocked", parried = "Parried! Counter now", attackBlocked = "Your strike was blocked",
+    projectileDeflected = "Pebble deflected!",
     attackParried = "Your strike was parried", hit = "You took a hit", strike = "Strike landed", counter = "Counter landed",
     needParry = "Parry to unlock Rising", tag = "Tag in!", tagIn = "Tag in!", tagStrike = "Tag assist landed",
     tagUnavailable = "Wait until Tag In is ready", knockedOut = "Knockout", guard = "Guard up",
+    projectileDeflected = "Projectile deflected!",
 }
 
 local offer, waiting, match
@@ -228,7 +248,8 @@ end
 
 local function focus()
     local selected = GuiService.SelectedObject
-    local target = if recap.Visible then close elseif offerPanel.Visible then firstChoice elseif queue.Visible then queueCancel else nil
+    local target = if recap.Visible then close elseif offerPanel.Visible then firstChoice or offerCancel
+        elseif queue.Visible then queueCancel else nil
     if isGamepad() and target then
         GuiService.SelectedObject = target
     elseif selected and selected:IsDescendantOf(gui) then
@@ -240,11 +261,14 @@ local function showOffer(data)
     offer, joinAt, offerFeedback = data, nil, nil
     offerPanel.Visible = offer ~= nil
     player:SetAttribute("TagTeamOfferOpen", if offer then true else nil)
+    local eligible = offer and offer.backupIds
+    local hasEligibilityList = type(eligible) == "table"
     local chosen = {}
     for _, fighter in roster do
         local option = offerChoices[fighter.id]
         local show = offer ~= nil and fighter.id ~= offer.primaryId
-        option.node.Visible = show
+            and (if hasEligibilityList then table.find(eligible, fighter.id) ~= nil else not fighter.earned)
+        option.node.Visible, option.node.Selectable = show, show
         Portraits.set(option.portrait, if show then fighter.id else nil)
         if show then
             table.insert(chosen, option.node)
@@ -252,10 +276,12 @@ local function showOffer(data)
     end
     firstChoice = chosen[1]
     for index, node in chosen do
-        node.Position = UDim2.fromOffset(14, 56 + (index - 1) * 48)
+        node.Position = UDim2.fromOffset(2, 2 + (index - 1) * 48)
         node.NextSelectionUp = chosen[index - 1] or offerCancel
         node.NextSelectionDown = chosen[index + 1] or offerCancel
     end
+    backupList.CanvasSize = UDim2.fromOffset(0, #chosen * 48)
+    backupList.CanvasPosition = Vector2.zero
     offerCancel.NextSelectionUp, offerCancel.NextSelectionDown = chosen[#chosen], firstChoice
     if offer then
         local fighter = byKit[offer.primaryId]

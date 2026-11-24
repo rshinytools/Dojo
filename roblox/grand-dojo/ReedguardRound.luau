@@ -4,6 +4,8 @@ local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local Penguin = require(script.Parent.PenguinCombatPoses)
 local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
+local Frog = require(script.Parent.FrogCombatPoses)
+local Otter = require(script.Parent.OtterCombatPoses)
 local Round = {}
 
 Round.INTRO = 10
@@ -79,6 +81,42 @@ table.sort(magmaTimeline, function(a, b)
     return a.at < b.at
 end)
 
+local lily, tornado = Frog.Skill.lilyVault, Frog.Skill.tadpoleTornado
+local eddy, barrage = Otter.Skill.eddyPalm, Otter.Skill.pebbleBarrage
+local frogClips = {
+    jab = {{at = Frog.Contact.jab, damage = 12, zone = "head"}},
+    cross = {{at = Frog.Contact.cross, damage = 13, zone = "body"}},
+    body = {{at = Frog.Contact.body, damage = 14, zone = "body"}},
+    heavy = {{at = Frog.Contact.heavy, damage = 20, zone = "body"}},
+    lilyVault = {{at = Frog.Contact.lilyVault, damage = lily.damage, radius = lily.radius, zone = "body"}},
+    tadpoleTornado = {{at = Frog.Contact.tadpoleTornado, damage = tornado.damage, shape = "radial",
+        center = tornado.center, radius = tornado.radius, zone = "body"}},
+}
+local otterClips = {
+    jab = {{at = Otter.Contact.jab, damage = 13, zone = "head"}},
+    cross = {{at = Otter.Contact.cross, damage = 13, zone = "body"}},
+    body = {{at = Otter.Contact.body, damage = 14, zone = "body"}},
+    heavy = {{at = Otter.Contact.heavy, damage = 21, zone = "body"}},
+    eddyPalm = {{at = Otter.Contact.eddyPalm, damage = eddy.damage, radius = eddy.radius, zone = "body"}},
+    pebbleBarrage = {},
+}
+local SAMPLES_PER_PEBBLE, PEBBLE_FLIGHT = 5, .20
+for index, release in Otter.Contact.pebbleBarrage do
+    table.insert(otterClips.pebbleBarrage, {at = release, projectile = index, release = release, launch = true,
+        radius = barrage.radius, flight = PEBBLE_FLIGHT})
+    for step = 1, SAMPLES_PER_PEBBLE do
+        table.insert(otterClips.pebbleBarrage, {
+            at = release + PEBBLE_FLIGHT * step / SAMPLES_PER_PEBBLE,
+            release = release, flight = PEBBLE_FLIGHT, projectile = index, damage = barrage.damage,
+            radius = barrage.radius, zone = "body", from = (step - 1) / SAMPLES_PER_PEBBLE,
+            to = step / SAMPLES_PER_PEBBLE, lastSample = step == SAMPLES_PER_PEBBLE,
+        })
+    end
+end
+table.sort(otterClips.pebbleBarrage, function(a, b)
+    return a.at < b.at or (a.at == b.at and a.projectile < b.projectile)
+end)
+
 local kits = {
     reedguard = {
         poses = Reedguard, clips = Round.CLIPS,
@@ -100,6 +138,18 @@ local kits = {
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .78,
         signature = "magmaTrail", signatureCooldown = 7.4, signatureCooling = "magmaCooling",
         secondary = "emberSweep", secondaryCooldown = 3.2, secondaryCooling = "emberCooling",
+    },
+    frog = {
+        poses = Frog, clips = frogClips,
+        dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .76,
+        signature = "tadpoleTornado", signatureCooldown = 7, signatureCooling = "tornadoCooling",
+        secondary = "lilyVault", secondaryCooldown = 3.1, secondaryCooling = "lilyCooling",
+    },
+    otter = {
+        poses = Otter, clips = otterClips,
+        dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .8,
+        signature = "pebbleBarrage", signatureCooldown = 7.2, signatureCooling = "pebbleCooling",
+        secondary = "eddyPalm", secondaryCooldown = 3, secondaryCooling = "eddyCooling",
     },
 }
 
@@ -214,6 +264,7 @@ function Round.act(round, action, now, direction)
         end
         round.nextSecondary, round.guardUntil = now + kit.secondaryCooldown, 0
         play(round, kit.secondary, now)
+        round.clip.direction = if direction == -1 then -1 else 1
         return kit.secondary
     elseif action == "signature" then
         if kit.signatureCooldown then
@@ -258,14 +309,27 @@ local function contact(round, at, check, resolve, publishCast)
     local move = attacks[clip.nextContact]
     local index = clip.nextContact
     clip.nextContact += 1
+    if move.projectile then
+        index = move.projectile
+        clip.projectiles = clip.projectiles or {}
+        if clip.projectiles[index] then
+            return
+        end
+    end
     if move.singleHit and clip.connected then
         return
     end
     local hit, point, resolvedZone, facing
-    if publishCast or round.kit == kits.salamander then
+    if publishCast or round.kit == kits.salamander or move.projectile then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
+    end
+    if move.launch or (move.projectile and not hit and not move.lastSample) then
+        return
+    end
+    if move.projectile and hit then
+        clip.projectiles[index] = true
     end
     if not hit and move.singleHit and index ~= #attacks then
         return
@@ -273,7 +337,7 @@ local function contact(round, at, check, resolve, publishCast)
     if hit and move.singleHit then
         clip.connected = true
     end
-    local fields = {attack = clip.action, index = index, point = point,
+    local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile,
         castStartedAt = if publishCast then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
@@ -328,13 +392,28 @@ local function completeClip(round, at)
     end
 end
 
+local function deflects(round, time, move)
+    local clip = round.clip
+    if not move.projectile or not clip or clip.action ~= "tadpoleTornado" then
+        return false
+    end
+    local age = time - clip.startedAt
+    return age >= tornado.deflectFrom and age <= tornado.deflectUntil
+end
+
 local function nextThreat(round)
     local earliest, action = math.huge, nil
     local clip = round.clip
     local attacks = clip and round.kit.clips[clip.action]
-    local strike = attacks and attacks[clip.nextContact]
-    if strike and not (strike.singleHit and clip.connected) then
-        earliest, action = clip.startedAt + strike.at, clip.action
+    if attacks then
+        for index = clip.nextContact, #attacks do
+            local strike = attacks[index]
+            if not strike.launch and not (strike.singleHit and clip.connected)
+                and not (strike.projectile and clip.projectiles and clip.projectiles[strike.projectile]) then
+                earliest, action = clip.startedAt + strike.at, clip.action
+                break
+            end
+        end
     end
     local trail = round.trail
     if trail and trail.remainingDamage > 0 then
@@ -433,6 +512,7 @@ Round.Combatant = table.freeze({
     nextContacts = nextContacts,
     nextThreat = nextThreat,
     contact = contact,
+    deflects = deflects,
     advanceTrail = advanceTrail,
     PARRY_COUNTER_TIME = PARRY_COUNTER_TIME,
 })

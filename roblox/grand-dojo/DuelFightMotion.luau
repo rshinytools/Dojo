@@ -4,16 +4,21 @@ local Geometry = require(script.Parent.ReedguardFightMotion).geometry
 local Penguin = require(script.Parent.PenguinCombatPoses)
 local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
+local Frog = require(script.Parent.FrogCombatPoses)
+local Otter = require(script.Parent.OtterCombatPoses)
 
 local Motion = {}
 local defeatSeconds = Geometry.defeatSeconds
 local joints = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
-local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true}
-local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true}
+local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true, lilyVault = true, eddyPalm = true}
+local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
+    pebbleBarrage = true}
 local sideStep = {
     reedguard = {distance = 2.45, time = .23, start = 0},
     silverback = {distance = 2.23, time = .29, start = .045},
     salamander = {distance = 2.40, time = .235, start = .035},
+    frog = {distance = 2.48, time = .23, start = .025},
+    otter = {distance = 2.39, time = .24, start = .025},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -300,6 +305,9 @@ local function updateWarning(duel, actor, cast, age)
     elseif action == "seismicChestPound" then
         skill = Silverback.Skill.seismicChestPound
         start, finish = skill.warningAt, Silverback.Contact.seismicChestPound
+    elseif action == "tadpoleTornado" then
+        skill = Frog.Skill.tadpoleTornado
+        start, finish = skill.warningAt, Frog.Contact.tadpoleTornado
     else
         return
     end
@@ -319,8 +327,11 @@ local function updateWarning(duel, actor, cast, age)
     else
         local center = floorPoint(duel, origin:PointToWorldSpace(skill.center))
         local fan = action == "emberSweep"
-        cast.warning = floorContour(duel, actor, if fan then "Ember Sweep warning" else "Seismic Chest Pound warning",
-            center, skill.radius, if fan then origin.LookVector else nil, skill.halfAngle, if fan then amber else gold)
+        local tornado = action == "tadpoleTornado"
+        local name = if fan then "Ember Sweep warning" elseif tornado then "Tadpole Tornado warning" else "Seismic Chest Pound warning"
+        local tint = if fan then amber elseif tornado then Color3.fromRGB(143, 241, 124) else gold
+        cast.warning = floorContour(duel, actor, name,
+            center, skill.radius, if fan then origin.LookVector else nil, skill.halfAngle, tint)
     end
 end
 
@@ -331,6 +342,10 @@ local function pathOffset(cast, age, opponent)
         local progress = math.clamp((age - step.start) / step.time, 0, 1)
         local distance = step.distance * progress * progress * (3 - 2 * progress)
         return Vector3.new(distance * (clip.direction or 1), 0, 0)
+    end
+    local rosterOffset = Geometry.rosterTravel(cast.poses, action, age, clip.direction)
+    if rosterOffset then
+        return rosterOffset
     end
     local path = (if action == "magmaTrail" then Salamander else Penguin).Travel[action]
     local offset = Geometry.pathOffset(path, age)
@@ -368,7 +383,7 @@ local function moveCast(duel, actor, other, cast, now)
         local target = origin:PointToWorldSpace(pathOffset(cast, at - clip.startedAt, other))
         local delta = target - current
         if delta.Magnitude > .005 then
-            local maxStep = 18 * (at - cast.movedAt)
+            local maxStep = (if action == "lilyVault" then 22 else 18) * (at - cast.movedAt)
             local bounded = current + delta.Unit * math.min(delta.Magnitude, maxStep)
             local low = action == "bellySlide"
             local position = intendedPosition(duel, actor, other, origin, bounded,
@@ -435,7 +450,7 @@ local function updateActor(duel, index, now)
             local orientation = if other then heading(root.Position, other.root.Position, root.CFrame.LookVector)
                 else root.CFrame.LookVector
             local origin = CFrame.lookAlong(root.Position, orientation)
-            actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId}
+            actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId, poses = state.kit.poses}
             setHeld(actor, true)
             Match.move(root, origin)
         end
@@ -623,7 +638,7 @@ local function directContact(duel, other, action, move, at, root, target, point,
                     size *= Vector3.new(1, .56, 1)
                 end
                 local near = Geometry.nearestPoint(frame, size, point)
-                local radius = if action == "uppercut" then .43 else .47
+                local radius = move.radius or (if action == "uppercut" then .43 else .47)
                 if (near - point).Magnitude <= radius then
                     local contact = point:Lerp(near, .5)
                     if not obstructed(duel, root.Position, contact) then
@@ -650,6 +665,18 @@ local function inFront(root, target)
     return delta.Magnitude >= .04 and delta.Unit:Dot(root.LookVector) >= .41
 end
 
+local function clipPoint(duel, side, root, action, index)
+    local state = duel.round.sides[side]
+    local point = Geometry.attackPoint(state.kit.poses, action, index, state.clip and state.clip.direction)
+    return root:PointToWorldSpace(point)
+end
+
+local function pebbleSegment(duel, actor, move, index, castStartedAt)
+    local origin = clockFrame(actor, castStartedAt + move.release)
+    local params = duel.motion.contactCast or duel.motion.arenaCast
+    return Geometry.pebbleSweep(actor.fx, params, origin, move, index)
+end
+
 function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local other = 3 - side
     local actor = duel.actors[side]
@@ -670,6 +697,17 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     if not Match.inside(duel.bounds, root.Position) or not Match.inside(duel.bounds, target.Position) then
         return false, nil, nil, facing
     end
+    if move.projectile then
+        local start, finish, effect = pebbleSegment(duel, actor, move, index, castStartedAt)
+        if not start then
+            return false, finish
+        end
+        local hit, zone = Geometry.pebbleHit(start, finish, defenderVolumes(duel, other, at, target, facing), move.radius)
+        if hit and effect then
+            effect:Destroy()
+        end
+        return hit ~= nil, hit or finish, zone, facing
+    end
     local fan = move.shape == "fan"
     if fan or move.shape == "radial" then
         local center = floorPoint(duel, root:PointToWorldSpace(move.center))
@@ -677,8 +715,7 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
             move.halfAngle)
         return hit ~= nil, if fan then hit or center else center, "body", guardFacing
     end
-    local poses = duel.round.sides[side].kit.poses
-    local point = root:PointToWorldSpace(poses.Impact[action][index])
+    local point = clipPoint(duel, side, root, action, index)
     if not inFront(root, target) then
         return false, point, nil, facing
     end
@@ -705,11 +742,35 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
         end
     elseif not Match.inside(brawl.bounds, root.Position) or not floorActive(brawl, root.Position, at) then
         return {}
+    elseif move.projectile then
+        local start, finish, effect = pebbleSegment(brawl, actor, move, index, castStartedAt)
+        if not start then
+            return {}, finish
+        end
+        local closest, best = nil, math.huge
+        for other, defender in brawl.actors do
+            if other == side or (brawl.enemies and not brawl.enemies(side, other)) or not activeActor(brawl, other) then
+                continue
+            end
+            local target = clockFrame(defender, at)
+            if not Match.inside(brawl.bounds, target.Position) or not floorActive(brawl, target.Position, at) then
+                continue
+            end
+            local facing = defenderFacing(target, root.Position)
+            local volumes = defenderVolumes(brawl, other, at, target, facing)
+            local hit, zone, distance = Geometry.pebbleHit(start, finish, volumes, move.radius)
+            if hit and distance < best then
+                closest, best = {defender = other, point = hit, zone = zone, facing = facing}, distance
+            end
+        end
+        if closest and effect then
+            effect:Destroy()
+        end
+        return if closest then {closest} else {}, finish
     elseif fan or move.shape == "radial" then
         center = floorPoint(brawl, root:PointToWorldSpace(move.center))
     else
-        local poses = brawl.round.sides[side].kit.poses
-        point = root:PointToWorldSpace(poses.Impact[action][index])
+        point = clipPoint(brawl, side, root, action, index)
         if action == "bellySlide" then
             previous = slideSegment(actor, point)
         end
@@ -773,7 +834,7 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     if tile and move.marker then
         return plantMagma(raid, actor, move, at, index, castStartedAt)
     end
-    local center, point, previous
+    local center, point, previous, effect
     if tile then
         center = takeMagma(raid, actor, at, index, castStartedAt)
         if not center then
@@ -781,10 +842,15 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
         end
     elseif not Match.inside(raid.bounds, root.Position) then
         return false
+    elseif move.projectile then
+        previous, point, effect = pebbleSegment(raid, actor, move, index, castStartedAt)
+        if not previous then
+            return false, point
+        end
     elseif fan or move.shape == "radial" then
         center = floorPoint(raid, root:PointToWorldSpace(move.center))
     else
-        point = root:PointToWorldSpace(raid.round.sides[side].kit.poses.Impact[action][index])
+        point = clipPoint(raid, side, root, action, index)
         previous = if action == "bellySlide" then slideSegment(actor, point) else nil
     end
     local targets = if raid.round.coreExposed then raid.exposedBossVolumes else raid.bossVolumes
@@ -799,15 +865,18 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
                 hit = near
             end
         elseif previous then
-            hit = Geometry.sweptContact(previous, point, frame, size, .44)
+            hit = Geometry.sweptContact(previous, point, frame, size, move.radius or .44)
         else
             local near = Geometry.nearestPoint(frame, size, point)
             local forward = Match.flat(near - root.Position)
-            if (near - point).Magnitude <= .48 and (forward.Magnitude < .06 or forward.Unit:Dot(root.LookVector) >= .2) then
+            if (near - point).Magnitude <= (move.radius or .48) and (forward.Magnitude < .06 or forward.Unit:Dot(root.LookVector) >= .2) then
                 hit = near
             end
         end
-        if hit and not obstructed(raid, center or root.Position, hit) then
+        if hit and (move.projectile or not obstructed(raid, center or root.Position, hit)) then
+            if effect then
+                effect:Destroy()
+            end
             return true, if center and not fan then center else hit, volume.zone
         end
     end
@@ -911,6 +980,10 @@ function Motion.impact(duel, event)
         offset, duration, height = outward * .38, .27, Silverback.Skill.seismicChestPound.popHeight
     elseif action == "magmaTrail" then
         offset, duration, height = Vector3.zero, .28, Salamander.Skill.magmaTrail.popHeight
+    elseif Frog.Skill[action] or Otter.Skill[action] then
+        local skill = Frog.Skill[action] or Otter.Skill[action]
+        local outward = heading(root.Position, target.root.Position, direction)
+        offset, duration, height = outward * skill.shove, .20, 0
     elseif duel.motion.brawl then
         local lift = action == "uppercut" or (action == "reedstep" and event.index == 3)
         local distance = if action == "heavy" then 1.25 elseif lift then .70 else .35

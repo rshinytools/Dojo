@@ -43,7 +43,14 @@ local previewMoves = {
     ["penguin-brawler"] = {right = 13, left = -25, lean = -14, roll = 8, lift = .07, step = .30},
     ["silverback-gorilla"] = {right = -22, left = -18, lean = -5, roll = 2, lift = .09, step = .10},
     ["fire-salamander"] = {right = -28, left = 15, lean = -11, roll = -9, lift = .17, step = .20},
+    ["karate-frog"] = {right = -23, left = -24, lean = -9, roll = 5, lift = .28, step = .23, legs = 16},
+    ["river-otter"] = {right = -36, left = -15, lean = -8, roll = -13, lift = .10, step = .21, legs = 8},
 }
+local starterOrder = roster.StarterOrder or roster.Order
+
+local function displayName(info)
+    return info.shortName or shortNames[info.id] or info.name
+end
 
 local function create(class, parent, properties)
     local instance = Instance.new(class)
@@ -198,6 +205,7 @@ confirm.TextColor3 = colors.ink
 local status = label(panel, "SelectionStatus", "", 13, colors.text)
 status.TextWrapped = true
 local cards = {}
+local cardById = {}
 local selectedId
 local switching = false
 local fighterLevels = {}
@@ -214,6 +222,15 @@ local lastError = ""
 local visibleControls = false
 local inputLocked = false
 local promptsWereEnabled
+
+local function selectionOrder()
+    return if switching then roster.Order else starterOrder
+end
+
+local function requiredLevel(id)
+    local required = roster.ById[id].unlockLevel or 1
+    return if required > (player:GetAttribute("HighestFighterLevel") or 1) then required else nil
+end
 
 local function focusNavigation()
     return UserInputService.PreferredInput == Enum.PreferredInput.Gamepad or UserInputService.VREnabled
@@ -270,9 +287,13 @@ local function pose(t)
     local lift = math.max(0, .034 + idle * .034 + beat * move.lift)
     local root = CFrame.new(0, allowed and lift or 0, -beat * move.step)
         * CFrame.Angles(math.rad(beat * move.lean), math.rad(-13 - intro ^ 2 * 40 + idle * 5), math.rad(beat * move.roll))
-    for _, entryPart in previewParts do
-        local limbAngle = if entryPart.arm == 1 then beat * move.right elseif entryPart.arm == -1 then beat * move.left else 0
-        entryPart.part.CFrame = root * entryPart.rest * CFrame.Angles(math.rad(limbAngle), 0, 0) * entryPart.meshOffset
+    for _, group in previewParts do
+        local angle = (if group.arm == 1 then move.right elseif group.arm == -1 then move.left else 0)
+            + group.leg * (move.legs or 0)
+        local frame = root * group.rest * CFrame.Angles(math.rad(angle * beat), 0, 0)
+        for _, piece in group.pieces do
+            piece.part.CFrame = frame * piece.offset
+        end
     end
 end
 
@@ -310,28 +331,47 @@ local function drawPreview(id, tint)
     local bounds, size = model:GetBoundingBox()
     local reference = CFrame.new(0, bounds.Position.Y - size.Y / 2, 0)
     local load, needed = {}, {}
-    for _, part in model:GetDescendants() do
-        if part:IsA("BasePart") then
-            part.Anchored = true
-            local group = part.Name:lower():gsub("[^a-z]", "")
-            local arm = if group:find("rightarm", 1, true) then 1 elseif group:find("leftarm", 1, true) then -1 else 0
-            local attachment = part:FindFirstChild("ArtPivot")
-            local pivot = if attachment and attachment:IsA("Attachment") then attachment.WorldCFrame else part:GetPivot()
-            table.insert(previewParts, {
-                part = part, rest = reference:ToObjectSpace(pivot), meshOffset = pivot:ToObjectSpace(part.CFrame), arm = arm,
-            })
-            if part:IsA("MeshPart") then
-                table.insert(load, part)
-                needed[part.MeshId] = true
-                needed[part.TextureID] = true
+    for _, joint in model:GetChildren() do
+        if joint:IsA("BasePart") then
+            local limb = joint.Name:lower():gsub("[^a-z]", "")
+            local attachment = joint:FindFirstChild("ArtPivot")
+            local pivot = if attachment and attachment:IsA("Attachment") then attachment.WorldCFrame else joint:GetPivot()
+            local pieces = {}
+            local parts = joint:GetDescendants()
+            table.insert(parts, joint)
+            for _, part in parts do
+                if part:IsA("BasePart") then
+                    part.Anchored = true
+                    table.insert(pieces, {part = part, offset = pivot:ToObjectSpace(part.CFrame)})
+                    if part:IsA("MeshPart") then
+                        table.insert(load, part)
+                        needed[part.MeshId] = true
+                        needed[part.TextureID] = true
+                    end
+                end
             end
+            table.insert(previewParts, {
+                rest = reference:ToObjectSpace(pivot), pieces = pieces,
+                arm = if limb == "rightarm" then 1 elseif limb == "leftarm" then -1 else 0,
+                leg = if limb == "rightleg" then 1 elseif limb == "leftleg" then -1 else 0,
+            })
         end
+    end
+    if #previewParts == 0 then
+        setPreviewState("failed")
+        return
     end
     previewSize = size
     local width = math.max(size.X * 1.18, size.Z * 1.26, 3.8)
     ground.Size, brass.Size = Vector3.new(.24, width, width), Vector3.new(.14, width * .955, width * .955)
     ground.Color = tint:Lerp(colors.veil, .70)
     fitCamera()
+    if #load == 0 then
+        beganAt = os.clock()
+        pose(0)
+        setPreviewState("ready")
+        return
+    end
     task.delay(12, function()
         if previewModel == model and previewState == "loading" then
             setPreviewState("failed")
@@ -348,7 +388,7 @@ local function drawPreview(id, tint)
         if previewModel ~= model or previewState ~= "loading" then
             return
         end
-        if processed and #load > 0 and not next(needed) then
+        if processed and not next(needed) then
             beganAt = os.clock()
             pose(0)
             setPreviewState("ready")
@@ -362,15 +402,17 @@ buttons = function()
     local saving = inFlight or player:GetAttribute("StarterSelectionPending") == true
     local waiting = previewState == "loading"
     local busy = saving or waiting
-    local name = shortNames[selectedId] or roster.ById[selectedId].name
+    local name = displayName(roster.ById[selectedId])
     local equipped = switching and selectedId == player:GetAttribute("SelectedStarterFighter")
-    local enabled = not busy and (not equipped or previewState == "failed")
+    local locked = switching and requiredLevel(selectedId)
+    local enabled = not busy and (previewState == "failed" or (not equipped and not locked))
     confirm.Active = enabled
     close.Active = not saving
     close.Selectable = not saving
     confirm.Text = if saving then "Saving fighter…"
         elseif waiting then "Loading fighter…"
         elseif previewState == "failed" then "Retry 3D preview"
+        elseif locked then string.format("Unlock at Level %d", locked)
         elseif equipped then "Currently equipped"
         else (if switching then "Switch to " else "Start as ") .. name
     confirm.BackgroundColor3 = if enabled then colors.gold else colors.gold:Lerp(colors.panel, .28)
@@ -383,7 +425,28 @@ local function updateLevel()
     level.Visible = switching and selectedId ~= nil
     if level.Visible then
         local equipped = selectedId == player:GetAttribute("SelectedStarterFighter")
-        level.Text = string.format("Level %d%s", fighterLevels[selectedId] or 1, if equipped then " · Equipped" else "")
+        local required = requiredLevel(selectedId)
+        level.Text = if required then string.format("Reach Level %d with any fighter to unlock", required)
+            else string.format("Level %d%s", fighterLevels[selectedId] or 1, if equipped then " · Equipped" else "")
+    end
+end
+
+local function updateCards()
+    local order = selectionOrder()
+    local info = roster.ById[selectedId]
+    local tint = info and elements[info.element] or colors.gold
+    for _, card in cards do
+        local visible = table.find(order, card.id) ~= nil
+        local required = requiredLevel(card.id)
+        card.control.Visible, card.control.Selectable = visible, visible
+        card.control.BackgroundColor3 = if card.id == selectedId then tint:Lerp(colors.raised, .73) else colors.raised
+        card.stroke.Color = if card.id == selectedId then tint else colors.edge
+        if card.requirement then
+            card.requirement.Visible = required ~= nil
+            card.requirement.Text = if required then string.format("LEVEL %d", required) else ""
+            card.name.Position = UDim2.fromOffset(4, 0)
+            card.name.Size = UDim2.new(1, -8, 1, if required then -14 else 0)
+        end
     end
 end
 
@@ -392,7 +455,7 @@ local function showFighter(id)
         return
     end
     local info = roster.ById[id]
-    if not info then
+    if not info or not table.find(selectionOrder(), id) then
         return
     end
     selectedId = id
@@ -412,10 +475,7 @@ local function showFighter(id)
             row.name.Text, row.effect.Text = move.name, move.effect
         end
     end
-    for _, entry in cards do
-        entry.control.BackgroundColor3 = if entry.id == id then tint:Lerp(colors.raised, .73) else colors.raised
-        entry.stroke.Color = if entry.id == id then tint else colors.edge
-    end
+    updateCards()
     details.CanvasPosition = Vector2.zero
     if screen.Enabled then
         drawPreview(id, tint)
@@ -425,8 +485,20 @@ end
 
 for index, id in roster.Order do
     local info = roster.ById[id]
-    local control, stroke = button(rosterBar, id, shortNames[id] or info.name, colors.raised, colors.edge)
-    cards[index] = {id = id, control = control, stroke = stroke}
+    local gated = (info.unlockLevel or 1) > 1
+    local name = info.shortName or shortNames[id] or info.name
+    local control, stroke = button(rosterBar, id, if gated then "" else name, colors.raised, colors.edge)
+    local record = {id = id, control = control, stroke = stroke}
+    if gated then
+        record.name = label(control, "FighterName", name, 15, colors.text, Enum.Font.GothamBold)
+        record.name.TextXAlignment = Enum.TextXAlignment.Center
+        record.name.TextTruncate = Enum.TextTruncate.AtEnd
+        record.requirement = label(control, "UnlockLevel", "", 10, colors.gold, Enum.Font.GothamBold)
+        record.requirement.Position = UDim2.new(0, 4, 1, -19)
+        record.requirement.Size = UDim2.new(1, -8, 0, 14)
+        record.requirement.TextXAlignment = Enum.TextXAlignment.Center
+    end
+    cards[index], cardById[id] = record, record
     control.Activated:Connect(function()
         showFighter(id)
     end)
@@ -438,12 +510,7 @@ for index, id in roster.Order do
 end
 
 local function selectedCard()
-    for _, card in cards do
-        if card.id == selectedId then
-            return card.control
-        end
-    end
-    return cards[1].control
+    return (cardById[selectedId] or cardById[selectionOrder()[1]]).control
 end
 
 local function layout()
@@ -467,22 +534,27 @@ local function layout()
     close.Position, close.Size = UDim2.fromOffset(width - pad - closeWidth, pad),
         UDim2.fromOffset(closeWidth, math.max(36, headingHeight))
     close.TextSize = if compact then 14 else 16
-    local cardHeight = if compact then 42 else 49
-    local columns = if tall then 2 else 4
+    local order = selectionOrder()
+    local cardHeight = if compact then 44 else 49
+    local columns = if switching and #order > 4 then (if tall or contentWidth < 462 then 3 else 6)
+        elseif tall then 2 else 4
     local rosterY = pad + headingHeight + gap
-    local rosterHeight = math.ceil(#cards / columns) * (cardHeight + gap) - gap
+    local rosterHeight = math.ceil(#order / columns) * (cardHeight + gap) - gap
     local slot = (contentWidth - (columns - 1) * gap) / columns
     rosterBar.Position, rosterBar.Size = UDim2.fromOffset(pad, rosterY), UDim2.fromOffset(contentWidth, rosterHeight)
-    for index, card in cards do
+    for index, id in order do
+        local card = cardById[id]
         local column, row = (index - 1) % columns, math.floor((index - 1) / columns)
         local control = card.control
         control.Position = UDim2.fromOffset(column * (slot + gap), row * (cardHeight + gap))
         control.Size = UDim2.fromOffset(slot, cardHeight)
-        control.TextSize = if slot < 104 then 14 else 16
-        control.NextSelectionLeft = if column > 0 then cards[index - 1].control else control
-        control.NextSelectionRight = if column < columns - 1 and cards[index + 1] then cards[index + 1].control else control
-        control.NextSelectionUp = if row > 0 then cards[index - columns].control else (if switching then close else control)
-        control.NextSelectionDown = if cards[index + columns] then cards[index + columns].control else confirm
+        local nameLabel = card.name or control
+        nameLabel.TextSize = if slot < 84 then 12 elseif slot < 108 then 14 else 16
+        control.NextSelectionLeft = if column > 0 then cardById[order[index - 1]].control else control
+        control.NextSelectionRight = if column < columns - 1 and order[index + 1]
+            then cardById[order[index + 1]].control else control
+        control.NextSelectionUp = if row > 0 then cardById[order[index - columns]].control else (if switching then close else control)
+        control.NextSelectionDown = if order[index + columns] then cardById[order[index + columns]].control else confirm
     end
 
     local footer = if compact then 42 else 48
@@ -544,7 +616,7 @@ local function confirmChoice()
     elseif previewState ~= "ready" then
         return
     end
-    if switching and selectedId == player:GetAttribute("SelectedStarterFighter") then
+    if switching and (requiredLevel(selectedId) or selectedId == player:GetAttribute("SelectedStarterFighter")) then
         return
     end
     inFlight = true
@@ -584,9 +656,10 @@ UserInputService.InputBegan:Connect(function(input, processed)
     elseif input.KeyCode == Enum.KeyCode.Backspace then
         closePicker()
     elseif input.KeyCode == Enum.KeyCode.Left or input.KeyCode == Enum.KeyCode.Right then
-        local index = table.find(roster.Order, selectedId) or 1
+        local order = selectionOrder()
+        local index = table.find(order, selectedId) or 1
         local direction = if input.KeyCode == Enum.KeyCode.Left then -1 else 1
-        showFighter(roster.Order[(index - 1 + direction) % #roster.Order + 1])
+        showFighter(order[(index - 1 + direction) % #order + 1])
     end
 end)
 
@@ -639,7 +712,7 @@ local function show(asSwitch)
     end
     local active = player:GetAttribute("SelectedStarterFighter")
     selectedId = nil
-    showFighter(if switching and active and roster.ById[active] then active else roster.Order[1])
+    showFighter(if switching and active and roster.ById[active] then active else starterOrder[1])
     animation = RunService.RenderStepped:Connect(function()
         if previewState == "ready" and motionAllowed() then
             pose(os.clock() - beganAt)
@@ -730,6 +803,13 @@ local function readFighterLevels()
 end
 player:GetAttributeChangedSignal("FighterRosterLevels"):Connect(readFighterLevels)
 readFighterLevels()
+player:GetAttributeChangedSignal("HighestFighterLevel"):Connect(function()
+    if panel.Visible then
+        updateCards()
+        updateLevel()
+        buttons()
+    end
+end)
 player:GetAttributeChangedSignal("ProgressStatus"):Connect(function()
     if loading.Visible then
         waitForProfile()

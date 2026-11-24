@@ -56,7 +56,7 @@ local function mountedPieces(character, model)
         local source = model:FindFirstChild(group)
         local carrier = character:FindFirstChild(group)
         local restPart = restRig:FindFirstChild(group)
-        if not (source and source:IsA("MeshPart") and carrier and carrier:IsA("BasePart") and restPart) then
+        if not (source and source:IsA("BasePart") and carrier and carrier:IsA("BasePart") and restPart) then
             return nil
         end
         local restJoint = restJoints[group]
@@ -93,6 +93,14 @@ function StarterFighters.canEquip(character, id)
     return model ~= nil and character ~= nil and mountedPieces(character, model) ~= nil
 end
 
+local function makeCosmetic(part)
+    part.Anchored = false
+    part.Massless = true
+    part.CanCollide = false
+    part.CanTouch = false
+    part.CanQuery = false
+end
+
 function StarterFighters.equip(character, id)
     local current = character:FindFirstChild(SHELL_NAME)
     if current and current:GetAttribute("FighterId") == id then
@@ -109,12 +117,19 @@ function StarterFighters.equip(character, id)
     shell:SetAttribute("FighterId", id)
     for _, piece in pieces do
         local mesh = piece.source:Clone()
-        mesh.Anchored = false
-        mesh.Massless = true
-        mesh.CanCollide = false
-        mesh.CanTouch = false
-        mesh.CanQuery = false
-        mesh.CFrame = piece.carrier.CFrame * piece.offset
+        local frame = piece.carrier.CFrame * piece.offset
+        makeCosmetic(mesh)
+        for _, ornament in mesh:GetDescendants() do
+            if ornament:IsA("BasePart") then
+                local offset = piece.source.CFrame:ToObjectSpace(ornament.CFrame)
+                makeCosmetic(ornament)
+                ornament.CFrame = frame * offset
+                local link = Instance.new("Weld")
+                link.Part0, link.Part1, link.C0 = mesh, ornament, offset
+                link.Parent = ornament
+            end
+        end
+        mesh.CFrame = frame
         mesh.Parent = shell
 
         local weld = Instance.new("Weld")

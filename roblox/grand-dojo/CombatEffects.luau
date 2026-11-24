@@ -15,6 +15,7 @@ local tint = {
     hit = Color3.fromRGB(255, 170, 117),
     parried = Color3.fromRGB(139, 235, 255),
     blocked = Color3.fromRGB(183, 215, 210),
+    deflected = Color3.fromRGB(173, 247, 122),
     braced = Color3.fromRGB(174, 211, 180),
     burst = Color3.fromRGB(255, 143, 75),
 }
@@ -22,6 +23,8 @@ local groundPulses = {
     seismicChestPound = {name = "Seismic contact pulse", color = Color3.fromRGB(255, 183, 104), initial = 1.4,
         width = 8.5, compact = 5.9, life = .26},
     magmaTrail = {name = "Magma tile burst", color = tint.burst, initial = .65, width = 2.36, compact = 2.15, life = .30},
+    tadpoleTornado = {name = "Tadpole Tornado pulse", color = Color3.fromRGB(143, 241, 124),
+        initial = 1.05, width = 6.4, compact = 5.3, life = .29},
     ["Breakwater Stamp"] = {name = "Breakwater contact pulse", color = Color3.fromRGB(135, 202, 236),
         initial = 1.2, width = 8.5, compact = 5.9, life = .28},
 }
@@ -82,7 +85,7 @@ function CombatEffects.play(kind, point, attack)
     if distance > 64 or not visible then
         return
     end
-    local parry = kind == "parried"
+    local parry = kind == "parried" or kind == "deflected"
     local reduced = GuiService.ReducedMotionEnabled or UserInputService.VREnabled
     local mobile = UserInputService.TouchEnabled
     local compact = reduced or mobile or distance > 32
