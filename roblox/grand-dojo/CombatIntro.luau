@@ -180,26 +180,27 @@ function Intro:_shot(court, stage, age)
     local camera = saved.camera
     local forward, right = playerSpawn.CFrame.LookVector, playerSpawn.CFrame.RightVector
     local up = Vector3.yAxis
-    local reedguard, juniper = playerSpawn.Position + up * .28, botSpawn.Position + up * 2.26
-    local middle = reedguard:Lerp(juniper, .54)
+    local challenger = playerSpawn.Position + up * .28
+    local resident = botSpawn.Position + up * 2.26
+    local middle = challenger:Lerp(resident, .54)
     local narrow = camera.ViewportSize.X < camera.ViewportSize.Y
     if stage == 1 then
         lens(camera, middle, middle + right * (13.5 - math.clamp(age, 0, 2.3) * .65)
             - forward * 5.0 + up * 4.3, 58, narrow)
     elseif stage == 2 then
-        lens(camera, reedguard, reedguard + right * (4.5 - (age - 2.3) * .33) + forward * 6.2 + up * 1.5, 46, narrow)
+        lens(camera, challenger, challenger + right * (4.5 - (age - 2.3) * .33) + forward * 6.2 + up * 1.5, 46, narrow)
     elseif stage == 3 then
-        lens(camera, juniper, juniper + right * (4.8 - (age - 4.8) * .35) - forward * 6.2 + up * 1.6, 46, narrow)
+        lens(camera, resident, resident + right * (4.8 - (age - 4.8) * .35) - forward * 6.2 + up * 1.6, 46, narrow)
     else
         local mix = math.clamp((age - 7) / 3, 0, 1)
-        lens(camera, middle:Lerp(reedguard, mix * .67),
+        lens(camera, middle:Lerp(challenger, mix * .67),
             middle + right * (10.7 - mix * 7.7) - forward * (6.6 + mix * 9.3) + up * 3.7, 62, narrow)
     end
 end
 
-function Intro:_startLive(court)
+function Intro:_startLive(court, residentName)
     local spawn = court and court:FindFirstChild("Player Spawn")
-    local bot = court and court:FindFirstChild("Juniper Tortoise")
+    local bot = court and court:FindFirstChild(residentName)
     if not spawn or not bot then
         return
     end
@@ -232,10 +233,11 @@ function Intro:_startLive(court)
     end)
 end
 
-function Intro:Start(introAt, startsAt, court, onBell)
+function Intro:Start(introAt, startsAt, court, presentation, onBell)
     self:Stop()
     local now = workspace:GetServerTimeNow()
     if now >= startsAt then
+        self:_startLive(court, presentation.resident)
         onBell()
         return
     end
@@ -252,7 +254,7 @@ function Intro:Start(introAt, startsAt, court, onBell)
             if not finished then
                 finished = true
                 self:_release()
-                self:_startLive(court)
+                self:_startLive(court, presentation.resident)
                 self.count.Text = "FIGHT"
                 self.count.Visible = true
                 onBell()
@@ -267,9 +269,11 @@ function Intro:Start(introAt, startsAt, court, onBell)
         if stage ~= previousStage then
             previousStage = stage
             self.small.Text = if stage == 2 then "CHALLENGER" elseif stage == 3 then "RESIDENT" else "BOT SPAR"
-            self.title.Text = if stage == 1 then "Grand Dojo Ring" elseif stage == 2 then "Reedguard Kangaroo"
-                elseif stage == 3 then "Juniper Tortoise" else "Reedguard  vs  Juniper"
-            self.small.TextColor3 = if stage == 3 then jade else gold
+            self.title.Text = if stage == 1 then presentation.ring elseif stage == 2 then presentation.challenger
+                elseif stage == 3 then presentation.resident
+                else presentation.challengerShort .. "  vs  " .. presentation.residentShort
+            self.small.TextColor3 = if stage == 3 then presentation.residentTint or jade
+                else presentation.challengerTint or gold
             self.rim.Color = self.small.TextColor3
             self.fill.BackgroundColor3 = self.small.TextColor3
         end

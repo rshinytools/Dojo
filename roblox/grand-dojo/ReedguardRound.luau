@@ -1,6 +1,7 @@
 -- All combat times use the server clock. Input schedules a clip, and each
 -- contact is consumed once when its authored frame is reached.
-local Poses = require(script.Parent.ReedguardCombatPoses)
+local Reedguard = require(script.Parent.ReedguardCombatPoses)
+local Penguin = require(script.Parent.PenguinCombatPoses)
 local Round = {}
 
 Round.INTRO = 10
@@ -10,30 +11,56 @@ Round.PARRY_WINDOW = .28
 Round.GUARD_RAISE = .055
 Round.GUARD_DURATION = .64
 Round.CLIPS = {
-    jab = {{at = Poses.Contact.jab, damage = 13, zone = "head"}},
-    cross = {{at = Poses.Contact.cross, damage = 14, zone = "body"}},
-    body = {{at = Poses.Contact.body, damage = 15, zone = "body"}},
-    uppercut = {{at = Poses.Contact.uppercut, damage = 16, zone = "head"}},
-    heavy = {{at = Poses.Contact.heavy, damage = 22, zone = "body"}},
+    jab = {{at = Reedguard.Contact.jab, damage = 13, zone = "head"}},
+    cross = {{at = Reedguard.Contact.cross, damage = 14, zone = "body"}},
+    body = {{at = Reedguard.Contact.body, damage = 15, zone = "body"}},
+    uppercut = {{at = Reedguard.Contact.uppercut, damage = 16, zone = "head"}},
+    heavy = {{at = Reedguard.Contact.heavy, damage = 22, zone = "body"}},
     reedstep = {
-        {at = Poses.Contact.reedstep[1], damage = 9, zone = "body"},
-        {at = Poses.Contact.reedstep[2], damage = 9, zone = "body"},
-        {at = Poses.Contact.reedstep[3], damage = 14, zone = "head"},
+        {at = Reedguard.Contact.reedstep[1], damage = 9, zone = "body"},
+        {at = Reedguard.Contact.reedstep[2], damage = 9, zone = "body"},
+        {at = Reedguard.Contact.reedstep[3], damage = 14, zone = "head"},
+    },
+}
+
+local penguinClips = {
+    jab = {{at = Penguin.Contact.jab, damage = 12, zone = "body"}},
+    cross = {{at = Penguin.Contact.cross, damage = 13, zone = "head"}},
+    body = {{at = Penguin.Contact.body, damage = 14, zone = "body"}},
+    heavy = {{at = Penguin.Contact.heavy, damage = 20, zone = "body"}},
+    bellySlide = {},
+}
+for _, time in Penguin.Contact.bellySlide do
+    table.insert(penguinClips.bellySlide, {at = time, damage = 30, zone = "body", singleHit = true})
+end
+
+local kits = {
+    reedguard = {
+        poses = Reedguard, clips = Round.CLIPS, botStartRange = 3.65, botAttackLabel = "palm",
+        dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .85, signature = "reedstep",
+    },
+    penguin = {
+        poses = Penguin, clips = penguinClips, botStartRange = 3.35,
+        dodge = "floeTurn", dodgeCue = "floeTurn", dodgeCooldown = 1.05,
+        signature = "bellySlide", signatureCooldown = 7,
     },
 }
 local combo = {jab = "cross", cross = "body"}
 local PARRY_COUNTER_TIME = 2.4
-local PALM_START_RANGE = 3.65
 
-function Round.new(now, bot, fighter)
+function Round.new(now, bot, fighter, kitId)
+    local kit = kits[kitId or "reedguard"]
+    assert(kit, "Unknown combat kit")
     local startsAt = now + Round.INTRO
     return {
+        kit = kit,
         introAt = now, startsAt = startsAt, endsAt = startsAt + Round.DURATION,
         playerHealth = fighter.health, playerMaxHealth = fighter.health,
         botHealth = bot.health, botMaxHealth = bot.health,
         botPhase = "ready", botAt = startsAt + .58, attackIndex = 0, attacks = bot.attacks,
         playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
         guardFrom = 0, guardUntil = 0, signatureUntil = 0, notices = {},
+        nextSignature = if kit.signatureCooldown then startsAt else nil,
     }
 end
 
@@ -48,14 +75,14 @@ local function report(round, kind, at, fields)
 end
 
 local function play(round, action, at)
-    local duration = if action == "guard" then Round.GUARD_DURATION else Poses.Duration[action]
+    local duration = if action == "guard" then Round.GUARD_DURATION else round.kit.poses.Duration[action]
     round.clip = {action = action, startedAt = at, endsAt = at + duration, nextContact = 1}
 end
 
 local function nextLight(round, at)
     local last = round.lastLight
     local action = if last and at <= round.comboUntil then combo[last] or "jab" else "jab"
-    round.lastLight, round.comboUntil = action, at + Poses.Duration[action] + .55
+    round.lastLight, round.comboUntil = action, at + round.kit.poses.Duration[action] + .55
     play(round, action, at)
     return action
 end
@@ -74,6 +101,7 @@ function Round.act(round, action, now, direction)
             return
         end
     end
+    local kit = round.kit
     if action == "strike" then
         round.guardUntil = 0
         return nextLight(round, now)
@@ -82,34 +110,47 @@ function Round.act(round, action, now, direction)
         round.guardFrom, round.guardUntil = now, now + Round.GUARD_DURATION
         play(round, "guard", now)
         return "guard"
-    elseif action == "heavy" or action == "uppercut" then
+    elseif action == "heavy" or (action == "uppercut" and kit.clips.uppercut) then
         round.guardUntil = 0
         play(round, action, now)
         return action
     elseif action == "dodge" and now >= round.nextDodge then
-        round.nextDodge, round.guardUntil = now + .85, 0
-        play(round, "sidestep", now)
+        round.nextDodge, round.guardUntil = now + kit.dodgeCooldown, 0
+        play(round, kit.dodge, now)
         round.clip.direction = if direction == -1 then -1 else 1
-        return "dodge"
+        return kit.dodgeCue
     elseif action == "signature" then
-        if now > round.signatureUntil then
+        if kit.signatureCooldown then
+            if now < round.nextSignature then
+                return "slideCooling"
+            end
+            round.nextSignature = now + kit.signatureCooldown
+        elseif now > round.signatureUntil then
             return "needParry"
         end
         round.signatureUntil, round.guardUntil = 0, 0
-        play(round, "reedstep", now)
-        return "reedstep"
+        play(round, kit.signature, now)
+        return kit.signature
     end
 end
 
 local function contact(round, clip, at, check)
-    local attacks = Round.CLIPS[clip.action]
+    local attacks = round.kit.clips[clip.action]
     local move = attacks[clip.nextContact]
     local index = clip.nextContact
     clip.nextContact += 1
+    if move.singleHit and clip.connected then
+        return
+    end
     local hit, point, resolvedZone = check(clip.action, move, at, index)
     if not hit then
-        report(round, "miss", at, {attack = clip.action, index = index, point = point})
+        if not move.singleHit or index == #attacks then
+            report(round, "miss", at, {attack = clip.action, index = index, point = point})
+        end
         return
+    end
+    if move.singleHit then
+        clip.connected = true
     end
     local brace = round.botPhase == "setup" and round.attack.brace
     local counter = round.botPhase == "recovery" and round.recoveryKind == "parried"
@@ -124,15 +165,15 @@ end
 
 local function advanceBot(round, at, distance, check)
     if round.botPhase == "ready" then
-        if distance > PALM_START_RANGE then
+        if distance > round.kit.botStartRange then
             round.botAt = at + .12
             return
         end
         round.attackIndex = round.attackIndex % #round.attacks + 1
         round.attack = round.attacks[round.attackIndex]
-        round.botPhase = if round.attack.brace then "setup" else "windup"
+        round.botPhase = if round.attack.setup then "setup" else "windup"
         round.botStartedAt = at
-        round.botAt = at + (round.attack.setupTime or round.attack.windup)
+        round.botAt = at + (if round.botPhase == "setup" then round.attack.setupTime else round.attack.windup)
     elseif round.botPhase == "setup" then
         round.botPhase, round.botStartedAt, round.botAt = "windup", at, at + round.attack.windup
     elseif round.botPhase == "windup" then
@@ -144,7 +185,9 @@ local function advanceBot(round, at, distance, check)
         round.recoveryKind = result
         round.botAt = at + round.attack.recovery + (if parried then .56 else 0)
         if parried then
-            round.signatureUntil = at + PARRY_COUNTER_TIME
+            if not round.kit.signatureCooldown then
+                round.signatureUntil = at + PARRY_COUNTER_TIME
+            end
             round.guardUntil = 0
             play(round, "parry", at)
         elseif guarded then
@@ -160,7 +203,7 @@ local function advanceBot(round, at, distance, check)
                 round.result = "loss"
             end
         end
-        report(round, result, at, {attack = "palm", zone = zone, point = point,
+        report(round, result, at, {source = "bot", attack = round.kit.botAttackLabel or round.attack.name, zone = zone, point = point,
             damage = if result == "hit" then round.attack.damage else 0})
     else
         round.botPhase, round.botAt = "ready", at + .48
@@ -172,12 +215,13 @@ function Round.step(round, now, distance, checkPlayer, checkBot)
         return
     end
     local limit = math.min(now, round.endsAt)
-    if round.botPhase == "ready" and round.botAt < now - .2 and distance > PALM_START_RANGE then
+    if round.botPhase == "ready" and round.botAt < now - .2 and distance > round.kit.botStartRange then
         round.botAt = now + .1
     end
     while not round.result do
         local clip = round.clip
-        local hit = clip and Round.CLIPS[clip.action] and Round.CLIPS[clip.action][clip.nextContact]
+        local attacks = clip and round.kit.clips[clip.action]
+        local hit = attacks and attacks[clip.nextContact]
         local contactAt = if hit then clip.startedAt + hit.at else math.huge
         local completeAt = clip and clip.endsAt or math.huge
         local eventAt = math.min(contactAt, completeAt, round.botAt)

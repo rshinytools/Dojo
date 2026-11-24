@@ -34,7 +34,7 @@ local function publish(bout, kind, now)
     remote:FireClient(bout.player, kind, round.playerHealth, round.botHealth, round.startsAt, round.endsAt,
         if bout.outroAt then "outro" else round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt,
         (if bout.featured then FeaturedRound else Round).parryOpensAt(round), bout.arena.config.botId,
-        round.playerMaxHealth, bout.arena.id, tell, round.introAt)
+        round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature)
 end
 
 local function finish(bout, result, now, disconnected)
@@ -122,18 +122,21 @@ local function begin(player, arena, now, retrying)
     local telegraph = Instance.new("Folder")
     telegraph.Name = "Attack tell"
     telegraph.Parent = arena.corner
-    local featured = arena.id == "grand-dojo" and fighterId == "reedguard-kangaroo" and arena.config.botId == "juniper"
-    local bout = {featured = featured, arena = arena, player = player, root = root, fighterId = fighterId,
+    local kit = if arena.id == "grand-dojo" and fighterId == "reedguard-kangaroo" and arena.config.botId == "juniper"
+        then "reedguard" elseif arena.id == "cinder" and fighterId == "penguin-brawler" and arena.config.botId == "bracken"
+        then "penguin" else nil
+    local round = if kit then FeaturedRound.new(now, profile, fighter, kit) else Round.new(now, profile, fighter)
+    local bout = {featured = kit ~= nil, kit = kit, arena = arena, player = player, root = root, fighterId = fighterId,
         bot = bot, profile = profile, cue = cue, joints = jointMap(bot), telegraph = telegraph,
         position = arena.botSpawn.Position, direction = arena.botSpawn.CFrame.LookVector,
-        round = (if featured then FeaturedRound else Round).new(now, profile, fighter), messageUntil = 0, lastPublish = now,
+        round = round, messageUntil = 0, lastPublish = now,
         arms = Match.armMotors(player.Character)}
     arena.active, activeByPlayer[player] = bout, bout
     player:SetAttribute("SparringActive", true)
     player:SetAttribute("ActiveDojoRing", arena.id)
     bot.Parent = arena.corner
     Match.move(root, arena.playerSpawn.CFrame)
-    if featured then
+    if kit then
         Motion.open(bout)
         Motion.render(bout, now)
     end
@@ -298,7 +301,8 @@ remote.OnServerEvent:Connect(function(player, action, direction)
     if action == "leave" then
         finish(bout, if bout.outroAt then bout.round.result else "left", now)
     elseif bout.featured then
-        if Match.root(player) ~= bout.root or not Match.inside(bout.arena.bounds, bout.root.Position) then
+        if Match.root(player) ~= bout.root or not Match.inside(bout.arena.bounds, bout.root.Position)
+            or not Motion.canAct(bout, action) then
             return
         end
         local feedback = FeaturedRound.act(bout.round, action, now, direction)

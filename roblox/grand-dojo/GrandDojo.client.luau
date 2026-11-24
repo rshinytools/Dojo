@@ -1524,6 +1524,24 @@ local combatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
 local duelRound = false
 local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
 local matchPresentation = {showcase = false}
+local showcaseKits = {
+    reedguard = {challenger = "Reedguard Kangaroo", challengerShort = "Reedguard",
+        residentShort = "Juniper", uppercut = true, dodgeLabel = "Dodge", signatureLabel = "Rising"},
+    penguin = {challenger = "Penguin Brawler", challengerShort = "Penguin", residentShort = "Bracken",
+        dodgeLabel = "Floe Turn", signatureLabel = "Belly Slide", signatureCooldown = true},
+}
+
+local function showcaseCourt(ringId)
+    local ring
+    if ringId == "cinder" then
+        local connected = city:FindFirstChild("Connected districts")
+        local town = connected and connected:FindFirstChild("Cinder Terraces")
+        ring = town and town:FindFirstChild("Cinder Terraces Ring")
+    elseif ringId == "grand-dojo" then
+        ring = city:FindFirstChild("Fighting Ring")
+    end
+    return ring and ring:FindFirstChild("Bot Spar Corner")
+end
 
 sparPicker = make("Frame", gui, {
     Name = "SparringPicker", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
@@ -1735,6 +1753,7 @@ local cues = {
     stunned = "Your opponent parried. Reset your guard.",
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike", uppercut = "Uppercut",
     reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
+    floeTurn = "Floe Turn", bellySlide = "Belly-Slide Blitz",
     needParry = "Parry a strike to unlock Rising.",
 }
 
@@ -1750,16 +1769,26 @@ local function closeResult()
     layout()
 end
 
-local function refreshSparControls()
+local function slideSeconds(now)
+    return math.max(0, math.ceil((matchPresentation.nextSignature or 0) - now))
+end
+
+local function refreshSparControls(now)
     local keyboard = UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
     local gamepad = UserInputService.PreferredInput == Enum.PreferredInput.Gamepad
+    local kit = matchPresentation.kit or showcaseKits.reedguard
     strikeButton.Text = if keyboard then "Strike · E" elseif gamepad then "Strike · RT" else "Strike"
     guardButton.Text = if keyboard then "Guard · Q" elseif gamepad then "Guard · LT" else "Guard"
     leaveButton.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · Y" else "Leave"
     combatButtons.uppercut.Text = if keyboard then "Uppercut · V" elseif gamepad then "Uppercut\nD-pad ↑" else "Uppercut"
     combatButtons.heavy.Text = if keyboard then "Heavy · R" elseif gamepad then "Heavy · RB" else "Heavy"
-    combatButtons.dodge.Text = if keyboard then "Dodge · X" elseif gamepad then "Dodge · LB" else "Dodge"
-    combatButtons.signature.Text = if keyboard then "Rising · F" elseif gamepad then "Rising · Y" else "Rising"
+    local separator = if kit.signatureCooldown then "\n" else " · "
+    combatButtons.dodge.Text = kit.dodgeLabel .. (if keyboard then separator .. "X" elseif gamepad then separator .. "LB" else "")
+    combatButtons.signature.TextWrapped = kit.signatureCooldown == true
+    local cooling = if kit.signatureCooldown then slideSeconds(now or workspace:GetServerTimeNow()) else 0
+    combatButtons.signature.Text = if cooling > 0 then string.format("Slide %ds", cooling)
+        else kit.signatureLabel .. (if keyboard then separator .. "F" elseif gamepad then separator .. "Y" else "")
+    combatButtons.signature.TextColor3 = if cooling > 0 then palette.muted else palette.parchment
     combatButtons.exit.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · B" else "Leave"
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(refreshSparControls)
@@ -1767,6 +1796,7 @@ refreshSparControls()
 
 layoutMatchControls = function()
     local showcase = matchPresentation.showcase
+    local hasUppercut = showcase and matchPresentation.kit.uppercut == true
     local ready = sparringActive and not matchPresentation.inIntro and matchPresentation.phase ~= "outro"
     sparControls.Visible = ready
     local touch = UserInputService.TouchEnabled
@@ -1785,8 +1815,11 @@ layoutMatchControls = function()
     end
     layoutCombatHud(compact)
     sparControls.Position = UDim2.new(.5, 0, 1, -bottom)
-    local controls = if showcase then {strikeButton, combatButtons.uppercut, combatButtons.heavy, guardButton,
-        combatButtons.dodge, combatButtons.signature} else {strikeButton, guardButton, leaveButton}
+    local controls = if showcase then {strikeButton, combatButtons.heavy, guardButton, combatButtons.dodge,
+        combatButtons.signature} else {strikeButton, guardButton, leaveButton}
+    if hasUppercut then
+        table.insert(controls, 2, combatButtons.uppercut)
+    end
     local columns = if stacked then 3 else #controls
     for index, control in controls do
         control.Position = UDim2.new(((index - 1) % columns) / columns, 0, 0, math.floor((index - 1) / columns) * 54)
@@ -1794,7 +1827,7 @@ layoutMatchControls = function()
         control.TextSize = if compact then 12 elseif showcase then 13 else 14
     end
     leaveButton.Visible = not showcase
-    combatButtons.uppercut.Visible = showcase
+    combatButtons.uppercut.Visible = hasUppercut
     combatButtons.heavy.Visible = showcase
     combatButtons.dodge.Visible = showcase
     combatButtons.signature.Visible = showcase
@@ -1814,6 +1847,8 @@ local function sendSparAction(action)
         return
     elseif not matchPresentation.showcase and (action == "uppercut" or action == "heavy" or action == "dodge"
         or action == "signature") then
+        return
+    elseif action == "uppercut" and not matchPresentation.kit.uppercut then
         return
     elseif duelRound then
         duelRemote:FireServer(action)
@@ -1865,14 +1900,20 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-local function showMatchHud(isDuel, title, startsAt, introAt)
+local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, kitId, nextSignature)
     fightIntro:Stop()
     duelRound = isDuel
     sparringActive = true
     matchPresentation.startsAt = startsAt
     matchPresentation.phase = nil
     matchPresentation.showcase = type(introAt) == "number"
-    if matchPresentation.showcase then
+    local kit = if matchPresentation.showcase then showcaseKits[kitId] or showcaseKits.reedguard else nil
+    matchPresentation.kit = kit
+    matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
+    local penguin = kit == showcaseKits.penguin
+    combatButtons.dodge.Name = if penguin then "FloeTurn" else "Dodge"
+    combatButtons.signature.Name = if penguin then "BellySlide" else "ReedstepRising"
+    if kit then
         combatEffects.prepare()
     end
     matchPresentation.inIntro = matchPresentation.showcase and workspace:GetServerTimeNow() < startsAt
@@ -1880,11 +1921,16 @@ local function showMatchHud(isDuel, title, startsAt, introAt)
     closeResult()
     hide()
     sparTitle.Text = title
+    refreshSparControls()
     layoutMatchControls()
-    if matchPresentation.inIntro then
-        local ring = city:FindFirstChild("Fighting Ring")
-        local court = ring and ring:FindFirstChild("Bot Spar Corner")
-        fightIntro:Start(introAt, startsAt, court, function()
+    if kit then
+        local intro = {
+            ring = title, challenger = kit.challenger, challengerShort = kit.challengerShort,
+            resident = opponent.name, residentShort = kit.residentShort,
+            challengerTint = if penguin then Color3.fromRGB(163, 216, 251) else nil,
+            residentTint = if penguin then opponent.tint else nil,
+        }
+        fightIntro:Start(introAt, startsAt, showcaseCourt(ringId), intro, function()
             matchPresentation.inIntro = false
             layoutMatchControls()
         end)
@@ -1936,7 +1982,7 @@ player:GetAttributeChangedSignal("SparringActive"):Connect(function()
 end)
 
 sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt,
-    id, playerMaxHealth, ringId, tell, introAt)
+    id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature)
     if kind == "impact" then
         combatEffects.play(a, b)
         return
@@ -2001,7 +2047,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     if not opponent then
         return
     elseif kind == "begin" then
-        showMatchHud(false, ringProgression.ById[ringId].name, startsAt, introAt)
+        showMatchHud(false, ringProgression.ById[ringId].name, startsAt, introAt, ringId, opponent, kitId, nextSignature)
     elseif kind ~= "state" or not sparringActive or duelRound then
         return
     end
@@ -2010,9 +2056,14 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
         layoutMatchControls()
     end
     local showcase = matchPresentation.showcase
-    playerHealth(a, playerMaxHealth, if showcase then "Reedguard" else nil, kind == "begin", showcase)
-    botHealth(b, opponent.health, if showcase then "Juniper" else opponent.name, kind == "begin", showcase)
+    local kit = matchPresentation.kit
+    playerHealth(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin", showcase)
+    botHealth(b, opponent.health, if kit then kit.residentShort else opponent.name, kind == "begin", showcase)
     local now = matchClock(startsAt, endsAt)
+    if kit and kit.signatureCooldown then
+        matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
+        refreshSparControls(now)
+    end
     local parryCue = parryOpensAt ~= nil and now >= parryOpensAt and now <= botAt
     sparHint.TextColor3 = if parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
         elseif phase == "windup" or phase == "setup" then opponent.tint else palette.parchment
@@ -2021,9 +2072,12 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     elseif now < startsAt then
         sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
     elseif showcase and feedback == "parried" then
-        sparHint.Text = "Parried! Use Rising now."
-    elseif feedback == "uppercut" and not parryCue then
-        sparHint.Text = cues.uppercut
+        sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
+    elseif not parryCue and (feedback == "uppercut" or feedback == "floeTurn" or feedback == "bellySlide") then
+        sparHint.Text = cues[feedback]
+    elseif not parryCue and feedback == "slideCooling" then
+        local cooling = slideSeconds(now)
+        sparHint.Text = if cooling > 0 then string.format("Belly Slide ready in %ds", cooling) else "Belly Slide ready"
     elseif phase == "windup" then
         sparHint.Text = if feedback == "guard" then "Guard up"
             elseif parryCue then "Guard now to parry!"
