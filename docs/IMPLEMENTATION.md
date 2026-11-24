@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.270 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.271 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -13,7 +13,7 @@ The v0.270 Studio checkpoint is the starting point for new work. This repository
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to switch among the four free starters. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains its ring unlocks. Shared Strike and Guard use the active fighter’s HP and base damage in standard matches. Custom kits are available for Reedguard against Juniper at Grand Dojo and Penguin against Bracken at Cinder Terraces.
+Choose an original starter on first join. Use the Fighter Select station between activities to switch among the four free starters. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains its ring unlocks. Shared Strike and Guard use the active fighter’s HP and base damage in standard matches. The authored matches are Reedguard against Juniper, Penguin against Bracken and Silverback against Sablecrest.
 
 ## Roblox listing artwork
 
@@ -62,6 +62,12 @@ Equip Penguin Brawler and enter the Level 3 Cinder Terraces Bot Spar. The 10-sec
 
 Desktop and Galaxy A06 landscape Studio Play confirmed the Level 3 gate, the introduction, a 2.42-stud Floe Turn with Bracken still at full health, and one 30-damage slide that pushed Bracken 1.38 studs. Floe Turn can drop the forward step when Bracken closes in so the lateral dodge still has room. The server rejected a second slide during cooldown. Both rounds continued through rush and jab parries, the heavy finish and the 60 XP first-win recap. The gate test seeded a temporary Studio profile through the game’s activity-grant events. Published play and physical-device testing remain open.
 
+## Silverback and Sablecrest combat
+
+Equip Silverback Gorilla and enter Bot Spar at the Level 5 Cloud-Top Temple. Silverback has 135 health and Sablecrest has 78. **V** or **D-pad Up** uses Ridge Palm, a planted 20-damage strike with a short shove. **F** or **Y** uses Seismic Chest-Pound. Two chest taps and a fixed circle cue a single 34-damage slam. It pops Sablecrest briefly off the mat on contact. Both moves have touch buttons and separate cooldowns. Watch Sablecrest’s Chime Crossstep, wait for Wind Court Return to commit to its line, and use **Q** to guard or parry. Wind Jab has its own shorter cue.
+
+Desktop and Galaxy A06 landscape Studio Play ran the match through the 10-second intro, parries of both bot attacks, a heavy finish and the 60 XP first-win recap. Both sessions measured a single damage change from 78 to 58 for Ridge Palm and from 58 to 24 for Seismic Chest-Pound. The phone simulator used a native touch tap on Ridge Palm and observed rejected retries during the 3.4-second Ridge and 7.8-second Seismic cooldowns. The Seismic warning stayed fixed until the hit, and Silverback’s root stayed planted. The Level 5 gate check seeded 480 XP through the Studio activity-grant path and verified the win took it to 540 XP. Desktop regressions replayed Reedguard–Juniper and Penguin–Bracken through their first-win recaps. Published play and hardware remain open.
+
 ## Source map
 
 The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport and Studio asset fetch verified the exports. The native [bot import manifest](../roblox/grand-dojo/sparring_bot_assets.json) records the asset IDs and source checksums.
@@ -76,6 +82,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | First-join starter selection and mesh binding | [Picker](../roblox/grand-dojo/StarterFighterSelect.client.luau), [server binding](../roblox/grand-dojo/StarterFighters.luau), [original asset manifest](../roblox/grand-dojo/starter_fighter_assets.json) |
 | Starter fighter, practice, and bot match | [Reedguard rig](../design/fighters/boxing-kangaroo/ReedguardKangaroo_Prototype.rbxmx), [GrandDojoSparring.server.luau](../roblox/grand-dojo/GrandDojoSparring.server.luau), [SparringRound.luau](../roblox/grand-dojo/SparringRound.luau) |
 | Cinder custom kit and contact | [Penguin poses](../roblox/grand-dojo/PenguinCombatPoses.luau), [Bracken poses](../roblox/grand-dojo/BrackenCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau), [motion and reach](../roblox/grand-dojo/ReedguardFightMotion.luau) |
+| Cloud-Top custom kit and contact | [Silverback poses](../roblox/grand-dojo/SilverbackCombatPoses.luau), [Sablecrest poses](../roblox/grand-dojo/SablecrestCombatPoses.luau), [contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |

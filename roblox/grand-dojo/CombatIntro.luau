@@ -161,7 +161,7 @@ local function lens(camera, focus, eye, width, narrow)
     camera.FieldOfView = width + (if narrow then 10 else 0)
 end
 
-function Intro:_shot(court, stage, age)
+function Intro:_shot(court, stage, age, wideFighters)
     local saved = self.camera
     if not saved then
         return
@@ -180,17 +180,21 @@ function Intro:_shot(court, stage, age)
     local camera = saved.camera
     local forward, right = playerSpawn.CFrame.LookVector, playerSpawn.CFrame.RightVector
     local up = Vector3.yAxis
-    local challenger = playerSpawn.Position + up * .28
-    local resident = botSpawn.Position + up * 2.26
+    local headroom = if wideFighters then .34 else 0
+    local closeDistance = if wideFighters then 6.9 else 6.2
+    local challenger = playerSpawn.Position + up * (.28 + headroom)
+    local resident = botSpawn.Position + up * (2.26 + headroom)
     local middle = challenger:Lerp(resident, .54)
     local narrow = camera.ViewportSize.X < camera.ViewportSize.Y
     if stage == 1 then
         lens(camera, middle, middle + right * (13.5 - math.clamp(age, 0, 2.3) * .65)
-            - forward * 5.0 + up * 4.3, 58, narrow)
+            - forward * 5.0 + up * 4.3, if wideFighters then 61 else 58, narrow)
     elseif stage == 2 then
-        lens(camera, challenger, challenger + right * (4.5 - (age - 2.3) * .33) + forward * 6.2 + up * 1.5, 46, narrow)
+        lens(camera, challenger, challenger + right * (4.5 - (age - 2.3) * .33)
+            + forward * closeDistance + up * 1.5, 46, narrow)
     elseif stage == 3 then
-        lens(camera, resident, resident + right * (4.8 - (age - 4.8) * .35) - forward * 6.2 + up * 1.6, 46, narrow)
+        lens(camera, resident, resident + right * (4.8 - (age - 4.8) * .35)
+            - forward * closeDistance + up * 1.6, 46, narrow)
     else
         local mix = math.clamp((age - 7) / 3, 0, 1)
         lens(camera, middle:Lerp(challenger, mix * .67),
@@ -198,9 +202,9 @@ function Intro:_shot(court, stage, age)
     end
 end
 
-function Intro:_startLive(court, residentName)
+function Intro:_startLive(court, presentation)
     local spawn = court and court:FindFirstChild("Player Spawn")
-    local bot = court and court:FindFirstChild(residentName)
+    local bot = court and court:FindFirstChild(presentation.resident)
     if not spawn or not bot then
         return
     end
@@ -210,6 +214,8 @@ function Intro:_startLive(court, residentName)
     end
     self.camera = saved
     local right, forward = spawn.CFrame.RightVector, spawn.CFrame.LookVector
+    local headroom = if presentation.wideFighters then .31 else 0
+    local depthBias = if presentation.wideFighters then .95 else 0
     local currentFocus, currentEye
     self.liveRender = RunService.RenderStepped:Connect(function(dt)
         local root, camera = rootOf(self.player), saved.camera
@@ -222,9 +228,9 @@ function Intro:_startLive(court, residentName)
             return
         end
         local botFloor = bot:GetPivot().Position
-        local center = root.Position:Lerp(botFloor + Vector3.new(0, 2.1, 0), .5)
+        local center = root.Position:Lerp(botFloor + Vector3.new(0, 2.1, 0), .5) + Vector3.yAxis * headroom
         local separation = math.min((root.Position - botFloor).Magnitude, 13)
-        local depth = 8.3 + .34 * separation
+        local depth = 8.3 + .34 * separation + depthBias
         local eye = center + right * depth - forward * 1.8 + Vector3.new(0, 2.7, 0)
         local alpha = 1 - math.exp(-dt * 10)
         currentFocus = if currentFocus then currentFocus:Lerp(center, alpha) else center
@@ -237,7 +243,7 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
     self:Stop()
     local now = workspace:GetServerTimeNow()
     if now >= startsAt then
-        self:_startLive(court, presentation.resident)
+        self:_startLive(court, presentation)
         onBell()
         return
     end
@@ -254,7 +260,7 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
             if not finished then
                 finished = true
                 self:_release()
-                self:_startLive(court, presentation.resident)
+                self:_startLive(court, presentation)
                 self.count.Text = "FIGHT"
                 self.count.Visible = true
                 onBell()
@@ -282,7 +288,7 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
         if self.count.Visible then
             self.count.Text = tostring(math.ceil(remaining))
         end
-        self:_shot(court, stage, age)
+        self:_shot(court, stage, age, presentation.wideFighters)
     end
     render()
     self.render = RunService.RenderStepped:Connect(render)

@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.271, choose Silverback Gorilla, reach Level 5 and enter Cloud-Top Temple Bot Spar. **V** or D-pad Up uses Ridge Palm. **F** or **Y** uses Seismic Chest-Pound. Both have touch buttons and independent cooldowns. Use the planted palm at glove range and watch for the ground circle as Silverback prepares the slam. Sablecrest’s lateral feint leads to Wind Court Return. Parry the committed strike or step off its line.
+
 In v0.270, choose Penguin Brawler, reach Level 3 and enter Bot Spar at Cinder Terraces. Use **X** or **L1** for Floe Turn and **F** or **Y** for Belly-Slide Blitz. Both abilities also have touch buttons. Use Floe Turn to move across Bracken’s attack line. Point Belly-Slide Blitz at Bracken during recovery and wait for the seven-second recharge before using it again. Bellows Step precedes Kiln Rush. Time **Q** to guard or parry.
 
 In v0.269, choose Reedguard and enter Grand Dojo Bot Spar. Add **V** for Uppercut to the existing controls. On controller, use D-pad Up. On touch, tap **Uppercut**. Try it from too far away and then at close range to compare the recovery, damage and contact ring.

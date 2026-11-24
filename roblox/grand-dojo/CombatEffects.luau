@@ -45,7 +45,25 @@ local function worldFolder()
     return folder
 end
 
-function CombatEffects.play(kind, point)
+local function slamPulse(point, compact, reduced)
+    local pulse = Instance.new("Part")
+    pulse.Name = "Seismic contact pulse"
+    pulse.Shape = Enum.PartType.Cylinder
+    pulse.Anchored, pulse.CanCollide, pulse.CanQuery, pulse.CanTouch = true, false, false, false
+    pulse.CastShadow, pulse.Material = false, Enum.Material.Neon
+    pulse.Color = Color3.fromRGB(255, 183, 104)
+    pulse.Transparency = if reduced then .86 elseif compact then .78 else .70
+    pulse.Size = Vector3.new(.035, 1.4, 1.4)
+    pulse.CFrame = CFrame.new(point + Vector3.new(0, .065, 0)) * CFrame.Angles(0, 0, math.pi / 2)
+    pulse.Parent = worldFolder()
+    local width = if reduced then 1.4 elseif compact then 5.9 else 8.5
+    TweenService:Create(pulse, TweenInfo.new(.26, Enum.EasingStyle.Quad), {
+        Size = Vector3.new(.035, width, width), Transparency = 1,
+    }):Play()
+    Debris:AddItem(pulse, .32)
+end
+
+function CombatEffects.play(kind, point, attack)
     local camera = workspace.CurrentCamera
     local color = tint[kind]
     if not color or typeof(point) ~= "Vector3" or not camera then
@@ -60,6 +78,10 @@ function CombatEffects.play(kind, point)
     local reduced = GuiService.ReducedMotionEnabled or UserInputService.VREnabled
     local mobile = UserInputService.TouchEnabled
     local compact = reduced or mobile or distance > 32
+    if attack == "seismicChestPound" then
+        slamPulse(point, compact, reduced)
+        return
+    end
     local diameter = if parry then (if compact then 1.28 else 1.72) else (if compact then .93 else 1.2)
     local life = if parry then .27 else .21
 

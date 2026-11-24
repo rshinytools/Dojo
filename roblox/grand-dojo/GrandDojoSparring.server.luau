@@ -21,6 +21,11 @@ local rings = {
     ["cloud-top"] = districts:WaitForChild("Skywalk Peaks"):WaitForChild("Cloud-Top Temple"),
     galleon = districts:WaitForChild("Tideharbor Coast"):WaitForChild("Sunken Pirate Galleon"):WaitForChild("Tideharbor practice ring"),
 }
+local featuredFighters = {
+    ["grand-dojo"] = {["reedguard-kangaroo"] = "reedguard"},
+    cinder = {["penguin-brawler"] = "penguin"},
+    ["cloud-top"] = {["silverback-gorilla"] = "silverback"},
+}
 local activeByPlayer, offers, rematches, lastAction = {}, {}, {}, {}
 
 local function notice(player, message)
@@ -34,7 +39,7 @@ local function publish(bout, kind, now)
     remote:FireClient(bout.player, kind, round.playerHealth, round.botHealth, round.startsAt, round.endsAt,
         if bout.outroAt then "outro" else round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt,
         (if bout.featured then FeaturedRound else Round).parryOpensAt(round), bout.arena.config.botId,
-        round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature)
+        round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature, round.nextSecondary)
 end
 
 local function finish(bout, result, now, disconnected)
@@ -122,9 +127,8 @@ local function begin(player, arena, now, retrying)
     local telegraph = Instance.new("Folder")
     telegraph.Name = "Attack tell"
     telegraph.Parent = arena.corner
-    local kit = if arena.id == "grand-dojo" and fighterId == "reedguard-kangaroo" and arena.config.botId == "juniper"
-        then "reedguard" elseif arena.id == "cinder" and fighterId == "penguin-brawler" and arena.config.botId == "bracken"
-        then "penguin" else nil
+    local availableKits = featuredFighters[arena.id]
+    local kit = availableKits and availableKits[fighterId]
     local round = if kit then FeaturedRound.new(now, profile, fighter, kit) else Round.new(now, profile, fighter)
     local bout = {featured = kit ~= nil, kit = kit, arena = arena, player = player, root = root, fighterId = fighterId,
         bot = bot, profile = profile, cue = cue, joints = jointMap(bot), telegraph = telegraph,
@@ -337,7 +341,7 @@ local function tickShowcase(bout, now, dt)
     for _, event in round.notices do
         Motion.impact(bout, event)
         if event.point and ((event.damage or 0) > 0 or event.kind == "parried" or event.kind == "blocked") then
-            remote:FireAllClients("impact", event.kind, event.point)
+            remote:FireAllClients("impact", event.kind, event.point, event.attack)
         end
         bout.message, bout.messageUntil = event.kind, now + .86
         if RunService:IsStudio() then

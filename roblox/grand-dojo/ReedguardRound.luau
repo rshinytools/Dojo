@@ -2,6 +2,7 @@
 -- contact is consumed once when its authored frame is reached.
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local Penguin = require(script.Parent.PenguinCombatPoses)
+local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Round = {}
 
 Round.INTRO = 10
@@ -34,6 +35,19 @@ for _, time in Penguin.Contact.bellySlide do
     table.insert(penguinClips.bellySlide, {at = time, damage = 30, zone = "body", singleHit = true})
 end
 
+local seismic = Silverback.Skill.seismicChestPound
+local silverbackClips = {
+    jab = {{at = Silverback.Contact.jab, damage = 14, zone = "head"}},
+    cross = {{at = Silverback.Contact.cross, damage = 15, zone = "body"}},
+    body = {{at = Silverback.Contact.body, damage = 16, zone = "body"}},
+    heavy = {{at = Silverback.Contact.heavy, damage = 23, zone = "body"}},
+    ridgePalm = {{at = Silverback.Contact.ridgePalm, damage = 20, zone = "body"}},
+    seismicChestPound = {{
+        at = Silverback.Contact.seismicChestPound, damage = 34, zone = "body",
+        shape = "radial", center = seismic.center, radius = seismic.radius,
+    }},
+}
+
 local kits = {
     reedguard = {
         poses = Reedguard, clips = Round.CLIPS, botStartRange = 3.65, botAttackLabel = "palm",
@@ -42,7 +56,13 @@ local kits = {
     penguin = {
         poses = Penguin, clips = penguinClips, botStartRange = 3.35,
         dodge = "floeTurn", dodgeCue = "floeTurn", dodgeCooldown = 1.05,
-        signature = "bellySlide", signatureCooldown = 7,
+        signature = "bellySlide", signatureCooldown = 7, signatureCooling = "slideCooling",
+    },
+    silverback = {
+        poses = Silverback, clips = silverbackClips, botStartRange = 4.05,
+        dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .98,
+        signature = "seismicChestPound", signatureCooldown = 7.8, signatureCooling = "seismicCooling",
+        secondary = "ridgePalm", secondaryCooldown = 3.4, secondaryCooling = "ridgeCooling",
     },
 }
 local combo = {jab = "cross", cross = "body"}
@@ -61,6 +81,7 @@ function Round.new(now, bot, fighter, kitId)
         playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
         guardFrom = 0, guardUntil = 0, signatureUntil = 0, notices = {},
         nextSignature = if kit.signatureCooldown then startsAt else nil,
+        nextSecondary = if kit.secondaryCooldown then startsAt else nil,
     }
 end
 
@@ -119,10 +140,17 @@ function Round.act(round, action, now, direction)
         play(round, kit.dodge, now)
         round.clip.direction = if direction == -1 then -1 else 1
         return kit.dodgeCue
+    elseif action == "secondary" and kit.secondary then
+        if now < round.nextSecondary then
+            return kit.secondaryCooling
+        end
+        round.nextSecondary, round.guardUntil = now + kit.secondaryCooldown, 0
+        play(round, kit.secondary, now)
+        return kit.secondary
     elseif action == "signature" then
         if kit.signatureCooldown then
             if now < round.nextSignature then
-                return "slideCooling"
+                return kit.signatureCooling
             end
             round.nextSignature = now + kit.signatureCooldown
         elseif now > round.signatureUntil then

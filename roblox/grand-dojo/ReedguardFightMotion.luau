@@ -1,9 +1,11 @@
--- The Grand Dojo showcase uses the same authored frame for posing and contact.
+-- Featured sparring uses the same authored frame for posing and contact.
 local Match = require(script.Parent.DojoMatchSupport)
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local Juniper = require(script.Parent.JuniperCombatPoses)
 local Penguin = require(script.Parent.PenguinCombatPoses)
 local Bracken = require(script.Parent.BrackenCombatPoses)
+local Silverback = require(script.Parent.SilverbackCombatPoses)
+local Sablecrest = require(script.Parent.SablecrestCombatPoses)
 local Motion = {}
 
 local tracked = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
@@ -12,9 +14,17 @@ local cinderClearance = 3.15
 local slideClearance = 2.65
 local brackenDriveClearance = 2.05
 local slideTint = Color3.fromRGB(105, 213, 249)
+local skywalkSpacing = 3.22
+local skywalkClearance = 2.90
+local sablecrestDriveClearance = 2.48
+local seismicTint = Color3.fromRGB(255, 206, 115)
 
 local function cinder(bout)
     return bout.kit == "penguin"
+end
+
+local function skywalk(bout)
+    return bout.kit == "silverback"
 end
 
 local function directionTo(position, target, fallback)
@@ -50,7 +60,8 @@ local function drawLane(bout, field, position, finish, width, tint)
     end
     if not lane then
         lane = Instance.new("Part")
-        lane.Name = if field == "slideLane" then "Belly Slide lane" else "Kiln Rush lane"
+        lane.Name = if field == "slideLane" then "Belly Slide lane"
+            elseif field == "returnLane" then "Wind Court Return lane" else "Kiln Rush lane"
         lane.Anchored, lane.CanCollide, lane.CanTouch, lane.CanQuery = true, false, false, false
         lane.CastShadow, lane.Material, lane.Color = false, Enum.Material.Neon, tint
         lane.Parent = bout.telegraph
@@ -77,8 +88,8 @@ function Motion.open(bout)
     local animator = humanoid:FindFirstChildOfClass("Animator")
     local state = {motors = {}, anchored = bout.root.Anchored, autoRotate = humanoid.AutoRotate,
         autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled,
-        humanoid = humanoid, playerPoses = if cinder(bout) then Penguin else Reedguard,
-        botPoses = if cinder(bout) then Bracken else Juniper}
+        humanoid = humanoid, playerPoses = if cinder(bout) then Penguin elseif skywalk(bout) then Silverback else Reedguard,
+        botPoses = if cinder(bout) then Bracken elseif skywalk(bout) then Sablecrest else Juniper}
     for _, name in tracked do
         local motor = character:FindFirstChild(name, true)
         if motor and motor:IsA("Motor6D") then
@@ -96,7 +107,7 @@ function Motion.open(bout)
     local contactSpace = Instance.new("Part")
     contactSpace.Name = bout.bot.Name .. " sparring clearance"
     contactSpace.Shape = Enum.PartType.Cylinder
-    local diameter = if cinder(bout) then cinderClearance else 4.15
+    local diameter = if cinder(bout) then cinderClearance elseif skywalk(bout) then skywalkClearance else 4.15
     contactSpace.Size = Vector3.new(2.85, diameter, diameter)
     contactSpace.CFrame = CFrame.new(bout.position + Vector3.new(0, 1.43, 0))
         * CFrame.Angles(0, 0, math.pi / 2)
@@ -104,7 +115,7 @@ function Motion.open(bout)
     contactSpace.Anchored, contactSpace.CanCollide, contactSpace.CanTouch = true, true, false
     contactSpace.Parent = bout.bot
     state.contactSpace = contactSpace
-    if cinder(bout) then
+    if cinder(bout) or skywalk(bout) then
         state.arenaCast = castParameters({character, bout.bot, bout.arena.bounds})
         state.avatarCast = castParameters({character, bout.arena.bounds})
     end
@@ -132,6 +143,8 @@ function Motion.close(bout)
     local state = bout.motion
     clearLane(state, "slideLane")
     clearLane(state, "rushLane")
+    clearLane(state, "returnLane")
+    clearLane(state, "seismicWarning")
     for _, joint in state.motors do
         if joint.motor.Parent then
             joint.motor.C0 = joint.rest
@@ -152,7 +165,9 @@ function Motion.close(bout)
 end
 
 function Motion.canAct(bout, action)
-    if not cinder(bout) or (action ~= "dodge" and action ~= "signature") then
+    local groundedOnly = (cinder(bout) or skywalk(bout)) and (action == "dodge" or action == "signature")
+        or (skywalk(bout) and action == "secondary")
+    if not groundedOnly then
         return true
     end
     local root = bout.root
@@ -164,7 +179,7 @@ local function playerAction(bout, now)
     local round = bout.round
     if bout.outroAt then
         local age = now - bout.outroAt
-        return if round.result == "win" then "win" elseif cinder(bout) and round.result == "loss"
+        return if round.result == "win" then "win" elseif (cinder(bout) or skywalk(bout)) and round.result == "loss"
             then "knockout" else "stagger", age
     elseif now < round.startsAt then
         return "intro", now - round.introAt
@@ -269,6 +284,86 @@ local function setTravelHold(bout, moving)
     end
 end
 
+local function seismicWarning(bout, center)
+    local radius = Silverback.Skill.seismicChestPound.radius
+    local warning = Instance.new("Folder")
+    warning.Name = "Seismic Chest Pound warning"
+    local function mark(name, size, frame, opacity, shape)
+        local part = Instance.new("Part")
+        part.Name, part.Size, part.CFrame = name, size, frame
+        part.Anchored, part.CanCollide, part.CanTouch, part.CanQuery = true, false, false, false
+        part.Material, part.Color, part.Transparency, part.CastShadow = Enum.Material.Neon, seismicTint, opacity, false
+        part.Shape = shape or Enum.PartType.Block
+        part.Parent = warning
+    end
+    local height = Vector3.new(0, .071, 0)
+    local count = 18
+    local step = 2 * math.pi / count
+    local inside = true
+    for index = 1, count do
+        local a, b = index * step, (index + 1) * step
+        local from = center + Vector3.new(math.cos(a) * radius, 0, math.sin(a) * radius)
+        local to = center + Vector3.new(math.cos(b) * radius, 0, math.sin(b) * radius)
+        if Match.inside(bout.arena.bounds, from + Vector3.yAxis)
+            and Match.inside(bout.arena.bounds, to + Vector3.yAxis) then
+            mark("Warning rim", Vector3.new(.115, .023, (to - from).Magnitude + .04),
+                CFrame.lookAt((from + to) * .5 + height, to + height), .25)
+        else
+            inside = false
+        end
+    end
+    if inside then
+        mark("Warning area", Vector3.new(.015, radius * 2, radius * 2),
+            CFrame.new(center + Vector3.new(0, .053, 0)) * CFrame.Angles(0, 0, math.pi / 2),
+            .91, Enum.PartType.Cylinder)
+    end
+    warning.Parent = bout.telegraph
+    bout.motion.seismicWarning = warning
+end
+
+local function skywalkPlayer(bout, now)
+    local state, round, root = bout.motion, bout.round, bout.root
+    local clip = round.clip
+    local action = clip and clip.action
+    if bout.outroAt or (action ~= "sidestep" and action ~= "seismicChestPound" and action ~= "ridgePalm") then
+        state.skywalkCast = nil
+        clearLane(state, "seismicWarning")
+        setTravelHold(bout, now < round.startsAt)
+        return
+    end
+
+    local cast = state.skywalkCast
+    if not cast or cast.clip ~= clip then
+        cast = {clip = clip, origin = root.CFrame, samples = {{at = clip.startedAt, position = root.Position}}}
+        state.skywalkCast = cast
+    end
+    setTravelHold(bout, true)
+    local age = now - clip.startedAt
+    if action == "sidestep" and not cast.blocked then
+        local alpha = math.clamp((age - .045) / .29, 0, 1)
+        local eased = alpha * alpha * (3 - 2 * alpha)
+        local side = Match.flat(cast.origin.RightVector).Unit * clip.direction * 2.23
+        local current = root.Position
+        local desired = cast.origin.Position + side * eased - current
+        local allowed = stopAtActor(current, desired, bout.position, sablecrestDriveClearance)
+        local frame = CFrame.new(current) * cast.origin.Rotation
+        local position, blocked = safeTravel(bout, current, current + allowed, frame,
+            Vector3.new(2.05, 2.30, 1.35), state.avatarCast)
+        cast.blocked = blocked
+        if (position - current).Magnitude > .005 then
+            Match.move(root, CFrame.new(position) * cast.origin.Rotation)
+        end
+        rememberPosition(cast.samples, now, root.Position)
+    elseif action == "seismicChestPound" then
+        local skill = Silverback.Skill.seismicChestPound
+        if not state.seismicWarning and age >= skill.warningAt and age < Silverback.Contact.seismicChestPound then
+            seismicWarning(bout, groundPoint(bout, cast.origin:PointToWorldSpace(skill.center)))
+        elseif age >= Silverback.Contact.seismicChestPound then
+            clearLane(state, "seismicWarning")
+        end
+    end
+end
+
 local function penguinTravel(bout, now)
     local state, root, round = bout.motion, bout.root, bout.round
     local clip = round.clip
@@ -338,6 +433,9 @@ end
 local function playerDodge(bout, now)
     if cinder(bout) then
         penguinTravel(bout, now)
+        return
+    elseif skywalk(bout) then
+        skywalkPlayer(bout, now)
         return
     end
     local state, root, clip = bout.motion, bout.root, bout.round.clip
@@ -444,6 +542,80 @@ local function brackenCommand(bout, now)
     end
 end
 
+local function sablecrestStep(bout, movement, basis)
+    local allowed = stopAtActor(bout.position, movement, bout.root.Position, sablecrestDriveClearance)
+    local center = bout.position + Vector3.new(0, 1.24, 0)
+    bout.position = safeTravel(bout, bout.position, bout.position + allowed, CFrame.new(center) * basis.Rotation,
+        Vector3.new(1.44, 2.34, 1.36), bout.motion.arenaCast)
+end
+
+local function sablecrestShove(bout, now)
+    local state, shove = bout.motion, bout.motion.shove
+    if not shove then
+        return
+    end
+    local alpha = math.clamp((now - shove.at) / shove.duration, 0, 1)
+    local progress = 1 - (1 - alpha) * (1 - alpha)
+    local movement = shove.offset * (progress - shove.progress)
+    if movement.Magnitude > .005 then
+        sablecrestStep(bout, movement, shove.basis)
+    end
+    state.skywalkLift = if shove.height then 4 * alpha * (1 - alpha) * shove.height else 0
+    shove.progress = progress
+    if alpha >= 1 then
+        state.shove = nil
+    end
+end
+
+local function sablecrestCommand(bout, now)
+    local state, round = bout.motion, bout.round
+    local phase, attack = round.botPhase, round.attack
+    local descriptor = attack and Sablecrest.Attacks[attack.name]
+    if phase == "ready" or not descriptor then
+        state.sablecrestAction = nil
+        clearLane(state, "returnLane")
+        return
+    end
+    local action = state.sablecrestAction
+    if not action or action.attack ~= attack then
+        local heading = directionTo(bout.position, bout.root.Position, bout.direction)
+        action = {attack = attack, descriptor = descriptor, basis = CFrame.lookAlong(bout.position, heading),
+            setupProgress = 0, driveProgress = 0, samples = {{at = round.botStartedAt, position = bout.position}}}
+        state.sablecrestAction = action
+    end
+    local age = now - round.botStartedAt
+    if bout.outroAt or phase == "recovery" then
+        clearLane(state, "returnLane")
+    elseif phase == "setup" then
+        local progress = math.max(action.setupProgress, descriptor.setupProgress(age, attack.setupTime))
+        local step = action.basis.RightVector * attack.strafe * (progress - action.setupProgress)
+        sablecrestStep(bout, step, action.basis)
+        action.setupProgress = progress
+    elseif phase == "windup" and descriptor.travelProgress then
+        if not action.strikeBasis then
+            local heading = directionTo(bout.position, bout.root.Position, action.basis.LookVector)
+            local basis = CFrame.lookAlong(bout.position, heading)
+            action.strikeBasis = basis
+            local gap = Match.flat(bout.root.Position - bout.position).Magnitude
+            action.driveLength = math.clamp(gap - sablecrestDriveClearance, .46, descriptor.maxTravel)
+            local start = groundPoint(bout, basis.Position)
+            local tip = Sablecrest.sample(descriptor.windup, attack.windup, attack.windup)
+            local joint = bout.joints[descriptor.group].joint
+            local contact = (tip.root * joint * tip.groups[descriptor.group]):PointToWorldSpace(descriptor.point)
+            local length = action.driveLength - contact.Z
+            local finish = safeTravel(bout, start, start + heading * length,
+                CFrame.new(start + Vector3.new(0, .49, 0)) * basis.Rotation,
+                Vector3.new(attack.width, .88, .62), state.arenaCast)
+            drawLane(bout, "returnLane", start, finish, attack.width, bout.profile.tint)
+        end
+        local progress = math.max(action.driveProgress, descriptor.travelProgress(age, attack.windup))
+        local drive = action.strikeBasis.LookVector * action.driveLength * (progress - action.driveProgress)
+        sablecrestStep(bout, drive, action.strikeBasis)
+        action.driveProgress = progress
+    end
+    rememberPosition(action.samples, now, bout.position)
+end
+
 local function botAction(bout, now)
     local round = bout.round
     if bout.outroAt then
@@ -451,9 +623,9 @@ local function botAction(bout, now)
         return action, now - bout.outroAt
     elseif now < round.startsAt then
         return "intro", now - round.introAt
-    elseif cinder(bout) then
+    elseif cinder(bout) or skywalk(bout) then
         local attack = round.attack
-        local cue = attack and Bracken.Attacks[attack.name]
+        local cue = attack and bout.motion.botPoses.Attacks[attack.name]
         if cue then
             if round.botPhase == "windup" then
                 return cue.windup, now - round.botStartedAt, attack.windup
@@ -488,6 +660,15 @@ end
 
 local function botBase(bout, time)
     local round, state = bout.round, bout.motion
+    if skywalk(bout) then
+        local command = state.sablecrestAction
+        local floor = if time and command then positionAt(command.samples, time) else bout.position
+        local location = floor + Vector3.new(0, state.skywalkLift or 0, 0)
+        if command then
+            return CFrame.new(location) * (command.strikeBasis or command.basis).Rotation
+        end
+        return CFrame.lookAlong(location, bout.direction)
+    end
     if cinder(bout) then
         local command = state.brackenAction
         if command then
@@ -541,8 +722,8 @@ local function sweptContact(from, to, frame, size, radius)
     return nil
 end
 
-local function penguinRootAt(bout, time)
-    local travel = bout.motion.playerTravel
+local function actorRootAt(bout, time)
+    local travel = if skywalk(bout) then bout.motion.skywalkCast else bout.motion.playerTravel
     if travel then
         return CFrame.new(positionAt(travel.samples, time)) * travel.origin.Rotation
     end
@@ -552,7 +733,7 @@ end
 local function slideContact(bout, time, index)
     local travel = bout.motion.playerTravel
     local tip = Penguin.Impact.bellySlide[index]
-    local root = penguinRootAt(bout, time)
+    local root = actorRootAt(bout, time)
     local point = root:PointToWorldSpace(tip)
     if not travel then
         return false, point
@@ -579,8 +760,57 @@ local function slideContact(bout, time, index)
     return false, point
 end
 
+local function seismicContact(bout, move, time)
+    local cast = bout.motion.skywalkCast
+    local center = groundPoint(bout, actorRootAt(bout, time):PointToWorldSpace(move.center))
+    if not cast then
+        return false, center
+    end
+    local frame, groups = botPose(bout, time)
+    for _, name in {"Right Leg", "Left Leg"} do
+        local joint = bout.joints[name]
+        local foot = jointFrame(frame, groups, name, joint) * joint.shell
+        local edge = nearestPoint(foot, joint.part.Size, center + Vector3.new(0, .34, 0))
+        if edge.Y <= center.Y + .83 and Match.flat(edge - center).Magnitude <= move.radius
+            and not obstructed(bout, center, edge + Vector3.new(0, .08, 0)) then
+            return true, center, "body"
+        end
+    end
+    return false, center
+end
+
+local function silverbackStrike(bout, action, move, time, index)
+    if action == "seismicChestPound" then
+        return seismicContact(bout, move, time)
+    end
+    local root = actorRootAt(bout, time)
+    local point = root:PointToWorldSpace(Silverback.Impact[action][index])
+    local offset = Match.flat(bout.position - root.Position)
+    if offset.Magnitude < .05 or offset.Magnitude > 4.20 or offset.Unit:Dot(root.LookVector) < .42 then
+        return false, point
+    end
+    local frame, groups = botPose(bout, time)
+    local targets = if action == "ridgePalm" then {"Torso", "Right Arm", "Left Arm"}
+        elseif move.zone == "head" then {"Head", "Torso"} else {"Torso"}
+    for _, name in targets do
+        local joint = bout.joints[name]
+        local target = jointFrame(frame, groups, name, joint) * joint.shell
+        local nearest = nearestPoint(target, joint.part.Size, point)
+        local radius = if action == "ridgePalm" then .46 else .42
+        if (point - nearest).Magnitude <= radius then
+            local contact = point:Lerp(nearest, .5)
+            if not obstructed(bout, root.Position, contact) then
+                return true, contact, if name == "Head" then "head" else "body"
+            end
+        end
+    end
+    return false, point
+end
+
 function Motion.strike(bout, action, move, time, index)
-    if action == "bellySlide" and cinder(bout) then
+    if skywalk(bout) then
+        return silverbackStrike(bout, action, move, time, index)
+    elseif action == "bellySlide" and cinder(bout) then
         return slideContact(bout, time, index)
     end
     local point = bout.root.CFrame:PointToWorldSpace(bout.motion.playerPoses.Impact[action][index])
@@ -606,7 +836,7 @@ function Motion.strike(bout, action, move, time, index)
     return false, point
 end
 
-local function penguinVolumes(bout, time, guardFacing)
+local function actorVolumes(bout, time, guardFacing)
     local state = bout.motion
     local actor = bout.root.Parent
     local shell = actor:FindFirstChild("Starter Fighter Shell")
@@ -614,8 +844,8 @@ local function penguinVolumes(bout, time, guardFacing)
         return {}
     end
     local action, age, direction = playerAction(bout, time)
-    local offsets = Penguin.sample(action, age, direction)
-    local root = penguinRootAt(bout, time)
+    local offsets = state.playerPoses.sample(action, age, direction)
+    local root = actorRootAt(bout, time)
     local rootJoint = state.motors.RootJoint
     if not rootJoint then
         return {}
@@ -643,9 +873,15 @@ local function penguinVolumes(bout, time, guardFacing)
     return volumes
 end
 
-local function brackenStrike(bout, time)
-    brackenCommand(bout, time)
-    local command = bout.motion.brackenAction
+local function featuredBotStrike(bout, time)
+    local command
+    if skywalk(bout) then
+        sablecrestCommand(bout, time)
+        command = bout.motion.sablecrestAction
+    else
+        brackenCommand(bout, time)
+        command = bout.motion.brackenAction
+    end
     local round = bout.round
     local attack = round.attack
     local descriptor = command and command.descriptor
@@ -655,11 +891,11 @@ local function brackenStrike(bout, time)
     local root = bout.root
     local facing = directionTo(root.Position, bout.position, root.CFrame.LookVector):Dot(root.CFrame.LookVector) >= .38
     local guard = round.guardUntil >= time and time >= round.guardFrom + .055
-    local volumes = penguinVolumes(bout, time, guard and facing)
+    local volumes = actorVolumes(bout, time, guard and facing)
     local joint = bout.joints[descriptor.group]
     local readyAt = round.botStartedAt
     local function strikePoint(age)
-        local pose = Bracken.sample(descriptor.windup, age, attack.windup)
+        local pose = bout.motion.botPoses.sample(descriptor.windup, age, attack.windup)
         local frame = botBase(bout, readyAt + age) * pose.root
         return jointFrame(frame, pose.groups, descriptor.group, joint):PointToWorldSpace(descriptor.point)
     end
@@ -680,8 +916,8 @@ local function brackenStrike(bout, time)
 end
 
 function Motion.palm(bout, time)
-    if cinder(bout) then
-        return brackenStrike(bout, time)
+    if cinder(bout) or skywalk(bout) then
+        return featuredBotStrike(bout, time)
     end
     local pose = Juniper.sample("palm", bout.round.attack.windup, bout.round.attack.windup)
     local joint = bout.joints["Right Arm"]
@@ -707,19 +943,26 @@ function Motion.move(bout, now, dt)
         brackenShove(bout, now)
         brackenCommand(bout, now)
         keepClearance(bout)
+    elseif skywalk(bout) then
+        sablecrestShove(bout, now)
+        sablecrestCommand(bout, now)
+        keepClearance(bout)
     end
     local offset = Match.flat(bout.root.Position - bout.position)
     local distance = offset.Magnitude
     if not bout.outroAt and (round.botPhase == "ready" or round.botPhase == "setup") and distance > .04 then
         bout.direction = offset.Unit
     end
-    local spacing = if cinder(bout) then cinderSpacing else 3.13
+    local spacing = if cinder(bout) then cinderSpacing elseif skywalk(bout) then skywalkSpacing else 3.13
     bout.moving = not bout.outroAt and not state.shove and now >= round.startsAt
         and round.botPhase == "ready" and distance > spacing
     if bout.moving then
         local travel = bout.direction * math.min(distance - spacing, dt * bout.profile.pace)
         if cinder(bout) then
             brackenStep(bout, travel, CFrame.lookAlong(Vector3.zero, bout.direction))
+            keepClearance(bout)
+        elseif skywalk(bout) then
+            sablecrestStep(bout, travel, CFrame.lookAlong(Vector3.zero, bout.direction))
             keepClearance(bout)
         else
             bout.position = Match.clampFloor(bout.arena.bounds, bout.position + travel, bout.arena.floor)
@@ -738,6 +981,9 @@ end
 function Motion.render(bout, now)
     if cinder(bout) then
         brackenCommand(bout, now)
+    elseif skywalk(bout) then
+        skywalkPlayer(bout, now)
+        sablecrestCommand(bout, now)
     end
     local action, age, direction = playerAction(bout, now)
     local offsets = bout.motion.playerPoses.sample(action, age, direction)
@@ -761,6 +1007,19 @@ function Motion.impact(bout, event)
             local travel = state.playerTravel
             if travel then
                 state.shove = {at = event.at, offset = travel.origin.LookVector * 1.38, progress = 0}
+            end
+        elseif skywalk(bout) and (event.attack == "ridgePalm" or event.attack == "seismicChestPound") then
+            local state = bout.motion
+            local cast = state.skywalkCast
+            if cast then
+                local seismic = event.attack == "seismicChestPound"
+                local heading = if seismic then directionTo(cast.origin.Position, bout.position, cast.origin.LookVector)
+                    else cast.origin.LookVector
+                local length = if seismic then .38 else Silverback.Skill.ridgePalm.shove
+                state.shove = {at = event.at, offset = heading * length, progress = 0,
+                    duration = if seismic then .27 else .22,
+                    height = if seismic then Silverback.Skill.seismicChestPound.popHeight else nil,
+                    basis = CFrame.lookAlong(Vector3.zero, heading)}
             end
         end
     end
