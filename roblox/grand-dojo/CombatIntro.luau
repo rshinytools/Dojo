@@ -198,12 +198,14 @@ function Intro:_hideCount()
     self.count.Visible = false
 end
 
-function Intro:Stop()
+function Intro:Stop(preserveCamera)
     if self.liveRender then
         self.liveRender:Disconnect()
         self.liveRender = nil
     end
-    self:_restoreCamera()
+    if not preserveCamera then
+        self:_restoreCamera()
+    end
     self:_dismissCard()
     self:_hideCount()
 end
@@ -289,7 +291,7 @@ function Intro:_shot(court, stage, age, presentation)
             lens(camera, resident, resident + offset, 46)
         end
     else
-        local mix = math.clamp((age - 7) / 3, 0, 1)
+        local mix = math.clamp((age - (if presentation.quickRound then 0 else 7)) / 3, 0, 1)
         fittedPair(camera, challenger, resident, right * (12.2 - mix * 2.2)
             - forward * (3.4 + 4 * narrow) + up * (3.5 + deckLift), 60 - mix * 3, wideFighters)
     end
@@ -353,14 +355,14 @@ function Intro:_startLive(court, presentation)
 end
 
 function Intro:Start(introAt, startsAt, court, presentation, onBell)
-    self:Stop()
+    self:Stop(presentation.quickRound)
     local now = workspace:GetServerTimeNow()
     if now >= startsAt then
         self:_startLive(court, presentation)
         onBell()
         return
     end
-    self.camera = takeCamera(self.player)
+    self.camera = self.camera or takeCamera(self.player)
     self.card.Visible = true
     self.locked = true
     ContextActionService:BindActionAtPriority(movementAction, function()
@@ -386,7 +388,8 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
             end
             return
         end
-        if self.camera and serverNow >= nextWarmAt and (not challengerArt.queued or not residentArt.queued) then
+        if not presentation.quickRound and self.camera and serverNow >= nextWarmAt
+            and (not challengerArt.queued or not residentArt.queued) then
             nextWarmAt = serverNow + .25
             local character = self.player.Character
             local opponent = opponentModel(court, presentation)
@@ -395,14 +398,17 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
             warmActor(shell, residentArt)
         end
         local age = math.max(0, startsAt - introAt - remaining)
-        local stage = if age < 2.3 then 1 elseif age < 4.8 then 2 elseif remaining > 3 then 3 else 4
+        local stage = if presentation.quickRound then 4 elseif age < 2.3 then 1 elseif age < 4.8 then 2
+            elseif remaining > 3 then 3 else 4
         if stage ~= previousStage then
             previousStage = stage
             self.small.Text = if stage == 2 then "CHALLENGER"
                 elseif stage == 3 then presentation.opponentFighter or (if presentation.duel then "OPPONENT" else "RESIDENT")
+                elseif presentation.roundIndex then "BEST OF 3"
                 elseif presentation.duel then "1V1 DUEL" else "BOT SPAR"
             self.title.Text = if stage == 1 then presentation.ring elseif stage == 2 then presentation.challenger
                 elseif stage == 3 then presentation.resident
+                elseif presentation.quickRound then string.format("Round %d", presentation.roundIndex)
                 else presentation.challengerShort .. "  vs  " .. presentation.residentShort
             self.small.TextColor3 = if stage == 3 then presentation.residentTint or jade
                 else presentation.challengerTint or gold

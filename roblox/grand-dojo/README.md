@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.276, use the **1v1 Duel** sign at the Grand Dojo court. Two players in the same server choose **Casual** for a 60-second round or **Best of 3** for a first-to-two series with 45-second rounds. Watch the score above the health bars and the 3-second countdown before the next round. Both fighters return to their marks with full health and their moves ready.
+
 In v0.275, start **Bot Spar** at Grand Dojo. Watch Juniper’s health bar on the first confirmed strike. The number updates immediately and the trail briefly shows the size of the hit. On a phone-sized viewport the camera adjusts to keep both fighters in view. Check the switch back to the city camera after the result.
 
 In v0.274, both players in the same server use the **Duel Queue** sign at Grand Dojo for a casual 1v1. Each keeps the same signature moves and cooldowns as in Bot Spar. After the 10-second introduction, a single 60-second round ends in a knockout or a result at the bell. Each player returns to the city after the recap. Use Bot Spar for solo progression.

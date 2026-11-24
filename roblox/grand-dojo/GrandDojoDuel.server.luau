@@ -4,6 +4,7 @@ local RunService = game:GetService("RunService")
 
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Round = require(script.Parent:WaitForChild("DuelCombatRound"))
+local Series = require(script.Parent:WaitForChild("DuelSeries"))
 local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local remote = ReplicatedStorage:WaitForChild("GrandDojoDuel")
@@ -16,8 +17,10 @@ local spawns = {court:WaitForChild("First Spawn"), court:WaitForChild("Second Sp
 local returns = {court:WaitForChild("First Return"), court:WaitForChild("Second Return")}
 local floor = bounds.Position.Y - bounds.Size.Y * .5
 
-local QUEUE_SECONDS = 55
+local OFFER_SECONDS, QUEUE_SECONDS = 12, 55
 local OUTSIDE_GRACE = 1.65
+local formats = {"casual", "series"}
+local formatLabels = {casual = "Casual", series = "Best of 3"}
 
 local actions = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true,
     dodge = true, signature = true}
@@ -35,18 +38,49 @@ local resultMessages = {
     outside = "You left the mat.",
 }
 
-local queued, active
+local offers, queues = {}, {}
+local active
+local nextMatchId = 0
 
 local function notice(player, text)
     remote:FireClient(player, "notice", text)
 end
 
-local function clearQueue(text, leaving)
-    local waiting = queued
-    queued = nil
-    if waiting and waiting.player ~= leaving then
+local function queueFormat(player)
+    for _, format in formats do
+        local waiting = queues[format]
+        if waiting and waiting.player == player then
+            return format
+        end
+    end
+    return nil
+end
+
+local function clearQueue(format, message, departing)
+    local waiting = queues[format]
+    queues[format] = nil
+    if waiting and waiting.player ~= departing then
         waiting.player:SetAttribute("DuelQueued", nil)
-        remote:FireClient(waiting.player, "queue", {queued = false, message = text})
+        remote:FireClient(waiting.player, "queue", {queued = false, message = message, format = format})
+    end
+end
+
+local function updateWaiting(format)
+    local waiting = queues[format]
+    if waiting then
+        local label = formatLabels[format]
+        remote:FireClient(waiting.player, "queue", {queued = true, expiresAt = waiting.expiresAt, format = format,
+            message = if active then label .. " queue · Court in use." else "Waiting for a " .. label .. " opponent."})
+    end
+end
+
+local function closeOffer(player, announce)
+    local offer = offers[player]
+    if offer then
+        offers[player] = nil
+        if announce then
+            remote:FireClient(player, "offerClosed", {expiresAt = offer.expiresAt})
+        end
     end
 end
 
@@ -63,6 +97,15 @@ local function actor(player, root)
     return {player = player, root = root, kit = Match.FighterKits[id], fighter = fighters[id], nextInput = 0, feedbackUntil = 0}
 end
 
+local function score(duel, side, payload)
+    local series = duel.series
+    payload.format, payload.matchId = series.format, duel.matchId
+    payload.roundIndex, payload.maxRounds = series.roundIndex, series.maxRounds
+    payload.playerRounds, payload.opponentRounds = series.wins[side], series.wins[3 - side]
+    payload.roundResult = if series.roundResult then series.roundResult[side] else nil
+    return payload
+end
+
 local function publish(duel, kind, now)
     local round = duel.round
     for i, side in round.sides do
@@ -72,7 +115,7 @@ local function publish(duel, kind, now)
         end
         local rival = round.sides[3 - i]
         local opensAt, attackAt, attack = Round.parryOpensAt(round, i)
-        remote:FireClient(challenger.player, kind, {
+        remote:FireClient(challenger.player, kind, score(duel, i, {
             playerHealth = side.playerHealth, playerMaxHealth = side.playerMaxHealth,
             opponentHealth = rival.playerHealth, opponentMaxHealth = rival.playerMaxHealth,
             opponentName = opponent.player.DisplayName, opponentUserId = opponent.player.UserId, sideIndex = i,
@@ -82,28 +125,45 @@ local function publish(duel, kind, now)
             attackAt = attackAt, parryOpensAt = opensAt, tell = tells[attack],
             nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
             feedback = if now < challenger.feedbackUntil then challenger.feedback else nil,
-        })
+        }))
     end
 end
 
-local function begin(first, firstRoot, second, secondRoot, now)
-    clearQueue()
-    local a, b = actor(first, firstRoot), actor(second, secondRoot)
-    local round = Round.new(now, a.fighter, a.kit, b.fighter, b.kit)
-    local telegraph = Instance.new("Folder")
-    telegraph.Name = "Duel attack tells"
-    telegraph.Parent = court
-    local duel = {round = round, actors = {a, b}, bounds = bounds, floor = floor, telegraph = telegraph, lastUpdate = now}
-    active = duel
+local function startRound(duel, now)
+    if duel.round then
+        Motion.close(duel)
+    end
+    local a, b = table.clone(duel.lineup[1]), table.clone(duel.lineup[2])
+    duel.actors = {a, b}
+    duel.round = Round.new(now, a.fighter, a.kit, b.fighter, b.kit, Series.timing(duel.series))
+    duel.lastUpdate = now
     for i, side in duel.actors do
-        side.player:SetAttribute("DuelActive", true)
-        side.player:SetAttribute("SparringActive", true)
-        side.player:SetAttribute("ActiveDojoRing", "grand-dojo")
         Match.move(side.root, spawns[i].CFrame)
     end
     Motion.open(duel)
     Motion.render(duel, now)
-    publish(duel, "begin", now)
+    publish(duel, if duel.series.roundIndex == 1 then "begin" else "round", now)
+end
+
+local function begin(format, first, firstRoot, second, secondRoot, now)
+    clearQueue(format)
+    local telegraph = Instance.new("Folder")
+    telegraph.Name = "Duel attack tells"
+    telegraph.Parent = court
+    nextMatchId += 1
+    local lineup = {actor(first, firstRoot), actor(second, secondRoot)}
+    local duel = {series = Series.new(format), matchId = nextMatchId, lineup = lineup,
+        bounds = bounds, floor = floor, telegraph = telegraph}
+    active = duel
+    for _, side in lineup do
+        side.player:SetAttribute("DuelActive", true)
+        side.player:SetAttribute("SparringActive", true)
+        side.player:SetAttribute("ActiveDojoRing", "grand-dojo")
+    end
+    startRound(duel, now)
+    for _, queuedFormat in formats do
+        updateWaiting(queuedFormat)
+    end
 end
 
 local function stop(duel, result, departing, walkover)
@@ -120,15 +180,18 @@ local function stop(duel, result, departing, walkover)
                 Match.move(side.root, returns[i].CFrame)
             end
             local message = if walkover and result[i] == "win" then "Your opponent left the duel." else resultMessages[result[i]]
-            remote:FireClient(player, "result", {result = result[i], message = message,
-                opponentName = duel.actors[3 - i].player.DisplayName})
+            remote:FireClient(player, "result", score(duel, i, {result = result[i], message = message,
+                opponentName = duel.actors[3 - i].player.DisplayName}))
         end
+    end
+    for _, format in formats do
+        updateWaiting(format)
     end
 end
 
 local function forfeit(duel, index, reason, departing)
-    if duel.round.result then
-        stop(duel, duel.round.result, departing)
+    if duel.series.result then
+        stop(duel, duel.series.result, departing)
         return
     end
     local result = {"win", "win"}
@@ -149,7 +212,14 @@ local function resolve(duel, now)
     Round.step(round, now, function(attacker, _, action, move, at, index, castStartedAt)
         return Motion.strike(duel, attacker, action, move, at, index, castStartedAt)
     end)
-    duel.outroAt = round.resolvedAt
+    local ended = round.result and not duel.series.roundResult
+    if ended then
+        Series.record(duel.series, round.result)
+        -- Give every series round its recap even if the server ran a late frame.
+        if duel.series.format == "series" then
+            round.outroAt = now + Round.OUTRO
+        end
+    end
     for _, event in round.notices do
         Motion.impact(duel, event)
         local a, b = duel.actors[event.attacker], duel.actors[event.defender]
@@ -170,7 +240,7 @@ local function resolve(duel, now)
     end
     local changed = #round.notices > 0
     table.clear(round.notices)
-    return changed
+    return ended or changed
 end
 
 local function advance(duel, now)
@@ -179,8 +249,9 @@ local function advance(duel, now)
 end
 
 prompt.Triggered:Connect(function(player)
-    if queued and queued.player == player then
-        clearQueue("You left the duel queue.")
+    local queuedFormat = queueFormat(player)
+    if queuedFormat then
+        clearQueue(queuedFormat, "You left the duel queue.")
         return
     end
     local root = eligible(player, .4)
@@ -192,26 +263,54 @@ prompt.Triggered:Connect(function(player)
         return
     end
     local now = workspace:GetServerTimeNow()
-    if queued then
-        local waitingRoot = eligible(queued.player, 3.25)
-        if waitingRoot and now < queued.expiresAt then
-            begin(queued.player, waitingRoot, player, root, now)
-            return
-        end
-        clearQueue("Duel queue expired. Join again at the sign.")
-    end
-    queued = {player = player, expiresAt = now + QUEUE_SECONDS}
-    player:SetAttribute("DuelQueued", true)
-    remote:FireClient(player, "queue", {queued = true, expiresAt = queued.expiresAt,
-        message = "Waiting for another player at the Grand Dojo."})
+    local current = offers[player]
+    local expiresAt = if current and current.root == root and now < current.expiresAt
+        then current.expiresAt else now + OFFER_SECONDS
+    offers[player] = {root = root, expiresAt = expiresAt}
+    remote:FireClient(player, "offer", {expiresAt = expiresAt})
 end)
 
-remote.OnServerEvent:Connect(function(player, action, direction)
+local function joinQueue(player, format)
+    local offer = offers[player]
+    if not offer or not Series.supports(format) or queueFormat(player) then
+        return
+    end
+    closeOffer(player, true)
+    local now = workspace:GetServerTimeNow()
+    local root = eligible(player, .4)
+    if root ~= offer.root or now >= offer.expiresAt then
+        notice(player, "Stand by the sign and choose a duel again.")
+        return
+    elseif active then
+        notice(player, "A duel is underway. This court opens when it ends.")
+        return
+    end
+    local waiting = queues[format]
+    if waiting then
+        if now < waiting.expiresAt and eligible(waiting.player, 3.25) == waiting.root then
+            begin(format, waiting.player, waiting.root, player, root, now)
+            return
+        end
+        clearQueue(format, "Duel queue closed. Join again at the sign.")
+    end
+    queues[format] = {player = player, root = root, expiresAt = now + QUEUE_SECONDS}
+    player:SetAttribute("DuelQueued", true)
+    updateWaiting(format)
+end
+
+remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundIndex)
     if type(action) ~= "string" then
         return
     end
-    if action == "cancel" and queued and queued.player == player then
-        clearQueue("You left the duel queue.")
+    if action == "join" then
+        joinQueue(player, direction)
+        return
+    elseif action == "cancel" then
+        local format = queueFormat(player)
+        if format then
+            clearQueue(format, "You left the duel queue.")
+        end
+        closeOffer(player, true)
         return
     elseif action ~= "leave" and not actions[action] then
         return
@@ -223,8 +322,14 @@ remote.OnServerEvent:Connect(function(player, action, direction)
     local index = if duel.actors[1].player == player then 1 elseif duel.actors[2].player == player then 2 else nil
     if not index then
         return
-    elseif action == "leave" then
+    end
+    if (duel.series.format == "series" or matchId ~= nil) and matchId ~= duel.matchId then
+        return
+    end
+    if action == "leave" then
         forfeit(duel, index, "left")
+        return
+    elseif (duel.series.format == "series" or roundIndex ~= nil) and roundIndex ~= duel.series.roundIndex then
         return
     end
     local now = workspace:GetServerTimeNow()
@@ -249,11 +354,19 @@ end)
 
 RunService.Heartbeat:Connect(function()
     local now = workspace:GetServerTimeNow()
-    if queued then
-        if now >= queued.expiresAt then
-            clearQueue("Duel queue expired. Join again at the sign.")
-        elseif not eligible(queued.player, 3.25) then
-            clearQueue("Duel queue closed. Stay near the sign while waiting.")
+    for player, offer in offers do
+        if now >= offer.expiresAt then
+            closeOffer(player, true)
+        end
+    end
+    for _, format in formats do
+        local waiting = queues[format]
+        if waiting then
+            if now >= waiting.expiresAt then
+                clearQueue(format, "Duel queue expired. Join again at the sign.")
+            elseif eligible(waiting.player, 3.25) ~= waiting.root then
+                clearQueue(format, "Duel queue closed. Stay near the sign while waiting.")
+            end
         end
     end
     local duel = active
@@ -277,7 +390,11 @@ RunService.Heartbeat:Connect(function()
     end
     local changed = advance(duel, now)
     if duel.round.result and now >= duel.round.outroAt then
-        stop(duel, duel.round.result)
+        if duel.series.result then
+            stop(duel, duel.series.result)
+        elseif Series.nextRound(duel.series) then
+            startRound(duel, now)
+        end
         return
     end
     Motion.render(duel, now)
@@ -288,8 +405,10 @@ RunService.Heartbeat:Connect(function()
 end)
 
 Players.PlayerRemoving:Connect(function(player)
-    if queued and queued.player == player then
-        clearQueue(nil, player)
+    closeOffer(player, false)
+    local format = queueFormat(player)
+    if format then
+        clearQueue(format, nil, player)
     end
     if active then
         for i, side in active.actors do

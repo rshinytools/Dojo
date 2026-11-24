@@ -934,6 +934,13 @@ local shownBoardPrompts = {}
 local sparringActive = false
 local sparResult
 local sparPicker
+local duelUi = {}
+
+local function restoreWorldPrompts()
+    ProximityPromptService.Enabled = not sparringActive and not panel.Visible
+        and not (sparResult and sparResult.Visible) and not (sparPicker and sparPicker.Visible)
+        and not (duelUi.picker and duelUi.picker.Visible)
+end
 
 local function releaseBoardInput()
     local prompt = heldPrompt
@@ -1085,17 +1092,20 @@ local function layout()
     panel.Size = UDim2.fromOffset(width, height)
     scale.Scale = math.max(.1, math.min(1, (size.X - 26)/width, (size.Y - 54)/height))
     local showingResult = sparResult and sparResult.Visible
-    local choosingBot = sparPicker and sparPicker.Visible
-    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not showingResult and not choosingBot
+    local choosingFight = (sparPicker and sparPicker.Visible) or (duelUi.picker and duelUi.picker.Visible)
+    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not showingResult and not choosingFight
         and not race.Visible and not panel.Visible and not aerial
     if aerial then
         boardHint.Visible = false
     end
-    local showingWorldHud = not sparringActive and not showingResult and not choosingBot and not race.Visible and not aerial
+    local showingWorldHud = not sparringActive and not showingResult and not choosingFight and not race.Visible and not aerial
     badge.Visible = not compact and showingWorldHud and not (panel.Visible and narrow)
         and (not boardHint.Visible or parcelObjective.Visible)
     compactProgress.Visible = compact and showingWorldHud and not panel.Visible and not cloudbreakStatus.Visible
     compactParcel.Visible = compactProgress.Visible and parcelObjective.Visible
+    if duelUi.queue then
+        duelUi.queue.Visible = duelUi.queued == true and showingWorldHud and not panel.Visible
+    end
 end
 
 for _, attribute in {"SkywalkTrialMode", "SkywalkTrialNext", "SkywalkTrialStartedAt", "SkywalkTrialRecoveries"} do
@@ -1148,7 +1158,7 @@ local function hide()
     if journal then
         journal:Hide()
     end
-    ProximityPromptService.Enabled = not sparringActive and not (sparPicker and sparPicker.Visible)
+    restoreWorldPrompts()
     if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(panel) then
         GuiService.SelectedObject = nil
     end
@@ -1187,7 +1197,7 @@ local function updateTrophyPanel()
 end
 
 local function show(kind, elapsed, first, practiceRun, xpReward)
-    if sparringActive or (sparPicker and sparPicker.Visible) then
+    if sparringActive or (sparPicker and sparPicker.Visible) or (duelUi.picker and duelUi.picker.Visible) then
         return
     end
     if eagleEye then
@@ -1617,7 +1627,7 @@ local function closePicker(cancel)
     if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(sparPicker) then
         GuiService.SelectedObject = nil
     end
-    ProximityPromptService.Enabled = not sparringActive and not panel.Visible
+    restoreWorldPrompts()
     layout()
 end
 pickerClose.Activated:Connect(function() closePicker(true) end)
@@ -1643,6 +1653,11 @@ local sparClock = label(sparHud, "Clock", 17, palette.parchment, titleFont)
 sparClock.Position = UDim2.new(1, -77, 0, 8)
 sparClock.Size = UDim2.fromOffset(63, 23)
 sparClock.TextXAlignment = Enum.TextXAlignment.Right
+duelUi.score = label(sparHud, "RoundScore", 15, palette.parchment, titleFont)
+duelUi.score.AnchorPoint = Vector2.new(.5, 0)
+duelUi.score.TextXAlignment = Enum.TextXAlignment.Center
+duelUi.score.TextTruncate = Enum.TextTruncate.AtEnd
+duelUi.score.Visible = false
 
 local playerHealth = combatHealth.new(sparHud, "You", false, titleFont)
 local botHealth = combatHealth.new(sparHud, "Opponent", true, titleFont)
@@ -1664,11 +1679,17 @@ local function layoutCombatHud(compact)
     local top = if compact then 4 else 8
     local titleHeight = if compact then 18 else 23
     sparTitle.Position = UDim2.fromOffset(14, top)
-    sparTitle.Size = UDim2.new(1, -90, 0, titleHeight)
+    local series = matchPresentation.format == "series"
+    sparTitle.Size = if series then UDim2.new(.5, if compact then -64 else -83, 0, titleHeight)
+        else UDim2.new(1, -90, 0, titleHeight)
     sparClock.Position = UDim2.new(1, -77, 0, top)
     sparClock.Size = UDim2.fromOffset(63, titleHeight)
     sparTitle.TextSize = if compact then 13 else 17
     sparClock.TextSize = sparTitle.TextSize
+    duelUi.score.Position = UDim2.new(.5, 0, 0, top)
+    duelUi.score.Size = UDim2.fromOffset(if compact then 100 else 138, titleHeight)
+    duelUi.score.TextSize = if compact then 12 else 15
+    duelUi.score.Visible = series
     sparHint.Position = UDim2.fromOffset(14, if compact then 51 else 72)
     sparHint.Size = UDim2.new(1, -28, 0, if compact then 19 else 21)
     sparHint.TextSize = if compact then 12 else 14
@@ -1759,7 +1780,7 @@ local function closeResult()
     if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(sparResult) then
         GuiService.SelectedObject = nil
     end
-    ProximityPromptService.Enabled = not sparringActive and not panel.Visible
+    restoreWorldPrompts()
     layout()
 end
 
@@ -1854,13 +1875,19 @@ local function sendSparAction(action)
     if not action then
         return
     end
-    local actionRemote = if duelRound then duelRemote else sparRemote
+    local direction
     if action == "dodge" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         local left = root and humanoid and humanoid.MoveDirection:Dot(root.CFrame.RightVector) < -.2
-        actionRemote:FireServer(action, if left then -1 else 1)
+        direction = if left then -1 else 1
+    end
+    local actionRemote = if duelRound then duelRemote else sparRemote
+    if duelRound and matchPresentation.format == "series" then
+        duelRemote:FireServer(action, direction, matchPresentation.matchId, matchPresentation.roundIndex)
+    elseif direction then
+        actionRemote:FireServer(action, direction)
     else
         actionRemote:FireServer(action)
     end
@@ -1890,7 +1917,16 @@ UserInputService.InputBegan:Connect(function(input, processed)
     if processed or UserInputService:GetFocusedTextBox() then
         return
     end
-    if sparPicker.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
+    local back = input.KeyCode == Enum.KeyCode.ButtonB or input.KeyCode == Enum.KeyCode.Backspace
+    if duelUi.picker and duelUi.picker.Visible then
+        if back then
+            duelUi.close(true)
+        elseif input.KeyCode == Enum.KeyCode.One then
+            duelUi.join("casual")
+        elseif input.KeyCode == Enum.KeyCode.Two then
+            duelUi.join("series")
+        end
+    elseif sparPicker.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closePicker(true)
     elseif sparringActive then
         local action = if matchPresentation.showcase then showcaseKeys[input.KeyCode] or sparKeys[input.KeyCode]
@@ -1900,16 +1936,21 @@ UserInputService.InputBegan:Connect(function(input, processed)
         end
     elseif sparResult.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closeResult()
+    elseif back and duelUi.queue and duelUi.queue.Visible then
+        duelRemote:FireServer("cancel")
     end
 end)
 
 local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, kitId, nextSignature, nextSecondary)
-    fightIntro:Stop()
     duelRound = isDuel
     sparringActive = true
     matchPresentation.startsAt = startsAt
     matchPresentation.phase = nil
     matchPresentation.showcase = type(introAt) == "number"
+    matchPresentation.format = if isDuel and opponent then opponent.format else nil
+    matchPresentation.matchId = if isDuel and opponent then opponent.matchId else nil
+    matchPresentation.roundIndex = if isDuel and opponent then opponent.roundIndex else nil
+    matchPresentation.roundResult = nil
     local kit = if matchPresentation.showcase then showcaseKits[kitId] or showcaseKits.reedguard else nil
     matchPresentation.kit = kit
     matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
@@ -1949,6 +1990,10 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
             court = ring and ring:FindFirstChild("Duel Court")
             intro.sideIndex, intro.opponentUserId = opponent.sideIndex, opponent.opponentUserId
             intro.opponentFighter = opponentKit and opponentKit.challenger
+            if matchPresentation.format == "series" then
+                intro.roundIndex = opponent.roundIndex
+                intro.quickRound = (opponent.roundIndex or 1) > 1
+            end
         else
             court = showcaseCourt(ringId)
         end
@@ -1957,6 +2002,8 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
             refreshSparControls()
             layoutMatchControls()
         end)
+    else
+        fightIntro:Stop()
     end
     layout()
 end
@@ -1989,7 +2036,9 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     sparHint.TextColor3 = if parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
         elseif phase == "windup" or phase == "setup" then opponentTint or palette.gold else palette.parchment
     if phase == "outro" then
-        sparHint.Text = "Round ended"
+        local roundResult = matchPresentation.roundResult
+        sparHint.Text = if roundResult == "win" then "You won the round" elseif roundResult == "loss" then "Opponent won the round"
+            elseif roundResult == "draw" then "Round drawn" else "Round ended"
     elseif now < startsAt then
         sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
     elseif matchPresentation.showcase and feedback == "parried" then
@@ -2045,7 +2094,7 @@ local function clearInterruptedMatch()
         settleCombatHealth()
         matchPresentation.inIntro = false
         sparringActive = false
-        ProximityPromptService.Enabled = not panel.Visible and not sparResult.Visible and not sparPicker.Visible
+        restoreWorldPrompts()
         layoutMatchControls()
         layout()
     end
@@ -2064,6 +2113,9 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
         combatAudio.impact(a, b, startsAt)
         return
     elseif kind == "offer" then
+        if duelUi.picker and duelUi.picker.Visible then
+            return
+        end
         local ring = ringProgression.ById[a]
         local opponent = ring and sparBots[ring.botId]
         if not opponent then
@@ -2139,36 +2191,161 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
         nextSignature, nextSecondary, opponent.tint, resident)
 end)
 
-local duelQueue = button(gui, "Leave Duel Queue", false)
-duelQueue.Name = "LeaveDuelQueue"
-duelQueue.AnchorPoint = Vector2.new(.5, 1)
-duelQueue.Position, duelQueue.Size = UDim2.new(.5, 0, 1, -64), UDim2.fromOffset(192, 44)
-duelQueue.Visible = false
-duelQueue.Activated:Connect(function() duelRemote:FireServer("cancel") end)
+do
+    local queue = button(gui, "Leave Duel Queue", false)
+    queue.Name = "LeaveDuelQueue"
+    queue.AnchorPoint = Vector2.new(.5, 1)
+    queue.Position, queue.Size = UDim2.new(.5, 0, 1, -64), UDim2.new(.92, 0, 0, 48)
+    queue.TextSize, queue.Visible = 14, false
+    make("UISizeConstraint", queue, {MaxSize = Vector2.new(258, 48)})
+    queue.Activated:Connect(function() duelRemote:FireServer("cancel") end)
+    duelUi.queue = queue
+
+    local picker = make("Frame", gui, {
+        Name = "DuelFormatPicker", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
+        Size = UDim2.new(.94, 0, 0, 187), BackgroundColor3 = palette.ink, BorderSizePixel = 0,
+        Active = true, Visible = false,
+    })
+    make("UISizeConstraint", picker, {MaxSize = Vector2.new(444, 187)})
+    style(picker, 14, palette.edge)
+    local heading = label(picker, "Heading", 21, palette.gold, titleFont)
+    heading.Position, heading.Size = UDim2.fromOffset(16, 8), UDim2.new(1, -32, 0, 32)
+    heading.Text = "Grand Dojo Duel"
+
+    local function formatOption(name, title, description, x, tone)
+        local control = button(picker, "", false)
+        control.Name = name
+        control.Position, control.Size = UDim2.new(x, if x == 0 then 16 else 4, 0, 48), UDim2.new(.5, -20, 0, 71)
+        local caption = label(control, "Format", 17, tone, titleFont)
+        caption.Position, caption.Size = UDim2.fromOffset(11, 8), UDim2.new(1, -22, 0, 23)
+        caption.Text = title
+        local detail = label(control, "Rules", 12, palette.muted)
+        detail.Position, detail.Size = UDim2.fromOffset(11, 33), UDim2.new(1, -22, 0, 28)
+        detail.Text, detail.TextWrapped = description, true
+        return control
+    end
+
+    local casual = formatOption("Casual", "Casual", "One 60s round", 0, palette.parchment)
+    local series = formatOption("BestOfThree", "Best of 3", "45s rounds · First to 2", .5, palette.gold)
+    local closeChoice = button(picker, "Close", false)
+    closeChoice.Position, closeChoice.Size = UDim2.new(1, -130, 1, -57), UDim2.fromOffset(114, 48)
+    closeChoice.TextSize = 15
+    local keys = label(picker, "KeyboardHelp", 12, palette.muted)
+    keys.Position, keys.Size = UDim2.new(0, 16, 1, -48), UDim2.new(1, -154, 0, 30)
+    keys.Text = "1 or 2 to choose"
+    casual.NextSelectionRight, series.NextSelectionLeft = series, casual
+    casual.NextSelectionDown, series.NextSelectionDown, closeChoice.NextSelectionUp = closeChoice, closeChoice, series
+    duelUi.picker = picker
+
+    function duelUi.close(cancelOffer)
+        if not picker.Visible then
+            return
+        end
+        duelUi.expiresAt = nil
+        picker.Visible = false
+        if cancelOffer then
+            duelRemote:FireServer("cancel")
+        end
+        if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(picker) then
+            GuiService.SelectedObject = nil
+        end
+        restoreWorldPrompts()
+        layout()
+    end
+
+    local function focusPicker()
+        keys.Visible = UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
+        if picker.Visible and UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
+            GuiService.SelectedObject = casual
+        end
+    end
+
+    function duelUi.open(expiresAt)
+        duelUi.expiresAt = expiresAt
+        picker.Visible = true
+        restoreWorldPrompts()
+        layout()
+        focusPicker()
+        task.delay(math.max(0, expiresAt - workspace:GetServerTimeNow()), function()
+            if duelUi.expiresAt == expiresAt then
+                duelUi.close(false)
+            end
+        end)
+    end
+
+    function duelUi.join(format)
+        if picker.Visible and duelUi.expiresAt and workspace:GetServerTimeNow() < duelUi.expiresAt then
+            duelUi.close(false)
+            duelRemote:FireServer("join", format)
+        end
+    end
+
+    casual.Activated:Connect(function() duelUi.join("casual") end)
+    series.Activated:Connect(function() duelUi.join("series") end)
+    closeChoice.Activated:Connect(function() duelUi.close(true) end)
+    focusPicker()
+    UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(focusPicker)
+    player.CharacterRemoving:Connect(function() duelUi.close(true) end)
+end
 
 duelRemote.OnClientEvent:Connect(function(kind, info)
     if kind == "notice" then
         flash(info)
+    elseif kind == "offer" then
+        if not sparringActive and not sparPicker.Visible and not panel.Visible and not race.Visible
+            and not player:GetAttribute("StarterSelectionRequired") and not player:GetAttribute("FighterSelectOpen")
+            and type(info.expiresAt) == "number" and info.expiresAt > workspace:GetServerTimeNow() then
+            closeResult()
+            duelUi.open(info.expiresAt)
+        end
+    elseif kind == "offerClosed" then
+        if type(info) ~= "table" or info.expiresAt == nil or duelUi.expiresAt == info.expiresAt then
+            duelUi.close(false)
+        end
     elseif kind == "queue" then
-        duelQueue.Visible = info.queued
+        duelUi.close(false)
+        duelUi.queued = info.queued
+        duelUi.queue.Text = if info.format == "series" then "Waiting for Best of 3 · Leave" else "Waiting for Casual · Leave"
+        layout()
         if info.message then
             flash(info.message)
         end
     elseif kind == "result" then
+        if info.format == "series" and info.matchId ~= matchPresentation.matchId then
+            return
+        end
         resultAwaitingReward = false
-        showMatchResult(info.result, info.opponentName, info.message or "Grand Dojo Duel", false)
-    elseif kind == "begin" or (kind == "update" and sparringActive and duelRound) then
-        if kind == "begin" then
-            duelQueue.Visible = false
-            showMatchHud(true, "Grand Dojo Duel", info.startsAt, info.introAt, "grand-dojo", info, info.kitId,
-                info.nextSignature, info.nextSecondary)
+        local detailText = info.message or "Grand Dojo Duel"
+        if info.format == "series" then
+            detailText ..= string.format("\nRounds %d–%d", info.playerRounds, info.opponentRounds)
+        end
+        showMatchResult(info.result, info.opponentName, detailText, false)
+        matchPresentation.matchId = nil
+    elseif kind == "begin" or ((kind == "update" or kind == "round") and sparringActive and duelRound) then
+        local series = info.format == "series"
+        local reset = kind ~= "update"
+        if kind ~= "begin" and matchPresentation.format == "series" then
+            local expected = matchPresentation.roundIndex + (if kind == "round" then 1 else 0)
+            if not series or info.matchId ~= matchPresentation.matchId or info.roundIndex ~= expected then
+                return
+            end
+        end
+        if reset then
+            duelUi.close(false)
+            duelUi.queued = false
+            showMatchHud(true, if series then "Best of 3 Duel" else "Grand Dojo Duel", info.startsAt, info.introAt,
+                "grand-dojo", info, info.kitId, info.nextSignature, info.nextSecondary)
+        end
+        if series then
+            duelUi.score.Text = string.format("Round %d/%d · %d–%d", info.roundIndex, info.maxRounds,
+                info.playerRounds, info.opponentRounds)
+            matchPresentation.roundResult = info.roundResult
         end
         local kit = matchPresentation.kit
         local opponent = showcaseKits[info.opponentKitId]
-        local reset, showcase = kind == "begin", matchPresentation.showcase
         playerHealth:Set(info.playerHealth, info.playerMaxHealth, kit and kit.challengerShort, reset)
         botHealth:Set(info.opponentHealth, info.opponentMaxHealth, info.opponentName, reset)
-        if showcase then
+        if matchPresentation.showcase then
             updateMatchTimeline(info.startsAt, info.endsAt, info.phase, info.feedback, info.tell, info.attackAt,
                 info.parryOpensAt, info.nextSignature, info.nextSecondary, opponent and opponent.tint)
         else

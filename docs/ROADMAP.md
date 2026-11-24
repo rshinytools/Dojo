@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.275 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.276 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -158,7 +158,7 @@ Validate fun, pacing and saving with a small complete game.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P6.1 | Four complete fighters | Prototype ready | All 16 starter Bot Spar pairings passed desktop technique checks. Galaxy landscape simulation completed a mixed bout with touch. All four starter kits are wired into casual Duel. Verify live two-client play, progression and published rejoin. |
-| P6.2 | Duel and brawl alpha | Prototype ready | The casual Duel has all four starter kits, with queue, contact, parry and result checks in Luau simulations and one-client Studio tests. Verify a live two-client Duel, then build Brawl. Full occupancy, disconnects and repeated matches must return correct results. |
+| P6.2 | Duel and brawl alpha | Prototype ready | Casual and Best of 3 use all four starter kits. Studio joined and cancelled both queues and completed a one-client 2–0 series against a fitted stand-in. Verify a live two-client Duel, then build Brawl. Full occupancy, disconnects and repeated matches must return correct results. |
 | P6.3 | Alpha playtests and measurement | Planned | Players find an activity, finish a quest, earn/display a trophy and return to an arena. Record findings; no invented retention data. |
 | P6.4 | Alpha exit review | Planned | No unresolved defect threatens data or makes the world/combat loop unusable. |
 
@@ -202,7 +202,7 @@ Complete advanced modes, matchmaking and clans.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | Studio verified Grand Dojo queue and cancellation with one player. Six simulated two-player sessions exercised the casual Duel. Run an invited live two-client test, then build cross-server and ranked matchmaking. |
+| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | V0.276 adds separate local Casual and Best of 3 queues. Exact two-endpoint simulation exercised a casual knockout, a 2–0 series and a three-round 1–1 draw. Run an invited live two-client test. Implement competitive normalization, Elo persistence and cross-server ranked matchmaking. |
 | P8.2 | Tag Team and Co-op Raids | Planned | Verify full teams can win, lose and reconnect without duplicate rewards or a stuck match. Keep Tag Team at the Grand Dojo Ring and test Co-op Raids as separate PvE encounters. Label each bot and show the roster and reward eligibility before play. |
 | P8.3 | Parties and clans | Planned | Roblox join settings and full servers resolve safely. An invited party can regroup in a common city and return together after a match. Server authorization protects clan resources and room visits, and contributions commit once. |
 | P8.4 | Cross-server failure drills | Planned | Players recover to a valid state and authoritative profile ownership remains unique. |

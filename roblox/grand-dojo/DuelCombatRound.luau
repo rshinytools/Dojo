@@ -1,4 +1,4 @@
--- Authoritative casual Duel clock. The arena supplies contact geometry.
+-- Authoritative Duel round clock. The arena supplies contact geometry.
 local Spar = require(script.Parent.ReedguardRound)
 local Combatant = Spar.Combatant
 local Duel = {INTRO = Spar.INTRO, DURATION = Spar.DURATION, OUTRO = Spar.OUTRO}
@@ -6,9 +6,9 @@ local Duel = {INTRO = Spar.INTRO, DURATION = Spar.DURATION, OUTRO = Spar.OUTRO}
 local PARRY_STUN = .56
 local HIT_STUN = .28
 
-function Duel.new(now, firstFighter, firstKitId, secondFighter, secondKitId)
-    local first = Combatant.new(now, firstFighter, firstKitId)
-    local second = Combatant.new(now, secondFighter, secondKitId)
+function Duel.new(now, firstFighter, firstKitId, secondFighter, secondKitId, timing)
+    local first = Combatant.new(now, firstFighter, firstKitId, timing)
+    local second = Combatant.new(now, secondFighter, secondKitId, timing)
     first.kitId, second.kitId = firstKitId or "reedguard", secondKitId or "reedguard"
     return {
         introAt = now, startsAt = first.startsAt, endsAt = first.endsAt,

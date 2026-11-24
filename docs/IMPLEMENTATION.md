@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.275 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.276 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -48,13 +48,13 @@ Earn 60 XP on the first Bot Spar win, 80 XP on the first official Lantern Relay 
 
 The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers a same-server 1v1 Duel queue. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, ranked play, 2v2 Tag Team, and eight-player Brawl remain in development. Co-op raids are separate PvE encounters. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
 
-## Grand Dojo casual 1v1
+## Grand Dojo Duel formats
 
-Two nearby players in the same server each use the Duel Queue sign at the Grand Dojo court. This opens a 10-second intro and one 60-second round. Each fighter brings the same named techniques, moves, health and cooldowns as in Bot Spar. The server resolves reach and facing at the authored contact frames. Late guard can parry, simultaneous hits can trade, and both players see their own health, cooldowns and result. This casual test round awards no fighter XP or Rank Points.
+Two nearby players in the same server each use the 1v1 Duel sign at the Grand Dojo court and choose the same format. The server pairs only players waiting in that format. **Casual** has one 60-second round. **Best of 3** uses 45-second rounds with a first-to-two win condition. After three rounds the higher win count prevails, and equal scores draw. A timed round counts remaining HP as a percentage of maximum HP. Both formats open with a 10-second intro. Later rounds use a 3-second countdown, full health, fresh cooldowns, and the original spawn marks. The result screen shows the final series score. These same-server test formats award no fighter XP or Rank Points.
 
-Six Luau simulations of the actual server script exercised two player endpoints, including pairing, input, parrying, knockout, and return on leave or disconnect. A stalled-frame regression verified that committed hits resolve before later input. Desktop Studio used one real player to join and cancel the actual queue. A separate one-client Studio test used a fitted Fire Salamander stand-in to exercise the native physics and HUD through Silverback’s 20-damage Ridge Palm, a zero-damage Ember Sweep parry, 34-damage Seismic Chest-Pound, knockout and camera restoration. A live match between two Roblox clients, published access and physical-device checks remain open.
+Each fighter brings the same named techniques, moves, health and cooldowns as in Bot Spar. The server resolves reach and facing at the authored contact frames. Late guard can parry and simultaneous hits can trade. The server ties series inputs to their match and round and clears old attack markers and movement state between rounds.
 
-The same v0.274 desktop Studio copy also completed Reedguard versus Juniper through knockout and awarded 60 first-win XP in the local test profile.
+Two-endpoint Luau simulations of the actual server exercised a casual knockout, a 2–0 series sweep, a three-round 1–1 draw on time, stale input rejection, leave and disconnect handling, and zero progression writes. Desktop Studio and Galaxy A06 landscape touch simulation joined and cancelled both native queues. A separate one-client series used a fitted Fire Salamander stand-in to verify Silverback’s palm, parry and slam in both rounds, the 3-second second-round reset, the 2–0 recap and camera return. A live match between two Roblox clients, ranked normalization and Elo, published access and physical-device checks remain open.
 
 ## Combat presentation
 
@@ -114,7 +114,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Cinder custom kit and contact | [Penguin poses](../roblox/grand-dojo/PenguinCombatPoses.luau), [Bracken poses](../roblox/grand-dojo/BrackenCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau), [motion and reach](../roblox/grand-dojo/ReedguardFightMotion.luau) |
 | Cloud-Top custom kit and contact | [Silverback poses](../roblox/grand-dojo/SilverbackCombatPoses.luau), [Sablecrest poses](../roblox/grand-dojo/SablecrestCombatPoses.luau), [contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Galleon custom kit and delayed tiles | [Fire Salamander poses](../roblox/grand-dojo/FireSalamanderCombatPoses.luau), [Granite poses](../roblox/grand-dojo/GraniteCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau) |
-| Grand Dojo Duel | [Queue and match lifecycle](../roblox/grand-dojo/GrandDojoDuel.server.luau), [symmetric round state](../roblox/grand-dojo/DuelCombatRound.luau), [pose and fitted contact](../roblox/grand-dojo/DuelFightMotion.luau) |
+| Grand Dojo Duel | [Queue and match lifecycle](../roblox/grand-dojo/GrandDojoDuel.server.luau), [series scoring and timing](../roblox/grand-dojo/DuelSeries.luau), [symmetric round state](../roblox/grand-dojo/DuelCombatRound.luau), [pose and fitted contact](../roblox/grand-dojo/DuelFightMotion.luau) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |

@@ -37,11 +37,11 @@ def build_dojo_duel(ring, floor, ring_offset, *, item, part, prop, sign, wood, m
         detail("Duel board clasp", (x + dx, floor + 1.74, gate_z + .13),
                (.29, .17, .076), brass, material=metal)
     sign(court, "1V1 DUEL", x, floor + 2.08, gate_z + .07, 4.70, .66, tint="3C525D", single_line=True)
-    sign(court, "LOCAL QUEUE", x, floor + 1.46, gate_z + .07, 4.32, .43, tint="4B6066", single_line=True)
+    sign(court, "CASUAL / BEST OF 3", x, floor + 1.46, gate_z + .07, 4.32, .43, tint="4B6066", single_line=True)
 
     gate = marker("Duel Queue", (x, floor + 1.75, gate_z + .89))
     prompt = item(gate, "ProximityPrompt", "JoinDuelPrompt")
-    prop(prompt, "string", "ActionText", "Join or leave queue")
+    prop(prompt, "string", "ActionText", "Choose duel format")
     prop(prompt, "string", "ObjectText", "Grand Dojo 1v1 Duel")
     prop(prompt, "float", "MaxActivationDistance", 7.25)
     prop(prompt, "bool", "RequiresLineOfSight", False)

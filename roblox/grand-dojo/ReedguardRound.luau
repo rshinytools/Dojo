@@ -118,13 +118,13 @@ local residentByOpener = {
 local combo = {jab = "cross", cross = "body"}
 local PARRY_COUNTER_TIME = 2.4
 
-local function newCombatant(now, fighter, kitId)
+local function newCombatant(now, fighter, kitId, timing)
     local kit = kits[kitId or "reedguard"]
     assert(kit, "Unknown combat kit")
-    local startsAt = now + Round.INTRO
+    local startsAt = now + (timing and timing.intro or Round.INTRO)
     return {
         kit = kit,
-        introAt = now, startsAt = startsAt, endsAt = startsAt + Round.DURATION,
+        introAt = now, startsAt = startsAt, endsAt = startsAt + (timing and timing.duration or Round.DURATION),
         playerHealth = fighter.health, playerMaxHealth = fighter.health,
         playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
         guardFrom = 0, guardUntil = 0, signatureUntil = 0,

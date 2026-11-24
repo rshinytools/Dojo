@@ -36,7 +36,7 @@ def verify_place():
                 "Fighter Select Station", "SwitchFighterPrompt", "Resident Dojo Bots",
                 "Cinder Terraces Ring", "Cloud-Top Temple", "Tideharbor practice ring",
                 "RingProgression", "GrandDojoRingTraining", "RingTrainingCompleted",
-                "GrandDojoDuel", "DuelCombatRound", "DuelFightMotion", "Duel Court", "JoinDuelPrompt",
+                "GrandDojoDuel", "DuelCombatRound", "DuelSeries", "DuelFightMotion", "Duel Court", "JoinDuelPrompt",
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander",
