@@ -161,7 +161,7 @@ local function lens(camera, focus, eye, width, narrow)
     camera.FieldOfView = width + (if narrow then 10 else 0)
 end
 
-function Intro:_shot(court, stage, age, wideFighters)
+function Intro:_shot(court, stage, age, presentation)
     local saved = self.camera
     if not saved then
         return
@@ -180,6 +180,8 @@ function Intro:_shot(court, stage, age, wideFighters)
     local camera = saved.camera
     local forward, right = playerSpawn.CFrame.LookVector, playerSpawn.CFrame.RightVector
     local up = Vector3.yAxis
+    local wideFighters = presentation.wideFighters
+    local deckLift = if presentation.deckView then .85 else 0
     local headroom = if wideFighters then .34 else 0
     local closeDistance = if wideFighters then 6.9 else 6.2
     local challenger = playerSpawn.Position + up * (.28 + headroom)
@@ -188,7 +190,7 @@ function Intro:_shot(court, stage, age, wideFighters)
     local narrow = camera.ViewportSize.X < camera.ViewportSize.Y
     if stage == 1 then
         lens(camera, middle, middle + right * (13.5 - math.clamp(age, 0, 2.3) * .65)
-            - forward * 5.0 + up * 4.3, if wideFighters then 61 else 58, narrow)
+            - forward * 5.0 + up * (4.3 + deckLift), if wideFighters then 61 else 58, narrow)
     elseif stage == 2 then
         lens(camera, challenger, challenger + right * (4.5 - (age - 2.3) * .33)
             + forward * closeDistance + up * 1.5, 46, narrow)
@@ -198,7 +200,7 @@ function Intro:_shot(court, stage, age, wideFighters)
     else
         local mix = math.clamp((age - 7) / 3, 0, 1)
         lens(camera, middle:Lerp(challenger, mix * .67),
-            middle + right * (10.7 - mix * 7.7) - forward * (6.6 + mix * 9.3) + up * 3.7, 62, narrow)
+            middle + right * (10.7 - mix * 7.7) - forward * (6.6 + mix * 9.3) + up * (3.7 + deckLift), 62, narrow)
     end
 end
 
@@ -216,6 +218,8 @@ function Intro:_startLive(court, presentation)
     local right, forward = spawn.CFrame.RightVector, spawn.CFrame.LookVector
     local headroom = if presentation.wideFighters then .31 else 0
     local depthBias = if presentation.wideFighters then .95 else 0
+    local height = if presentation.deckView then 4.05 else 2.7
+    local fieldOfView = if presentation.deckView then 57 else 54
     local currentFocus, currentEye
     self.liveRender = RunService.RenderStepped:Connect(function(dt)
         local root, camera = rootOf(self.player), saved.camera
@@ -231,11 +235,11 @@ function Intro:_startLive(court, presentation)
         local center = root.Position:Lerp(botFloor + Vector3.new(0, 2.1, 0), .5) + Vector3.yAxis * headroom
         local separation = math.min((root.Position - botFloor).Magnitude, 13)
         local depth = 8.3 + .34 * separation + depthBias
-        local eye = center + right * depth - forward * 1.8 + Vector3.new(0, 2.7, 0)
+        local eye = center + right * depth - forward * 1.8 + Vector3.yAxis * height
         local alpha = 1 - math.exp(-dt * 10)
         currentFocus = if currentFocus then currentFocus:Lerp(center, alpha) else center
         currentEye = if currentEye then currentEye:Lerp(eye, alpha) else eye
-        lens(camera, currentFocus, currentEye, 54, camera.ViewportSize.X < camera.ViewportSize.Y)
+        lens(camera, currentFocus, currentEye, fieldOfView, camera.ViewportSize.X < camera.ViewportSize.Y)
     end)
 end
 
@@ -288,7 +292,7 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
         if self.count.Visible then
             self.count.Text = tostring(math.ceil(remaining))
         end
-        self:_shot(court, stage, age, presentation.wideFighters)
+        self:_shot(court, stage, age, presentation)
     end
     render()
     self.render = RunService.RenderStepped:Connect(render)

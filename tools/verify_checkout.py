@@ -30,6 +30,7 @@ def verify_place():
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SparringBots",
                 "CombatIntro", "CombatEffects", "ReedguardRound", "ReedguardFightMotion", "ReedguardCombatPoses", "JuniperCombatPoses",
                 "PenguinCombatPoses", "BrackenCombatPoses", "SilverbackCombatPoses", "SablecrestCombatPoses",
+                "FireSalamanderCombatPoses", "GraniteCombatPoses",
                 "Juniper Tortoise", "Bracken Boar", "Sablecrest Lynx", "Granite Rhino", "SplashArtwork",
                 "Fighter Select Station", "SwitchFighterPrompt", "Resident Dojo Bots",
                 "Cinder Terraces Ring", "Cloud-Top Temple", "Tideharbor practice ring",

@@ -6,6 +6,8 @@ local Penguin = require(script.Parent.PenguinCombatPoses)
 local Bracken = require(script.Parent.BrackenCombatPoses)
 local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Sablecrest = require(script.Parent.SablecrestCombatPoses)
+local Salamander = require(script.Parent.FireSalamanderCombatPoses)
+local Granite = require(script.Parent.GraniteCombatPoses)
 local Motion = {}
 
 local tracked = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
@@ -18,6 +20,10 @@ local skywalkSpacing = 3.22
 local skywalkClearance = 2.90
 local sablecrestDriveClearance = 2.48
 local seismicTint = Color3.fromRGB(255, 206, 115)
+local galleonSpacing = 2.70
+local graniteClearance = 3.18
+local trailClearance = 2.44
+local emberTint = Color3.fromRGB(255, 163, 82)
 
 local function cinder(bout)
     return bout.kit == "penguin"
@@ -25,6 +31,10 @@ end
 
 local function skywalk(bout)
     return bout.kit == "silverback"
+end
+
+local function galleon(bout)
+    return bout.kit == "salamander"
 end
 
 local function directionTo(position, target, fallback)
@@ -81,6 +91,17 @@ local function clearLane(state, field)
     state[field] = nil
 end
 
+local function clearMagmaMarks(state)
+    for _, marks in state.magmaMarks do
+        for _, mark in marks do
+            if mark.warning.Parent then
+                mark.warning:Destroy()
+            end
+        end
+    end
+    table.clear(state.magmaMarks)
+end
+
 function Motion.open(bout)
     local character = bout.player.Character
     local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -88,8 +109,11 @@ function Motion.open(bout)
     local animator = humanoid:FindFirstChildOfClass("Animator")
     local state = {motors = {}, anchored = bout.root.Anchored, autoRotate = humanoid.AutoRotate,
         autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled,
-        humanoid = humanoid, playerPoses = if cinder(bout) then Penguin elseif skywalk(bout) then Silverback else Reedguard,
-        botPoses = if cinder(bout) then Bracken elseif skywalk(bout) then Sablecrest else Juniper}
+        humanoid = humanoid,
+        playerPoses = if cinder(bout) then Penguin elseif skywalk(bout) then Silverback
+            elseif galleon(bout) then Salamander else Reedguard,
+        botPoses = if cinder(bout) then Bracken elseif skywalk(bout) then Sablecrest
+            elseif galleon(bout) then Granite else Juniper}
     for _, name in tracked do
         local motor = character:FindFirstChild(name, true)
         if motor and motor:IsA("Motor6D") then
@@ -107,7 +131,8 @@ function Motion.open(bout)
     local contactSpace = Instance.new("Part")
     contactSpace.Name = bout.bot.Name .. " sparring clearance"
     contactSpace.Shape = Enum.PartType.Cylinder
-    local diameter = if cinder(bout) then cinderClearance elseif skywalk(bout) then skywalkClearance else 4.15
+    local diameter = if cinder(bout) then cinderClearance elseif skywalk(bout) then skywalkClearance
+        elseif galleon(bout) then graniteClearance else 4.15
     contactSpace.Size = Vector3.new(2.85, diameter, diameter)
     contactSpace.CFrame = CFrame.new(bout.position + Vector3.new(0, 1.43, 0))
         * CFrame.Angles(0, 0, math.pi / 2)
@@ -115,9 +140,12 @@ function Motion.open(bout)
     contactSpace.Anchored, contactSpace.CanCollide, contactSpace.CanTouch = true, true, false
     contactSpace.Parent = bout.bot
     state.contactSpace = contactSpace
-    if cinder(bout) or skywalk(bout) then
+    if cinder(bout) or skywalk(bout) or galleon(bout) then
         state.arenaCast = castParameters({character, bout.bot, bout.arena.bounds})
         state.avatarCast = castParameters({character, bout.arena.bounds})
+    end
+    if galleon(bout) then
+        state.magmaMarks = {}
     end
 
     local aim = Instance.new("Attachment")
@@ -145,6 +173,11 @@ function Motion.close(bout)
     clearLane(state, "rushLane")
     clearLane(state, "returnLane")
     clearLane(state, "seismicWarning")
+    if galleon(bout) then
+        clearLane(state, "emberWarning")
+        clearLane(state, "graniteWarning")
+        clearMagmaMarks(state)
+    end
     for _, joint in state.motors do
         if joint.motor.Parent then
             joint.motor.C0 = joint.rest
@@ -165,8 +198,8 @@ function Motion.close(bout)
 end
 
 function Motion.canAct(bout, action)
-    local groundedOnly = (cinder(bout) or skywalk(bout)) and (action == "dodge" or action == "signature")
-        or (skywalk(bout) and action == "secondary")
+    local groundedOnly = (cinder(bout) or skywalk(bout) or galleon(bout))
+        and (action == "dodge" or action == "signature") or ((skywalk(bout) or galleon(bout)) and action == "secondary")
     if not groundedOnly then
         return true
     end
@@ -179,7 +212,8 @@ local function playerAction(bout, now)
     local round = bout.round
     if bout.outroAt then
         local age = now - bout.outroAt
-        return if round.result == "win" then "win" elseif (cinder(bout) or skywalk(bout)) and round.result == "loss"
+        return if round.result == "win" then "win"
+            elseif (cinder(bout) or skywalk(bout) or galleon(bout)) and round.result == "loss"
             then "knockout" else "stagger", age
     elseif now < round.startsAt then
         return "intro", now - round.introAt
@@ -281,6 +315,144 @@ local function setTravelHold(bout, moving)
     if hold ~= state.holding then
         bout.root.Anchored = hold or state.anchored
         state.holding = hold
+    end
+end
+
+local function galleonLine(bout, folder, from, to, tint)
+    if (to - from).Magnitude < .02 or not Match.inside(bout.arena.bounds, from + Vector3.yAxis)
+        or not Match.inside(bout.arena.bounds, to + Vector3.yAxis) then
+        return
+    end
+    local lift = Vector3.new(0, .085, 0)
+    local line = Instance.new("Part")
+    line.Name = "Floor warning edge"
+    line.Size = Vector3.new(.132, .027, (from - to).Magnitude + .035)
+    line.CFrame = CFrame.lookAt((from + to) * .5 + lift, to + lift)
+    line.Anchored, line.CanCollide, line.CanTouch, line.CanQuery = true, false, false, false
+    line.Material, line.Color, line.Transparency, line.CastShadow = Enum.Material.Neon, tint, .25, false
+    line.Parent = folder
+end
+
+local function galleonContour(bout, name, center, radius, heading, halfAngle, tint)
+    local warning = Instance.new("Folder")
+    warning.Name = name
+    local segments = if halfAngle then 10 else 16
+    local limit = halfAngle or math.pi
+    local direction = heading or Vector3.new(0, 0, -1)
+    local previous
+    for index = 0, segments do
+        local yaw = -limit + 2 * limit * index / segments
+        local offset = CFrame.Angles(0, yaw, 0):VectorToWorldSpace(direction) * radius
+        local point = center + offset
+        if previous then
+            galleonLine(bout, warning, previous, point, tint)
+        end
+        if halfAngle and (index == 0 or index == segments) then
+            galleonLine(bout, warning, center, point, tint)
+        end
+        previous = point
+    end
+    warning.Parent = bout.telegraph
+    return warning
+end
+
+local function restoreGalleonClearance(bout)
+    local clearance = bout.motion.contactSpace
+    if clearance.Size.Y ~= graniteClearance and Match.flat(bout.root.Position - bout.position).Magnitude >= 2.28 then
+        clearance.Size = Vector3.new(2.85, graniteClearance, graniteClearance)
+    end
+end
+
+local function magmaPath(bout, cast, now)
+    local root, state = bout.root, bout.motion
+    local path = Salamander.Travel.magmaTrail
+    local limit = math.min(now, cast.clip.startedAt + path[#path].age)
+    while cast.movedAt + .0001 < limit do
+        local stepAt = math.min(cast.movedAt + 1 / 40, limit)
+        for _, tile in Salamander.Skill.magmaTrail.tiles do
+            local mark = cast.clip.startedAt + tile.markAt
+            if mark > cast.movedAt + .0001 then
+                stepAt = math.min(stepAt, mark)
+            end
+        end
+        local offset = pathOffset(path, stepAt - cast.clip.startedAt)
+        local obstacle = cast.origin:PointToObjectSpace(bout.position)
+        local dx = offset.X - obstacle.X
+        -- Cut shallower around Granite's front when he occupies the nominal route.
+        -- The extra margin keeps the curved section outside the movement cylinder.
+        local skirt = 1.94
+        if obstacle.Z < 0 and math.abs(dx) < skirt then
+            local depth = obstacle.Z + math.sqrt(skirt * skirt - dx * dx)
+            offset = Vector3.new(offset.X, 0, math.max(offset.Z, depth))
+        end
+        local current = root.Position
+        local delta = cast.origin:PointToWorldSpace(offset) - current
+        if delta.Magnitude > .005 then
+            local maxStep = 18 * (stepAt - cast.movedAt)
+            local desired = delta.Unit * math.min(delta.Magnitude, maxStep)
+            local bounded = stopAtActor(current, desired, bout.position, 1.79)
+            local box = CFrame.new(current - Vector3.new(0, .55, 0)) * cast.origin.Rotation
+            local position = safeTravel(bout, current, current + bounded, box,
+                Vector3.new(1.05, 2.24, 1.05), state.arenaCast)
+            if (position - current).Magnitude > .005 then
+                Match.move(root, CFrame.new(position) * cast.origin.Rotation)
+            end
+        end
+        cast.movedAt = stepAt
+        rememberPosition(cast.samples, stepAt, root.Position)
+    end
+end
+
+local function galleonPlayer(bout, now)
+    local state, round, root = bout.motion, bout.round, bout.root
+    local clip = round.clip
+    local action = clip and clip.action
+    if bout.outroAt or (action ~= "sidestep" and action ~= "emberSweep" and action ~= "magmaTrail") then
+        state.salamanderCast = nil
+        clearLane(state, "emberWarning")
+        if bout.outroAt and next(state.magmaMarks) then
+            clearMagmaMarks(state)
+        end
+        restoreGalleonClearance(bout)
+        setTravelHold(bout, now < round.startsAt)
+        return
+    end
+    local cast = state.salamanderCast
+    if not cast or cast.clip ~= clip then
+        cast = {clip = clip, origin = root.CFrame, movedAt = clip.startedAt,
+            samples = {{at = clip.startedAt, position = root.Position}}}
+        state.salamanderCast = cast
+    end
+    setTravelHold(bout, true)
+    local age = now - clip.startedAt
+    if action == "magmaTrail" then
+        if state.contactSpace.Size.Y ~= trailClearance then
+            state.contactSpace.Size = Vector3.new(2.85, trailClearance, trailClearance)
+        end
+        magmaPath(bout, cast, now)
+    elseif action == "emberSweep" then
+        local skill = Salamander.Skill.emberSweep
+        if not state.emberWarning and age >= skill.warningAt and age < Salamander.Contact.emberSweep then
+            local center = groundPoint(bout, cast.origin:PointToWorldSpace(skill.center))
+            state.emberWarning = galleonContour(bout, "Ember Sweep warning", center, skill.radius,
+                cast.origin.LookVector, skill.halfAngle, emberTint)
+        elseif age >= Salamander.Contact.emberSweep then
+            clearLane(state, "emberWarning")
+        end
+    elseif not cast.blocked then
+        local alpha = math.clamp((age - .035) / .235, 0, 1)
+        local eased = alpha * alpha * (3 - 2 * alpha)
+        local right = cast.origin.RightVector
+        local current = root.Position
+        local desired = cast.origin.Position + right * (clip.direction * 2.40 * eased) - current
+        local movement = stopAtActor(current, desired, bout.position, 2.12)
+        local position, blocked = safeTravel(bout, current, current + movement,
+            CFrame.new(current) * cast.origin.Rotation, Vector3.new(1.3, 2.2, 1.2), state.avatarCast)
+        cast.blocked = blocked
+        if (position - current).Magnitude > .005 then
+            Match.move(root, CFrame.new(position) * cast.origin.Rotation)
+        end
+        rememberPosition(cast.samples, now, root.Position)
     end
 end
 
@@ -436,6 +608,9 @@ local function playerDodge(bout, now)
         return
     elseif skywalk(bout) then
         skywalkPlayer(bout, now)
+        return
+    elseif galleon(bout) then
+        galleonPlayer(bout, now)
         return
     end
     local state, root, clip = bout.motion, bout.root, bout.round.clip
@@ -616,6 +791,79 @@ local function sablecrestCommand(bout, now)
     rememberPosition(action.samples, now, bout.position)
 end
 
+local function graniteStep(bout, movement, orientation)
+    local minimumGap = if bout.motion.contactSpace.Size.Y == trailClearance then 1.79 else 2.32
+    local allowed = stopAtActor(bout.position, movement, bout.root.Position, minimumGap)
+    local center = bout.position + Vector3.new(0, 1.51, 0)
+    bout.position = safeTravel(bout, bout.position, bout.position + allowed,
+        CFrame.new(center) * orientation.Rotation, Vector3.new(2.02, 2.85, 1.8), bout.motion.arenaCast)
+end
+
+local function graniteAttackPoint(bout, command, age, basis)
+    local descriptor = command.descriptor
+    local pose = Granite.sample(descriptor.windup, age, command.attack.windup)
+    local joint = bout.joints[descriptor.group].joint
+    return (basis * pose.root * joint * pose.groups[descriptor.group]):PointToWorldSpace(descriptor.point)
+end
+
+local function graniteCommand(bout, now)
+    local state, round = bout.motion, bout.round
+    local phase, attack = round.botPhase, round.attack
+    local descriptor = attack and Granite.Attacks[attack.name]
+    if phase == "ready" or not descriptor then
+        state.graniteAction = nil
+        clearLane(state, "graniteWarning")
+        return
+    end
+    local action = state.graniteAction
+    if not action or action.attack ~= attack then
+        local heading = directionTo(bout.position, bout.root.Position, bout.direction)
+        local basis = CFrame.lookAlong(bout.position, heading)
+        action = {attack = attack, descriptor = descriptor, basis = basis,
+            samples = {{at = round.botStartedAt, position = bout.position}}}
+        state.graniteAction = action
+    end
+    if bout.outroAt or phase == "recovery" then
+        clearLane(state, "graniteWarning")
+    elseif phase == "windup" and not action.marked then
+        if descriptor.groundPulse then
+            local sole = graniteAttackPoint(bout, action, attack.windup, action.basis)
+            action.stampCenter = groundPoint(bout, sole)
+            action.stampRadius = math.min(4.25, attack.reach)
+            state.graniteWarning = galleonContour(bout, "Breakwater Stamp warning", action.stampCenter,
+                action.stampRadius, nil, nil, bout.profile.tint)
+        else
+            local warning = Instance.new("Folder")
+            warning.Name = "Harbor Sweep warning"
+            local startAge = attack.windup * descriptor.contactFrom / descriptor.contactAt
+            local previous
+            for index = 0, 10 do
+                local age = startAge + (attack.windup - startAge) * index / 10
+                local point = groundPoint(bout, graniteAttackPoint(bout, action, age, action.basis))
+                if previous and not obstructed(bout, action.basis.Position, point + Vector3.new(0, .20, 0)) then
+                    galleonLine(bout, warning, previous, point, bout.profile.tint)
+                end
+                previous = point
+            end
+            warning.Parent = bout.telegraph
+            state.graniteWarning = warning
+        end
+        action.marked = true
+    end
+    rememberPosition(action.samples, now, bout.position)
+end
+
+local function granitePop(bout, now)
+    local state, pop = bout.motion, bout.motion.galleonPop
+    if pop then
+        local age = math.clamp((now - pop.at) / .28, 0, 1)
+        state.galleonLift = 4 * age * (1 - age) * Salamander.Skill.magmaTrail.popHeight
+        if age >= 1 then
+            state.galleonPop = nil
+        end
+    end
+end
+
 local function botAction(bout, now)
     local round = bout.round
     if bout.outroAt then
@@ -623,7 +871,7 @@ local function botAction(bout, now)
         return action, now - bout.outroAt
     elseif now < round.startsAt then
         return "intro", now - round.introAt
-    elseif cinder(bout) or skywalk(bout) then
+    elseif cinder(bout) or skywalk(bout) or galleon(bout) then
         local attack = round.attack
         local cue = attack and bout.motion.botPoses.Attacks[attack.name]
         if cue then
@@ -660,6 +908,15 @@ end
 
 local function botBase(bout, time)
     local round, state = bout.round, bout.motion
+    if galleon(bout) then
+        local command = state.graniteAction
+        local floor = if time and command then positionAt(command.samples, time) else bout.position
+        local location = floor + Vector3.new(0, state.galleonLift or 0, 0)
+        if command then
+            return CFrame.new(location) * command.basis.Rotation
+        end
+        return CFrame.lookAlong(location, bout.direction)
+    end
     if skywalk(bout) then
         local command = state.sablecrestAction
         local floor = if time and command then positionAt(command.samples, time) else bout.position
@@ -723,7 +980,8 @@ local function sweptContact(from, to, frame, size, radius)
 end
 
 local function actorRootAt(bout, time)
-    local travel = if skywalk(bout) then bout.motion.skywalkCast else bout.motion.playerTravel
+    local travel = if skywalk(bout) then bout.motion.skywalkCast
+        elseif galleon(bout) then bout.motion.salamanderCast else bout.motion.playerTravel
     if travel then
         return CFrame.new(positionAt(travel.samples, time)) * travel.origin.Rotation
     end
@@ -807,8 +1065,91 @@ local function silverbackStrike(bout, action, move, time, index)
     return false, point
 end
 
-function Motion.strike(bout, action, move, time, index)
-    if skywalk(bout) then
+local function footContact(bout, time, center, radius, direction, angle)
+    local frame, groups = botPose(bout, time)
+    local target = center + Vector3.new(0, .23, 0)
+    for _, name in {"Right Leg", "Left Leg"} do
+        local joint = bout.joints[name]
+        local foot = jointFrame(frame, groups, name, joint) * joint.shell
+        local edge = nearestPoint(foot, joint.part.Size, target)
+        local offset = Match.flat(edge - center)
+        if edge.Y <= center.Y + .86 and offset.Magnitude <= radius
+            and (not direction or offset.Magnitude <= .01 or offset.Unit:Dot(direction) >= math.cos(angle))
+            and not obstructed(bout, center, edge + Vector3.new(0, .125, 0)) then
+            return edge
+        end
+    end
+    return nil
+end
+
+local function magmaContact(bout, move, time, index, castStartedAt)
+    local state = bout.motion
+    local marks = state.magmaMarks[castStartedAt]
+    if move.marker then
+        local cast = state.salamanderCast
+        if not cast or cast.clip.startedAt ~= castStartedAt or cast.movedAt < time - .001 then
+            return false
+        end
+        local center = groundPoint(bout, positionAt(cast.samples, time))
+        if not Match.inside(bout.arena.bounds, center + Vector3.yAxis)
+            or Match.flat(center - cast.origin.Position).Magnitude < .30
+            or (marks and marks[1] and (center - marks[1].center).Magnitude < move.radius) then
+            return false
+        end
+        if not marks then
+            marks = {}
+            state.magmaMarks[castStartedAt] = marks
+        end
+        local name = if index == 1 then "Magma Trail first mark" else "Magma Trail second mark"
+        local warning = galleonContour(bout, name, center, move.radius, nil, nil, emberTint)
+        marks[index] = {center = center, warning = warning}
+        return true, center
+    end
+    local mark = marks and marks[index]
+    if not mark then
+        return false
+    end
+    mark.warning:Destroy()
+    marks[index] = nil
+    if not next(marks) then
+        state.magmaMarks[castStartedAt] = nil
+    end
+    local hit = footContact(bout, time, mark.center, move.radius) ~= nil
+    return hit, mark.center, "body"
+end
+
+local function salamanderStrike(bout, action, move, time, index, castStartedAt)
+    if action == "magmaTrail" then
+        return magmaContact(bout, move, time, index, castStartedAt)
+    end
+    local root = actorRootAt(bout, time)
+    local point = root:PointToWorldSpace(Salamander.Impact[action][index])
+    if action == "emberSweep" then
+        local center = groundPoint(bout, root:PointToWorldSpace(move.center))
+        local hit = footContact(bout, time, center, move.radius, root.LookVector, move.halfAngle)
+        return hit ~= nil, hit or point, "body"
+    end
+    local offset = Match.flat(bout.position - root.Position)
+    if offset.Magnitude < .05 or offset.Magnitude > 3.65 or offset.Unit:Dot(root.LookVector) < .43 then
+        return false, point
+    end
+    local frame, groups = botPose(bout, time)
+    for _, name in if move.zone == "head" then {"Head", "Torso"} else {"Torso"} do
+        local joint = bout.joints[name]
+        local target = jointFrame(frame, groups, name, joint) * joint.shell
+        local nearest = nearestPoint(target, joint.part.Size, point)
+        local contact = point:Lerp(nearest, .5)
+        if (point - nearest).Magnitude <= .46 and not obstructed(bout, root.Position, contact) then
+            return true, contact, if name == "Head" then "head" else "body"
+        end
+    end
+    return false, point
+end
+
+function Motion.strike(bout, action, move, time, index, castStartedAt)
+    if galleon(bout) then
+        return salamanderStrike(bout, action, move, time, index, castStartedAt)
+    elseif skywalk(bout) then
         return silverbackStrike(bout, action, move, time, index)
     elseif action == "bellySlide" and cinder(bout) then
         return slideContact(bout, time, index)
@@ -852,7 +1193,7 @@ local function actorVolumes(bout, time, guardFacing)
     end
     local torso = root * offsets.RootJoint * rootJoint.rest * rootJoint.motor.C1:Inverse()
     local volumes = {}
-    local function add(name, motorName, zone)
+    local function add(name, motorName, zone, grounded)
         local mesh = shell:FindFirstChild(name)
         local weld = mesh and mesh:FindFirstChildOfClass("Weld")
         local joint = motorName and state.motors[motorName]
@@ -860,7 +1201,8 @@ local function actorVolumes(bout, time, guardFacing)
             return
         end
         local carrier = if joint then torso * offsets[motorName] * joint.rest * joint.motor.C1:Inverse() else torso
-        table.insert(volumes, {frame = carrier * weld.C0 * weld.C1:Inverse(), size = mesh.Size, zone = zone})
+        table.insert(volumes,
+            {frame = carrier * weld.C0 * weld.C1:Inverse(), size = mesh.Size, zone = zone, grounded = grounded})
     end
     if guardFacing then
         add("Right Arm", "Right Shoulder", "body")
@@ -868,8 +1210,8 @@ local function actorVolumes(bout, time, guardFacing)
     end
     add("Head", "Neck", "head")
     add("Torso", nil, "body")
-    add("Right Leg", "Right Hip", "body")
-    add("Left Leg", "Left Hip", "body")
+    add("Right Leg", "Right Hip", "body", true)
+    add("Left Leg", "Left Hip", "body", true)
     return volumes
 end
 
@@ -915,8 +1257,52 @@ local function featuredBotStrike(bout, time)
     return false, facing, "body", from
 end
 
+local function graniteStrike(bout, time)
+    graniteCommand(bout, time)
+    local command = bout.motion.graniteAction
+    if not command then
+        return false, false, "body", bout.position
+    end
+    local root, round = bout.root, bout.round
+    local facing = directionTo(root.Position, bout.position, root.CFrame.LookVector):Dot(root.CFrame.LookVector) >= .38
+    local guard = round.guardUntil >= time and time >= round.guardFrom + .055
+    local volumes = actorVolumes(bout, time, guard and facing)
+    if command.stampCenter then
+        local center = command.stampCenter
+        for _, volume in volumes do
+            if volume.grounded then
+                local edge = nearestPoint(volume.frame, volume.size, center + Vector3.new(0, .22, 0))
+                if edge.Y <= center.Y + .71 and Match.flat(edge - center).Magnitude <= command.stampRadius
+                    and not obstructed(bout, center, edge + Vector3.new(0, .125, 0)) then
+                    return true, facing, "body", center
+                end
+            end
+        end
+        return false, facing, "body", center
+    end
+    local attack, descriptor = command.attack, command.descriptor
+    local firstAge = attack.windup * descriptor.contactFrom / descriptor.contactAt
+    local function pointAt(age)
+        return graniteAttackPoint(bout, command, age, botBase(bout, round.botStartedAt + age))
+    end
+    local previous = pointAt(firstAge)
+    for index = 1, 10 do
+        local finish = pointAt(firstAge + (attack.windup - firstAge) * index / 10)
+        for _, volume in volumes do
+            local hit = sweptContact(previous, finish, volume.frame, volume.size, descriptor.radius)
+            if hit and not obstructed(bout, bout.position, hit) then
+                return true, facing, volume.zone, hit
+            end
+        end
+        previous = finish
+    end
+    return false, facing, "body", previous
+end
+
 function Motion.palm(bout, time)
-    if cinder(bout) or skywalk(bout) then
+    if galleon(bout) then
+        return graniteStrike(bout, time)
+    elseif cinder(bout) or skywalk(bout) then
         return featuredBotStrike(bout, time)
     end
     local pose = Juniper.sample("palm", bout.round.attack.windup, bout.round.attack.windup)
@@ -947,13 +1333,18 @@ function Motion.move(bout, now, dt)
         sablecrestShove(bout, now)
         sablecrestCommand(bout, now)
         keepClearance(bout)
+    elseif galleon(bout) then
+        granitePop(bout, now)
+        graniteCommand(bout, now)
+        keepClearance(bout)
     end
     local offset = Match.flat(bout.root.Position - bout.position)
     local distance = offset.Magnitude
     if not bout.outroAt and (round.botPhase == "ready" or round.botPhase == "setup") and distance > .04 then
         bout.direction = offset.Unit
     end
-    local spacing = if cinder(bout) then cinderSpacing elseif skywalk(bout) then skywalkSpacing else 3.13
+    local spacing = if cinder(bout) then cinderSpacing elseif skywalk(bout) then skywalkSpacing
+        elseif galleon(bout) then galleonSpacing else 3.13
     bout.moving = not bout.outroAt and not state.shove and now >= round.startsAt
         and round.botPhase == "ready" and distance > spacing
     if bout.moving then
@@ -963,6 +1354,9 @@ function Motion.move(bout, now, dt)
             keepClearance(bout)
         elseif skywalk(bout) then
             sablecrestStep(bout, travel, CFrame.lookAlong(Vector3.zero, bout.direction))
+            keepClearance(bout)
+        elseif galleon(bout) then
+            graniteStep(bout, travel, CFrame.lookAlong(Vector3.zero, bout.direction))
             keepClearance(bout)
         else
             bout.position = Match.clampFloor(bout.arena.bounds, bout.position + travel, bout.arena.floor)
@@ -984,6 +1378,9 @@ function Motion.render(bout, now)
     elseif skywalk(bout) then
         skywalkPlayer(bout, now)
         sablecrestCommand(bout, now)
+    elseif galleon(bout) then
+        galleonPlayer(bout, now)
+        graniteCommand(bout, now)
     end
     local action, age, direction = playerAction(bout, now)
     local offsets = bout.motion.playerPoses.sample(action, age, direction)
@@ -1008,6 +1405,8 @@ function Motion.impact(bout, event)
             if travel then
                 state.shove = {at = event.at, offset = travel.origin.LookVector * 1.38, progress = 0}
             end
+        elseif galleon(bout) and event.attack == "magmaTrail" then
+            bout.motion.galleonPop = {at = event.at}
         elseif skywalk(bout) and (event.attack == "ridgePalm" or event.attack == "seismicChestPound") then
             local state = bout.motion
             local cast = state.skywalkCast

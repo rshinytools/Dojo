@@ -16,6 +16,12 @@ local tint = {
     parried = Color3.fromRGB(139, 235, 255),
     blocked = Color3.fromRGB(183, 215, 210),
     braced = Color3.fromRGB(174, 211, 180),
+    burst = Color3.fromRGB(255, 143, 75),
+}
+local groundPulses = {
+    seismicChestPound = {name = "Seismic contact pulse", color = Color3.fromRGB(255, 183, 104), initial = 1.4,
+        width = 8.5, compact = 5.9, life = .26},
+    magmaTrail = {name = "Magma tile burst", color = tint.burst, initial = .65, width = 2.36, compact = 2.15, life = .30},
 }
 
 local folder
@@ -45,22 +51,22 @@ local function worldFolder()
     return folder
 end
 
-local function slamPulse(point, compact, reduced)
+local function groundPulse(point, style, compact, reduced)
     local pulse = Instance.new("Part")
-    pulse.Name = "Seismic contact pulse"
+    pulse.Name = style.name
     pulse.Shape = Enum.PartType.Cylinder
     pulse.Anchored, pulse.CanCollide, pulse.CanQuery, pulse.CanTouch = true, false, false, false
     pulse.CastShadow, pulse.Material = false, Enum.Material.Neon
-    pulse.Color = Color3.fromRGB(255, 183, 104)
+    pulse.Color = style.color
     pulse.Transparency = if reduced then .86 elseif compact then .78 else .70
-    pulse.Size = Vector3.new(.035, 1.4, 1.4)
+    pulse.Size = Vector3.new(.035, style.initial, style.initial)
     pulse.CFrame = CFrame.new(point + Vector3.new(0, .065, 0)) * CFrame.Angles(0, 0, math.pi / 2)
     pulse.Parent = worldFolder()
-    local width = if reduced then 1.4 elseif compact then 5.9 else 8.5
-    TweenService:Create(pulse, TweenInfo.new(.26, Enum.EasingStyle.Quad), {
+    local width = if reduced then style.initial elseif compact then style.compact else style.width
+    TweenService:Create(pulse, TweenInfo.new(style.life, Enum.EasingStyle.Quad), {
         Size = Vector3.new(.035, width, width), Transparency = 1,
     }):Play()
-    Debris:AddItem(pulse, .32)
+    Debris:AddItem(pulse, style.life + .06)
 end
 
 function CombatEffects.play(kind, point, attack)
@@ -78,9 +84,13 @@ function CombatEffects.play(kind, point, attack)
     local reduced = GuiService.ReducedMotionEnabled or UserInputService.VREnabled
     local mobile = UserInputService.TouchEnabled
     local compact = reduced or mobile or distance > 32
-    if attack == "seismicChestPound" then
-        slamPulse(point, compact, reduced)
+    local pulse = groundPulses[attack]
+    if pulse then
+        groundPulse(point, pulse, compact, reduced)
         return
+    end
+    if attack == "emberSweep" then
+        color = tint.burst
     end
     local diameter = if parry then (if compact then 1.28 else 1.72) else (if compact then .93 else 1.2)
     local life = if parry then .27 else .21

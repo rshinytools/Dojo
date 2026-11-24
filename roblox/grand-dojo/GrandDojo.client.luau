@@ -1533,21 +1533,35 @@ local showcaseKits = {
         signatureCooldown = "Slide %ds", tint = Color3.fromRGB(163, 216, 251)},
     silverback = {challenger = "Silverback Gorilla", challengerShort = "Silverback", residentShort = "Sablecrest",
         techniqueAction = "secondary", techniqueName = "RidgePalm", techniqueLabel = "Ridge Palm",
+        techniqueCooldown = "Ridge Palm\n%ds",
         dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "SeismicChestPound", signatureLabel = "Seismic",
         signatureCooldown = "Seismic\n%ds", wideFighters = true, tint = Color3.fromRGB(230, 194, 138)},
+    salamander = {challenger = "Fire Salamander", challengerShort = "Salamander", residentShort = "Granite",
+        techniqueAction = "secondary", techniqueName = "EmberSweep", techniqueLabel = "Ember Sweep",
+        techniqueCooldown = "Ember Sweep\n%ds",
+        dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "MagmaTrail", signatureLabel = "Magma Trail",
+        signatureCooldown = "Magma Trail\n%ds", wideFighters = true, deckView = true, tint = Color3.fromRGB(255, 174, 109)},
 }
 
+local showcaseCourts = {
+    ["grand-dojo"] = {"Fighting Ring"},
+    cinder = {"Connected districts", "Cinder Terraces", "Cinder Terraces Ring"},
+    ["cloud-top"] = {"Connected districts", "Skywalk Peaks", "Cloud-Top Temple"},
+    galleon = {"Connected districts", "Tideharbor Coast", "Sunken Pirate Galleon", "Tideharbor practice ring"},
+}
 local function showcaseCourt(ringId)
-    local ring
-    if ringId == "cinder" or ringId == "cloud-top" then
-        local connected = city:FindFirstChild("Connected districts")
-        local cinder = ringId == "cinder"
-        local town = connected and connected:FindFirstChild(if cinder then "Cinder Terraces" else "Skywalk Peaks")
-        ring = town and town:FindFirstChild(if cinder then "Cinder Terraces Ring" else "Cloud-Top Temple")
-    elseif ringId == "grand-dojo" then
-        ring = city:FindFirstChild("Fighting Ring")
+    local path = showcaseCourts[ringId]
+    if not path then
+        return nil
     end
-    return ring and ring:FindFirstChild("Bot Spar Corner")
+    local ring = city
+    for _, name in path do
+        ring = ring:FindFirstChild(name)
+        if not ring then
+            return nil
+        end
+    end
+    return ring:FindFirstChild("Bot Spar Corner")
 end
 
 sparPicker = make("Frame", gui, {
@@ -1762,12 +1776,15 @@ local cues = {
     reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
     floeTurn = "Floe Turn", bellySlide = "Belly-Slide Blitz",
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
+    emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
     needParry = "Parry a strike to unlock Rising.",
 }
 local cooldownCues = {
     slideCooling = {label = "Belly Slide", field = "nextSignature"},
     ridgeCooling = {label = "Ridge Palm", field = "nextSecondary"},
     seismicCooling = {label = "Seismic", field = "nextSignature"},
+    emberCooling = {label = "Ember Sweep", field = "nextSecondary"},
+    magmaCooling = {label = "Magma Trail", field = "nextSignature"},
 }
 
 local resultAwaitingReward = false
@@ -1793,13 +1810,12 @@ local function refreshSparControls(now)
     strikeButton.Text = if keyboard then "Strike · E" elseif gamepad then "Strike · RT" else "Strike"
     guardButton.Text = if keyboard then "Guard · Q" elseif gamepad then "Guard · LT" else "Guard"
     leaveButton.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · Y" else "Leave"
-    local ridge = kit.techniqueAction == "secondary"
     local clock = now or workspace:GetServerTimeNow()
-    local ridgeCooling = if ridge then cooldownSeconds(matchPresentation.nextSecondary, clock) else 0
-    combatButtons.technique.TextWrapped = ridge
-    combatButtons.technique.Text = if ridgeCooling > 0 then string.format("Ridge Palm\n%ds", ridgeCooling)
+    local techniqueCooling = if kit.techniqueCooldown then cooldownSeconds(matchPresentation.nextSecondary, clock) else 0
+    combatButtons.technique.TextWrapped = kit.techniqueCooldown ~= nil
+    combatButtons.technique.Text = if techniqueCooling > 0 then string.format(kit.techniqueCooldown, techniqueCooling)
         else (kit.techniqueLabel or "Uppercut") .. (if keyboard then " · V" elseif gamepad then "\nD-pad ↑" else "")
-    combatButtons.technique.TextColor3 = if ridgeCooling > 0 then palette.muted else palette.parchment
+    combatButtons.technique.TextColor3 = if techniqueCooling > 0 then palette.muted else palette.parchment
     combatButtons.heavy.Text = if keyboard then "Heavy · R" elseif gamepad then "Heavy · RB" else "Heavy"
     local separator = if kit.signatureCooldown then "\n" else " · "
     combatButtons.dodge.Text = kit.dodgeLabel .. (if keyboard then separator .. "X" elseif gamepad then separator .. "LB" else "")
@@ -1952,10 +1968,11 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
             ring = title, challenger = kit.challenger, challengerShort = kit.challengerShort,
             resident = opponent.name, residentShort = kit.residentShort,
             challengerTint = kit.tint, residentTint = if kit.tint then opponent.tint else nil,
-            wideFighters = kit.wideFighters,
+            wideFighters = kit.wideFighters, deckView = kit.deckView,
         }
         fightIntro:Start(introAt, startsAt, showcaseCourt(ringId), intro, function()
             matchPresentation.inIntro = false
+            refreshSparControls()
             layoutMatchControls()
         end)
     end
@@ -2101,7 +2118,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     elseif showcase and feedback == "parried" then
         sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
     elseif not parryCue and (feedback == "uppercut" or feedback == "floeTurn" or feedback == "bellySlide"
-        or feedback == "ridgePalm" or feedback == "seismicChestPound") then
+        or feedback == "ridgePalm" or feedback == "seismicChestPound" or feedback == "emberSweep" or feedback == "magmaTrail") then
         sparHint.Text = cues[feedback]
     elseif not parryCue and cooldownCue then
         local cooling = cooldownSeconds(matchPresentation[cooldownCue.field], now)
@@ -2110,6 +2127,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     elseif phase == "windup" then
         sparHint.Text = if feedback == "guard" then "Guard up"
             elseif parryCue then "Guard now to parry!"
+            elseif tell == "Breakwater Stamp" and kit == showcaseKits.salamander then "Breakwater Stamp · Leave the circle"
             else (tell or "Incoming strike") .. " · Watch the mat"
     elseif phase == "setup" and not feedback then
         sparHint.Text = tell or "Watch your opponent’s stance"

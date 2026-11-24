@@ -25,6 +25,7 @@ local featuredFighters = {
     ["grand-dojo"] = {["reedguard-kangaroo"] = "reedguard"},
     cinder = {["penguin-brawler"] = "penguin"},
     ["cloud-top"] = {["silverback-gorilla"] = "silverback"},
+    galleon = {["fire-salamander"] = "salamander"},
 }
 local activeByPlayer, offers, rematches, lastAction = {}, {}, {}, {}
 
@@ -332,22 +333,30 @@ local function tickShowcase(bout, now, dt)
     local round = bout.round
     local distance = Motion.move(bout, now, dt)
     local before = round.botPhase
-    FeaturedRound.step(round, now, distance, function(action, move, time, index)
-        return Motion.strike(bout, action, move, time, index)
+    FeaturedRound.step(round, now, distance, function(action, move, time, index, castStartedAt)
+        return Motion.strike(bout, action, move, time, index, castStartedAt)
     end, function(time)
         return Motion.palm(bout, time)
     end)
     local hadImpact = #round.notices > 0
     for _, event in round.notices do
         Motion.impact(bout, event)
-        if event.point and ((event.damage or 0) > 0 or event.kind == "parried" or event.kind == "blocked") then
-            remote:FireAllClients("impact", event.kind, event.point, event.attack)
+        if event.point then
+            if (event.damage or 0) > 0 or event.kind == "parried" or event.kind == "blocked" then
+                remote:FireAllClients("impact", event.kind, event.point, event.attack)
+            elseif event.attack == "magmaTrail" then
+                remote:FireAllClients("impact", "burst", event.point, event.attack)
+            end
         end
-        bout.message, bout.messageUntil = event.kind, now + .86
+        if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
+            bout.message, bout.messageUntil = event.kind, now + .86
+        end
         if RunService:IsStudio() then
             bout.bot:SetAttribute("LastContactKind", event.kind)
             bout.bot:SetAttribute("LastContactAttack", event.attack)
             bout.bot:SetAttribute("LastContactIndex", event.index)
+            bout.bot:SetAttribute("LastContactCastAt", event.castStartedAt)
+            bout.bot:SetAttribute("LastContactDamage", event.damage)
             bout.bot:SetAttribute("LastContactAt", event.at)
         end
     end

@@ -3,6 +3,7 @@
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local Penguin = require(script.Parent.PenguinCombatPoses)
 local Silverback = require(script.Parent.SilverbackCombatPoses)
+local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Round = {}
 
 Round.INTRO = 10
@@ -48,6 +49,36 @@ local silverbackClips = {
     }},
 }
 
+local ember = Salamander.Skill.emberSweep
+local magma = Salamander.Skill.magmaTrail
+local salamanderClips = {
+    jab = {{at = Salamander.Contact.jab, damage = 14, zone = "head"}},
+    cross = {{at = Salamander.Contact.cross, damage = 14, zone = "head"}},
+    body = {{at = Salamander.Contact.body, damage = 15, zone = "body"}},
+    heavy = {{at = Salamander.Contact.heavy, damage = 21, zone = "body"}},
+    emberSweep = {{
+        at = Salamander.Contact.emberSweep, damage = ember.damage, zone = "body",
+        shape = "fan", center = ember.center, radius = ember.radius, halfAngle = ember.halfAngle,
+    }},
+}
+
+-- The mat owns these events once the cast begins. A later clip can stop
+-- planting but cannot cancel a timer on a tile that already reached the mat.
+local magmaTimeline = {}
+for index, tile in magma.tiles do
+    table.insert(magmaTimeline, {
+        at = tile.markAt, index = index, marker = true,
+        shape = "tile", center = tile.offset, radius = magma.radius, markAt = tile.markAt,
+    })
+    table.insert(magmaTimeline, {
+        at = Salamander.Contact.magmaTrail[index], index = index, damage = magma.tileDamage, zone = "body",
+        shape = "tile", center = tile.offset, radius = magma.radius, markAt = tile.markAt,
+    })
+end
+table.sort(magmaTimeline, function(a, b)
+    return a.at < b.at
+end)
+
 local kits = {
     reedguard = {
         poses = Reedguard, clips = Round.CLIPS, botStartRange = 3.65, botAttackLabel = "palm",
@@ -63,6 +94,12 @@ local kits = {
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .98,
         signature = "seismicChestPound", signatureCooldown = 7.8, signatureCooling = "seismicCooling",
         secondary = "ridgePalm", secondaryCooldown = 3.4, secondaryCooling = "ridgeCooling",
+    },
+    salamander = {
+        poses = Salamander, clips = salamanderClips, botStartRange = 3.80,
+        dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .78,
+        signature = "magmaTrail", signatureCooldown = 7.4, signatureCooling = "magmaCooling",
+        secondary = "emberSweep", secondaryCooldown = 3.2, secondaryCooling = "emberCooling",
     },
 }
 local combo = {jab = "cross", cross = "body"}
@@ -96,6 +133,10 @@ local function report(round, kind, at, fields)
 end
 
 local function play(round, action, at)
+    local trail = round.trail
+    if trail and round.clip == trail.clip and at < trail.clip.endsAt then
+        trail.interruptedAt = at
+    end
     local duration = if action == "guard" then Round.GUARD_DURATION else round.kit.poses.Duration[action]
     round.clip = {action = action, startedAt = at, endsAt = at + duration, nextContact = 1}
 end
@@ -158,8 +199,26 @@ function Round.act(round, action, now, direction)
         end
         round.signatureUntil, round.guardUntil = 0, 0
         play(round, kit.signature, now)
+        if kit == kits.salamander then
+            round.trail = {
+                startedAt = now, clip = round.clip, nextEvent = 1, planted = {}, remainingDamage = magma.damageBudget,
+            }
+        end
         return kit.signature
     end
+end
+
+local function landContact(round, at, fields)
+    local brace = round.botPhase == "setup" and round.attack.brace
+    local counter = round.botPhase == "recovery" and round.recoveryKind == "parried"
+    local damage = if brace then math.ceil(fields.damage / 2) else fields.damage
+    round.botHealth = math.max(0, round.botHealth - damage)
+    fields.damage = damage
+    report(round, if brace then "braced" elseif counter then "counter" else "strike", at, fields)
+    if round.botHealth == 0 then
+        round.result = "win"
+    end
+    return damage
 end
 
 local function contact(round, clip, at, check)
@@ -170,7 +229,12 @@ local function contact(round, clip, at, check)
     if move.singleHit and clip.connected then
         return
     end
-    local hit, point, resolvedZone = check(clip.action, move, at, index)
+    local hit, point, resolvedZone
+    if round.kit == kits.salamander then
+        hit, point, resolvedZone = check(clip.action, move, at, index, clip.startedAt)
+    else
+        hit, point, resolvedZone = check(clip.action, move, at, index)
+    end
     if not hit then
         if not move.singleHit or index == #attacks then
             report(round, "miss", at, {attack = clip.action, index = index, point = point})
@@ -180,14 +244,35 @@ local function contact(round, clip, at, check)
     if move.singleHit then
         clip.connected = true
     end
-    local brace = round.botPhase == "setup" and round.attack.brace
-    local counter = round.botPhase == "recovery" and round.recoveryKind == "parried"
-    local damage = if brace then math.ceil(move.damage / 2) else move.damage
-    round.botHealth = math.max(0, round.botHealth - damage)
-    report(round, if brace then "braced" elseif counter then "counter" else "strike", at,
-        {attack = clip.action, index = index, point = point, zone = resolvedZone or move.zone, damage = damage})
-    if round.botHealth == 0 then
-        round.result = "win"
+    landContact(round, at,
+        {attack = clip.action, index = index, point = point, zone = resolvedZone or move.zone, damage = move.damage})
+end
+
+local function advanceTrail(round, trail, move, at, check)
+    trail.nextEvent += 1
+    if trail.nextEvent > #magmaTimeline then
+        round.trail = nil
+    end
+    local index = move.index
+    if move.marker then
+        if not trail.interruptedAt or at <= trail.interruptedAt then
+            trail.planted[index] = check("magmaTrail", move, at, index, trail.startedAt)
+        end
+        return
+    end
+    if not trail.planted[index] or trail.remainingDamage <= 0 then
+        return
+    end
+    local hit, point, resolvedZone = check("magmaTrail", move, at, index, trail.startedAt)
+    if not point then
+        return
+    end
+    local fields = {attack = "magmaTrail", index = index, point = point, castStartedAt = trail.startedAt}
+    if hit then
+        fields.zone, fields.damage = resolvedZone or move.zone, math.min(move.damage, trail.remainingDamage)
+        trail.remainingDamage -= landContact(round, at, fields)
+    else
+        report(round, "miss", at, fields)
     end
 end
 
@@ -251,12 +336,17 @@ function Round.step(round, now, distance, checkPlayer, checkBot)
         local attacks = clip and round.kit.clips[clip.action]
         local hit = attacks and attacks[clip.nextContact]
         local contactAt = if hit then clip.startedAt + hit.at else math.huge
+        local trail = round.trail
+        local markOrBurst = trail and magmaTimeline[trail.nextEvent]
+        local trailAt = if markOrBurst then trail.startedAt + markOrBurst.at else math.huge
         local completeAt = clip and clip.endsAt or math.huge
-        local eventAt = math.min(contactAt, completeAt, round.botAt)
+        local eventAt = math.min(contactAt, trailAt, completeAt, round.botAt)
         if eventAt > limit then
             break
         elseif eventAt == contactAt then
             contact(round, clip, eventAt, checkPlayer)
+        elseif eventAt == trailAt then
+            advanceTrail(round, trail, markOrBurst, eventAt, checkPlayer)
         elseif eventAt == completeAt then
             round.clip = nil
             if round.bufferedLight then
