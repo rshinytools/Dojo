@@ -32,6 +32,8 @@ def verify_place():
                 "Lantern Guild Beacon", "Terraced guild bluff", "Lantern foothill gardens", "Foothill irrigation pools",
                 "West Valley planted ridge bench", "Lodge stone apron cap",
                 "Frostglass west snow ledges", "Frostglass east snow ledges",
+                "Tideharbor cargo hoist", "Recessed harbor soffit", "Kiln Hall recessed portico",
+                "Kiln Hall interior glaze display", "HARBOR SQUARE ↑", "SALTWIND LOOKOUT →",
                 "Relay garden Sakura tree", "Trophy Hall upper timber bays",
                 "Fighting Ring canvas tailoring", "Recessed cedar ceiling panels",
                 "Reedfall switchback wayfinding", "Reedfall upper lip foam",

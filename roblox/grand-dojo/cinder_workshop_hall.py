@@ -1,4 +1,4 @@
-"""Copper eaves and pottery stalls for the existing Cinder Kiln Hall."""
+"""Copper eaves, recessed galleries and pottery displays for Cinder Kiln Hall."""
 
 from math import atan2, degrees, hypot
 
@@ -202,6 +202,76 @@ def build_cinder_workshop_hall(town, x, y, z, *, item, prop, part, beam,
 
     place(stalls, "Entry carved cedar lintel", (0, 10.52, 7.68), (6.23, .37, .60), "763F34", shadow=True)
     place(stalls, "Entry narrow copper inlay", (0, 10.54, 8.00), (5.09, .11, .13), "D49A67", metal)
+
+    portico = item(hall, "Model", "Kiln Hall recessed portico")
+    # The two inner columns retain the original opening and collision. Their
+    # forward faces sit beneath the sign, so the lettering stays unobstructed.
+    for side in (-1, 1):
+        pier = side * 3.57
+        for lift, width, height, depth, tint in (
+            (.70, 1.39, .56, 1.41, "6C5150"), (1.08, 1.45, .20, 1.47, "9E7565"),
+            (1.50, 1.34, .64, 1.39, "7F5A51"),
+        ):
+            place(portico, "Kiln entry battered stone shoe", (pier, lift, 7.52),
+                  (width, height, depth), tint, slate)
+        place(portico, "Oiled entry cedar face", (pier, 6.07, 8.20),
+              (1.13, 8.48, .18), "754336")
+        for edge in (-.43, .43):
+            place(portico, "Carved vertical pillar bead", (pier + edge, 6.12, 8.31),
+                  (.105, 8.20, .075), "A36A50")
+        for lift in (2.02, 9.78):
+            place(portico, "Restrained copper pillar strap", (pier, lift, 8.22),
+                  (1.27, .18, .25), "BE885D", metal)
+        for index, (lift, reach) in enumerate(((9.71, .64), (9.99, .92), (10.27, 1.33))):
+            place(portico, "Stepped porch corbel", (pier, lift, 7.94 + reach * .26),
+                  (1.02 + .20 * index, .24, reach), ("5D352F", "874B3A", "A5674C")[index])
+        # Side returns layer the storefront eaves without changing the
+        # door's walkable height or covering the existing paper lanterns.
+        bay = side * 7.09
+        place(portico, "Dark pottery bay soffit", (bay, 9.94, 8.18),
+              (4.94, .30, 1.10), "5C3934")
+        place(portico, "Copper-backed pottery rain lip", (bay, 10.14, 8.70),
+              (5.10, .23, .42), "AB744F", metal)
+
+    place(portico, "Recessed porch ceiling", (0, 10.26, 6.46), (6.27, .21, 2.99), "634039")
+    place(portico, "Carved shadow header", (0, 10.37, 8.14), (6.08, .31, .27), "603831")
+    place(portico, "Sunlit porch copper edge", (0, 10.48, 8.34), (6.12, .093, .095), "D49B6F", metal)
+    for runner in (-2.34, -1.17, 0, 1.17, 2.34):
+        place(portico, "Inset porch ceiling rafter", (runner, 10.08, 6.48), (.17, .16, 2.92), "84503F")
+    # A thin decorative runner picks up the portal and display colors on the
+    # existing foundation. The entire middle aisle remains unobstructed.
+    for index, (depth, tint) in enumerate(((6.98, "C09579"), (5.10, "AD826D"), (3.22, "987465"),
+                                           (1.34, "9D7868"), (-.54, "A6806D"), (-2.42, "977368"))):
+        for strip in (-1, 1):
+            place(portico, "Kiln threshold terracotta course", (strip * 1.20, .438 + .003 * (index % 2), depth),
+                  (2.36, .030, 1.82), tint, slate)
+
+    display = item(hall, "Model", "Kiln Hall interior glaze display")
+    # Use the rear plaster as the substrate, then vary depth and warm tones
+    # across a low relief that reads through the open hall from the forecourt.
+    place(display, "Recessed pottery alcove field", (0, 4.62, -6.43), (13.33, 7.66, .18), "76554C", slate)
+    place(display, "Raised glazed alcove panel", (0, 4.74, -6.27), (10.77, 6.29, .15), "9D725B", slate)
+    for xoff in (-6.47, -2.84, 2.84, 6.47):
+        place(display, "Kiln hall alcove jamb", (xoff, 4.80, -6.17), (.42, 7.72, .44), "653D35")
+    for center in (-4.59, 4.59):
+        window(display, (center, 5.62, -6.09), 2.63, 3.87, 1, "C8865E")
+    for lift, tint in ((1.12, "875B50"), (3.11, "BA855E"), (8.43, "B3815F")):
+        place(display, "Kiln display ceramic casing", (0, lift, -6.11), (13.74, .24, .63), tint, slate)
+    for lift, width, tint in ((4.08, 1.27, "6D7464"), (4.37, 1.91, "748272"), (4.68, 2.18, "739280"),
+                              (5.05, 2.06, "749183"), (5.45, 1.43, "7B9B88"), (5.77, 1.19, "C19670")):
+        place(display, "Sgraffito glazed vessel tile", (0, lift, -6.08), (width, .33, .20), tint, slate)
+
+    for hand in (-1, 1):
+        center = hand * 4.92
+        place(display, "Low adobe display plinth", (center, 1.12, -5.19), (3.45, 1.39, 1.56), "966A57", slate)
+        place(display, "Dark cedar display ledge", (center, 1.86, -5.13), (3.55, .21, 1.66), "785044")
+        for offset, profile, tint, rim in ((-.78, .60, "778F81", "B8A17A"), (.66, .81, "B4816A", "D29B72")):
+            shelf = center + offset * hand
+            for rise, height, width, glaze in ((.14, .28, .59, tint), (.42, .29, .90, tint),
+                                               (.65, .22, .69, tint), (.79, .13, .42, rim)):
+                place(display, "Fired vessel on interior shelf", (shelf, 1.97 + rise * profile, -4.89),
+                      (height * profile, width * profile, width * profile), glaze, slate, shape=2, roll=90)
+
     # Copper seal depicts a round-bellied workshop vessel above the original sign.
     seal = item(hall, "Model", "Kiln Hall potter mark")
     place(seal, "Round potter's seal surround", (0, 23.78, 5.22),

@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.251, cross the **Tideharbor Coast** gate and follow the **Harbor Square** sign. A cargo hoist stands between Harbor Receiving and the pier approach. At **Cinder Terraces**, walk through **Kiln Hall** to see the pottery and glaze display. Both walks passed on desktop and in the landscape phone simulator.
+
 In v0.250, look for the amber pools beneath the **Festival Plaza** lanterns and the two trainees visible through the **Fighting Ring** opening. Follow the road from **Lantern Circuit** toward **Frostglass Gardens** to see the new snowy shoulders and larger pines. Desktop Studio walked each of the five Grand Dojo roads and the decorated Frostglass approach both ways.
 
 In v0.249, follow **Lantern Skyline Walk** and look west from the descent. The ridge has three planted benches, wider cedar crowns, and fitted stone aprons below the hillside lodges. Desktop Studio walked Skyline Walk and the connecting road in both directions.
