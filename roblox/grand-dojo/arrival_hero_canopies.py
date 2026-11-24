@@ -5,8 +5,9 @@ from math import atan2, cos, degrees, hypot, radians, sin, tau
 from art.garden_tree_layout import ARRIVAL_BOUGH_LIFT, CROWNS
 
 
-PINE_TONES = ("738C43", "8AA74B", "799C42", "94AD46", "B0C653")
+PINE_TONES = ("587440", "748E4A", "8AA04D", "9FB358", "BAC974")
 BLOSSOM_TONES = ("C184A6", "DF9CBB", "ECA8C2", "F3B7CC", "FFD3DA")
+BOUGH_HEADINGS = (-17, 23, -31, 17, -9)
 
 
 def crown_tips(blossom):
@@ -20,11 +21,10 @@ def crown_tips(blossom):
         yield (x, y + ARRIVAL_BOUGH_LIFT[blossom][index], z), width, depth
 
 
-def crown_pad(index, tip, width, depth, blossom):
-    """Yield unequal, shaded bands around one bough tip."""
+def blossom_pad(index, tip, width, depth):
+    """Yield shaded bands around a blossom spray."""
     x, y, z = tip
-    palette = BLOSSOM_TONES if blossom else PINE_TONES
-    heading = radians((-17, 23, -31, 17, -9)[index])
+    heading = radians(BOUGH_HEADINGS[index])
     cosine, sine = cos(heading), sin(heading)
     count = 10
     outline = []
@@ -32,9 +32,9 @@ def crown_pad(index, tip, width, depth, blossom):
         angle = tau * i / count
         phase = tau * i / count + index
         radius = 1 + .13 * sin(3 * phase) + .06 * cos(4 * phase + .5)
-        arrow = radius * (.38 if blossom else .53)
+        arrow = radius * .38
         u, v = arrow * width * cos(angle), arrow * depth * sin(angle)
-        scallop = (.13 if blossom else .07) * sin(4 * phase + .3)
+        scallop = .13 * sin(4 * phase + .3)
         outline.append((u * cosine + v * sine, v * cosine - u * sine, scallop))
 
     def ring(scale, elevation, bias):
@@ -42,43 +42,57 @@ def crown_pad(index, tip, width, depth, blossom):
                      for u, v, rise in outline)
 
     skirt = ring(1, .055, -.04)
-    # Blossom sprays are open below the petals and wider along the bough.
-    # Pine pads overlap in compact tiers with flattened tips facing the plaza.
-    upper = ring(.72 if blossom else .82, .46 if blossom else .42, .105)
-    crest = (x + .17, y + (.62 if blossom else .52), z - .045)
-    root = (x - .11, y - (.38 if blossom else .36), z + .035)
+    upper = ring(.72, .46, .105)
+    crest = (x + .17, y + .62, z - .045)
+    root = (x - .11, y - .38, z + .035)
     for j in range(count):
         next_j = (j + 1) % count
         tint = 1 if outline[j][1] < -.16 else 0
         crown_tint = 4 if (j + index * 2) % 7 in (2, 4) else 3
-        yield (skirt[j], root, skirt[next_j]), palette[tint]
-        yield (skirt[j], skirt[next_j], upper[next_j]), palette[tint + 1]
-        yield (skirt[j], upper[next_j], upper[j]), palette[tint + 1]
-        yield (upper[j], upper[next_j], crest), palette[crown_tint]
+        yield (skirt[j], root, skirt[next_j]), BLOSSOM_TONES[tint]
+        yield (skirt[j], skirt[next_j], upper[next_j]), BLOSSOM_TONES[tint + 1]
+        yield (skirt[j], upper[next_j], upper[j]), BLOSSOM_TONES[tint + 1]
+        yield (upper[j], upper[next_j], crest), BLOSSOM_TONES[crown_tint]
 
-    if blossom:
-        return
-    # Pine needles break the sunlit edge of each pad.
-    for j in range(count):
-        if j % 2:
-            continue
-        next_j = (j + 1) % count
-        origin = upper[j]
-        outer = skirt[j]
-        point = (x + (outer[0] - x) * 1.06, outer[1] + .20 + .04 * sin(j + index),
-                 z + (outer[2] - z) * 1.06)
-        next_point = skirt[next_j]
-        edge = tuple(a + (b - a) * .29 for a, b in zip(outer, next_point))
-        peak = tuple(a + (b - a) * .39 for a, b in zip(origin, point))
-        peak = (peak[0], peak[1] + .068, peak[2])
-        yield (origin, peak, edge), palette[3 + ((j + index) % 3 == 0)]
-        yield (peak, point, edge), palette[2 + ((j + index) % 3 == 0)]
+
+def pine_bough(index, tip, width, depth):
+    """Overlap three irregular needle clusters at different heights on a bough."""
+    x, y, z = tip
+    heading = radians(BOUGH_HEADINGS[index])
+    cosine, sine = cos(heading), sin(heading)
+
+    def point(u, height, v):
+        return x + u * cosine + v * sine, y + height, z + v * cosine - u * sine
+
+    for cluster, (offset_x, lift, offset_z, radius_x, radius_z, crown, belly) in enumerate((
+        (-.235, -.02, -.08, .31, .33, .36, .30),
+        (.205, .11, -.055, .34, .33, .46, .29),
+        (-.025, -.07, .255, .35, .27, .31, .27),
+    )):
+        center_x, center_z = offset_x * width, offset_z * depth
+        top = point(center_x + .12, lift + crown, center_z - .09)
+        bottom = point(center_x - .11, lift - belly, center_z + .08)
+        rim = []
+        for step in range(8):
+            angle = tau * step / 8 + .17 * index + .25 * cluster
+            fan = .98 + .11 * cos(3 * angle + index) + .05 * sin(5 * angle + cluster)
+            rim.append(point(center_x + width * radius_x * fan * cos(angle),
+                             lift + .10 * sin(2 * angle + cluster),
+                             center_z + depth * radius_z * fan * sin(angle)))
+        for step, edge in enumerate(rim):
+            following = rim[(step + 1) % len(rim)]
+            light = cos(tau * (step + .5) / 8 + .17 * index + .25 * cluster + .8)
+            underside_tint = 1 if light + .22 * cluster > .12 else 0
+            top_tint = 3 if light > -.10 else 2
+            yield (bottom, edge, following), PINE_TONES[underside_tint]
+            yield (top, following, edge), PINE_TONES[top_tint]
 
 
 def hero_canopy_faces(blossom):
     """Tree-local triangles shared by the place and offline art previews."""
+    layer = blossom_pad if blossom else pine_bough
     for index, (tip, width, depth) in enumerate(crown_tips(blossom)):
-        yield from crown_pad(index, tip, width, depth, blossom)
+        yield from layer(index, tip, width, depth)
 
 
 def hero_canopy_lobes(blossom):
@@ -103,14 +117,17 @@ def hero_canopy_lobes(blossom):
                 size = (width * .265, .59 + .14 * cos(i * 1.4 + index), depth * .26)
                 yield center, size, BLOSSOM_TONES[3 + (i + index) % 2]
         else:
-            for offset_x, offset_z, length, depth_fraction, lift, depth_y, tint in (
-                (-.26, .11, .44, .47, -.06, .36, 0),
-                (.28, .08, .46, .45, -.03, .39, 1),
-                (-.04, -.28, .56, .43, .15, .35, 2),
-                (.08, .29, .52, .37, .12, .32, 1),
+            heading = radians(BOUGH_HEADINGS[index])
+            cosine, sine = cos(heading), sin(heading)
+            for offset_x, offset_z, length, depth_fraction, lift, thickness, tint in (
+                (-.41, .14, .25, .26, -.15, .39, 1),
+                (.44, -.02, .23, .23, .14, .42, 2),
+                (.13, -.32, .27, .19, .26, .36, 4),
+                (-.14, .38, .26, .22, -.03, .34, 3),
             ):
-                yield ((x + width * offset_x, y + lift, z + depth * offset_z),
-                       (width * length, depth_y, depth * depth_fraction), PINE_TONES[tint])
+                u, v = width * offset_x, depth * offset_z
+                yield ((x + u * cosine + v * sine, y + lift, z + v * cosine - u * sine),
+                       (width * length, thickness, depth * depth_fraction), PINE_TONES[tint])
 
 
 def build_arrival_hero_canopy(tree, blossom, *, position, item, prop, part, triangle, leaf,

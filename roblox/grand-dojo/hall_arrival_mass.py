@@ -21,14 +21,15 @@ def build_hall_cup_relief(parent, *, item, prop, part, vector, asset, metal, var
     cup = item(parent, "Model", "Gold champion cup relief")
     prop(cup, "token", "LevelOfDetail", 4)
     # mohasnn's Golden Trophy, Creator Store model 10382755079.
-    body_scale, depth_scale = .154, .049
+    body_scale, depth_scale = .125, .049
+    floor, depth_center = 19.36, -24.04
     for name, mesh_id, height, source_size, tint in (
         ("Gold cup pedestal", 10382646067, 4.963987, (38.181744, 9.927988, 38.181747), "D99C40"),
         ("Gold cup bowl", 10382647396, 25.784378, (33.998817, 47.974209, 33.998810), "FFD06B"),
         ("Gold cup handles", 10382646513, 36.629318, (48.677387, 13.741339, 2.693493), "FFCE5B"),
     ):
         width, rise, depth = source_size
-        mesh = part(cup, name, (0, 19.05 + height * body_scale, -31.44),
+        mesh = part(cup, name, (0, floor + height * body_scale, depth_center),
                     (width * body_scale, rise * body_scale, depth * depth_scale), tint,
                     material=metal, collide=False, class_name="MeshPart")
         vector(mesh, "Vector3", "InitialSize", ("X", "Y", "Z"), source_size)
@@ -36,8 +37,8 @@ def build_hall_cup_relief(parent, *, item, prop, part, vector, asset, metal, var
         prop(mesh, "bool", "CastShadow", False)
         prop(mesh, "string", variant_field, brass_variant)
     for side in (-1, 1):
-        edge = part(cup, "Far-gold rim bevel", (side * 1.13, 26.54, -30.665),
-                    (2.09, .103, .14), "FFE19A" if side < 0 else "F4BA5F",
+        edge = part(cup, "Far-gold rim bevel", (side * .92, floor + 48.6 * body_scale, depth_center + .775),
+                    (1.70, .103, .14), "FFE19A" if side < 0 else "F4BA5F",
                     material=metal, collide=False)
         prop(edge, "bool", "CastShadow", False)
         prop(edge, "string", variant_field, brass_variant)

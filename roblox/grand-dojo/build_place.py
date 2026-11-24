@@ -2463,8 +2463,11 @@ build_hall_crown_roof(facade,25.07+hall_crown_lift,item=item,prop=prop,part=part
 marquee=item(facade,"Model","Swept Trophy Hall marquee")
 plaque_profile=((-16,13.89),(-13.0,14.70),(-8.0,15.33),(0,15.71),
                 (8.0,15.33),(13.0,14.70),(16,13.89))
-curved_plaque(marquee,0,-25.76,plaque_profile,4.86,"9D382D","F3B249",rim_height=.24)
-marquee_title(marquee,"TROPHY HALL",0,-25.76,plaque_profile,3.69)
+hall_marquee_z=-23.96
+curved_plaque(marquee,0,hall_marquee_z,plaque_profile,4.86,"9D382D","F3B249",rim_height=.24)
+marquee_title(marquee,"TROPHY HALL",0,hall_marquee_z,plaque_profile,3.38)
+for x in (-9.2,9.2):
+    beam(marquee,"Trophy Hall marquee cedar mount",(x,13.84,-29.4),(x,14.32,hall_marquee_z-.17),.64,"884B36")
 for side in (-1,1):
     x=side*18.0
     beam(facade,"Forecourt standard bracket",(x,15.48,-30.67),(x,13.91,-28.80),.25,"9C6542")
@@ -2493,15 +2496,20 @@ for factor,z,tint,thickness in ((1,-33.56,"F2A940",.40),(.94,-33.30,"9C3028",.26
         triangle(crest,(0,20.4,z),left,right,tint,name="Arched cup plaque",thickness=thickness)
 for side in (-1,1):
     reed_mark(crest,side*5.22,18.67,-32.98,1.33)
-# Enlarge the complete emblem about its center so the facets and handles stay aligned.
+# Set the crest close to the marquee plane so the sign does not hide the cup
+# pedestal when viewed from below. Anchor the projection back into the gallery.
 crest_scale=1.49
 for transform in crest.iter("CoordinateFrame"):
-    for axis,old_center,new_center in (("X",0,0),("Y",20.4,23.05),("Z",-33.56,-32.74)):
+    for axis,old_center,new_center in (("X",0,0),("Y",20.4,23.24),("Z",-33.56,-25.34)):
         center=transform.find(axis)
         center.text=f"{new_center+(float(center.text)-old_center)*crest_scale:.7g}"
 for size in crest.iterfind(".//Vector3[@name='size']"):
     for extent in size:
         extent.text=f"{float(extent.text)*crest_scale:.7g}"
+for side in (-1,1):
+    x=side*7.40
+    beam(crest,"Crest gallery cedar bracket",(x,17.95,-33.75),(x,19.31,-25.52),.67,"8B4D35")
+    beam(crest,"Crest gallery diagonal corbel",(x,16.22,-33.82),(x,19.31,-25.95),.43,"A45A39")
 build_hall_cup_relief(crest,item=item,prop=prop,part=part,vector=vector,asset=asset,metal=METAL,
                       variant_field=MATERIAL_VARIANT_FIELD,brass_variant=ORNAMENT_BRASS)
 part(hall,"Trophy backdrop",(0,4.9,-52.91),(7.1,6.05,.14),"812D2C",material=FABRIC,collide=False)

@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.263, face **Trophy Hall** from the central plaza or the east walk. The title has more space at its ends, and the full cup rises above it. The east plaza pine has more layered foliage.
+
 In v0.262, follow **Dojo Ring** and its **Combat to Earn Rewards** subtitle to the entrance. City, district and ring playlists play automatically. From Snowbell Ridge, look down for the new slate and snow shelves in **Snowbell Hollow**.
 
 In v0.261, climb to **Glacier Lantern Pavilion** and take its north opening onto **Snowbell Ridge**. Follow the amber lamps to the existing Mistline road into Skywalk Peaks. Read the Glacier Lantern sign to take the same route back.
