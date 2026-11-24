@@ -84,6 +84,7 @@ from orchard_high_walk import (ASCENT as ORCHARD_ASCENT, DESCENT as ORCHARD_DESC
 from plum_lantern_walk import NAME as PLUM_LANTERN_WALK, PATH as PLUM_LANTERN_PATH, build_plum_lantern_walk
 from orchard_road_terraces import build_orchard_road_terraces
 from pinecrest_trail import RIDGE_WIDTH, WIND_LOOKOUT_DECK, build_pinecrest_crossing, build_pinecrest_trail
+from pinecrest_ravine import build_pinecrest_ravine
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from skywalk_foothill import build_skywalk_foothill
@@ -2994,6 +2995,12 @@ for index,ridge_profile in enumerate(VALLEY_RIDGES):
             floor=ridge_surface_height(faces,px,pz)
             cedar_root_ledge(grove,faces,px,floor,pz,scale)
             hillside_cedar(north_ridge_cedar_part,grove,px,floor-.68,pz,scale,tree_index)
+        if index == 2:
+            build_pinecrest_ravine(landscape,faces,item=item,prop=prop,part=part,vector=vector,
+                                   asset=asset,color=color,triangle=triangle,garden_prop=garden_prop,
+                                   cedar_part=north_ridge_cedar_part,rock=ROCK,grass=GRASS_MAT,
+                                   cedar=WOOD_PLANK,plastic=256,rock_variant=VALLEY_ROCK,
+                                   variant_field=MATERIAL_VARIANT_FIELD)
 build_arrival_distant_ridges(landscape,item=item,prop=prop,triangle=triangle,smooth=SMOOTH)
 build_orchard_bluff(landscape,item=item,prop=prop,part=part,triangle=triangle,
                     garden_shelf=garden_shelf,garden_prop=garden_prop,slate=SLATE,
