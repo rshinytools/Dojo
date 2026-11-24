@@ -53,6 +53,11 @@ from frostglass_glacier_walk import ASCENT as GLACIER_ASCENT, BALCONY_JOIN, CROW
 from snowbell_ridge import (NAME as SNOWBELL_RIDGE, MISTLINE_SEGMENT, MISTLINE_OPENING,
                             build_snowbell_ridge, mistline_junction)
 from snowbell_hollow import build_snowbell_hollow
+from sparring_bot_models import build_sparring_bot_models
+from district_dojo_rings import build_district_dojo_rings
+from dojo_duel import build_dojo_duel
+from fighter_select_station import build_fighter_select_station
+from ring_training import build_ring_training
 from frostglass_reflectors import build_frostglass_reflectors
 from frostglass_store_planting import build_frostglass_approach_planting, build_frostglass_store_planting
 from hall_arrival_details import build_hall_arrival_details
@@ -2319,8 +2324,8 @@ sign(spar,"BOT SPAR",24.8,ring_floor+2.18,14.16,5.2,1.3,tint="325B51")
 spar_gate=part(spar,"Sparring Gate",(28.5,ring_floor+2,14.1),(1,1,1),CREAM,
           transparency=1,collide=False)
 prompt=item(spar_gate,"ProximityPrompt","SparPrompt")
-prop(prompt,"string","ActionText","Start bot spar")
-prop(prompt,"string","ObjectText","Juniper Tortoise")
+prop(prompt,"string","ActionText","Choose opponent")
+prop(prompt,"string","ObjectText","Bot Spar")
 prop(prompt,"float","MaxActivationDistance",6)
 prop(prompt,"bool","RequiresLineOfSight",False)
 for transform in ring.iter("CoordinateFrame"):
@@ -4054,6 +4059,8 @@ def arrival_festival_board(parent):
 
 
 arrival_festival_board(plaza)
+build_fighter_select_station(scene, plaza, item=item, prop=prop, part=part, sign=sign,
+                             cedar=WOOD_PLANK, slate=SLATE, metal=METAL)
 
 build_lantern_garden_walk(
     plaza, item=item, prop=prop, part=part, triangle=triangle, beam=beam, route=route, path_edge=path_edge,
@@ -7707,9 +7714,22 @@ for (name,x,y,z,yaw,accent,paving,sign_name),(title,fur,ears,species,phase) in z
     roaming_townsperson(title,[(x+dx,y,z+dz) for dx,dz in turns],
                        fur,accent,ears,species,4.7,phase,1.07)
 
+build_district_dojo_rings(ring, outer, roads, ring_floor=ring_floor, ring_offset=ring_offset,
+                          item=item, prop=prop, part=part, beam=beam, triangle=triangle, sign=sign,
+                          route=route, swept_roof=swept_roof, festival_lantern=festival_lantern,
+                          slate=SLATE, wood=WOOD_PLANK, fabric=FABRIC, metal=METAL, neon=NEON)
+build_dojo_duel(ring, ring_floor, ring_offset, item=item, part=part, prop=prop, sign=sign,
+                wood=WOOD_PLANK, metal=METAL)
+build_ring_training(scene, {
+    "lantern-timing": (8, .15, 36, 90),
+    "kiln-rhythm": (150, 10.027, -182, 0),
+    "wind-signals": (23, 25.027, -256, 90),
+}, item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
+
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","GrandDojoAction")
 item(storage,"RemoteEvent","GrandDojoSparring")
+item(storage,"RemoteEvent","GrandDojoDuel")
 item(storage,"RemoteEvent","StarterFighterChoice")
 starter_roster = json.loads((ROOT / "design/fighters/starter-fighters/roster.json").read_text(encoding="utf-8"))
 starter_catalog = {"Order": [], "ById": {}}
@@ -7724,8 +7744,7 @@ prop(catalog_script,"ProtectedString","Source",
      f'return game:GetService("HttpService"):JSONDecode([==[{encoded_catalog}]==])')
 build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
-townsperson(server_storage,"Juniper Tortoise",spar_x+ring_offset,ring_floor,-2.2,
-           "AAB272","397569",0,species="tortoise",scale=1.36,guard=True)
+build_sparring_bot_models(server_storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
 city_route_data(storage,map_districts,map_paths)
 
@@ -7923,13 +7942,19 @@ for landmark in (ring,hall,relay_portal,relay_skyline):
             prop(detail,"string",MATERIAL_VARIANT_FIELD,LANDMARK_CEDAR)
 server=item(root,"ServerScriptService","ServerScriptService")
 item(server,"BindableEvent","SparringWon")
+item(server,"BindableEvent","RingTrainingCompleted")
 for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDojo.server.luau"),
                                     (server,"Script","GrandDojoSparring","GrandDojoSparring.server.luau"),
+                                    (server,"Script","GrandDojoDuel","GrandDojoDuel.server.luau"),
+                                    (server,"Script","GrandDojoRingTraining","GrandDojoRingTraining.server.luau"),
                                     (server,"Script","CloudbreakTrial","CloudbreakTrial.server.luau"),
                                     (server,"Script","FrostglassReflectorLogic","FrostglassReflectors.server.luau"),
                                     (server,"ModuleScript","SparringRound","SparringRound.luau"),
+                                    (server,"ModuleScript","DojoMatchSupport","DojoMatchSupport.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),
+                                    (storage,"ModuleScript","SparringBots","SparringBots.luau"),
+                                    (storage,"ModuleScript","RingProgression","RingProgression.luau"),
                                     (storage,"ModuleScript","MusicPlaylist","MusicPlaylist.luau"),
                                     (storage,"ModuleScript","TrophyJournal","TrophyJournal.luau"),
                                     (storage,"ModuleScript","EagleEye","EagleEye.luau"),

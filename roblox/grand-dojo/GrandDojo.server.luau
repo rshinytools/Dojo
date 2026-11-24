@@ -6,8 +6,10 @@ local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
 local PlayerProfiles = require(script.Parent:WaitForChild("PlayerProfiles"))
 local StarterFighters = require(script.Parent:WaitForChild("StarterFighters"))
+local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
+local trainingCompleted = script.Parent:WaitForChild("RingTrainingCompleted")
 
 local studio = RunService:IsStudio()
 local store = if studio then PlayerProfiles.memoryStore() else DataStoreService:GetDataStore("BeastDojoPlayerProfiles")
@@ -16,6 +18,8 @@ local shuttingDown = false
 local profileWorkers = 0
 
 local city = workspace:WaitForChild("Grand Dojo City")
+local switchStation = city:FindFirstChild("Fighter Select Station")
+local switchPrompt = switchStation and switchStation:FindFirstChild("SwitchFighterPrompt")
 local relay = city:WaitForChild("Lantern Relay")
 local board = relay:WaitForChild("EventBoard")
 local hall = city:WaitForChild("Trophy Hall"):WaitForChild("HallPrompt")
@@ -181,7 +185,7 @@ local RUN_LIMIT = 120
 local state = {}
 
 local function liveRoot(player)
-    if player:GetAttribute("StarterSelectionRequired") ~= false then
+    if player:GetAttribute("StarterSelectionRequired") ~= false or player:GetAttribute("StarterSelectionPending") then
         return nil
     end
     local character = player.Character
@@ -237,66 +241,73 @@ local function resetRun(player, data)
 end
 
 local function projectProgress(player, data, profile)
-    local progress = PlayerProfiles.summary(profile)
-    data.firstSparWinComplete = progress.firstSparWinComplete
+    local progress = PlayerProfiles.summary(profile, PlayerProfiles.activeFighter(profile))
     player:SetAttribute("FirstSparWinComplete", progress.firstSparWinComplete)
     player:SetAttribute("LanternKeeper", progress.lanternKeeper)
     player:SetAttribute("RelayBest", progress.relayBest)
     player:SetAttribute("FighterXp", progress.xp)
     player:SetAttribute("FighterLevel", progress.level)
+    player:SetAttribute("HighestFighterLevel", progress.highestFighterLevel)
+    player:SetAttribute("FighterRosterLevels", HttpService:JSONEncode(progress.fighterLevels))
     local goal = (progress.nextLevelXp or progress.levelFloor) - progress.levelFloor
     local earned = math.clamp(progress.xp - progress.levelFloor, 0, goal)
     player:SetAttribute("FighterHudProgress", string.format("%d:%d:%d", progress.level, earned, goal))
 end
 
 local function pendingProgress(data)
-    return data.pendingStarterChoice or data.pendingRelay or data.pendingFirstSparWin
+    return data.pendingStarterChoice or data.pendingRelay or data.pendingSparWin or data.pendingTraining
 end
 
 local function syncStarterAvatar(player, data, character)
     if data.departed or character ~= player.Character then
         return
     end
-    if not data.selectedStarter then
+    if not data.selectedStarter or data.pendingStarterChoice then
         StarterFighters.hold(character)
+    end
+    if not data.selectedStarter then
         return
     end
-    if StarterFighters.equip(character, data.selectedStarter) then
-        player:SetAttribute("StarterSelectionError", nil)
-    else
+    if not StarterFighters.equip(character, data.selectedStarter) then
         player:SetAttribute("StarterSelectionError", "Your starter choice was saved, but its appearance could not load.")
         warn("[Grand Dojo] Starter shell could not mount for", data.selectedStarter)
     end
-    StarterFighters.release(character)
+    if not data.pendingStarterChoice then
+        StarterFighters.release(character)
+    end
 end
 
 local function projectStarterChoice(player, data, profile)
-    local selected = profile.selectedStarterFighter
-    if selected then
-        data.selectedStarter = selected
+    local selected = PlayerProfiles.activeFighter(profile)
+    local pending = data.pendingStarterChoice
+    local alreadySaved = pending and (selected == pending.id or (pending.first and selected ~= nil))
+    data.selectedStarter = selected
+    if not pending or alreadySaved then
         data.pendingStarterChoice = nil
-        if player.Character then
-            syncStarterAvatar(player, data, player.Character)
-        end
-        player:SetAttribute("SelectedStarterFighter", selected)
+        player:SetAttribute("StarterSelectionError", nil)
         player:SetAttribute("StarterSelectionPending", false)
-        player:SetAttribute("StarterSelectionRequired", false)
-    else
-        if not data.pendingStarterChoice then
-            player:SetAttribute("StarterSelectionError", nil)
+        if alreadySaved then
+            player:SetAttribute("FighterSelectOpen", false)
         end
-        player:SetAttribute("StarterSelectionRequired", true)
     end
+    if player.Character then
+        syncStarterAvatar(player, data, player.Character)
+    end
+    player:SetAttribute("InitialStarterFighter", profile.selectedStarterFighter)
+    player:SetAttribute("SelectedStarterFighter", selected)
+    player:SetAttribute("StarterSelectionRequired", selected == nil)
 end
 
 local function saveStarterChoice(player, data, token)
-    local profile = profiles:commitStarterChoice(player.UserId, token, data.pendingStarterChoice)
+    local pending = data.pendingStarterChoice
+    local profile = if pending.first then profiles:commitStarterChoice(player.UserId, token, pending.id)
+        else profiles:commitFighterSwitch(player.UserId, token, pending.id)
     if not profile then
         return nil
     end
-    data.pendingStarterChoice = nil
     if not (data.departed or shuttingDown) then
         projectStarterChoice(player, data, profile)
+        projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
     end
     return profile
@@ -304,7 +315,7 @@ end
 
 local function saveRelay(player, data, token)
     local pending = data.pendingRelay
-    local profile, _, first = profiles:commitRelay(player.UserId, token, pending.tenths, pending.id)
+    local profile, _, first, xp = profiles:commitRelay(player.UserId, token, pending.tenths, pending.id, pending.fighterId)
     if not profile then
         return nil
     end
@@ -312,10 +323,9 @@ local function saveRelay(player, data, token)
     if not (data.departed or shuttingDown) then
         projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
-        local xp = if first then PlayerProfiles.FirstRelayXp else 0
         if data.run then
             local message = if first then string.format("Lantern Keeper saved · +%d XP", xp)
-                else "Your official Relay time was saved."
+                else string.format("Official Relay saved · +%d XP", xp)
             remote:FireClient(player, "notice", message)
         else
             remote:FireClient(player, "finished", pending.tenths / 10, first, false, xp)
@@ -326,17 +336,35 @@ local function saveRelay(player, data, token)
     return profile
 end
 
-local function saveFirstSparWin(player, data, token)
-    local profile, _, first = profiles:commitFirstSparWin(player.UserId, token, data.pendingFirstSparWin)
+local function saveSparWin(player, data, token)
+    local pending = data.pendingSparWin
+    local profile, _, first, xp = profiles:commitSparWin(player.UserId, token, pending.id, pending.fighterId)
     if not profile then
         return nil
     end
-    data.pendingFirstSparWin = nil
+    data.pendingSparWin = nil
     if not (data.departed or shuttingDown) then
         projectProgress(player, data, profile)
         player:SetAttribute("FirstSparWinPending", nil)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
-        sparRemote:FireClient(player, "reward", if first then PlayerProfiles.FirstSparWinXp else 0)
+        sparRemote:FireClient(player, "reward", xp, first)
+    end
+    return profile
+end
+
+local function saveTraining(player, data, token)
+    local pending = data.pendingTraining
+    local drill = RingProgression.Drills[pending.drillId]
+    local profile = profiles:commitRingTraining(player.UserId, token, pending.drillId, pending.id, pending.fighterId, drill.xp)
+    if not profile then
+        return nil
+    end
+    data.pendingTraining = nil
+    if not (data.departed or shuttingDown) then
+        projectProgress(player, data, profile)
+        player:SetAttribute("RingTrainingPending", nil)
+        player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
+        remote:FireClient(player, "notice", string.format("%s complete · +%d XP", drill.name, drill.xp))
     end
     return profile
 end
@@ -370,8 +398,10 @@ local function serveProgress(player, data)
                 data.profile = saveStarterChoice(player, data, token)
             elseif data.pendingRelay then
                 data.profile = saveRelay(player, data, token)
-            elseif data.pendingFirstSparWin then
-                data.profile = saveFirstSparWin(player, data, token)
+            elseif data.pendingSparWin then
+                data.profile = saveSparWin(player, data, token)
+            elseif data.pendingTraining then
+                data.profile = saveTraining(player, data, token)
             else
                 data.profile = profiles:renew(player.UserId, token)
             end
@@ -383,8 +413,10 @@ local function serveProgress(player, data)
                     player:SetAttribute("StarterSelectionError", "Your starter choice is still saving. We'll retry while you're here.")
                 elseif data.pendingRelay then
                     remote:FireClient(player, "notice", "Your Relay result is pending. We'll retry while you're here.")
-                elseif data.pendingFirstSparWin then
-                    sparRemote:FireClient(player, "rewardPending", "Your first-win XP is pending. We'll retry while you're here.")
+                elseif data.pendingSparWin then
+                    sparRemote:FireClient(player, "rewardPending", "Your spar XP is pending. We'll retry while you're here.")
+                elseif data.pendingTraining then
+                    remote:FireClient(player, "notice", "Your training XP is pending. We'll retry while you're here.")
                 end
             end
         end
@@ -401,8 +433,11 @@ local function serveProgress(player, data)
         if data.pendingRelay then
             saveRelay(player, data, token)
         end
-        if data.pendingFirstSparWin then
-            saveFirstSparWin(player, data, token)
+        if data.pendingSparWin then
+            saveSparWin(player, data, token)
+        end
+        if data.pendingTraining then
+            saveTraining(player, data, token)
         end
     end
     if attempted then
@@ -411,29 +446,95 @@ local function serveProgress(player, data)
     profileWorkers -= 1
 end
 
-sparringWon.Event:Connect(function(player)
+sparringWon.Event:Connect(function(player, fighterId)
     local data = state[player]
-    if data and not (data.departed or shuttingDown or data.firstSparWinComplete or data.pendingFirstSparWin) then
-        data.pendingFirstSparWin = HttpService:GenerateGUID(false)
+    if data and fighterId and fighterId == data.selectedStarter
+        and not (data.departed or shuttingDown or data.pendingSparWin) then
+        data.pendingSparWin = {id = HttpService:GenerateGUID(false), fighterId = fighterId}
         player:SetAttribute("FirstSparWinPending", true)
         player:SetAttribute("ProgressStatus", "saving")
     end
 end)
 
-starterChoice.OnServerEvent:Connect(function(player, fighterId)
+trainingCompleted.Event:Connect(function(player, drillId, fighterId)
     local data = state[player]
-    if not data or data.departed or shuttingDown or not data.profile
-        or data.selectedStarter or data.pendingStarterChoice or not StarterFighters.isChoice(fighterId) then
+    if not data or data.departed or shuttingDown or not RingProgression.Drills[drillId]
+        or not fighterId or fighterId ~= data.selectedStarter then
+        player:SetAttribute("RingTrainingPending", nil)
         return
     end
-    if not StarterFighters.hasVisuals(fighterId) then
+    if not data.pendingTraining then
+        data.pendingTraining = {id = HttpService:GenerateGUID(false), drillId = drillId, fighterId = fighterId}
+        player:SetAttribute("ProgressStatus", "saving")
+    end
+end)
+
+local function activeActivity(player, data)
+    return data.run or player:GetAttribute("SparringActive") or player:GetAttribute("SkywalkTrialMode")
+        or player:GetAttribute("RingTrainingActive") or player:GetAttribute("RingTrainingPending")
+        or player:GetAttribute("DuelQueued")
+        or (player:GetAttribute("ParcelStage") or 0) > 0
+end
+
+local function atFighterSelect(player)
+    return switchPrompt and switchPrompt.Enabled and near(player, switchStation, switchPrompt.MaxActivationDistance)
+end
+
+if switchPrompt then
+    switchPrompt.Triggered:Connect(function(player)
+        local data = state[player]
+        if not data or shuttingDown or not data.selectedStarter or data.pendingStarterChoice
+            or not atFighterSelect(player) then
+            return
+        end
+        if activeActivity(player, data) then
+            remote:FireClient(player, "notice", "Finish your current activity before switching fighters.")
+        elseif not data.profile or pendingProgress(data) then
+            remote:FireClient(player, "notice", "Fighter Select opens after your progress finishes saving.")
+        else
+            player:SetAttribute("StarterSelectionError", nil)
+            player:SetAttribute("FighterSelectOpen", true)
+        end
+    end)
+end
+
+starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter)
+    local data = state[player]
+    if not data or data.departed or shuttingDown or data.pendingStarterChoice then
+        return
+    end
+    if request == "close" then
+        player:SetAttribute("FighterSelectOpen", false)
+        return
+    end
+    local switching = request == "switch"
+    local fighterId = if switching then requestedFighter else request
+    if not StarterFighters.isChoice(fighterId) or switching ~= (data.selectedStarter ~= nil) then
+        return
+    end
+    if switching and (not player:GetAttribute("FighterSelectOpen") or not atFighterSelect(player)
+        or activeActivity(player, data)) then
+        remote:FireClient(player, "notice", "Stand beside Fighter Select between activities.")
+        player:SetAttribute("FighterSelectOpen", false)
+        return
+    end
+    if fighterId == data.selectedStarter then
+        player:SetAttribute("FighterSelectOpen", false)
+        return
+    end
+    if not data.profile or pendingProgress(data) then
+        player:SetAttribute("StarterSelectionError", "Your fighter profile is still loading or saving. Try again shortly.")
+        return
+    end
+    if not StarterFighters.canEquip(player.Character, fighterId) then
         player:SetAttribute("StarterSelectionError", "This fighter's appearance could not load. Choose another fighter.")
         return
     end
-    data.pendingStarterChoice = fighterId
+    data.pendingStarterChoice = {id = fighterId, first = not switching}
     player:SetAttribute("StarterSelectionError", nil)
     player:SetAttribute("StarterSelectionPending", true)
     player:SetAttribute("ProgressStatus", "saving")
+    StarterFighters.hold(player.Character)
 end)
 
 local function addPlayer(player)
@@ -449,11 +550,13 @@ local function addPlayer(player)
     player:SetAttribute("ProgressMode", if studio then "studio" else "cloud")
     player:SetAttribute("ProgressStatus", "loading")
     player:SetAttribute("StarterSelectionPending", false)
+    player:SetAttribute("FighterSelectOpen", false)
     player:SetAttribute("ParcelStage", 0)
     player:SetAttribute("HarborDeliveries", 0)
     player:SetAttribute("WindChimeCompletions", 0)
     resetRun(player, data)
     player.CharacterAdded:Connect(function(character)
+        player:SetAttribute("FighterSelectOpen", false)
         syncStarterAvatar(player, data, character)
         table.clear(data.targetStrikes)
         data.openUntil = 0
@@ -562,7 +665,7 @@ local function bindEventBoard(anchor, startsRelay)
     local radius = if startsRelay then 14 else prompt.MaxActivationDistance + 1
     prompt.Triggered:Connect(function(player)
         local data = state[player]
-        if data and not (shuttingDown or data.run or player:GetAttribute("SparringActive"))
+        if data and not (shuttingDown or activeActivity(player, data) or player:GetAttribute("FighterSelectOpen"))
             and prompt.Enabled and near(player, anchor, radius) then
             data.openUntil = if startsRelay then workspace:GetServerTimeNow() + 40 else 0
             remote:FireClient(player, "panel", if startsRelay then "relay" else "relayInfo")
@@ -626,7 +729,8 @@ remote.OnServerEvent:Connect(function(player, action)
         return
     end
 
-    if (action ~= "start" and action ~= "practice") or data.run or player:GetAttribute("SparringActive") then
+    if (action ~= "start" and action ~= "practice") or activeActivity(player, data)
+        or player:GetAttribute("FighterSelectOpen") or player:GetAttribute("StarterSelectionPending") then
         return
     end
     if now > data.openUntil or not near(player, board, 14) then
@@ -640,7 +744,7 @@ remote.OnServerEvent:Connect(function(player, action)
         return
     end
     data.openUntil = 0
-    data.run = {started = now, nextGate = 1, practice = action == "practice"}
+    data.run = {started = now, nextGate = 1, practice = action == "practice", fighterId = data.selectedStarter}
     player:SetAttribute("RelayNextGate", 1)
     player:SetAttribute("RelayDeadline", now + RUN_LIMIT)
     remote:FireClient(player, "started", data.run.practice)
@@ -652,11 +756,8 @@ local function finish(player, data, now)
     resetRun(player, data)
     if run.practice then
         remote:FireClient(player, "finished", tenths / 10, false, true)
-    elseif data.profile and player:GetAttribute("LanternKeeper") and player:GetAttribute("RelayBest") > 0
-        and tenths / 10 >= player:GetAttribute("RelayBest") then
-        remote:FireClient(player, "finished", tenths / 10, false, false)
     else
-        data.pendingRelay = {tenths = tenths, id = HttpService:GenerateGUID(false)}
+        data.pendingRelay = {tenths = tenths, id = HttpService:GenerateGUID(false), fighterId = run.fighterId}
         player:SetAttribute("ProgressStatus", "saving")
         remote:FireClient(player, "notice", "Saving your Relay result…")
     end
@@ -674,6 +775,10 @@ RunService.Heartbeat:Connect(function(dt)
     accumulated = 0
     local now = workspace:GetServerTimeNow()
     for player, data in state do
+        if not data.pendingStarterChoice and player:GetAttribute("FighterSelectOpen")
+            and (not atFighterSelect(player) or activeActivity(player, data)) then
+            player:SetAttribute("FighterSelectOpen", false)
+        end
         local root = liveRoot(player)
         returnFromOuterHarbor(player, root)
         local run = data.run

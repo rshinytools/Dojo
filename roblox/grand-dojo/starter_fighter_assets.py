@@ -70,14 +70,14 @@ def _bounds_match(actual, expected, label, tolerance):
         raise ValueError(f"{label} {actual} does not match the authored source {expected}")
 
 
-def source_reference():
+def source_reference(art=ART, stems=FIGHTERS):
     """Read both portable sources and verify the per-group export coordinates."""
     fighters = {}
-    for fighter_id, stem in FIGHTERS.items():
-        glb_path = ART / f"{stem}.glb"
+    for fighter_id, stem in stems.items():
+        glb_path = art / f"{stem}.glb"
         payload = glb_path.read_bytes()
         glb = _glb_json(payload, glb_path)
-        bindings = json.loads((ART / f"{stem}_bindings.json").read_text(encoding="utf-8"))
+        bindings = json.loads((art / f"{stem}_bindings.json").read_text(encoding="utf-8"))
         bound_groups = bindings["groups"]
         if not BODY_GROUPS <= bound_groups.keys() <= BODY_GROUPS | {"Tail"}:
             raise ValueError(f"{fighter_id} has incomplete or unexpected source body groups")
@@ -145,7 +145,7 @@ def _local_pivot(part_frame, floor_pivot):
     return (*position, *transpose)
 
 
-def load_starter_fighter_assets(manifest_path=MANIFEST):
+def load_starter_fighter_assets(manifest_path=MANIFEST, *, art=ART, stems=FIGHTERS):
     """Validate exact source coverage before mutating any place XML."""
     manifest_path = Path(manifest_path)
     if not manifest_path.is_file():
@@ -155,8 +155,8 @@ def load_starter_fighter_assets(manifest_path=MANIFEST):
     if type(manifest.get("schema_version")) is not int or manifest["schema_version"] != 1:
         raise ValueError(f"{manifest_path} requires schema_version 1")
     fighters = manifest.get("fighters")
-    _exact_keys(fighters, FIGHTERS, "Starter fighter asset IDs")
-    reference = source_reference()
+    _exact_keys(fighters, stems, "Fighter asset IDs")
+    reference = source_reference(art, stems)
     visual_assets = {}
     for fighter_id, source in reference.items():
         observed = _object(fighters[fighter_id], fighter_id)
@@ -186,8 +186,14 @@ def load_starter_fighter_assets(manifest_path=MANIFEST):
 
 def build_starter_fighter_visuals(storage, *, item, part, prop, asset, vector, manifest_path=MANIFEST):
     """Emit a folder of floor-aligned, textured fighter Models under ReplicatedStorage."""
-    visual_assets = load_starter_fighter_assets(manifest_path)
     library = item(storage, "Folder", "StarterFighterVisuals")
+    build_fighter_visual_models(library, load_starter_fighter_assets(manifest_path),
+                                item=item, part=part, prop=prop, asset=asset, vector=vector)
+    return library
+
+
+def build_fighter_visual_models(library, visual_assets, *, item, part, prop, asset, vector):
+    """Write validated, floor-aligned rigid shells with anatomical attachments."""
     for fighter_id, groups in visual_assets.items():
         model = item(library, "Model", fighter_id)
         for name, (mesh_id, texture_id, channel, size, mesh_size, cframe, pivot) in groups.items():
@@ -205,7 +211,6 @@ def build_starter_fighter_visuals(storage, *, item, part, prop, asset, vector, m
                 asset(group, "TextureContent", texture_id)
             anchor = item(group, "Attachment", "ArtPivot")
             vector(anchor, "CoordinateFrame", "CFrame", FRAME, pivot)
-    return library
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.266 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.267 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -13,7 +13,7 @@ The v0.266 Studio checkpoint is the starting point for new work. This repository
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-The starter is chosen once per profile. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio Play uses a fresh test profile on each stop and restart. Existing XP rewards still feed Reedguard’s track. The other fighters have their own models and story previews, with fighter-specific combat, XP and switching planned for later work.
+Choose an original starter on first join. Use the Fighter Select station between activities to switch among the four free starters. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains its ring unlocks. Shared Strike and Guard use the active fighter’s HP and base damage in a match. Fighter-specific techniques remain preview information.
 
 ## Roblox listing artwork
 
@@ -35,24 +35,22 @@ The public Trophy Hall is a city landmark and the planned entrance to each playe
 
 ## Four-ring progression plan
 
-The six districts stay connected. The main ring will host Juniper and every player-vs-player queue and match. Each of the three satellite rings hosts a resident bot for a local PvE challenge. Frostglass Gardens and Lantern Circuit remain activity districts.
+All six districts remain connected and open for exploration. A ring's level gate applies when entering its match. The practice decks and walkways are accessible before unlocking combat.
 
-| Ring | District | Unlock level | Fighter XP at that level | Resident bot | Planned play |
-| --- | --- | ---: | ---: | --- | --- |
-| Grand Dojo Ring | Grand Dojo City | 1 | 0 | Juniper Tortoise | Bot Spar and the sole PvP queue and venue |
-| Cinder Terraces Ring | Cinder Terraces | 3 | 180 | Bracken Boar | Bot Spar |
-| Cloud-Top Temple | Skywalk Peaks | 5 | 460 | Sablecrest Lynx | Bot Spar |
-| Galleon Ring | Tideharbor Coast | 7 | 830 | Granite Rhino | Bot Spar |
+| Ring | District | Unlock | Resident bot | Combat |
+| --- | --- | ---: | --- | --- |
+| Grand Dojo Ring | Grand Dojo City | Level 1 · 0 XP | Juniper Tortoise | Bot Spar and same-server Duel |
+| Cinder Terraces Ring | Cinder Terraces | Level 3 · 180 XP | Bracken Boar | Bot Spar |
+| Cloud-Top Temple | Skywalk Peaks | Level 5 · 460 XP | Sablecrest Lynx | Bot Spar |
+| Galleon Ring | Tideharbor Coast | Level 7 · 830 XP | Granite Rhino | Bot Spar |
 
-These XP totals come from the current ten-level Reedguard curve. A server-verified fighter reaching the threshold will permanently unlock the ring for the player's account. Switching to a lower-level fighter keeps the ring open. The selected fighter's recommended level is guidance shown alongside the access status. Locked combat entries show the requirement and a route to earn XP. District roads and activities stay open. [Current XP curve](../roblox/grand-dojo/PlayerProfiles.luau)
+Earn 60 XP on the first Bot Spar win, 80 XP on the first official Lantern Relay and 40 XP for Lantern Timing. Later Bot Spar wins award 30 XP, official Relay repeats award 25 XP, and Lantern Timing, Kiln Rhythm and Wind Court Signals each award 40 XP per completed drill with a short cooldown. Official Relay times and Lantern Keeper remain account-wide. XP goes to the fighter active when the activity ends.
 
-The first eligible Bot Spar win gives 60 XP once per account and the first official Lantern Relay gives 80 XP. On the same fighter, that leaves 40 XP to reach Level 3. The proposed bridge is a first-time Dojo Valley mentor activity, such as a local lantern timing drill introduced by the Ring Steward. Validate its completion on the server and award 40 XP once. The guided activity and durable grant need implementation. Later levels should be reachable through several PvE paths, including mentor quests, events and activities available before their respective ring gates.
-
-The Grand Dojo Ring will host 1v1 Duels, 2v2 Tag Team and eight-player Brawl. Four-player Co-op Raids remain a separately staged PvE mode. In v0.265 the main ring offers Juniper Bot Spar and the Galleon has a practice target. The four-ring unlock system, satellite bot encounters and human queues are pending. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
+The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers a same-server 1v1 Duel queue. Studio verified consent and cancellation for one player. A two-player Luau simulation covered pairing and combat. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, ranked play, 2v2 Tag Team, and eight-player Brawl remain in development. Co-op raids are separate PvE encounters. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
 
 ## Source map
 
-The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport verified the exports. Studio rigging, animation, combat tuning and gameplay integration remain open.
+The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport and Studio asset fetch verified the exports. The native [bot import manifest](../roblox/grand-dojo/sparring_bot_assets.json) records the asset IDs and source checksums.
 
 The [closed-alpha starter fighter package](../design/fighters/starter-fighters/README.md) holds editable models, renders, GLBs, pivots and their [stories and proposed kits](../design/fighters/starter-fighters/roster.json). The [native import manifest](../roblox/grand-dojo/starter_fighter_assets.json) pins the Roblox assets to the source GLB checksums. The production GDD retains its combat scale. Four full combat kits and all-device verification remain open.
 
@@ -60,6 +58,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | --- | --- |
 | Place generation and map links | [build_place.py](../roblox/grand-dojo/build_place.py), the corresponding geometry module, and the generated `CityRoutes` ModuleScript |
 | Open world activities and grants | [GrandDojo.server.luau](../roblox/grand-dojo/GrandDojo.server.luau), [CloudbreakTrial.server.luau](../roblox/grand-dojo/CloudbreakTrial.server.luau), [FrostglassReflectors.server.luau](../roblox/grand-dojo/FrostglassReflectors.server.luau) |
+| Dojo Ring access, bot bouts, and Duel | [Ring rules](../roblox/grand-dojo/RingProgression.luau), [ring builder](../roblox/grand-dojo/district_dojo_rings.py), [bot matches](../roblox/grand-dojo/GrandDojoSparring.server.luau), [Duel server](../roblox/grand-dojo/GrandDojoDuel.server.luau) |
 | First-join starter selection and mesh binding | [Picker](../roblox/grand-dojo/StarterFighterSelect.client.luau), [server binding](../roblox/grand-dojo/StarterFighters.luau), [original asset manifest](../roblox/grand-dojo/starter_fighter_assets.json) |
 | Starter fighter, practice, and bot match | [Reedguard rig](../design/fighters/boxing-kangaroo/ReedguardKangaroo_Prototype.rbxmx), [GrandDojoSparring.server.luau](../roblox/grand-dojo/GrandDojoSparring.server.luau), [SparringRound.luau](../roblox/grand-dojo/SparringRound.luau) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
@@ -78,6 +77,7 @@ For an MCP-capable client, open one local place in Studio and enable **Studio as
 
 | Area | Evidence |
 | --- | --- |
+| Fighter switching and four Dojo Rings | The Fighter Select station in Festival Plaza switches among the four free starter fighters. The original starter choice stays in the profile. Each fighter has a separate XP track, and the account keeps access to rings unlocked by any owned fighter. Studio Play verified in-place switches on desktop and Galaxy A06 landscape simulation. Local profile fixtures covered old saves, duplicate grants, unavailable writes and cross-lease rejoin. The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers a same-server 1v1 Duel queue. Studio verified consent and cancellation for one player. A two-player Luau simulation covered pairing and combat. Published multiplayer, DataStore and hardware checks remain open. |
 | Four starter fighters | After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open. |
 | Clear Dojo Ring mat | Removed two low-hanging reed banners, two decorative trainees and the practice dummy from the Grand Dojo mat. The Ring Steward directs players to Bot Spar. The retired target’s first-clear XP receipt stays compatible with existing profiles. The separate Tideharbor practice target remains available. Exact v0.265 desktop and Galaxy A06 landscape Studio Play verified the five removals, profile startup, all twelve treads, a 36-waypoint walk to the mat and starting and leaving a Juniper Tortoise spar. Desktop Studio also completed all seven official Relay gates, mounted Lantern Keeper in Trophy Hall and verified 80 XP and Level 2. |
 | Compact mobile progress HUD | On compact touch screens, a 124 × 32 level and XP badge sits in the safe upper-right area. The large city card and Roblox player list are hidden. The badge yields to full activity panels. Active parcel directions have a separate compact chip. Exact v0.264 Galaxy A06 Studio Play verified the layout, readable XP and clear touch controls in landscape and forced portrait. A three-hit practice set in landscape advanced the badge from 0/80 to 20/80 XP and filled 25% of the track. Desktop Play retained the full location HUD layout and player list. Physical-phone checks remain open. |

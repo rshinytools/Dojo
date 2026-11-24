@@ -15,6 +15,8 @@ local relay = city:WaitForChild("Lantern Relay")
 local gates = relay:WaitForChild("Checkpoints")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoAction")
 local sparRemote = ReplicatedStorage:WaitForChild("GrandDojoSparring")
+local duelRemote = ReplicatedStorage:WaitForChild("GrandDojoDuel")
+local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local trophyTemplate = ReplicatedStorage:WaitForChild("LanternKeeperTrophy")
 local sceneLights = {}
 local ambientEmitters = {}
@@ -303,13 +305,6 @@ local activeStarterNames = {
 local function updateFighterProgress()
     local name = activeStarterNames[player:GetAttribute("SelectedStarterFighter") or ""]
     fighterName.Text = name or "Reedguard"
-    if name then
-        -- The existing XP track belongs to Reedguard until fighter progression expands.
-        fighterLevel.Text, fighterXp.Text = "", ""
-        compactText.Text = name
-        xpTrack.Visible, compactTrack.Visible = false, false
-        return
-    end
     local status = player:GetAttribute("ProgressStatus")
     local snapshot = player:GetAttribute("FighterHudProgress")
     local level, earned, goal
@@ -938,6 +933,7 @@ local boardPrompts = {}
 local shownBoardPrompts = {}
 local sparringActive = false
 local sparResult
+local sparPicker
 
 local function releaseBoardInput()
     local prompt = heldPrompt
@@ -952,7 +948,7 @@ local function updateBoardHint()
     local visible = prompt ~= nil and prompt.Enabled
         and prompt.Style == Enum.ProximityPromptStyle.Custom and ProximityPromptService.Enabled
         and not panel.Visible and not race.Visible and not UserInputService.VREnabled
-        and not sparringActive and not (sparResult and sparResult.Visible)
+        and not sparringActive and not (sparResult and sparResult.Visible) and not (sparPicker and sparPicker.Visible)
     boardHint.Visible = visible
     if not visible then
         releaseBoardInput()
@@ -1089,12 +1085,13 @@ local function layout()
     panel.Size = UDim2.fromOffset(width, height)
     scale.Scale = math.max(.1, math.min(1, (size.X - 26)/width, (size.Y - 54)/height))
     local showingResult = sparResult and sparResult.Visible
-    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not showingResult
+    local choosingBot = sparPicker and sparPicker.Visible
+    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not showingResult and not choosingBot
         and not race.Visible and not panel.Visible and not aerial
     if aerial then
         boardHint.Visible = false
     end
-    local showingWorldHud = not sparringActive and not showingResult and not race.Visible and not aerial
+    local showingWorldHud = not sparringActive and not showingResult and not choosingBot and not race.Visible and not aerial
     badge.Visible = not compact and showingWorldHud and not (panel.Visible and narrow)
         and (not boardHint.Visible or parcelObjective.Visible)
     compactProgress.Visible = compact and showingWorldHud and not panel.Visible and not cloudbreakStatus.Visible
@@ -1147,7 +1144,7 @@ local function hide()
     if journal then
         journal:Hide()
     end
-    ProximityPromptService.Enabled = not sparringActive
+    ProximityPromptService.Enabled = not sparringActive and not (sparPicker and sparPicker.Visible)
     if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(panel) then
         GuiService.SelectedObject = nil
     end
@@ -1155,9 +1152,7 @@ local function hide()
 end
 
 local function formatRewardXp(amount)
-    local id = player:GetAttribute("SelectedStarterFighter")
-    local track = if activeStarterNames[id or ""] then "Reedguard XP" else "XP"
-    return string.format("+%d %s", amount, track)
+    return string.format("+%d XP", amount)
 end
 
 local function updateTrophyPanel()
@@ -1170,7 +1165,8 @@ local function updateTrophyPanel()
     elseif state == "saving" then
         detail.Text = "Saving your progress…"
     else
-        local prefix = "Reedguard Kangaroo"
+        local fighter = fighterCatalog.ById[player:GetAttribute("SelectedStarterFighter") or ""]
+        local prefix = if fighter then fighter.name else "Fighter progress"
         detail.Text = string.format("%s · Level %d · %d XP", prefix,
             player:GetAttribute("FighterLevel") or 1, player:GetAttribute("FighterXp") or 0)
     end
@@ -1187,7 +1183,7 @@ local function updateTrophyPanel()
 end
 
 local function show(kind, elapsed, first, practiceRun, xpReward)
-    if sparringActive then
+    if sparringActive or (sparPicker and sparPicker.Visible) then
         return
     end
     if eagleEye then
@@ -1247,8 +1243,10 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
         detail.Text = string.format("Seven gates cleared in %.1fs.", elapsed)
         prizeDetail.Text = first and "Trophy earned. Follow the jade markers to the Trophy Hall." or
             (practiceRun and "Enter an official relay to earn the trophy." or "Your first-clear trophy is already in the hall.")
-        status.Text = first and "Lantern Keeper unlocked · " .. formatRewardXp(xpReward or 0) or
-            (practiceRun and "Practice route" or string.format("Best time  %.1fs", math.min(best > 0 and best or elapsed, elapsed)))
+        status.Text = if first then "Lantern Keeper unlocked · " .. formatRewardXp(xpReward or 0)
+            elseif practiceRun then "Practice route"
+            elseif xpReward and xpReward > 0 then "Official clear · " .. formatRewardXp(xpReward)
+            else string.format("Best time  %.1fs", math.min(best > 0 and best or elapsed, elapsed))
     end
     layout()
     if UserInputService.GamepadEnabled then
@@ -1343,7 +1341,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 player:GetAttributeChangedSignal("LanternKeeper"):Connect(updateDisplay)
-for _, attribute in {"LanternKeeper", "ProgressStatus", "FighterLevel", "FighterXp"} do
+for _, attribute in {"LanternKeeper", "ProgressStatus", "FighterLevel", "FighterXp", "SelectedStarterFighter"} do
     player:GetAttributeChangedSignal(attribute):Connect(function()
         if openPanel == "trophy" then
             updateTrophyPanel()
@@ -1467,7 +1465,10 @@ remote.OnClientEvent:Connect(function(kind, a, b, c, d)
             local title = if c then "Relay practice complete" else "Lantern Relay complete"
             local message = string.format("%s · %.1fs", title, a)
             if b then
-                message ..= " · Lantern Keeper · " .. formatRewardXp(d or 0)
+                message ..= " · Lantern Keeper"
+            end
+            if d and d > 0 then
+                message ..= " · " .. formatRewardXp(d)
             end
             flash(message)
         else
@@ -1513,6 +1514,68 @@ updateDisplay()
 updateRace()
 print("[Grand Dojo] Event board and personal trophy display ready.")
 
+local sparBots = require(ReplicatedStorage:WaitForChild("SparringBots"))
+local ringProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
+local duelRound = false
+
+sparPicker = make("Frame", gui, {
+    Name = "SparringPicker", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
+    Size = UDim2.fromScale(.94, .91), BackgroundColor3 = palette.ink, BorderSizePixel = 0,
+    Active = true, Visible = false,
+})
+make("UISizeConstraint", sparPicker, {MaxSize = Vector2.new(435, 238)})
+style(sparPicker, 14, palette.edge)
+local pickerHeading = label(sparPicker, "Heading", 20, palette.gold, titleFont)
+pickerHeading.Position = UDim2.fromOffset(16, 9)
+pickerHeading.Size = UDim2.new(1, -32, 0, 30)
+pickerHeading.TextScaled = true
+make("UITextSizeConstraint", pickerHeading, {MinTextSize = 15, MaxTextSize = 23})
+local pickerName = label(sparPicker, "Resident", 19, palette.parchment, titleFont)
+pickerName.Position = UDim2.fromOffset(16, 46)
+pickerName.Size = UDim2.new(1, -32, 0, 28)
+local pickerStats = label(sparPicker, "BotStats", 14, palette.muted, bodyFont)
+pickerStats.Position = UDim2.fromOffset(16, 75)
+pickerStats.Size = UDim2.new(1, -32, 0, 29)
+pickerStats.TextWrapped = true
+local pickerStatus = label(sparPicker, "Status", 14, palette.parchment, bodyFont)
+pickerStatus.Position = UDim2.fromOffset(16, 110)
+pickerStatus.Size = UDim2.new(1, -32, 1, -175)
+pickerStatus.TextWrapped = true
+local botStart = button(sparPicker, "Start Bot Spar", true)
+botStart.Name = "StartBotSpar"
+botStart.Position = UDim2.new(0, 16, 1, -54)
+botStart.Size = UDim2.new(1, -128, 0, 42)
+botStart.Selectable = true
+local pickerClose = button(sparPicker, "Close", false)
+pickerClose.Position = UDim2.new(1, -102, 1, -54)
+pickerClose.Size = UDim2.fromOffset(86, 42)
+pickerClose.Selectable = true
+botStart.NextSelectionRight, pickerClose.NextSelectionLeft = pickerClose, botStart
+
+local offerEndsAt
+local function closePicker(cancel)
+    if not sparPicker.Visible then
+        return
+    end
+    sparPicker.Visible = false
+    offerEndsAt = nil
+    if cancel then
+        sparRemote:FireServer("cancelChoice")
+    end
+    if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(sparPicker) then
+        GuiService.SelectedObject = nil
+    end
+    ProximityPromptService.Enabled = not sparringActive and not panel.Visible
+    layout()
+end
+pickerClose.Activated:Connect(function() closePicker(true) end)
+player.CharacterRemoving:Connect(function() closePicker(true) end)
+botStart.Activated:Connect(function()
+    if offerEndsAt and workspace:GetServerTimeNow() < offerEndsAt then
+        sparRemote:FireServer("accept")
+    end
+end)
+
 local sparHud = make("Frame", gui, {
     Name = "SparringHUD", AnchorPoint = Vector2.new(.5, 0), Position = UDim2.new(.5, 0, 0, 12),
     Size = UDim2.new(.94, 0, 0, 116), BackgroundColor3 = palette.ink, BorderSizePixel = 0, Visible = false,
@@ -1539,13 +1602,28 @@ local function healthBar(name, side, tint)
     style(track, 5)
     local fill = make("Frame", track, {Size = UDim2.fromScale(1, 1), BackgroundColor3 = tint, BorderSizePixel = 0})
     style(fill, 5)
-    return function(health, maxHealth)
-        fill.Size = UDim2.fromScale(health / maxHealth, 1)
-        caption.Text = string.format("%s  %d", name, health)
+    caption.TextTruncate = Enum.TextTruncate.AtEnd
+    local lastRatio, tween
+    return function(health, maxHealth, displayName, reset)
+        local ratio = math.clamp(health / maxHealth, 0, 1)
+        if ratio ~= lastRatio or reset then
+            if tween then
+                tween:Cancel()
+            end
+            local target = UDim2.fromScale(ratio, 1)
+            if reset or GuiService.ReducedMotionEnabled then
+                fill.Size = target
+            else
+                tween = TweenService:Create(fill, TweenInfo.new(.18, Enum.EasingStyle.Quad), {Size = target})
+                tween:Play()
+            end
+            lastRatio = ratio
+        end
+        caption.Text = string.format("%d  %s", health, displayName or name)
     end
 end
 local playerHealth = healthBar("You", 0, Color3.fromRGB(234, 153, 100))
-local botHealth = healthBar("Juniper Tortoise", .5, Color3.fromRGB(129, 226, 188))
+local botHealth = healthBar("Opponent", .5, Color3.fromRGB(129, 226, 188))
 local sparHint = label(sparHud, "Round cue", 14, palette.parchment, titleFont)
 sparHint.Position = UDim2.fromOffset(14, 76)
 sparHint.Size = UDim2.new(1, -28, 0, 32)
@@ -1587,13 +1665,14 @@ local exitButton = button(resultActions, "Close", false)
 exitButton.Position = UDim2.new(.5, 4, 0, 0)
 
 local outcomes = {
-    win = "You won", loss = "Juniper won", draw = "Draw", left = "Spar ended", outside = "You stepped off the mat",
+    win = "You won", draw = "Draw", left = "Spar ended", outside = "You stepped off the mat",
 }
 local cues = {
-    blocked = "Blocked. Counter now!", parried = "Parried! Counter now!", hit = "Juniper landed a strike.",
+    blocked = "Blocked. Counter now!", parried = "Parried! Counter now!", hit = "You took a hit.",
     guard = "Guard up",
-    counter = "Counter landed!", strike = "Strike landed.", miss = "Face Juniper and step closer.",
-    dodged = "You evaded the strike.",
+    counter = "Counter landed!", strike = "Strike landed.", miss = "Face your opponent and step closer.",
+    dodged = "You evaded the strike.", braced = "You struck into Juniper’s brace.",
+    stunned = "Your opponent parried. Reset your guard.",
 }
 
 local resultAwaitingReward = false
@@ -1620,7 +1699,11 @@ refreshSparControls()
 
 local function sendSparAction(action)
     if sparringActive then
-        sparRemote:FireServer(action)
+        if duelRound then
+            duelRemote:FireServer(action)
+        else
+            sparRemote:FireServer(action)
+        end
     end
 end
 strikeButton.Activated:Connect(function() sendSparAction("strike") end)
@@ -1637,24 +1720,95 @@ UserInputService.InputBegan:Connect(function(input, processed)
     if processed or UserInputService:GetFocusedTextBox() then
         return
     end
-    if sparringActive and sparKeys[input.KeyCode] then
+    if sparPicker.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
+        closePicker(true)
+    elseif sparringActive and sparKeys[input.KeyCode] then
         sendSparAction(sparKeys[input.KeyCode])
     elseif sparResult.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closeResult()
     end
 end)
 
-sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt)
+local function showMatchHud(isDuel, title)
+    duelRound = isDuel
+    sparringActive = true
+    closePicker(false)
+    closeResult()
+    hide()
+    sparTitle.Text = title
+    sparHud.Visible, sparControls.Visible = true, true
+    layout()
+end
+
+local function matchClock(startsAt, endsAt)
+    local now = workspace:GetServerTimeNow()
+    local seconds = math.max(0, math.ceil(endsAt - math.max(now, startsAt)))
+    sparClock.Text = string.format("%d:%02d", math.floor(seconds / 60), seconds % 60)
+    return now
+end
+
+local function showMatchResult(result, opponent, detail, showRetry)
+    sparringActive = false
+    sparHud.Visible, sparControls.Visible = false, false
+    outcome.Text = if result == "loss" and opponent then opponent .. " won" else (outcomes[result] or "Spar ended")
+    outcome.TextTruncate = Enum.TextTruncate.AtEnd
+    winsDetail.Text = detail
+    retryButton.Visible = showRetry
+    retryButton.Active = showRetry and not resultAwaitingReward
+    retryButton.Text = if resultAwaitingReward then "Saving XP…" else "Retry"
+    sparResult.Visible = true
+    layout()
+    if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
+        GuiService.SelectedObject = if showRetry then retryButton else exitButton
+    end
+end
+
+sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt,
+    id, playerMaxHealth, ringId, tell)
+    if kind == "offer" then
+        local ring = ringProgression.ById[a]
+        local opponent = ring and sparBots[ring.botId]
+        if not opponent then
+            return
+        end
+        closeResult()
+        hide()
+        offerEndsAt = if startsAt then b else nil
+        pickerHeading.Text = ring.name
+        pickerHeading.TextColor3 = opponent.tint
+        pickerName.Text = opponent.name
+        pickerStats.Text = string.format("%d HP · %s", opponent.health, opponent.style)
+        pickerStatus.Text = endsAt
+        botStart.Visible = startsAt
+        sparPicker.Visible = true
+        ProximityPromptService.Enabled = false
+        layout()
+        if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
+            GuiService.SelectedObject = if startsAt then botStart else pickerClose
+        end
+        task.delay(math.max(0, b - workspace:GetServerTimeNow()), function()
+            if offerEndsAt == b and sparPicker.Visible then
+                offerEndsAt = nil
+                botStart.Visible = false
+                pickerStatus.Text = "Use the local Bot Spar sign to reopen."
+            end
+        end)
+        return
+    end
     if kind == "notice" or kind == "reward" or kind == "rewardPending" then
         local message = a
         if kind == "reward" then
-            message = if a > 0 then "First spar win saved · " .. formatRewardXp(a)
-                else "First spar win reward already earned."
+            message = if a > 0 then (if b then "First spar win · " else "Spar win · ") .. formatRewardXp(a)
+                else "Spar result saved."
         end
-        if sparResult.Visible and (kind == "notice" or resultAwaitingReward) then
+        if sparPicker.Visible and kind == "notice" then
+            pickerStatus.Text = message
+        elseif sparResult.Visible and (kind == "notice" or resultAwaitingReward) then
             winsDetail.Text = message
             if kind == "reward" then
                 resultAwaitingReward = false
+                retryButton.Active = retryButton.Visible
+                retryButton.Text = "Retry"
             end
         else
             flash(message)
@@ -1662,47 +1816,73 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
         return
     end
     if kind == "result" then
-        sparringActive = false
-        sparHud.Visible, sparControls.Visible = false, false
-        outcome.Text = outcomes[a]
+        local opponent = sparBots[endsAt]
         resultAwaitingReward = startsAt == true
-        winsDetail.Text = if resultAwaitingReward then "Saving your first-win XP…"
-            else string.format("Practice wins this session  %d", b)
-        sparResult.Visible = true
-        layout()
-        if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
-            GuiService.SelectedObject = retryButton
-        end
+        showMatchResult(a, opponent and opponent.name, if resultAwaitingReward then "Saving your spar XP…"
+            else string.format("Bot Spar wins this session  %d", b), true)
         return
     end
-    if kind == "begin" then
-        sparringActive = true
-        closeResult()
-        hide()
-        sparHud.Visible, sparControls.Visible = true, true
-    elseif kind ~= "state" or not sparringActive then
+    local opponent = sparBots[id]
+    if not opponent then
+        return
+    elseif kind == "begin" then
+        showMatchHud(false, ringProgression.ById[ringId].name)
+    elseif kind ~= "state" or not sparringActive or duelRound then
         return
     end
-    playerHealth(a, 100)
-    botHealth(b, 90)
-    local now = workspace:GetServerTimeNow()
-    local seconds = math.max(0, math.ceil(endsAt - math.max(now, startsAt)))
-    sparClock.Text = string.format("%d:%02d", math.floor(seconds / 60), seconds % 60)
+    playerHealth(a, playerMaxHealth, nil, kind == "begin")
+    botHealth(b, opponent.health, opponent.name, kind == "begin")
+    local now = matchClock(startsAt, endsAt)
     local parryCue = parryOpensAt ~= nil and now >= parryOpensAt and now <= botAt
     sparHint.TextColor3 = if parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
-        elseif phase == "windup" then palette.gold else palette.parchment
+        elseif phase == "windup" or phase == "setup" then opponent.tint else palette.parchment
     if now < startsAt then
-        sparHint.Text = string.format("Step onto the mat · Starting in %d", math.ceil(startsAt - now))
+        sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
     elseif phase == "windup" then
         sparHint.Text = if feedback == "guard" then "Guard up"
             elseif parryCue then "Guard now to parry!"
-            elseif botAt - now <= .48 then "Guard to block, or wait to parry."
-            else "Juniper is winding up."
-    elseif feedback then
+            else (tell or "Incoming strike") .. " · Watch the mat"
+    elseif phase == "setup" and not feedback then
+        sparHint.Text = tell or "Watch your opponent’s stance"
+    elseif feedback and cues[feedback] then
         sparHint.Text = cues[feedback]
     elseif phase == "recovery" then
-        sparHint.Text = "Juniper is recovering. Counter now!"
+        sparHint.Text = "Opponent recovering. Counter now!"
     else
-        sparHint.Text = "Face Juniper and move within reach."
+        sparHint.Text = "Face your opponent and move within reach."
+    end
+end)
+
+local duelQueue = button(gui, "Leave Duel Queue", false)
+duelQueue.Name = "LeaveDuelQueue"
+duelQueue.AnchorPoint = Vector2.new(.5, 1)
+duelQueue.Position, duelQueue.Size = UDim2.new(.5, 0, 1, -64), UDim2.fromOffset(192, 44)
+duelQueue.Visible = false
+duelQueue.Activated:Connect(function() duelRemote:FireServer("cancel") end)
+
+duelRemote.OnClientEvent:Connect(function(kind, info)
+    if kind == "notice" then
+        flash(info)
+    elseif kind == "queue" then
+        duelQueue.Visible = info.queued
+        if info.message then
+            flash(info.message)
+        end
+    elseif kind == "result" then
+        resultAwaitingReward = false
+        showMatchResult(info.result, info.opponentName, info.message or "Grand Dojo Duel", false)
+    elseif kind == "begin" or (kind == "update" and sparringActive and duelRound) then
+        if kind == "begin" then
+            duelQueue.Visible = false
+            showMatchHud(true, "Grand Dojo Duel")
+        end
+        playerHealth(info.playerHealth, info.playerMaxHealth, nil, kind == "begin")
+        botHealth(info.opponentHealth, info.opponentMaxHealth, info.opponentName, kind == "begin")
+        local now = matchClock(info.startsAt, info.endsAt)
+        sparHint.TextColor3 = if info.phase == "windup" then palette.gold else palette.parchment
+        sparHint.Text = if now < info.startsAt then string.format("Starting in %d", math.ceil(info.startsAt - now))
+            elseif info.feedback then cues[info.feedback] or info.feedback
+            elseif info.phase == "windup" then "Incoming strike · Guard or step away"
+            else "Face your opponent and move within reach."
     end
 end)

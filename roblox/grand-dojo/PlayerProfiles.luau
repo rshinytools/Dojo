@@ -4,9 +4,17 @@ PlayerProfiles.__index = PlayerProfiles
 local SCHEMA_VERSION = 1
 local LEASE_SECONDS = 120
 local FIRST_RELAY_XP = 80
+local REPEAT_RELAY_XP = 25
 local FIRST_DOJO_PRACTICE_XP = 20
 local FIRST_SPAR_WIN_XP = 60
+local REPEAT_SPAR_WIN_XP = 30
 local REEDGUARD = "reedguard-kangaroo"
+local STARTERS = {
+    [REEDGUARD] = true,
+    ["penguin-brawler"] = true,
+    ["silverback-gorilla"] = true,
+    ["fire-salamander"] = true,
+}
 local LANTERN_KEEPER = "world-04"
 local LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
 PlayerProfiles.FirstRelayXp = FIRST_RELAY_XP
@@ -21,11 +29,20 @@ local function validCompletionId(id)
     return type(id) == "string" and #id > 0 and #id <= 80
 end
 
-local function addReedguardXp(profile, amount)
+local function isStarter(id)
+    return type(id) == "string" and STARTERS[id] == true
+end
+
+local function addFighterXp(profile, id, amount)
     profile.fighters = table.clone(profile.fighters)
-    local fighter = table.clone(profile.fighters[REEDGUARD])
+    local fighter = table.clone(profile.fighters[id] or {xp = 0})
     fighter.xp = math.min(1e12, fighter.xp + amount)
-    profile.fighters[REEDGUARD] = fighter
+    profile.fighters[id] = fighter
+end
+
+local function validRewardReceipt(receipt, firstXp, repeatXp)
+    return receipt == nil or (type(receipt) == "table" and validCompletionId(receipt.id)
+        and isStarter(receipt.fighterId) and (receipt.xp == firstXp or receipt.xp == repeatXp))
 end
 
 local function newProfile()
@@ -43,13 +60,38 @@ local function valid(profile)
         or not whole(profile.relayBestTenths, 0, 1200) then
         return false
     end
-    local fighter = profile.fighters[REEDGUARD]
+    for id in STARTERS do
+        local fighter = profile.fighters[id]
+        if (fighter ~= nil or id == REEDGUARD)
+            and (type(fighter) ~= "table" or not whole(fighter.xp, 0, 1e12)) then
+            return false
+        end
+    end
+    local training = profile.ringTraining
+    if training ~= nil then
+        if type(training) ~= "table" then
+            return false
+        end
+        for fighterId, records in training do
+            if not isStarter(fighterId) or type(records) ~= "table" then
+                return false
+            end
+            for drillId, receipt in records do
+                if not validCompletionId(drillId) or not validCompletionId(receipt) then
+                    return false
+                end
+            end
+        end
+    end
     local trophy = profile.trophies[LANTERN_KEEPER]
     local lease = profile.lease
-    return type(fighter) == "table" and whole(fighter.xp, 0, 1e12)
-        and (profile.dojoPracticeId == nil or validCompletionId(profile.dojoPracticeId))
+    return (profile.dojoPracticeId == nil or validCompletionId(profile.dojoPracticeId))
         and (profile.firstSparWinId == nil or validCompletionId(profile.firstSparWinId))
-        and (profile.selectedStarterFighter == nil or validCompletionId(profile.selectedStarterFighter))
+        and validRewardReceipt(profile.lastRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP)
+        and validRewardReceipt(profile.lastSparReward, FIRST_SPAR_WIN_XP, REPEAT_SPAR_WIN_XP)
+        and (profile.selectedStarterFighter == nil or isStarter(profile.selectedStarterFighter))
+        and (profile.activeStarterFighter == nil
+            or (isStarter(profile.activeStarterFighter) and profile.selectedStarterFighter ~= nil))
         and (trophy == nil or type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
             and whole(trophy.criterionVersion, 1, 1e6))
         and (lease == nil or type(lease) == "table" and type(lease.token) == "string"
@@ -75,13 +117,32 @@ function PlayerProfiles.memoryStore()
     }
 end
 
-function PlayerProfiles.summary(profile)
-    local xp = profile.fighters[REEDGUARD].xp
+function PlayerProfiles.activeFighter(profile)
+    return profile.activeStarterFighter or profile.selectedStarterFighter
+end
+
+function PlayerProfiles.levelForXp(xp)
     local level = 1
     for index, minimum in LEVEL_THRESHOLDS do
         if xp >= minimum then
             level = index
         end
+    end
+    return level
+end
+
+function PlayerProfiles.summary(profile, fighterId)
+    fighterId = fighterId or REEDGUARD
+    local fighter = profile.fighters[fighterId]
+    local xp = if fighter then fighter.xp else 0
+    local level = PlayerProfiles.levelForXp(xp)
+    local highestXp = 0
+    local fighterLevels = {}
+    for id in STARTERS do
+        local owned = profile.fighters[id]
+        local ownedXp = if owned then owned.xp else 0
+        highestXp = math.max(highestXp, ownedXp)
+        fighterLevels[id] = PlayerProfiles.levelForXp(ownedXp)
     end
     return {
         lanternKeeper = profile.trophies[LANTERN_KEEPER] ~= nil,
@@ -92,6 +153,9 @@ function PlayerProfiles.summary(profile)
         level = level,
         levelFloor = LEVEL_THRESHOLDS[level],
         nextLevelXp = LEVEL_THRESHOLDS[level + 1],
+        highestFighterLevel = PlayerProfiles.levelForXp(highestXp),
+        fighterLevels = fighterLevels,
+        ringTraining = (profile.ringTraining and profile.ringTraining[fighterId]) or {},
     }
 end
 
@@ -157,7 +221,7 @@ function PlayerProfiles:release(userId, token)
 end
 
 function PlayerProfiles:commitStarterChoice(userId, token, fighterId)
-    if not validCompletionId(fighterId) then
+    if not isStarter(fighterId) then
         return nil, "invalid starter"
     end
     return self:_owned(userId, token, function(profile)
@@ -169,24 +233,45 @@ function PlayerProfiles:commitStarterChoice(userId, token, fighterId)
     end)
 end
 
-function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId)
-    if not whole(elapsedTenths, 1, 1200) or not validCompletionId(completionId) then
+function PlayerProfiles:commitFighterSwitch(userId, token, fighterId)
+    if not isStarter(fighterId) then
+        return nil, "invalid fighter"
+    end
+    return self:_owned(userId, token, function(profile)
+        if profile.selectedStarterFighter ~= nil then
+            profile.activeStarterFighter = fighterId
+        end
+    end)
+end
+
+function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId, fighterId)
+    fighterId = fighterId or REEDGUARD
+    if not whole(elapsedTenths, 1, 1200) or not validCompletionId(completionId) or not isStarter(fighterId) then
         return nil, "invalid result"
     end
     local saved, reason = self:_owned(userId, token, function(profile, now)
+        local trophy = profile.trophies[LANTERN_KEEPER]
+        if (trophy and trophy.completionId == completionId)
+            or (profile.lastRelayReward and profile.lastRelayReward.id == completionId) then
+            return
+        end
         if profile.relayBestTenths == 0 or elapsedTenths < profile.relayBestTenths then
             profile.relayBestTenths = elapsedTenths
         end
         -- The account-bound trophy also acts as the first-clear grant receipt.
         -- A repeated callback, ambiguous network reply or later clear can't add XP twice.
-        if profile.trophies[LANTERN_KEEPER] == nil then
+        local xp = if trophy then REPEAT_RELAY_XP else FIRST_RELAY_XP
+        if not trophy then
             profile.trophies = table.clone(profile.trophies)
             profile.trophies[LANTERN_KEEPER] = {earnedAt = now, criterionVersion = 1, completionId = completionId}
-            addReedguardXp(profile, FIRST_RELAY_XP)
         end
+        profile.lastRelayReward = {id = completionId, fighterId = fighterId, xp = xp}
+        addFighterXp(profile, fighterId, xp)
     end)
     local first = saved ~= nil and saved.trophies[LANTERN_KEEPER].completionId == completionId
-    return saved, reason, first
+    local receipt = saved and saved.lastRelayReward
+    return saved, reason, first, if first then FIRST_RELAY_XP
+        elseif receipt and receipt.id == completionId then receipt.xp else 0
 end
 
 function PlayerProfiles:commitDojoPractice(userId, token, completionId)
@@ -198,23 +283,67 @@ function PlayerProfiles:commitDojoPractice(userId, token, completionId)
         -- can confirm this clear without increasing XP again.
         if profile.dojoPracticeId == nil then
             profile.dojoPracticeId = completionId
-            addReedguardXp(profile, FIRST_DOJO_PRACTICE_XP)
+            addFighterXp(profile, REEDGUARD, FIRST_DOJO_PRACTICE_XP)
         end
     end)
     return saved, reason, saved ~= nil and saved.dojoPracticeId == completionId
 end
 
-function PlayerProfiles:commitFirstSparWin(userId, token, completionId)
-    if not validCompletionId(completionId) then
+function PlayerProfiles:commitFirstSparWin(userId, token, completionId, fighterId)
+    fighterId = fighterId or REEDGUARD
+    if not validCompletionId(completionId) or not isStarter(fighterId) then
         return nil, "invalid result"
     end
     local saved, reason = self:_owned(userId, token, function(profile)
         if profile.firstSparWinId == nil then
             profile.firstSparWinId = completionId
-            addReedguardXp(profile, FIRST_SPAR_WIN_XP)
+            addFighterXp(profile, fighterId, FIRST_SPAR_WIN_XP)
         end
     end)
     return saved, reason, saved ~= nil and saved.firstSparWinId == completionId
+end
+
+function PlayerProfiles:commitSparWin(userId, token, completionId, fighterId)
+    if not isStarter(fighterId) or not validCompletionId(completionId) then
+        return nil, "invalid result"
+    end
+    local saved, reason = self:_owned(userId, token, function(profile)
+        if profile.firstSparWinId == completionId
+            or (profile.lastSparReward and profile.lastSparReward.id == completionId) then
+            return
+        end
+        local first = profile.firstSparWinId == nil
+        local xp = if first then FIRST_SPAR_WIN_XP else REPEAT_SPAR_WIN_XP
+        if first then
+            profile.firstSparWinId = completionId
+        end
+        profile.lastSparReward = {id = completionId, fighterId = fighterId, xp = xp}
+        addFighterXp(profile, fighterId, xp)
+    end)
+    local first = saved ~= nil and saved.firstSparWinId == completionId
+    local receipt = saved and saved.lastSparReward
+    return saved, reason, first, if first then FIRST_SPAR_WIN_XP
+        elseif receipt and receipt.id == completionId then receipt.xp else 0
+end
+
+function PlayerProfiles:commitRingTraining(userId, token, drillId, completionId, fighterId, xp)
+    if not isStarter(fighterId) or not validCompletionId(drillId) or not validCompletionId(completionId)
+        or not whole(xp, 1, LEVEL_THRESHOLDS[#LEVEL_THRESHOLDS]) then
+        return nil, "invalid training result"
+    end
+    local saved, reason = self:_owned(userId, token, function(profile)
+        local training = profile.ringTraining or {}
+        local recorded = training[fighterId] or {}
+        if recorded[drillId] == completionId then
+            return
+        end
+        profile.ringTraining = table.clone(training)
+        local updated = table.clone(recorded)
+        updated[drillId] = completionId
+        profile.ringTraining[fighterId] = updated
+        addFighterXp(profile, fighterId, xp)
+    end)
+    return saved, reason, saved ~= nil and saved.ringTraining[fighterId][drillId] == completionId
 end
 
 return PlayerProfiles

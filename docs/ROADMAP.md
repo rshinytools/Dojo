@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.266 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.267 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -164,20 +164,20 @@ Scale the proven fighter, world, quest and collection pipelines to full v1.
 
 **Release gate** 24 fighters, three stages, six districts, four combat rings, three original bosses, 18 mentor quest steps, 12 activity variants, 18 secrets, 30 trophies and two repeatable world events pass content checks.
 
-| Ring | District | Account unlock level | Resident bot | Planned combat |
+| Ring | District | Account unlock level | Resident bot | Combat in Studio |
 | --- | --- | ---: | --- | --- |
 | Grand Dojo Ring | Grand Dojo City | 1 | Juniper Tortoise | Bot Spar and the sole PvP queue and venue |
 | Cinder Terraces Ring | Cinder Terraces | 3 | Bracken Boar | Bot Spar only |
 | Cloud-Top Temple | Skywalk Peaks | 5 | Sablecrest Lynx | Bot Spar only |
 | Galleon Ring | Tideharbor Coast | 7 | Granite Rhino | Bot Spar only |
 
-Frostglass Gardens and Lantern Circuit remain activity districts. The current checkpoint includes Grand Dojo Bot Spar and the Galleon practice target. The unlock gates, satellite bot encounters and PvP queue and matches are planned. [Current checkpoint and XP path](IMPLEMENTATION.md#four-ring-progression-plan)
+Frostglass Gardens and Lantern Circuit remain activity districts. The four themed Bot Spar courts and Grand Dojo same-server Duel Court are present in Studio. Published multiplayer and all-device checks remain open. [Current checkpoint and XP path](IMPLEMENTATION.md#four-ring-progression-plan)
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P7.1 | Remaining twenty fighters | Planned | Counts and unlock data match approved rules; every fighter completes a match. |
-| P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | A first eligible Bot Spar win and first official Lantern Relay award 140 XP together. Plan a first-time 40 XP Dojo Valley mentor activity, such as a local lantern timing drill, to reach 180 XP on one fighter. Verify Levels 5 and 7 are reachable through multiple PvE mentor, event and activity paths available before each gate. Confirm the production XP curve and move milestones. Keep hazards visible and collision fair across evolutions and mutations. |
-| P7.3 | Four combat rings and original bosses | In progress | Finish the four ring approaches and resident bot fights. Verify server-authoritative account unlocks when any owned fighter reaches the threshold. Test locked entries, switch to a lower-level fighter, reconnect, and confirm access remains after unlock. Show the selected fighter's recommended level as guidance. Verify the route signs, safe returns, visible warnings at all quality tiers and asset originality. |
+| P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | Separate starter XP tracks and the Level 3 route passed Studio play. Verify published persistence, repeat pacing, evolutions, breeds and mutations. |
+| P7.3 | Four combat rings and original bosses | In progress | Four Bot Spar bouts and retained access after switching passed Studio checks. Verify physical devices, published access and the three co-op bosses. |
 | P7.4 | Content balance and regression | Planned | Fix outliers and ensure content additions do not regress the alpha save/input contract. |
 | P7.5 | Six connected world districts | Planned | All six three-step chapters, twelve activity variants and eighteen secrets have original content, valid earning paths, usable routes and persistent progress. |
 | P7.6 | Complete trophies and world events | Planned | Every trophy has valid/invalid path evidence; events scale within measured occupancy, return regularly and preserve existing earned records. |
@@ -194,7 +194,7 @@ Complete advanced modes, matchmaking and clans.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | The browser simulates casual and ranked search and acceptance and has three playable bot tiers. Staging must verify the sole human queue and match venue at the Grand Dojo Ring, pairing and skill bounds, consent for bot practice and teleport or requeue recovery. Satellite rings offer local Bot Spar. Bot or mixed results never award Rank Points or competitive trophies. |
+| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | Studio verified one-player queue and cancellation at Grand Dojo and a two-player Luau simulation passed. Run an invited multiplayer test. Build cross-server and ranked matchmaking. |
 | P8.2 | Tag Team and Co-op Raids | Planned | Verify full teams can win, lose and reconnect without duplicate rewards or a stuck match. Keep Tag Team at the Grand Dojo Ring and test Co-op Raids as separate PvE encounters. Label each bot and show the roster and reward eligibility before play. |
 | P8.3 | Parties and clans | Planned | Roblox join settings and full servers resolve safely. An invited party can regroup in a common city and return together after a match. Server authorization protects clan resources and room visits, and contributions commit once. |
 | P8.4 | Cross-server failure drills | Planned | Players recover to a valid state and authoritative profile ownership remains unique. |

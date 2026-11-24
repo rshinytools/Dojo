@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.267, start at Fighter Select on the east side of Festival Plaza. Preview and equip another free starter. Enter Bot Spar at Grand Dojo. Earn Level 3 with Juniper, the official Lantern Relay and Lantern Timing. Find Bracken by Glaze Terrace, Sablecrest via the Cloudbreak approach and Granite on the Galleon deck. Everyone can take the roads and look around. Check each ring's required level at the local sign. Two nearby players can opt in to the Grand Dojo Duel Court.
+
 In v0.266, wait for the splash, browse the four animated starter fighters, read their stories, and confirm your choice. Walk into Festival Plaza and try a respawn. The fighter keeps the original imported Blender mesh and atlas in the city. Each fresh Studio Play session can choose a different starter.
 
 In v0.265, the Dojo Ring mat is clear of the two hanging banners, the idle trainees and the practice dummy. Take the stairs to the green Bot Spar sign to start a bout.

@@ -28,20 +28,6 @@ function StarterFighters.isChoice(id)
     return typeof(id) == "string" and #id <= 80 and catalog.ById[id] ~= nil
 end
 
-function StarterFighters.hasVisuals(id)
-    local model = visualModel(id)
-    if not model then
-        return false
-    end
-    for _, group in REQUIRED_GROUPS do
-        local part = model:FindFirstChild(group)
-        if not part or not part:IsA("MeshPart") then
-            return false
-        end
-    end
-    return true
-end
-
 function StarterFighters.hold(character)
     local root = character:FindFirstChild("HumanoidRootPart")
     if root and not root.Anchored then
@@ -102,10 +88,15 @@ local function mountedPieces(character, model)
     return pieces
 end
 
+function StarterFighters.canEquip(character, id)
+    local model = visualModel(id)
+    return model ~= nil and character ~= nil and mountedPieces(character, model) ~= nil
+end
+
 function StarterFighters.equip(character, id)
     local current = character:FindFirstChild(SHELL_NAME)
-    if current then
-        return current:GetAttribute("FighterId") == id
+    if current and current:GetAttribute("FighterId") == id then
+        return true
     end
     local model = visualModel(id)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -136,12 +127,16 @@ function StarterFighters.equip(character, id)
             piece.joint.C1 = piece.c1
         end
     end
-    for _, old in character:GetDescendants() do
-        if old:IsA("BasePart") then
-            old.Transparency = 1
-            old.CastShadow = false
-        elseif old:IsA("Decal") then
-            old.Transparency = 1
+    if current then
+        current:Destroy()
+    else
+        for _, old in character:GetDescendants() do
+            if old:IsA("BasePart") then
+                old.Transparency = 1
+                old.CastShadow = false
+            elseif old:IsA("Decal") then
+                old.Transparency = 1
+            end
         end
     end
     shell.Parent = character

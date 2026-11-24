@@ -1,6 +1,6 @@
 # Beast Dojo sparring bots
 
-Four original Blender models for Dojo Ring sparring. The lineup shows the same assets at their authored scale under a shared lighting setup. Sablecrest Lynx is the proposed fourth opponent.
+Four original Blender models for the four Dojo Rings. The lineup shows the models at authored scale under a shared lighting setup.
 
 | Bot | Height in authored studs | Export triangles | Editable model | Roblox import file | Detail |
 | --- | ---: | ---: | --- | --- | --- |
@@ -19,7 +19,9 @@ The [roster brief](roster.json) includes the four backstories, their shared Lant
 
 Each GLB contains six or seven rigid mesh groups with separate body-part pivots, soles at ground level, Y up, and forward −Z. Its single embedded 1024 × 1024 color map carries the painted colors and baked contact shading. The matching `_bindings.json` lists the pivots, bounds and triangle counts. The files are sized around the 4.92-stud Reedguard shell. Use the Stud scale unit when checking the import preview. [Roblox Blender guidance](https://create.roblox.com/docs/art/blender) · [Studio Importer](https://create.roblox.com/docs/studio/importer)
 
-All four GLBs were reimported in Blender 4.5.16 to verify mesh groups, pivots, dimensions, triangle counts and embedded textures. The individual Blender files contain the character collection, authored materials, lights, and camera. The GLBs contain character geometry only. Studio fit, rig binding, animation and physical-device performance remain separate checks before gameplay integration.
+All four GLBs were reimported in Blender 4.5.16 to verify mesh groups, pivots, dimensions, triangle counts and embedded textures. The Blender files include the posed art-review scenes. The GLBs contain the game geometry.
+
+Studio v0.267 uses these exports for the resident opponents. The [Studio asset manifest](../../../roblox/grand-dojo/sparring_bot_assets.json) ties the uploaded mesh and texture IDs to the source checksums. Studio Play verified the assets loaded and each resident completed a match. Physical-device profiling and production combat balance remain open.
 
 ## Rebuild
 

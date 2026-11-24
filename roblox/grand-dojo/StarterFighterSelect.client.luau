@@ -4,6 +4,7 @@ local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
 local ContextActionService = game:GetService("ContextActionService")
 local ContentProvider = game:GetService("ContentProvider")
+local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
@@ -13,6 +14,7 @@ local roster = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local visuals = ReplicatedStorage:WaitForChild("StarterFighterVisuals")
 local choice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local actionName = "BeastDojoStarterSelection"
+local cancelActionName = "BeastDojoCloseFighterSelect"
 local colors = {
     veil = Color3.fromRGB(19, 15, 30),
     panel = Color3.fromRGB(35, 28, 45),
@@ -110,6 +112,8 @@ loadingStatus.Position, loadingStatus.Size = UDim2.fromOffset(13, 38), UDim2.new
 loadingStatus.TextXAlignment, loadingStatus.TextWrapped = Enum.TextXAlignment.Center, true
 edge(panel, 15, colors.edge)
 local heading = label(panel, "Heading", "Choose your fighter", 31, colors.gold, Enum.Font.FredokaOne)
+local close = button(panel, "CloseFighterSelect", "Close", colors.raised, colors.edge)
+close.Visible = false
 local rosterBar = create("Frame", panel, {Name = "FighterSelector", BackgroundTransparency = 1})
 
 local stage = create("Frame", panel, {
@@ -168,6 +172,8 @@ local title = detail("FighterTitle", 15, colors.gold, Enum.Font.GothamBold)
 local home = detail("Home", 13, colors.muted)
 local style = detail("ElementAndStyle", 13, colors.text, Enum.Font.GothamBold)
 local stats = detail("Stats", 14, colors.text)
+local level = detail("FighterLevel", 14, colors.gold, Enum.Font.GothamBold)
+level.Visible = false
 local quote = detail("Quote", 15, colors.gold, Enum.Font.GothamBold)
 local story = detail("Story", 14, colors.text)
 local techniques = detail("TechniquesHeading", 14, colors.gold, Enum.Font.GothamBold)
@@ -193,6 +199,8 @@ local status = label(panel, "SelectionStatus", "", 13, colors.text)
 status.TextWrapped = true
 local cards = {}
 local selectedId
+local switching = false
+local fighterLevels = {}
 local animation
 local previewModel
 local previewSize
@@ -355,15 +363,28 @@ buttons = function()
     local waiting = previewState == "loading"
     local busy = saving or waiting
     local name = shortNames[selectedId] or roster.ById[selectedId].name
-    confirm.Active = not busy
+    local equipped = switching and selectedId == player:GetAttribute("SelectedStarterFighter")
+    local enabled = not busy and (not equipped or previewState == "failed")
+    confirm.Active = enabled
+    close.Active = not saving
+    close.Selectable = not saving
     confirm.Text = if saving then "Saving fighter…"
         elseif waiting then "Loading fighter…"
         elseif previewState == "failed" then "Retry 3D preview"
-        else "Start as " .. name
-    confirm.BackgroundColor3 = if busy then colors.gold:Lerp(colors.panel, .28) else colors.gold
-    confirmStroke.Color = if busy then colors.edge else colors.gold
+        elseif equipped then "Currently equipped"
+        else (if switching then "Switch to " else "Start as ") .. name
+    confirm.BackgroundColor3 = if enabled then colors.gold else colors.gold:Lerp(colors.panel, .28)
+    confirmStroke.Color = if enabled then colors.gold else colors.edge
     status.Text = if lastError ~= "" then lastError elseif saving then "Saving your choice" else ""
     status.TextColor3 = if lastError ~= "" then colors.error else colors.text
+end
+
+local function updateLevel()
+    level.Visible = switching and selectedId ~= nil
+    if level.Visible then
+        local equipped = selectedId == player:GetAttribute("SelectedStarterFighter")
+        level.Text = string.format("Level %d%s", fighterLevels[selectedId] or 1, if equipped then " · Equipped" else "")
+    end
 end
 
 local function showFighter(id)
@@ -383,6 +404,7 @@ local function showFighter(id)
     stats.Text = string.format("%s HP   ·   %s normal hit damage", tostring(info.health), tostring(info.normalHit))
     quote.Text = "“" .. info.quote .. "”"
     story.Text = info.story
+    updateLevel()
     for index, row in moves do
         local move = info.powers[index]
         row.name.Visible, row.effect.Visible = move ~= nil, move ~= nil
@@ -438,8 +460,13 @@ local function layout()
     local gap = if compact then 7 else 10
     local contentWidth = width - pad * 2
     local headingHeight = if compact then 31 else 42
-    heading.Position, heading.Size = UDim2.fromOffset(pad + 2, pad), UDim2.fromOffset(contentWidth - 2, headingHeight)
+    local closeWidth = if compact then 71 else 89
+    local headingWidth = contentWidth - 2 - (if switching then closeWidth + gap else 0)
+    heading.Position, heading.Size = UDim2.fromOffset(pad + 2, pad), UDim2.fromOffset(headingWidth, headingHeight)
     heading.TextSize = if compact then 24 else 31
+    close.Position, close.Size = UDim2.fromOffset(width - pad - closeWidth, pad),
+        UDim2.fromOffset(closeWidth, math.max(36, headingHeight))
+    close.TextSize = if compact then 14 else 16
     local cardHeight = if compact then 42 else 49
     local columns = if tall then 2 else 4
     local rosterY = pad + headingHeight + gap
@@ -454,7 +481,7 @@ local function layout()
         control.TextSize = if slot < 104 then 14 else 16
         control.NextSelectionLeft = if column > 0 then cards[index - 1].control else control
         control.NextSelectionRight = if column < columns - 1 and cards[index + 1] then cards[index + 1].control else control
-        control.NextSelectionUp = if row > 0 then cards[index - columns].control else control
+        control.NextSelectionUp = if row > 0 then cards[index - columns].control else (if switching then close else control)
         control.NextSelectionDown = if cards[index + columns] then cards[index + columns].control else confirm
     end
 
@@ -484,6 +511,7 @@ local function layout()
     title.TextSize, home.TextSize = if compact then 13 else 15, if compact then 12 else 13
     stats.LayoutOrder, style.LayoutOrder, home.LayoutOrder =
         if compact then 3 else 5, 4, if compact then 5 else 3
+    close.NextSelectionDown = selectedCard()
     confirm.Size = UDim2.fromOffset(if tall then contentWidth else math.min(contentWidth * .53, 338), footer)
     confirm.AnchorPoint = Vector2.new(1, 0)
     confirm.Position = UDim2.new(1, -pad, 0, footerY)
@@ -506,7 +534,8 @@ status:GetPropertyChangedSignal("Text"):Connect(layout)
 
 local function confirmChoice()
     if not panel.Visible or not selectedId or inFlight or player:GetAttribute("StarterSelectionPending") == true
-        or player:GetAttribute("StarterSelectionRequired") ~= true then
+        or (switching and not player:GetAttribute("FighterSelectOpen"))
+        or (not switching and player:GetAttribute("StarterSelectionRequired") ~= true) then
         return
     end
     if previewState == "failed" then
@@ -515,12 +544,19 @@ local function confirmChoice()
     elseif previewState ~= "ready" then
         return
     end
+    if switching and selectedId == player:GetAttribute("SelectedStarterFighter") then
+        return
+    end
     inFlight = true
     lastError = ""
     requestNumber += 1
     local thisRequest = requestNumber
     buttons()
-    choice:FireServer(selectedId)
+    if switching then
+        choice:FireServer("switch", selectedId)
+    else
+        choice:FireServer(selectedId)
+    end
     task.delay(8, function()
         if requestNumber == thisRequest and inFlight and screen.Enabled
             and player:GetAttribute("StarterSelectionPending") ~= true then
@@ -531,12 +567,22 @@ local function confirmChoice()
     end)
 end
 confirm.Activated:Connect(confirmChoice)
+
+local function closePicker()
+    if switching and panel.Visible and not inFlight and not player:GetAttribute("StarterSelectionPending") then
+        choice:FireServer("close")
+    end
+end
+close.Activated:Connect(closePicker)
+
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed or not panel.Visible or UserInputService:GetFocusedTextBox() or focusNavigation() then
         return
     end
     if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
         confirmChoice()
+    elseif input.KeyCode == Enum.KeyCode.Backspace then
+        closePicker()
     elseif input.KeyCode == Enum.KeyCode.Left or input.KeyCode == Enum.KeyCode.Right then
         local index = table.find(roster.Order, selectedId) or 1
         local direction = if input.KeyCode == Enum.KeyCode.Left then -1 else 1
@@ -576,14 +622,24 @@ local function lockInput(locked)
     end
 end
 
-local function show()
+local function show(asSwitch)
+    switching = asSwitch
+    heading.Text = if switching then "Switch fighter" else "Choose your fighter"
+    close.Visible = switching
+    lastError = player:GetAttribute("StarterSelectionError") or ""
     panel.Visible, loading.Visible, screen.Enabled = true, false, true
     lockInput(true)
-    if not selectedId then
-        showFighter(roster.Order[1])
-    else
-        drawPreview(selectedId, elements[roster.ById[selectedId].element] or colors.gold)
+    if switching then
+        ContextActionService:BindActionAtPriority(cancelActionName, function(_, inputState)
+            if inputState == Enum.UserInputState.Begin then
+                closePicker()
+            end
+            return Enum.ContextActionResult.Sink
+        end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.ButtonB)
     end
+    local active = player:GetAttribute("SelectedStarterFighter")
+    selectedId = nil
+    showFighter(if switching and active and roster.ById[active] then active else roster.Order[1])
     animation = RunService.RenderStepped:Connect(function()
         if previewState == "ready" and motionAllowed() then
             pose(os.clock() - beganAt)
@@ -595,6 +651,7 @@ end
 
 local function hide()
     lockInput(false)
+    ContextActionService:UnbindAction(cancelActionName)
     if animation then
         animation:Disconnect()
         animation = nil
@@ -604,6 +661,7 @@ local function hide()
     end
     panel.Visible, loading.Visible, screen.Enabled = false, false, false
     inFlight = false
+    requestNumber += 1
     if previewModel then
         previewModel:Destroy()
         previewModel = nil
@@ -628,13 +686,14 @@ end
 local function synchronize()
     local loadingSplash = playerGui:FindFirstChild("BeastDojoSplash") or playerGui:FindFirstChild("BeastDojoSplashContent")
     local required = player:GetAttribute("StarterSelectionRequired")
-    if loadingSplash or required == false then
+    local open = not loadingSplash and required == false and player:GetAttribute("FighterSelectOpen") == true
+    if loadingSplash or (required == false and not open) then
         if screen.Enabled then
             hide()
         end
-    elseif required then
+    elseif required or open then
         if not panel.Visible then
-            show()
+            show(open)
         end
     else
         if panel.Visible then
@@ -651,7 +710,26 @@ end
 playerGui.ChildAdded:Connect(splashChanged)
 playerGui.ChildRemoved:Connect(splashChanged)
 player:GetAttributeChangedSignal("StarterSelectionRequired"):Connect(synchronize)
-player:GetAttributeChangedSignal("SelectedStarterFighter"):Connect(synchronize)
+player:GetAttributeChangedSignal("FighterSelectOpen"):Connect(synchronize)
+player:GetAttributeChangedSignal("SelectedStarterFighter"):Connect(function()
+    synchronize()
+    if panel.Visible then
+        updateLevel()
+        buttons()
+    end
+end)
+local function readFighterLevels()
+    local encoded = player:GetAttribute("FighterRosterLevels")
+    if type(encoded) == "string" then
+        local ok, decoded = pcall(HttpService.JSONDecode, HttpService, encoded)
+        if ok and type(decoded) == "table" then
+            fighterLevels = decoded
+        end
+    end
+    updateLevel()
+end
+player:GetAttributeChangedSignal("FighterRosterLevels"):Connect(readFighterLevels)
+readFighterLevels()
 player:GetAttributeChangedSignal("ProgressStatus"):Connect(function()
     if loading.Visible then
         waitForProfile()

@@ -2,214 +2,296 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
-local TweenService = game:GetService("TweenService")
+local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Round = require(script.Parent:WaitForChild("SparringRound"))
+local progression = require(ReplicatedStorage:WaitForChild("RingProgression"))
+local bots = require(ReplicatedStorage:WaitForChild("SparringBots"))
+local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local sparringWon = script.Parent:WaitForChild("SparringWon")
-
-local ring = workspace:WaitForChild("Grand Dojo City"):WaitForChild("Fighting Ring")
-local corner = ring:WaitForChild("Bot Spar Corner")
-local bounds = corner:WaitForChild("Sparring Bounds")
-local gate = corner:WaitForChild("Sparring Gate")
-local template = ServerStorage:WaitForChild("Juniper Tortoise")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoSparring")
-local floor = bounds.Position.Y - bounds.Size.Y / 2
-local active
-local retryUntil = {}
-local lastAction = {}
+local templates = ServerStorage:WaitForChild("Resident Dojo Bots")
 
-local function flat(vector)
-    return Vector3.new(vector.X, 0, vector.Z)
-end
+local city = workspace:WaitForChild("Grand Dojo City")
+local districts = city:WaitForChild("Connected districts")
+local rings = {
+    ["grand-dojo"] = city:WaitForChild("Fighting Ring"),
+    cinder = districts:WaitForChild("Cinder Terraces"):WaitForChild("Cinder Terraces Ring"),
+    ["cloud-top"] = districts:WaitForChild("Skywalk Peaks"):WaitForChild("Cloud-Top Temple"),
+    galleon = districts:WaitForChild("Tideharbor Coast"):WaitForChild("Sunken Pirate Galleon"):WaitForChild("Tideharbor practice ring"),
+}
+local activeByPlayer, offers, rematches, lastAction = {}, {}, {}, {}
 
-local function inCorner(position)
-    local offset = position - bounds.Position
-    return math.abs(offset.X) <= bounds.Size.X / 2 and math.abs(offset.Z) <= bounds.Size.Z / 2
-        and offset.Y >= -2 and offset.Y <= 7
-end
-
-local function livingRoot(player)
-    local character = player.Character
-    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-    return humanoid and humanoid.Health > 0 and character:FindFirstChild("HumanoidRootPart") or nil
+local function notice(player, message)
+    remote:FireClient(player, "notice", message)
 end
 
 local function publish(bout, kind, now)
     local round = bout.round
+    local tell = if round.botPhase == "setup" then round.attack.setup
+        elseif round.botPhase == "windup" then round.attack.name else nil
     remote:FireClient(bout.player, kind, round.playerHealth, round.botHealth, round.startsAt, round.endsAt,
-        round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt, Round.parryOpensAt(round))
-end
-
-local function shoulderPose(bout, action)
-    local guard = action == "guard"
-    for _, arm in bout.arms do
-        if guard or arm.right then
-            if arm.tween then
-                arm.tween:Cancel()
-            end
-            local angle = if guard then -22 else -57
-            local forward = if guard then -.10 else -.46
-            arm.tween = TweenService:Create(arm.motor, TweenInfo.new(.09), {
-                C0 = CFrame.new(0, 0, forward) * arm.rest * CFrame.Angles(math.rad(angle), 0, 0),
-            })
-            local pose = arm.tween
-            pose:Play()
-            task.delay(if guard then .52 else .15, function()
-                if arm.tween == pose and arm.motor.Parent then
-                    arm.tween = TweenService:Create(arm.motor, TweenInfo.new(.17), {C0 = arm.rest})
-                    arm.tween:Play()
-                end
-            end)
-        end
-    end
+        round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt,
+        Round.parryOpensAt(round), bout.arena.config.botId, round.playerMaxHealth, bout.arena.id, tell)
 end
 
 local function finish(bout, result, now, disconnected)
-    active = nil
+    local arena, player = bout.arena, bout.player
+    arena.active, activeByPlayer[player] = nil, nil
     bout.bot:Destroy()
-    for _, arm in bout.arms do
-        if arm.tween then
-            arm.tween:Cancel()
-            arm.tween = nil
-            if arm.motor.Parent then
-                arm.motor.C0 = arm.rest
-            end
-        end
-    end
-    local player = bout.player
+    bout.telegraph:Destroy()
+    Match.clearPose(bout.arms)
     player:SetAttribute("SparringActive", nil)
+    player:SetAttribute("ActiveDojoRing", nil)
     if disconnected then
         return
     end
+    local root = Match.root(player)
+    if root == bout.root and result ~= "outside" then
+        Match.move(root, arena.safeReturn.CFrame)
+    end
     local wins = player:GetAttribute("SparringWins") or 0
-    local eligibleWin = result == "win" and player:GetAttribute("FirstSparWinComplete") ~= true
-        and player:GetAttribute("FirstSparWinPending") ~= true
     if result == "win" then
         wins += 1
         player:SetAttribute("SparringWins", wins)
     end
-    retryUntil[player] = now + 25
-    remote:FireClient(player, "result", result, wins, eligibleWin)
-    if eligibleWin then
-        sparringWon:Fire(player)
+    rematches[player] = {arena = arena, untilAt = now + 35}
+    remote:FireClient(player, "result", result, wins, result == "win", arena.config.botId, arena.id)
+    if result == "win" then
+        sparringWon:Fire(player, bout.fighterId)
     end
 end
 
-local function begin(player, now, retrying)
-    local root = livingRoot(player)
-    local nearGate = root and (root.Position - gate.Position).Magnitude <= gate.SparPrompt.MaxActivationDistance + .5
-    if not root or not (nearGate or (retrying and inCorner(root.Position))) then
-        if retrying then
-            remote:FireClient(player, "notice", "Return to the Bot Spar sign to try again.")
+local function entry(player, arena, retrying)
+    local root = Match.root(player)
+    if not (Match.near(root, arena.gate, arena.prompt.MaxActivationDistance + .8)
+        or (retrying and Match.near(root, arena.safeReturn, 8))) then
+        return nil, "Walk to the Bot Spar sign to enter this ring."
+    elseif arena.active then
+        return nil, "A spar is underway. This ring opens again when it ends."
+    elseif player:GetAttribute("DuelQueued") then
+        return nil, "Leave the Grand Dojo duel queue before starting Bot Spar."
+    elseif not Match.available(player) then
+        return nil, "Finish your current activity and let your progress save before sparring."
+    end
+    local open, message = progression.access(player:GetAttribute("HighestFighterLevel"), player:GetAttribute("FighterLevel"), arena.id)
+    return if open then root else nil, message
+end
+
+local function jointMap(bot)
+    local origin = bot:GetPivot()
+    local joints = {}
+    for _, part in bot:GetChildren() do
+        local pivot = part:FindFirstChild("ArtPivot")
+        if part:IsA("MeshPart") and pivot then
+            joints[part.Name] = {part = part, joint = origin:ToObjectSpace(pivot.WorldCFrame),
+                shell = pivot.WorldCFrame:ToObjectSpace(part.CFrame)}
         end
+    end
+    return joints
+end
+
+local function begin(player, arena, now, retrying)
+    local root, message = entry(player, arena, retrying)
+    if not root then
+        notice(player, message)
         return
     end
-    if active then
-        if active.player ~= player then
-            remote:FireClient(player, "notice", "A spar is underway. This corner opens when the round ends.")
-        end
+    local fighterId = player:GetAttribute("SelectedStarterFighter")
+    local fighter = fighters[fighterId]
+    if not fighter then
         return
     end
-    if (player:GetAttribute("RelayNextGate") or 0) > 0 then
-        remote:FireClient(player, "notice", "Finish or leave the Lantern Relay before sparring.")
-        return
-    end
-    retryUntil[player] = nil
-    local bot = template:Clone()
+    offers[player], rematches[player] = nil, nil
+    local profile = arena.profile
+    local bot = templates[profile.name]:Clone()
+    bot:PivotTo(arena.botSpawn.CFrame)
     local cue = Instance.new("Highlight")
     cue.Name = "Guard cue"
     cue.DepthMode = Enum.HighlightDepthMode.Occluded
-    cue.FillTransparency = .88
+    cue.FillTransparency = .94
+    cue.OutlineTransparency = .20
     cue.Enabled = false
     cue.Parent = bot
-    bot.Parent = corner
-    active = {
-        player = player, root = root, bot = bot, cue = cue, round = Round.new(now),
-        paw = bot["Right Paw"], shoulder = bot["Right Sleeve"],
-        messageUntil = 0, lastPublish = now, arms = {},
-    }
-    local torso = player.Character:FindFirstChild("Torso")
-    if torso then
-        for _, name in {"Right Shoulder", "Left Shoulder"} do
-            local motor = torso:FindFirstChild(name)
-            if motor and motor:IsA("Motor6D") then
-                table.insert(active.arms, {motor = motor, rest = motor.C0, right = name == "Right Shoulder"})
-            end
+    local telegraph = Instance.new("Folder")
+    telegraph.Name = "Attack tell"
+    telegraph.Parent = arena.corner
+    local bout = {arena = arena, player = player, root = root, fighterId = fighterId,
+        bot = bot, profile = profile, cue = cue, joints = jointMap(bot), telegraph = telegraph,
+        position = arena.botSpawn.Position, direction = arena.botSpawn.CFrame.LookVector,
+        round = Round.new(now, profile, fighter), messageUntil = 0, lastPublish = now,
+        arms = Match.armMotors(player.Character)}
+    arena.active, activeByPlayer[player] = bout, bout
+    player:SetAttribute("SparringActive", true)
+    player:SetAttribute("ActiveDojoRing", arena.id)
+    bot.Parent = arena.corner
+    Match.move(root, arena.playerSpawn.CFrame)
+    publish(bout, "begin", now)
+end
+
+local function distanceFacing(bout, usePose)
+    local position = if usePose then bout.posePosition or bout.position else bout.position
+    local delta = Match.flat(position - bout.root.Position)
+    local distance = delta.Magnitude
+    local facing = distance < .01 or Match.flat(bout.root.CFrame.LookVector):Dot(delta.Unit) >= .12
+    return if Match.inside(bout.arena.bounds, bout.root.Position) then distance else math.huge, facing
+end
+
+local function inAttack(bout)
+    local attack, frame = bout.round.attack, bout.attackFrame
+    if not frame or not Match.inside(bout.arena.bounds, bout.root.Position) then
+        return false
+    end
+    local localPosition = frame:PointToObjectSpace(bout.root.Position)
+    local depth, width = -localPosition.Z, math.abs(localPosition.X)
+    local radius = math.sqrt(depth * depth + width * width)
+    if attack.shape == "circle" then
+        return radius <= attack.reach
+    elseif attack.shape == "lane" then
+        return depth >= -.35 and depth <= attack.reach and width <= attack.width
+    end
+    return radius <= attack.reach and depth >= radius * .58
+end
+
+local function floorMark(bout, size, frame, shape)
+    local mark = Instance.new("Part")
+    mark.Name = "Committed attack area"
+    mark.Anchored, mark.CanCollide, mark.CanQuery, mark.CanTouch = true, false, false, false
+    mark.CastShadow, mark.Material, mark.Color = false, Enum.Material.Neon, bout.profile.tint
+    mark.Transparency = .70
+    mark.Shape = shape or Enum.PartType.Block
+    mark.Size, mark.CFrame = size, frame
+    mark.Parent = bout.telegraph
+end
+
+local function markAttack(bout)
+    local attack, frame = bout.round.attack, bout.attackFrame + Vector3.new(0, .08, 0)
+    if attack.shape == "circle" then
+        floorMark(bout, Vector3.new(.035, attack.reach * 2, attack.reach * 2),
+            frame * CFrame.Angles(0, 0, math.pi / 2), Enum.PartType.Cylinder)
+    elseif attack.shape == "lane" then
+        floorMark(bout, Vector3.new(attack.width * 2, .035, attack.reach), frame * CFrame.new(0, 0, -attack.reach / 2))
+    else
+        for angle = -48, 48, 16 do
+            floorMark(bout, Vector3.new(1.12, .035, attack.reach),
+                frame * CFrame.Angles(0, math.rad(angle), 0) * CFrame.new(0, 0, -attack.reach / 2))
         end
     end
-    active.pawRest = bot:GetPivot():ToObjectSpace(active.paw.CFrame)
-    active.shoulderRest = bot:GetPivot():ToObjectSpace(active.shoulder.CFrame)
-    player:SetAttribute("SparringActive", true)
-    publish(active, "begin", now)
 end
 
-local function measure(bout)
-    local delta = flat(bout.bot:GetPivot().Position - bout.root.Position)
-    local distance = delta.Magnitude
-    local facing = distance < .01 or bout.root.CFrame.LookVector:Dot(delta.Unit) >= .12
-    local onMat = inCorner(bout.root.Position) and math.abs(bout.root.Position.Y - floor - 3) <= 2.7
-    return if onMat then distance else math.huge, facing
-end
-
-local function moveBot(bout, now, dt)
-    local round = bout.round
-    local position = bout.bot:GetPivot().Position
-    local toward = flat(bout.root.Position - position)
+local function animate(bout, now, dt)
+    local round, arena = bout.round, bout.arena
+    local toward = Match.flat(bout.root.Position - bout.position)
     local distance = toward.Magnitude
-    if distance < .01 then
-        return
+    local direction = if distance > .03 then toward.Unit else bout.direction
+    local isReady = now >= round.startsAt and round.botPhase == "ready" and distance > 4.5 and distance < 50
+    local stride, lean, arm = 0, 0, 0
+    if isReady then
+        local move = math.min(dt * bout.profile.pace, distance - 4.5)
+        bout.position = Match.clampFloor(arena.bounds, bout.position + direction * move, arena.floor)
+        stride = math.sin(now * 12) * 10
     end
-    local direction = toward.Unit
-    if now >= round.startsAt and round.botPhase == "ready" and inCorner(bout.root.Position) and distance > 4.4 then
-        position += direction * math.min(dt * 7.2, distance - 4.4)
-        local center, half = bounds.Position, bounds.Size / 2
-        position = Vector3.new(math.clamp(position.X, center.X - half.X + 1, center.X + half.X - 1),
-            floor, math.clamp(position.Z, center.Z - half.Z + 1, center.Z + half.Z - 1))
-    end
-    local pivot = CFrame.lookAt(position, position + direction)
-    local reach = 0
-    if round.botPhase == "windup" then
-        reach = -.30 * (1 - math.clamp((round.botAt - now) / Round.WINDUP, 0, 1))
+    local position = bout.position
+    if round.botPhase == "setup" then
+        local setup = round.attack
+        local beat = math.sin(math.pi * math.clamp(1 - (round.botAt - now) / setup.setupTime, 0, 1))
+        position = Match.clampFloor(arena.bounds, position + (direction * (setup.advance or 0)
+            + direction:Cross(Vector3.yAxis) * (setup.strafe or 0)) * beat, arena.floor)
+        lean, arm = beat * 12, -beat * 15
+    elseif round.botPhase == "windup" then
+        direction = bout.attackFrame.LookVector
+        local beat = math.clamp(1 - (round.botAt - now) / round.attack.windup, 0, 1)
+        lean, arm = -beat * 12, beat * 30
     elseif round.botPhase == "recovery" then
-        reach = 1.28 * math.clamp(1 - (now - round.recoveryStartedAt) / .30, 0, 1)
+        local beat = math.max(0, 1 - (now - round.recoveryStartedAt) / .32)
+        local lunging = round.attack.shape == "lane"
+        direction = bout.releaseDirection or direction
+        position = Match.clampFloor(arena.bounds, position + direction * beat * (if lunging then 3.15 else .70), arena.floor)
+        lean, arm = beat * 17, -beat * 73
     end
-    bout.bot:PivotTo(pivot)
-    bout.paw.CFrame = pivot * CFrame.new(0, 0, -reach) * bout.pawRest
-    bout.shoulder.CFrame = pivot * CFrame.new(0, 0, -.45 * reach) * bout.shoulderRest
+    bout.direction = direction
+    bout.posePosition = position
+    local frame = CFrame.lookAt(position, position + direction)
+    bout.bot:PivotTo(frame)
+    local trunk = frame * CFrame.Angles(math.rad(lean), 0, 0)
+    for name, joint in bout.joints do
+        local rotation, base = 0, trunk
+        if name == "Right Arm" then
+            rotation = arm + stride
+        elseif name == "Left Arm" then
+            rotation = arm * .35 - stride
+        elseif name == "Right Leg" then
+            rotation, base = -stride, frame
+        elseif name == "Left Leg" then
+            rotation, base = stride, frame
+        end
+        joint.part.CFrame = base * joint.joint * CFrame.Angles(math.rad(rotation), 0, 0) * joint.shell
+    end
 end
 
-gate.SparPrompt.Triggered:Connect(function(player)
-    begin(player, workspace:GetServerTimeNow(), false)
-end)
+local arenas = {}
+for _, id in progression.Order do
+    local corner = rings[id]:WaitForChild("Bot Spar Corner")
+    local config = progression.ById[id]
+    local gate = corner:WaitForChild("Sparring Gate")
+    local botSpawn = corner:WaitForChild("Bot Spawn")
+    local arena = {id = id, config = config, profile = bots[config.botId], corner = corner, gate = gate,
+        prompt = gate:WaitForChild("SparPrompt"), bounds = corner:WaitForChild("Sparring Bounds"),
+        playerSpawn = corner:WaitForChild("Player Spawn"), safeReturn = corner:WaitForChild("Safe Return"),
+        botSpawn = botSpawn, floor = botSpawn.Position.Y}
+    table.insert(arenas, arena)
+    arena.prompt.Triggered:Connect(function(player)
+        if not Match.near(Match.root(player), arena.gate, arena.prompt.MaxActivationDistance + .8) then
+            return
+        end
+        local root, message = entry(player, arena, false)
+        local untilAt = workspace:GetServerTimeNow() + 30
+        offers[player] = if root then {arena = arena, untilAt = untilAt} else nil
+        remote:FireClient(player, "offer", arena.id, untilAt, root ~= nil, message)
+    end)
+end
 
 remote.OnServerEvent:Connect(function(player, action)
     if type(action) ~= "string" then
         return
     end
     local now = workspace:GetServerTimeNow()
-    if now - (lastAction[player] or -math.huge) < .09 then
+    if now - (lastAction[player] or -math.huge) < .095 then
         return
     end
     lastAction[player] = now
-    if action == "retry" then
-        if now < (retryUntil[player] or 0) then
-            begin(player, now, true)
+    if action == "accept" then
+        local offer = offers[player]
+        if offer and now < offer.untilAt then
+            begin(player, offer.arena, now, false)
         else
-            remote:FireClient(player, "notice", "Use the Bot Spar sign to start a new round.")
+            notice(player, "Use the local Bot Spar sign to enter the ring.")
+        end
+        return
+    elseif action == "cancelChoice" then
+        offers[player] = nil
+        return
+    elseif action == "retry" then
+        local rematch = rematches[player]
+        if rematch and now < rematch.untilAt then
+            begin(player, rematch.arena, now, true)
+        else
+            notice(player, "Use the local Bot Spar sign to start another round.")
         end
         return
     end
-    local bout = active
-    if not bout or bout.player ~= player then
+    local bout = activeByPlayer[player]
+    if not bout then
         return
     end
     if action == "leave" then
         finish(bout, "left", now)
-    elseif (action == "strike" or action == "guard") and livingRoot(player) == bout.root and inCorner(bout.root.Position) then
-        local distance, facing = measure(bout)
+    elseif (action == "strike" or action == "guard") and Match.root(player) == bout.root
+        and Match.inside(bout.arena.bounds, bout.root.Position) then
+        local distance, facing = distanceFacing(bout, action == "strike")
         local feedback = Round.act(bout.round, action, now, distance, facing)
         if feedback then
-            shoulderPose(bout, action)
-            bout.message, bout.messageUntil = feedback, now + .7
+            Match.pose(bout.arms, action)
+            bout.message, bout.messageUntil = feedback, now + .73
         end
         if bout.round.result then
             finish(bout, bout.round.result, now)
@@ -217,13 +299,59 @@ remote.OnServerEvent:Connect(function(player, action)
     end
 end)
 
-local elapsed = 0
-RunService.Heartbeat:Connect(function(dt)
-    local bout = active
-    if not bout then
-        elapsed = 0
+local function tickBout(bout, now, dt)
+    local round, arena = bout.round, bout.arena
+    if Match.root(bout.player) ~= bout.root then
+        finish(bout, "left", now)
         return
     end
+    if Match.inside(arena.bounds, bout.root.Position) then
+        bout.outsideSince = nil
+    elseif now >= round.startsAt then
+        bout.outsideSince = bout.outsideSince or now
+        if now - bout.outsideSince > 1.6 then
+            finish(bout, "outside", now)
+            return
+        end
+    end
+    local before = round.botPhase
+    local distance, facing = distanceFacing(bout)
+    local feedback = Round.step(round, now, distance, facing, inAttack(bout))
+    if round.result then
+        finish(bout, round.result, now)
+        return
+    end
+    if feedback then
+        bout.message, bout.messageUntil = feedback, now + .86
+    end
+    if before ~= round.botPhase then
+        bout.telegraph:ClearAllChildren()
+        if round.botPhase == "windup" then
+            local delta = Match.flat(bout.root.Position - bout.position)
+            local direction = if delta.Magnitude > .03 then delta.Unit else bout.direction
+            bout.attackFrame = CFrame.lookAt(bout.position, bout.position + direction)
+            markAttack(bout)
+        elseif round.botPhase == "recovery" then
+            bout.releaseDirection = bout.attackFrame.LookVector
+            bout.attackFrame = nil
+        end
+    end
+    animate(bout, now, dt)
+    local opensAt = Round.parryOpensAt(round)
+    local parryCue = opensAt ~= nil and now >= opensAt and now <= round.botAt
+    local cueStarted = parryCue and not bout.parryCue
+    bout.parryCue = parryCue
+    bout.cue.Enabled = round.botPhase ~= "ready"
+    local tint = if parryCue then Color3.fromRGB(151, 235, 248) else bout.profile.tint
+    bout.cue.FillColor, bout.cue.OutlineColor = tint, tint
+    if cueStarted or feedback or before ~= round.botPhase or now - bout.lastPublish >= .14 then
+        publish(bout, "state", now)
+        bout.lastPublish = now
+    end
+end
+
+local elapsed = 0
+RunService.Heartbeat:Connect(function(dt)
     elapsed += dt
     if elapsed < .05 then
         return
@@ -231,48 +359,17 @@ RunService.Heartbeat:Connect(function(dt)
     local step = math.min(elapsed, .15)
     elapsed = 0
     local now = workspace:GetServerTimeNow()
-    if livingRoot(bout.player) ~= bout.root then
-        finish(bout, "left", now)
-        return
-    end
-    if inCorner(bout.root.Position) then
-        bout.outsideSince = nil
-    elseif now >= bout.round.startsAt then
-        bout.outsideSince = bout.outsideSince or now
-        if now - bout.outsideSince > 1.6 then
-            finish(bout, "outside", now)
-            return
+    for _, arena in arenas do
+        if arena.active then
+            tickBout(arena.active, now, step)
         end
-    end
-    local distance, facing = measure(bout)
-    local feedback = Round.step(bout.round, now, distance, facing)
-    if bout.round.result then
-        finish(bout, bout.round.result, now)
-        return
-    end
-    if feedback then
-        bout.message, bout.messageUntil = feedback, now + .85
-    end
-    moveBot(bout, now, step)
-    local round = bout.round
-    local phase = round.botPhase
-    local opensAt = Round.parryOpensAt(round)
-    local parryCue = opensAt ~= nil and now >= opensAt and now <= round.botAt
-    local cueStarted = parryCue and not bout.parryCue
-    bout.parryCue = parryCue
-    bout.cue.Enabled = phase ~= "ready"
-    local tint = if parryCue then Color3.fromRGB(148, 223, 233)
-        elseif phase == "windup" then Color3.fromRGB(255, 192, 94) else Color3.fromRGB(129, 226, 188)
-    bout.cue.FillColor, bout.cue.OutlineColor = tint, tint
-    if cueStarted or feedback == "parried" or now - bout.lastPublish >= .13 then
-        publish(bout, "state", now)
-        bout.lastPublish = now
     end
 end)
 
 Players.PlayerRemoving:Connect(function(player)
-    if active and active.player == player then
-        finish(active, "left", 0, true)
+    local bout = activeByPlayer[player]
+    if bout then
+        finish(bout, "left", 0, true)
     end
-    retryUntil[player], lastAction[player] = nil, nil
+    rematches[player], offers[player], lastAction[player] = nil, nil, nil
 end)
