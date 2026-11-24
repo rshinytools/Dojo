@@ -588,12 +588,11 @@ local function musicAreaAt(name, position)
         if aboveDeck(position, ring and ring:FindFirstChild("Warm ring canvas")) then
             return "ring"
         end
-        local board = relay:FindFirstChild("EventBoard")
-        if board then
-            local offset = position - board.Position
-            -- This is the lane behind the west arch, before the course joins the city streets.
-            if offset.X >= -20 and offset.X <= -1.5 and offset.Z >= -22 and offset.Z <= -2
-                and offset.Y >= -1 and offset.Y <= 7 then
+        local lane = relay:FindFirstChild("Relay music volume")
+        if lane then
+            local offset = lane.CFrame:PointToObjectSpace(position)
+            local half = lane.Size / 2
+            if math.abs(offset.X) <= half.X and math.abs(offset.Y) <= half.Y and math.abs(offset.Z) <= half.Z then
                 return "relay"
             end
         end

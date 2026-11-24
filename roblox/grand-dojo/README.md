@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.246, follow the **Lantern Relay** banner. The small **Relay Start** desk is on the canal side of the approach. Run all seven gates and look for Lantern Keeper on your Trophy Hall pedestal.
+
 In v0.244, follow the **Skywalk ascent** north from Grand Dojo City. Two planted slate shoulders frame the east side between Cedar Foothill Walk and the Wind Rest turnoff. Eight cedars and four screened stone accents rise off the valley floor, with the Skywalk gate visible ahead. The existing road, crossings and detour are walkable on the same surfaces.
 
 In v0.243, walk through the **Skywalk Peaks gatehouse** toward **Wind Court**. The new Skywalk Peaks gatehouse is about 21 studs tall, up from 10.4 studs. Four timber piers carry two indigo roofs and an amber clerestory. A curved Skywalk Peaks sign, hanging lamps, and a strip of pale flagstones frame Wind Court’s stairway. The narrowest clear opening is 13.1 studs between the rear piers. Matched Studio views from exact v0.242 and v0.243 show the change. Exact v0.243 desktop Studio and Galaxy A06 landscape simulation passed the approach and return to the Wind Court deck at 13 checkpoints per direction. Each also passed 111 body sweeps and 151 floor checks. Desktop completed Mistline Crossing to Frostglass and Cloudstep Pass to Cinder both ways with no jumps. Studio reports six districts and 15 mapped links. Actual older-phone performance remains open.

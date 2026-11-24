@@ -1912,7 +1912,7 @@ for x,z,width,depth,pink,root_offset,yaw,scale,height_scale in (
         garden_prop(garden,"grassBlade",(px,1.45,pz+.45),.45,65+yaw,"B9A65C")
         garden_prop(garden,"meadowFlowers",(px+.39,1.49,pz),.43,yaw,"E39B9B" if pink else "FFCA85")
 
-for x,z,direction in ((-9.8,-18.7,-1),(17.1,-26.65,1),(-35.3,20.6,-1)):
+for x,z,direction,rock_scale in ((-9.8,-18.7,-1,.29),(17.1,-26.65,1,.29),(-33.4,20.6,-1,.24)):
     bank=item(foreground,"Model","Planted slate rock bank")
     prop(bank,"token","ModelStreamingMode",1)
     garden_shelf(bank,x,.67,z,4.8,3.43,.52,"95858D",SLATE,collide=False)
@@ -1924,7 +1924,18 @@ for x,z,direction in ((-9.8,-18.7,-1),(17.1,-26.65,1),(-35.3,20.6,-1)):
         flower_x=turf_x+.90*(px+.34-turf_x)
         garden_prop(bank,"meadowFlowers",(flower_x,.84,z-.38),.44,71*index,"F0A7BC")
         if index!=1:
-            garden_prop(bank,"bankRock",(px,.37,z+.87),.29,53*index,"897C86")
+            garden_prop(bank,"bankRock",(px,.37,z+.87),rock_scale,53*index,"897C86")
+
+relay_banks=item(foreground,"Model","Lantern lane stepped gardens")
+prop(relay_banks,"token","ModelStreamingMode",1)
+prop(relay_banks,"token","LevelOfDetail",4)
+for x,z,angle in ((-31.6,18.3,-11),(-32.8,25.9,24)):
+    shoreline_slate(relay_banks,x,z,.16,3.30,2.73,.47,angle,shadow=False)
+    garden_shelf(relay_banks,x+.11,.76,z-.10,2.80,2.19,.24,"7A854C",GRASS_MAT,collide=False)
+    garden_prop(relay_banks,"mossFlowers",(x-.48,.72,z+.43),.23,angle+57,"E9ACB0")
+    garden_prop(relay_banks,"meadowCover",(x+.35,.71,z-.42),.27,angle+21,"9AAA63")
+    garden_prop(relay_banks,"grassBlade",(x+.57,.73,z+.39),.44,angle+38,"C5AA64")
+    store_standing_lantern(relay_banks,(x+.47,.75,z-.37),.53,light=False,paper_tint="FFC376")
 
 directions=item(plaza,"Model","Plaza direction post")
 prop(directions,"token","ModelStreamingMode",1)
@@ -2731,9 +2742,24 @@ build_relay_arrival_portico(relay_portal,center=relay_entrance_x,item=item,part=
 air_effect(relay_portal,"Relay entrance glints",(relay_entrance_x,4.9,31.2),(13.0,2.8,1.25),5860841663,
            tint="FFD899",rate=1.5,lifetime=(1.0,1.7),speed=(.39,.72),
            size=(.21,.12),opacity=.68,drift=(.35,-.05,.11),glow=.55)
-board=part(relay,"EventBoard",(-31.6,2.2,36),(6.5,4.4,.7),DARK,yaw=-15)
-sign(relay,"EVENT BOARD",-31.5,3.2,36.46,5.75,1.55,-15,RED)
-lamp(relay,-31.6,5.04,36,scale=.8,light=True,light_profile=(.68,12.0))
+# Keep the start counter on the dry canal side to open the view under the marquee.
+board_x,board_z=-31.2,40.6
+board=part(relay,"EventBoard",(board_x,2.0,board_z),(3.38,1.95,.49),"6E3830",
+           material=WOOD_PLANK,collide=False)
+part(relay,"Relay desk plaque frame",(board_x,2.05,board_z+.24),(3.22,1.16,.13),
+     "C28F53",material=METAL,collide=False)
+sign(relay,"RELAY START",board_x,2.05,board_z+.23,2.95,.92,tint="95372D")
+for side in (-1,1):
+    px=board_x+side*1.34
+    part(relay,"Relay desk slate shoe",(px,.31,board_z),(.58,.37,.72),"8D7E86",
+         material=SLATE,collide=False)
+    part(relay,"Relay desk cedar leg",(px,.81,board_z),(.32,1.19,.39),"6F4031",
+         material=WOOD_PLANK,collide=False)
+part(relay,"Relay desk rounded sill",(board_x,2.99,board_z),(3.55,.21,.63),"985130",
+     material=WOOD_PLANK,collide=False)
+lamp(relay,board_x+1.26,3.50,board_z,scale=.57,light=True,light_profile=(.68,12.0))
+part(relay,"Relay music volume",(-42.35,5.2,24.0),(18.5,8,20),STONE,
+     transparency=1,collide=False)
 board_prompt=item(board,"ProximityPrompt","BoardPrompt")
 prop(board_prompt,"string","ActionText","Open event board")
 prop(board_prompt,"string","ObjectText","Lantern Relay")
@@ -2757,6 +2783,15 @@ def relay_checkpoint_arch(parent,x,z,yaw,peak):
         beam(crown,"Vermilion checkpoint arch",point(a),point(b),.59,"AC4D37")
         beam(crown,"Indigo checkpoint coping",point(a,.38),point(b,.38),.28,"374D81")
         beam(crown,"Gold checkpoint fillet",point(a,.11,.33),point(b,.11,.33),.12,"DB9D4D")
+    for side in (-1,1):
+        post=side*7.0
+        for lift,width,tint in ((-.75,1.54,"7F463D"),(-.37,1.78,"A06143"),(-.04,2.02,"713C37")):
+            part(crown,"Stacked cedar shoulder",point(post,lift,.02),(width,.23,2.07),
+                 tint,yaw=yaw,material=WOOD_PLANK,collide=False)
+        beam(crown,"Carved checkpoint brace",point(post,-2.17,.40),
+             point(side*5.03,-.30,.40),.38,"9D563C")
+        beam(crown,"Checkpoint brace brass edge",point(post,-1.98,.58),
+             point(side*5.16,-.36,.58),.081,"D79450")
     for index,offset in enumerate((-5.08,-2.56,0,2.56,5.08)):
         scale=.87 if offset==0 else .67
         beam(crown,"Relay lantern hanger",point(offset,-.51,.10),point(offset,.03,.10),.090,"834631")
