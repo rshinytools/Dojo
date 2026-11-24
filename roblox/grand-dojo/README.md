@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.281, use **Kilnback Raid** in Cinder Terraces. Four players share the kiln chamber. Step out of the pulse and rolling tile warnings, then hit the exposed core. Use **G**, D-pad Right or **Revive** near a downed teammate. Eligible clears save a token and shard grant. The first also earns **Kiln Keeper** in the Trophy Hall journal.
+
 In v0.280, use **2v2 Tag Team** by the Grand Dojo stairs. Pick one backup, then wait for three other players on the same server. Press **T**, D-pad Right or **Tag In** during combat. Your backup starts with a short assist strike and your benched fighter keeps their health. A knockout brings in a surviving backup. Check both teams’ reserve health under the clock.
 
 In v0.279, start Bot Spar or Duel to see the Festival Championship HUD. The gold trail shows how much health the last hit removed. Best of 3 and Ranked show round wins below the timer. Brawl uses the same visual treatment with a single health bar and a count of fighters still on the floor.

@@ -396,7 +396,7 @@ Tile Sweep: one shell plate tilts and sends a clearly marked rolling tile wave.
 
 Cool-down Window: steam vents open, exposing a glowing ceramic core for a short damage phase.
 
-Original written production brief only; no boss mesh, animation, audio or playable encounter exists yet.
+The v0.281 Studio checkpoint implements the original native boss rig, chamber, attack animations and co-op encounter. The raid has a confirmed hit-and-revive reward loop in the Studio profile path. Final boss audio, published play and physical-device verification remain open.
 
 ### 8.3 Production asset rules
 

@@ -117,6 +117,11 @@ function Motion.open(duel, brawl)
         table.insert(excluded, actor.character)
     end
     duel.motion = {arena = duel, arenaCast = Geometry.castParameters(excluded), brawl = brawl, at = duel.round.introAt}
+    if duel.bossCollider then
+        local contactExclusions = table.clone(excluded)
+        table.insert(contactExclusions, duel.bossCollider)
+        duel.motion.contactCast = Geometry.castParameters(contactExclusions)
+    end
 end
 
 function Motion.remove(duel, index)
@@ -197,7 +202,7 @@ end
 local function obstructed(duel, source, target)
     local from = Vector3.new(source.X, target.Y, source.Z)
     local vector = target - from
-    return vector.Magnitude > .005 and workspace:Raycast(from, vector, duel.motion.arenaCast) ~= nil
+    return vector.Magnitude > .005 and workspace:Raycast(from, vector, duel.motion.contactCast or duel.motion.arenaCast) ~= nil
 end
 
 local function floorContour(duel, actor, name, center, radius, direction, halfAngle, tint)
@@ -751,6 +756,106 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
         end
     end
     return candidates, center
+end
+
+function Motion.raidPosition(raid, side, at)
+    local actor = raid.actors[side]
+    return actor and actor.history and clockFrame(actor, at)
+end
+
+function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
+    if not activeActor(raid, side) then
+        return false
+    end
+    local actor = raid.actors[side]
+    local root = clockFrame(actor, at)
+    local tile, fan = move.shape == "tile", move.shape == "fan"
+    if tile and move.marker then
+        return plantMagma(raid, actor, move, at, index, castStartedAt)
+    end
+    local center, point, previous
+    if tile then
+        center = takeMagma(raid, actor, at, index, castStartedAt)
+        if not center then
+            return false
+        end
+    elseif not Match.inside(raid.bounds, root.Position) then
+        return false
+    elseif fan or move.shape == "radial" then
+        center = floorPoint(raid, root:PointToWorldSpace(move.center))
+    else
+        point = root:PointToWorldSpace(raid.round.sides[side].kit.poses.Impact[action][index])
+        previous = if action == "bellySlide" then slideSegment(actor, point) else nil
+    end
+    local targets = if raid.round.coreExposed then raid.exposedBossVolumes else raid.bossVolumes
+    for _, volume in targets do
+        local frame, size = volume.part.CFrame, volume.part.Size
+        local hit
+        if center then
+            local near = Geometry.nearestPoint(frame, size, center + Vector3.new(0, .45, 0))
+            local delta = Match.flat(near - center)
+            if delta.Magnitude <= move.radius and (not fan or delta.Magnitude <= .03
+                or delta.Unit:Dot(root.LookVector) >= math.cos(move.halfAngle)) then
+                hit = near
+            end
+        elseif previous then
+            hit = Geometry.sweptContact(previous, point, frame, size, .44)
+        else
+            local near = Geometry.nearestPoint(frame, size, point)
+            local forward = Match.flat(near - root.Position)
+            if (near - point).Magnitude <= .48 and (forward.Magnitude < .06 or forward.Unit:Dot(root.LookVector) >= .2) then
+                hit = near
+            end
+        end
+        if hit and not obstructed(raid, center or root.Position, hit) then
+            return true, if center and not fan then center else hit, volume.zone
+        end
+    end
+    return false, center or point
+end
+
+function Motion.raidThreatHits(raid, attack, strike, at, origin, direction)
+    local hits = {}
+    local center = if strike.radius then origin else origin + direction * strike.offset
+    local row = if not strike.radius then CFrame.lookAlong(center, direction) else nil
+    for index, actor in raid.actors do
+        if not activeActor(raid, index) then
+            continue
+        end
+        local root = clockFrame(actor, at)
+        if not Match.inside(raid.bounds, root.Position) then
+            continue
+        end
+        local facing = defenderFacing(root, origin)
+        local hit
+        if strike.radius then
+            hit = floorContact(raid, index, at, root, center, strike.radius)
+        else
+            for _, volume in defenderVolumes(raid, index, at, root, facing) do
+                if volume.grounded then
+                    local point = Geometry.nearestPoint(volume.frame, volume.size, center + Vector3.new(0, .27, 0))
+                    local offset = row:PointToObjectSpace(point)
+                    if offset.Y <= .83 and math.abs(offset.X) <= strike.halfSpan and math.abs(offset.Z) <= strike.halfWidth
+                        and not obstructed(raid, center, point + Vector3.new(0, .12, 0)) then
+                        hit = point
+                        break
+                    end
+                end
+            end
+        end
+        if hit then
+            table.insert(hits, {index = index, facing = facing, point = hit})
+        end
+    end
+    return hits
+end
+
+function Motion.raidImpact(raid, index, origin, at, strength)
+    if activeActor(raid, index) then
+        local actor = raid.actors[index]
+        local away = heading(origin, actor.root.Position, -actor.root.CFrame.LookVector)
+        actor.knock = {at = at, offset = away * strength, duration = .29, height = .30, moved = 0}
+    end
 end
 
 function Motion.impact(duel, event)

@@ -42,6 +42,8 @@ def verify_place():
                 "GrandDojoBrawl", "GrandDojoBrawlClient", "BrawlCombatRound", "BrawlFightMotion",
                 "Brawl Entry", "Brawl Court", "JoinBrawlPrompt", "Spectator Return",
                 "GrandDojoTagTeam", "GrandDojoTagTeamClient", "TagCombatRound", "Tag Team Entry", "Tag Team Court", "JoinTagTeamPrompt",
+                "KilnbackRaid", "KilnbackRaidClient", "KilnbackRaidRound", "KilnbackRaidVisuals", "KilnbackRaidCompleted",
+                "Kilnback Raid Entry", "Kilnback Raid Court", "JoinKilnbackRaidPrompt", "Kilnback Custodian", "Core Hit",
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander",

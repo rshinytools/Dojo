@@ -50,7 +50,19 @@ local categories = {
 }
 
 local function describe(player, id)
-    if id == "world-04" then
+    if id == "world-01" then
+        if player:GetAttribute("KilnKeeper") == true then
+            return if player:GetAttribute("ProgressMode") == "studio" then "Studio award" else "Earned",
+                "Awarded for an eligible Kilnback Custodian clear."
+        end
+        local progress = player:GetAttribute("ProgressStatus")
+        if progress == "ready" or progress == "saved" then
+            return "Locked", "Clear the Kilnback raid with damage or revive credit."
+        elseif progress == "saving" then
+            return "Updating", "Waiting for the raid reward to save."
+        end
+        return "Waiting", "The journal will update when progression is available."
+    elseif id == "world-04" then
         if player:GetAttribute("LanternKeeper") == true then
             if player:GetAttribute("ProgressMode") == "studio" then
                 return "Studio award", "Displayed on the center pedestal for this playtest."
@@ -145,7 +157,7 @@ local function cardLine(parent, name, size, tint, bold, order)
 end
 
 local observedAttributes = {
-    "LanternKeeper", "ProgressMode", "ProgressStatus", "SkywalkExpertEarned", "SkywalkExpertRewardId",
+    "LanternKeeper", "KilnKeeper", "ProgressMode", "ProgressStatus", "SkywalkExpertEarned", "SkywalkExpertRewardId",
     "SkywalkExpertBest", "SkywalkTrialMode", "SkywalkTrialNext",
 }
 
@@ -229,12 +241,12 @@ function TrophyJournal:_update()
     self.state.Text, self.note.Text = describe(self.player, entry[1])
     local mode = self.player:GetAttribute("ProgressMode")
     local state = self.player:GetAttribute("ProgressStatus")
+    local earned = (if self.player:GetAttribute("LanternKeeper") == true then 1 else 0)
+        + (if self.player:GetAttribute("KilnKeeper") == true then 1 else 0)
     if mode == "studio" then
         self.summary.Text = "Studio collection"
-    elseif self.player:GetAttribute("LanternKeeper") == true then
-        self.summary.Text = "1 of 30 earned"
-    elseif state == "ready" or state == "saved" then
-        self.summary.Text = "0 of 30 earned"
+    elseif earned > 0 or state == "ready" or state == "saved" then
+        self.summary.Text = string.format("%d of 30 earned", earned)
     else
         self.summary.Text = "30 catalog entries"
     end

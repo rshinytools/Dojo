@@ -944,6 +944,7 @@ local function groupCombatUiOpen()
     return player:GetAttribute("BrawlActive") or player:GetAttribute("BrawlRecapOpen")
         or player:GetAttribute("TagTeamActive") or player:GetAttribute("TagTeamOfferOpen")
         or player:GetAttribute("TagTeamRecapOpen")
+        or player:GetAttribute("KilnbackRaidActive") or player:GetAttribute("KilnbackRaidRecapOpen")
 end
 
 local function restoreWorldPrompts()
@@ -2434,6 +2435,7 @@ local function syncGroupCombatUi()
     restoreWorldPrompts()
     layout()
 end
-for _, attribute in {"BrawlActive", "BrawlRecapOpen", "TagTeamActive", "TagTeamOfferOpen", "TagTeamRecapOpen"} do
+for _, attribute in {"BrawlActive", "BrawlRecapOpen", "TagTeamActive", "TagTeamOfferOpen", "TagTeamRecapOpen",
+    "KilnbackRaidActive", "KilnbackRaidRecapOpen"} do
     player:GetAttributeChangedSignal(attribute):Connect(syncGroupCombatUi)
 end
