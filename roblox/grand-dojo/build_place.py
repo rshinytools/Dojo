@@ -98,6 +98,7 @@ from pinecrest_ravine import build_pinecrest_ravine
 from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
+from starter_fighter_assets import build_starter_fighter_visuals
 from skywalk_foothill import build_skywalk_foothill
 from skywalk_road_bank import build_skywalk_road_bank
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
@@ -7709,6 +7710,19 @@ for (name,x,y,z,yaw,accent,paving,sign_name),(title,fur,ears,species,phase) in z
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","GrandDojoAction")
 item(storage,"RemoteEvent","GrandDojoSparring")
+item(storage,"RemoteEvent","StarterFighterChoice")
+starter_roster = json.loads((ROOT / "design/fighters/starter-fighters/roster.json").read_text(encoding="utf-8"))
+starter_catalog = {"Order": [], "ById": {}}
+for fighter in starter_roster["fighters"]:
+    fighter_id = fighter["id"]
+    starter_catalog["Order"].append(fighter_id)
+    starter_catalog["ById"][fighter_id] = {**fighter, "normalHit": fighter["normal_hit"]}
+encoded_catalog = json.dumps(starter_catalog, ensure_ascii=False, separators=(",", ":"))
+assert "]==]" not in encoded_catalog
+catalog_script = item(storage,"ModuleScript","StarterFighterCatalog")
+prop(catalog_script,"ProtectedString","Source",
+     f'return game:GetService("HttpService"):JSONDecode([==[{encoded_catalog}]==])')
+build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
 townsperson(server_storage,"Juniper Tortoise",spar_x+ring_offset,ring_floor,-2.2,
            "AAB272","397569",0,species="tortoise",scale=1.36,guard=True)
@@ -7915,11 +7929,13 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"Script","FrostglassReflectorLogic","FrostglassReflectors.server.luau"),
                                     (server,"ModuleScript","SparringRound","SparringRound.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
+                                    (server,"ModuleScript","StarterFighters","StarterFighters.luau"),
                                     (storage,"ModuleScript","MusicPlaylist","MusicPlaylist.luau"),
                                     (storage,"ModuleScript","TrophyJournal","TrophyJournal.luau"),
                                     (storage,"ModuleScript","EagleEye","EagleEye.luau"),
                                     (opening,"LocalScript","GrandDojoSplash","GrandDojoSplash.client.luau"),
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
+                                    (scripts,"LocalScript","StarterFighterSelect","StarterFighterSelect.client.luau"),
                                     (scripts,"LocalScript","GrandDojoMusic","GrandDojoMusic.client.luau"),
                                     (scripts,"LocalScript","FrostglassReflectorDisplay","FrostglassReflectors.client.luau"),
                                     (scripts,"LocalScript","GrandDojoTownLife","GrandDojoTownLife.client.luau"),

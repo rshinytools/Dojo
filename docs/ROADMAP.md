@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.265 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.266 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -83,7 +83,7 @@ Translate the UI direction to Roblox while the feature set is still small.
 | --- | --- | --- | --- |
 | P4.1 | Native UI component library | Prototype ready | Verify controller focus, the board action’s activation, safe-area placement, touch and VR in Studio and on target devices before extending the component library to other activities. |
 | P4.2 | Input and safe-area layouts | Planned | Core actions require neither hover nor an external website; controls do not collide. |
-| P4.3 | Onboarding and comfort | Planned | First-time players navigate dojo, quest, activity, fight and reward; returning players restore a tracked goal. VR has no forced camera shake, snapping or hit-stop. |
+| P4.3 | Onboarding and comfort | Prototype ready | Desktop and Galaxy A06 Studio Play covered the first-join fighter picker. Verify on hardware and continue the onboarding loop so first-time players navigate dojo, quest, activity, fight and reward; returning players restore a tracked goal. VR has no forced camera shake, snapping or hit-stop. |
 | P4.4 | Early physical-device checkpoint | Planned | Record the device, settings, frame-time and usability findings; resolve architectural issues before roster expansion. |
 
 ## P4W Open-world city foundation and Dojo Valley slice
@@ -141,7 +141,7 @@ Prove one production-quality asset pipeline before creating 72 evolution represe
 
 Validate fun, pacing and saving with a small complete game.
 
-**Status** Planned
+**Status** In progress
 
 **Dependencies** P3, P4, P4W, P4T, P5
 
@@ -149,7 +149,7 @@ Validate fun, pacing and saving with a small complete game.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P6.1 | Four complete fighters | Planned | All four are playable with progression transitions and no placeholder skill. |
+| P6.1 | Four complete fighters | Prototype ready | Studio verified each original Blender fighter can be selected, walked through the city and restored on respawn. Finish each combat kit, fighter progression and published rejoin tests. |
 | P6.2 | Duel and brawl alpha | Planned | Queues and matches run through the Grand Dojo Ring. Full occupancy, disconnects and repeated matches produce correct results and rewards. |
 | P6.3 | Alpha playtests and measurement | Planned | Players find an activity, finish a quest, earn/display a trophy and return to an arena. Record findings; no invented retention data. |
 | P6.4 | Alpha exit review | Planned | No unresolved defect threatens data or makes the world/combat loop unusable. |
@@ -171,7 +171,7 @@ Scale the proven fighter, world, quest and collection pipelines to full v1.
 | Cloud-Top Temple | Skywalk Peaks | 5 | Sablecrest Lynx | Bot Spar only |
 | Galleon Ring | Tideharbor Coast | 7 | Granite Rhino | Bot Spar only |
 
-Frostglass Gardens and Lantern Circuit remain activity districts. The v0.265 checkpoint includes Grand Dojo Bot Spar and the Galleon practice target. The unlock gates, satellite bot encounters and PvP queue and matches are planned. [Current checkpoint and XP path](IMPLEMENTATION.md#four-ring-progression-plan)
+Frostglass Gardens and Lantern Circuit remain activity districts. The current checkpoint includes Grand Dojo Bot Spar and the Galleon practice target. The unlock gates, satellite bot encounters and PvP queue and matches are planned. [Current checkpoint and XP path](IMPLEMENTATION.md#four-ring-progression-plan)
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |

@@ -295,7 +295,21 @@ compactParcel.TextXAlignment = Enum.TextXAlignment.Center
 compactParcel.Visible = false
 style(compactParcel, 8)
 
+local activeStarterNames = {
+    ["penguin-brawler"] = "Penguin",
+    ["silverback-gorilla"] = "Silverback",
+    ["fire-salamander"] = "Salamander",
+}
 local function updateFighterProgress()
+    local name = activeStarterNames[player:GetAttribute("SelectedStarterFighter") or ""]
+    fighterName.Text = name or "Reedguard"
+    if name then
+        -- The existing XP track belongs to Reedguard until fighter progression expands.
+        fighterLevel.Text, fighterXp.Text = "", ""
+        compactText.Text = name
+        xpTrack.Visible, compactTrack.Visible = false, false
+        return
+    end
     local status = player:GetAttribute("ProgressStatus")
     local snapshot = player:GetAttribute("FighterHudProgress")
     local level, earned, goal
@@ -323,7 +337,7 @@ local function updateFighterProgress()
     end
     compactFill.Size = xpFill.Size
 end
-for _, attribute in {"ProgressStatus", "FighterHudProgress"} do
+for _, attribute in {"ProgressStatus", "FighterHudProgress", "SelectedStarterFighter"} do
     player:GetAttributeChangedSignal(attribute):Connect(updateFighterProgress)
 end
 updateFighterProgress()
@@ -1140,6 +1154,12 @@ local function hide()
     layout()
 end
 
+local function formatRewardXp(amount)
+    local id = player:GetAttribute("SelectedStarterFighter")
+    local track = if activeStarterNames[id or ""] then "Reedguard XP" else "XP"
+    return string.format("+%d %s", amount, track)
+end
+
 local function updateTrophyPanel()
     local state = player:GetAttribute("ProgressStatus")
     local earned = player:GetAttribute("LanternKeeper")
@@ -1150,7 +1170,7 @@ local function updateTrophyPanel()
     elseif state == "saving" then
         detail.Text = "Saving your progress…"
     else
-        local prefix = if player:GetAttribute("ProgressMode") == "studio" then "Studio session" else "Reedguard Kangaroo"
+        local prefix = "Reedguard Kangaroo"
         detail.Text = string.format("%s · Level %d · %d XP", prefix,
             player:GetAttribute("FighterLevel") or 1, player:GetAttribute("FighterXp") or 0)
     end
@@ -1227,7 +1247,7 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
         detail.Text = string.format("Seven gates cleared in %.1fs.", elapsed)
         prizeDetail.Text = first and "Trophy earned. Follow the jade markers to the Trophy Hall." or
             (practiceRun and "Enter an official relay to earn the trophy." or "Your first-clear trophy is already in the hall.")
-        status.Text = first and string.format("Lantern Keeper unlocked · +%d XP", xpReward or 0) or
+        status.Text = first and "Lantern Keeper unlocked · " .. formatRewardXp(xpReward or 0) or
             (practiceRun and "Practice route" or string.format("Best time  %.1fs", math.min(best > 0 and best or elapsed, elapsed)))
     end
     layout()
@@ -1447,7 +1467,7 @@ remote.OnClientEvent:Connect(function(kind, a, b, c, d)
             local title = if c then "Relay practice complete" else "Lantern Relay complete"
             local message = string.format("%s · %.1fs", title, a)
             if b then
-                message ..= string.format(" · Lantern Keeper · +%d XP", d or 0)
+                message ..= " · Lantern Keeper · " .. formatRewardXp(d or 0)
             end
             flash(message)
         else
@@ -1628,7 +1648,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     if kind == "notice" or kind == "reward" or kind == "rewardPending" then
         local message = a
         if kind == "reward" then
-            message = if a > 0 then string.format("First spar win saved · +%d XP", a)
+            message = if a > 0 then "First spar win saved · " .. formatRewardXp(a)
                 else "First spar win reward already earned."
         end
         if sparResult.Visible and (kind == "notice" or resultAwaitingReward) then

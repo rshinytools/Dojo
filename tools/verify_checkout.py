@@ -28,6 +28,9 @@ def digest(stream):
 def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SplashArtwork",
+                "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
+                "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
+                "penguin-brawler", "silverback-gorilla", "fire-salamander",
                 "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts",
                 "Lantern Guild Beacon", "Terraced guild bluff", "Lantern foothill gardens", "Foothill irrigation pools",
                 "West Valley planted ridge bench", "Lodge stone apron cap",

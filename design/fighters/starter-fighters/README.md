@@ -15,7 +15,9 @@ These are the four fighters specified for the Beast Dojo closed alpha. Reedguard
 
 Each GLB is a standalone visual shell with six or seven separately pivoted mesh groups, Y up, and forward −Z. The single embedded 1024 × 1024 color atlas contains painted colors and baked contact shading. The associated `_bindings.json` files record the exact bounds, triangle counts and pivots. Use the Stud scale unit when checking the import preview. [Roblox Blender settings](https://create.roblox.com/docs/art/blender)
 
-Blender 4.5.16 reimport verified all four GLBs at 4.70–5.62 authored studs and 6,486–12,272 triangles. The editable Blender files include a posed fighter collection, camera, lighting and stage for art review. The gameplay handoff still requires Roblox import and fit, rig binding, movement and power animation, combat balance, and device testing.
+Blender 4.5.16 reimport verified all four GLBs at 4.70–5.62 authored studs and 6,486–12,272 triangles. The editable Blender files include a posed fighter collection, camera, lighting and stage for art review.
+
+The v0.266 Studio checkpoint uses these exact exports for the animated picker and player avatars. The [Roblox import manifest](../../../roblox/grand-dojo/starter_fighter_assets.json) records the uploaded mesh and atlas IDs, floor-aligned transforms and source checksums. Studio Play verified selection, movement and respawn for all four fighters. Combat animations, power behavior, balance and physical-device testing remain open.
 
 ## Rebuild
 

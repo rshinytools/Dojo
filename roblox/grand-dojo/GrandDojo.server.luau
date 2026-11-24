@@ -5,6 +5,8 @@ local RunService = game:GetService("RunService")
 local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
 local PlayerProfiles = require(script.Parent:WaitForChild("PlayerProfiles"))
+local StarterFighters = require(script.Parent:WaitForChild("StarterFighters"))
+local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
 
 local studio = RunService:IsStudio()
@@ -179,6 +181,9 @@ local RUN_LIMIT = 120
 local state = {}
 
 local function liveRoot(player)
+    if player:GetAttribute("StarterSelectionRequired") ~= false then
+        return nil
+    end
     local character = player.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
     if humanoid and humanoid.Health > 0 then
@@ -245,7 +250,56 @@ local function projectProgress(player, data, profile)
 end
 
 local function pendingProgress(data)
-    return data.pendingRelay or data.pendingFirstSparWin
+    return data.pendingStarterChoice or data.pendingRelay or data.pendingFirstSparWin
+end
+
+local function syncStarterAvatar(player, data, character)
+    if data.departed or character ~= player.Character then
+        return
+    end
+    if not data.selectedStarter then
+        StarterFighters.hold(character)
+        return
+    end
+    if StarterFighters.equip(character, data.selectedStarter) then
+        player:SetAttribute("StarterSelectionError", nil)
+    else
+        player:SetAttribute("StarterSelectionError", "Your starter choice was saved, but its appearance could not load.")
+        warn("[Grand Dojo] Starter shell could not mount for", data.selectedStarter)
+    end
+    StarterFighters.release(character)
+end
+
+local function projectStarterChoice(player, data, profile)
+    local selected = profile.selectedStarterFighter
+    if selected then
+        data.selectedStarter = selected
+        data.pendingStarterChoice = nil
+        if player.Character then
+            syncStarterAvatar(player, data, player.Character)
+        end
+        player:SetAttribute("SelectedStarterFighter", selected)
+        player:SetAttribute("StarterSelectionPending", false)
+        player:SetAttribute("StarterSelectionRequired", false)
+    else
+        if not data.pendingStarterChoice then
+            player:SetAttribute("StarterSelectionError", nil)
+        end
+        player:SetAttribute("StarterSelectionRequired", true)
+    end
+end
+
+local function saveStarterChoice(player, data, token)
+    local profile = profiles:commitStarterChoice(player.UserId, token, data.pendingStarterChoice)
+    if not profile then
+        return nil
+    end
+    data.pendingStarterChoice = nil
+    if not (data.departed or shuttingDown) then
+        projectStarterChoice(player, data, profile)
+        player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
+    end
+    return profile
 end
 
 local function saveRelay(player, data, token)
@@ -300,15 +354,21 @@ local function serveProgress(player, data)
                 break
             elseif data.profile then
                 projectProgress(player, data, data.profile)
+                projectStarterChoice(player, data, data.profile)
                 player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "ready")
                 nextRefresh = os.clock() + math.random(38, 54)
             else
                 player:SetAttribute("ProgressStatus", "unavailable")
+                if not (data.selectedStarter or data.pendingStarterChoice) then
+                    player:SetAttribute("StarterSelectionError", "Your profile is still loading. We'll retry while you're here.")
+                end
                 nextLoad = os.clock() + math.random(8, 12)
             end
         end
         if data.profile and (pendingProgress(data) or now >= nextRefresh) then
-            if data.pendingRelay then
+            if data.pendingStarterChoice then
+                data.profile = saveStarterChoice(player, data, token)
+            elseif data.pendingRelay then
                 data.profile = saveRelay(player, data, token)
             elseif data.pendingFirstSparWin then
                 data.profile = saveFirstSparWin(player, data, token)
@@ -319,7 +379,9 @@ local function serveProgress(player, data)
             if not data.profile and not (data.departed or shuttingDown) then
                 player:SetAttribute("ProgressStatus", "unavailable")
                 nextLoad = os.clock() + math.random(8, 12)
-                if data.pendingRelay then
+                if data.pendingStarterChoice then
+                    player:SetAttribute("StarterSelectionError", "Your starter choice is still saving. We'll retry while you're here.")
+                elseif data.pendingRelay then
                     remote:FireClient(player, "notice", "Your Relay result is pending. We'll retry while you're here.")
                 elseif data.pendingFirstSparWin then
                     sparRemote:FireClient(player, "rewardPending", "Your first-win XP is pending. We'll retry while you're here.")
@@ -333,6 +395,9 @@ local function serveProgress(player, data)
         data.profile = profiles:open(player.UserId, token)
     end
     if data.profile then
+        if data.pendingStarterChoice then
+            saveStarterChoice(player, data, token)
+        end
         if data.pendingRelay then
             saveRelay(player, data, token)
         end
@@ -355,6 +420,22 @@ sparringWon.Event:Connect(function(player)
     end
 end)
 
+starterChoice.OnServerEvent:Connect(function(player, fighterId)
+    local data = state[player]
+    if not data or data.departed or shuttingDown or not data.profile
+        or data.selectedStarter or data.pendingStarterChoice or not StarterFighters.isChoice(fighterId) then
+        return
+    end
+    if not StarterFighters.hasVisuals(fighterId) then
+        player:SetAttribute("StarterSelectionError", "This fighter's appearance could not load. Choose another fighter.")
+        return
+    end
+    data.pendingStarterChoice = fighterId
+    player:SetAttribute("StarterSelectionError", nil)
+    player:SetAttribute("StarterSelectionPending", true)
+    player:SetAttribute("ProgressStatus", "saving")
+end)
+
 local function addPlayer(player)
     if state[player] then
         return
@@ -367,11 +448,13 @@ local function addPlayer(player)
     player:SetAttribute("FighterLevel", 1)
     player:SetAttribute("ProgressMode", if studio then "studio" else "cloud")
     player:SetAttribute("ProgressStatus", "loading")
+    player:SetAttribute("StarterSelectionPending", false)
     player:SetAttribute("ParcelStage", 0)
     player:SetAttribute("HarborDeliveries", 0)
     player:SetAttribute("WindChimeCompletions", 0)
     resetRun(player, data)
-    player.CharacterAdded:Connect(function()
+    player.CharacterAdded:Connect(function(character)
+        syncStarterAvatar(player, data, character)
         table.clear(data.targetStrikes)
         data.openUntil = 0
         data.nextChime = 1
@@ -380,6 +463,9 @@ local function addPlayer(player)
             remote:FireClient(player, "notice", "Relay ended. Return to the event board to try again.")
         end
     end)
+    if player.Character then
+        syncStarterAvatar(player, data, player.Character)
+    end
     profileWorkers += 1
     task.spawn(serveProgress, player, data)
 end

@@ -49,6 +49,7 @@ local function valid(profile)
     return type(fighter) == "table" and whole(fighter.xp, 0, 1e12)
         and (profile.dojoPracticeId == nil or validCompletionId(profile.dojoPracticeId))
         and (profile.firstSparWinId == nil or validCompletionId(profile.firstSparWinId))
+        and (profile.selectedStarterFighter == nil or validCompletionId(profile.selectedStarterFighter))
         and (trophy == nil or type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
             and whole(trophy.criterionVersion, 1, 1e6))
         and (lease == nil or type(lease) == "table" and type(lease.token) == "string"
@@ -153,6 +154,19 @@ end
 
 function PlayerProfiles:release(userId, token)
     return self:_owned(userId, token, nil, true)
+end
+
+function PlayerProfiles:commitStarterChoice(userId, token, fighterId)
+    if not validCompletionId(fighterId) then
+        return nil, "invalid starter"
+    end
+    return self:_owned(userId, token, function(profile)
+        -- Retrying a timed-out write returns the saved selection. The first
+        -- confirmed choice also wins if a later request selects another fighter.
+        if profile.selectedStarterFighter == nil then
+            profile.selectedStarterFighter = fighterId
+        end
+    end)
 end
 
 function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId)

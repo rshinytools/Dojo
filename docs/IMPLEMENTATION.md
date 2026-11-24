@@ -1,13 +1,19 @@
 # Beast Dojo Implementation Handoff
 
-The v0.265 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.266 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
 1. Rebuild and open the Studio place using the [root README](../README.md). Use the ZIP when you want the pinned checkpoint immediately.
-2. Start **Play** in one Studio window. Find the Dojo Ring, run the Lantern Relay, and visit Trophy Hall. Open the City Map to see the six districts and 16 mapped links.
+2. Start **Play** in one Studio window. Preview the four Blender fighters and confirm a starter. Find the Dojo Ring, run the Lantern Relay, and visit Trophy Hall. Open the City Map to see the six districts and 16 mapped links.
 3. Walk to Skywalk Peaks, climb the Wind Court ramp or stairs, and activate **Reed**, **Cloud**, then **Summit**. Try the browser concept separately to review the planned progression loop.
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
+
+## Starter fighter selection
+
+After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
+
+The starter is chosen once per profile. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio Play uses a fresh test profile on each stop and restart. Existing XP rewards still feed Reedguard’s track. The other fighters have their own models and story previews, with fighter-specific combat, XP and switching planned for later work.
 
 ## Roblox listing artwork
 
@@ -48,12 +54,13 @@ The Grand Dojo Ring will host 1v1 Duels, 2v2 Tag Team and eight-player Brawl. Fo
 
 The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport verified the exports. Studio rigging, animation, combat tuning and gameplay integration remain open.
 
-The [closed-alpha starter fighter package](../design/fighters/starter-fighters/README.md) includes Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. It holds editable models, rendered previews, GLBs, pivot data and their [stories and proposed kits](../design/fighters/starter-fighters/roster.json). The production GDD retains its own scale. Studio integration and four-fighter acceptance remain open.
+The [closed-alpha starter fighter package](../design/fighters/starter-fighters/README.md) holds editable models, renders, GLBs, pivots and their [stories and proposed kits](../design/fighters/starter-fighters/roster.json). The [native import manifest](../roblox/grand-dojo/starter_fighter_assets.json) pins the Roblox assets to the source GLB checksums. The production GDD retains its combat scale. Four full combat kits and all-device verification remain open.
 
 | Work area | First files to inspect |
 | --- | --- |
 | Place generation and map links | [build_place.py](../roblox/grand-dojo/build_place.py), the corresponding geometry module, and the generated `CityRoutes` ModuleScript |
 | Open world activities and grants | [GrandDojo.server.luau](../roblox/grand-dojo/GrandDojo.server.luau), [CloudbreakTrial.server.luau](../roblox/grand-dojo/CloudbreakTrial.server.luau), [FrostglassReflectors.server.luau](../roblox/grand-dojo/FrostglassReflectors.server.luau) |
+| First-join starter selection and mesh binding | [Picker](../roblox/grand-dojo/StarterFighterSelect.client.luau), [server binding](../roblox/grand-dojo/StarterFighters.luau), [original asset manifest](../roblox/grand-dojo/starter_fighter_assets.json) |
 | Starter fighter, practice, and bot match | [Reedguard rig](../design/fighters/boxing-kangaroo/ReedguardKangaroo_Prototype.rbxmx), [GrandDojoSparring.server.luau](../roblox/grand-dojo/GrandDojoSparring.server.luau), [SparringRound.luau](../roblox/grand-dojo/SparringRound.luau) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
@@ -71,6 +78,7 @@ For an MCP-capable client, open one local place in Studio and enable **Studio as
 
 | Area | Evidence |
 | --- | --- |
+| Four starter fighters | After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open. |
 | Clear Dojo Ring mat | Removed two low-hanging reed banners, two decorative trainees and the practice dummy from the Grand Dojo mat. The Ring Steward directs players to Bot Spar. The retired target’s first-clear XP receipt stays compatible with existing profiles. The separate Tideharbor practice target remains available. Exact v0.265 desktop and Galaxy A06 landscape Studio Play verified the five removals, profile startup, all twelve treads, a 36-waypoint walk to the mat and starting and leaving a Juniper Tortoise spar. Desktop Studio also completed all seven official Relay gates, mounted Lantern Keeper in Trophy Hall and verified 80 XP and Level 2. |
 | Compact mobile progress HUD | On compact touch screens, a 124 × 32 level and XP badge sits in the safe upper-right area. The large city card and Roblox player list are hidden. The badge yields to full activity panels. Active parcel directions have a separate compact chip. Exact v0.264 Galaxy A06 Studio Play verified the layout, readable XP and clear touch controls in landscape and forced portrait. A three-hit practice set in landscape advanced the badge from 0/80 to 20/80 XP and filled 25% of the track. Desktop Play retained the full location HUD layout and player list. Physical-phone checks remain open. |
 | Trophy Hall title and cup sightlines | The Trophy Hall title sits 1.8 studs forward of its previous position, with slightly smaller lettering and room at both ends. The gold crest and smaller cup now sit ahead of the obstructions that hid the pedestal from low angles. Cedar brackets tie the projected sign and crest back to the gallery. Exact v0.263 desktop and Galaxy A06 landscape Studio Play each cleared 150 first-spawn lettering probes on the three landmarks. Three Hall approach views cleared 270 glyph probes and 145 cup silhouette probes per device setting. Both passed 15 doorway clearance rays, walked 19 checkpoints into the Hall without jumping, opened the trophy prompt, and loaded all three cup meshes. |

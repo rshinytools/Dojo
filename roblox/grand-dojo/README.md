@@ -2,9 +2,11 @@
 
 Open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio and choose **Play** (F5). The place uses native terrain, UI and lighting, an original Reedguard rig, and an original Blender gateway on the Dojo Ring. The gateway has a native fallback if its imported mesh or texture cannot load. Both versions use the same native arrival marquee. The canal and gardens reference selected meshes from two Creator Store packs owned by the project developer.
 
-The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud starter rig. The cloth wraps, harness, split tabard and ankle ties attach to the relevant limbs. All 53 outfit parts are massless and noncolliding. Static checks preserved the existing joints, body colliders, movement settings and world geometry. Blender reviewed the costume from the plaza and ring. Check animation clipping and appearance in Studio.
+The existing 4.93-stud Reedguard rig is the movement carrier beneath the selected Blender fighter. The cloth wraps, harness, split tabard and ankle ties attach to the relevant limbs. All 53 outfit parts are massless and noncolliding. Static checks preserved the existing joints, body colliders, movement settings and world geometry. Blender reviewed the costume from the plaza and ring. Check animation clipping and appearance in Studio.
 
 ## What to try
+
+In v0.266, wait for the splash, browse the four animated starter fighters, read their stories, and confirm your choice. Walk into Festival Plaza and try a respawn. The fighter keeps the original imported Blender mesh and atlas in the city. Each fresh Studio Play session can choose a different starter.
 
 In v0.265, the Dojo Ring mat is clear of the two hanging banners, the idle trainees and the practice dummy. Take the stairs to the green Bot Spar sign to start a bout.
 
