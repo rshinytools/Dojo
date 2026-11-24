@@ -311,6 +311,9 @@ local function resolve(duel, now)
         elseif kind == "pull" then
             setFeedback(a, "gustPull", now)
             setFeedback(b, "gustPull", now)
+        elseif kind == "snare" then
+            setFeedback(a, "snareCaught", now)
+            setFeedback(b, "snared", now)
         elseif event.damage and event.damage > 0 then
             setFeedback(a, kind, now, event.elementEffect)
             setFeedback(b, "hit", now)

@@ -158,5 +158,86 @@
         "counter": "Leave the circle early or face its center and guard."
       }
     ]
+  },
+  {
+    "id": "desert-scorpion",
+    "name": "Desert Scorpion",
+    "shortName": "Scorpion",
+    "title": "The Three Coals",
+    "home": "Cinder Terraces · Kiln Hall",
+    "element": "Magma",
+    "rarity": "Common",
+    "role": "Beast",
+    "style": "Pincer sweeps and placement traps",
+    "health": 102,
+    "normal_hit": 14,
+    "unlockLevel": 6,
+    "combat": {
+      "kit": "scorpion",
+      "techniqueCue": "tailFeint",
+      "signatureCue": "cinderSnare",
+      "techniqueCoolingCue": "tailCooling",
+      "signatureCoolingCue": "snareCooling",
+      "signatureCooldownLabel": "Snare",
+      "tint": "FFBB8B",
+      "cardStyle": "Pincer sweeps and traps",
+      "initials": "DS",
+      "previewPose": {"right": -38, "left": -25, "lean": -7, "roll": 8, "lift": 0.16, "step": 0.19, "legs": 11}
+    },
+    "story": "Desert Scorpion lays out the kiln floor before the potters arrive. She learned to mark the safe spots with three colored tiles and to move around the hot spots without spilling her tray. Her festival bout starts the same way: three bright markers, then a quick pincer sweep when her opponent steps into the open.",
+    "quote": "Look where you’re going to put your feet.",
+    "powers": [
+      {
+        "name": "Tail Feint",
+        "effect": "Show the tail, slip sideways, and sweep from the new angle with a pincer.",
+        "counter": "Turn with Scorpion and keep space for the sweep."
+      },
+      {
+        "name": "Cinder Snare",
+        "effect": "Place three glowing nodes. After the warning, the triangle roots unguarded fighters caught on the floor for 0.72 seconds.",
+        "counter": "Get outside the triangle, jump the trigger, or face its center and guard."
+      }
+    ]
+  },
+  {
+    "id": "pistol-shrimp",
+    "name": "Pistol Shrimp",
+    "shortName": "Pistol Shrimp",
+    "title": "Breaker of the Still Pool",
+    "home": "Tideharbor Coast · Lantern Quay",
+    "element": "Aquatic",
+    "rarity": "Rare",
+    "role": "Agile",
+    "style": "Quick snaps and wide knockback",
+    "health": 94,
+    "normal_hit": 15,
+    "unlockLevel": 7,
+    "combat": {
+      "kit": "shrimp",
+      "techniqueCue": "clawDash",
+      "signatureCue": "cavitationCannon",
+      "techniqueCoolingCue": "clawCooling",
+      "signatureCoolingCue": "cannonCooling",
+      "signatureCooldownLabel": "Cannon",
+      "compactSignature": "Cannon",
+      "tint": "91E6FF",
+      "cardStyle": "Claw rush and a water shockwave",
+      "initials": "PS",
+      "previewPose": {"right": -45, "left": -18, "lean": -8, "roll": -9, "lift": 0.12, "step": 0.21, "legs": 10}
+    },
+    "story": "Pistol Shrimp clears driftwood from Lantern Quay when the tide turns. One quick claw snap sends a ripple down the channel, and the dock crew follows it with their nets. At the dojo he paints the inside of his claw bright coral so an opponent can see exactly when it opens for the snap.",
+    "quote": "Watch the water when the quay goes quiet.",
+    "powers": [
+      {
+        "name": "Claw Dash",
+        "effect": "Close the gap with a quick step and finish with a fitted claw snap.",
+        "counter": "Leave the path as Shrimp winds the large claw back."
+      },
+      {
+        "name": "Cavitation Cannon",
+        "effect": "Release a ground shockwave that travels to the edge of the arena and pushes each fighter it hits outward once.",
+        "counter": "Face the center and guard, or jump as the wave reaches you."
+      }
+    ]
   }
 ]

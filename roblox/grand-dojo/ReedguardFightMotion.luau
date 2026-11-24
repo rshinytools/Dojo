@@ -11,6 +11,8 @@ local Granite = require(script.Parent.GraniteCombatPoses)
 local Frog = require(script.Parent.FrogCombatPoses)
 local Otter = require(script.Parent.OtterCombatPoses)
 local Sky = require(script.Parent.SkyFighterCombat)
+local EmberAqua = require(script.Parent.EmberAquaCombat)
+local Fields = require(script.Parent.ArenaFields)
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
 local Motion = {}
@@ -34,6 +36,9 @@ local playerKits = {
     otter = {poses = Otter, mixedSpacing = 2.55},
 }
 for id, kit in Sky.kits do
+    playerKits[id] = kit
+end
+for id, kit in EmberAqua.kits do
     playerKits[id] = kit
 end
 
@@ -225,7 +230,7 @@ function Motion.open(bout)
         autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled,
         humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
-    if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] then
+    if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit] then
         state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
     end
     for _, name in tracked do
@@ -286,6 +291,9 @@ function Motion.close(bout)
     restoreDefeat(state)
     clearLane(state, "tornadoWarning")
     clearLane(state, "gustWarning")
+    if state.arenaFieldCast then
+        Fields.clearVisuals(state.arenaFieldCast)
+    end
     if state.pebbleEffects then
         state.pebbleEffects:Destroy()
     end
@@ -836,7 +844,25 @@ local function playerDodge(bout, now)
     else
         clearLane(state, "gustWarning")
     end
-    local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil
+    local fieldAction = clip and not bout.outroAt and (clip.action == "cinderSnare" or clip.action == "cavitationCannon")
+    local fieldCast = state.arenaFieldCast
+    if fieldCast and (not fieldAction or fieldCast.clip ~= clip) then
+        Fields.clearVisuals(fieldCast)
+        state.arenaFieldCast = nil
+        fieldCast = nil
+    end
+    if fieldAction then
+        if not fieldCast then
+            local bounds, floor = bout.arena.bounds, bout.arena.floor
+            local origin = root.CFrame
+            local field = if clip.action == "cinderSnare"
+                then Fields.triangle(bounds, floor, origin, EmberAqua.snare.vertices) else Fields.wave(bounds, floor, origin)
+            fieldCast = {clip = clip, field = field}
+            state.arenaFieldCast = fieldCast
+        end
+        Fields.updateCast(bout.telegraph, fieldCast, age, now, EmberAqua, true)
+    end
+    local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil or fieldAction == true
     if hold ~= state.holding then
         root.Anchored = hold or state.anchored
         state.holding = hold
@@ -888,6 +914,7 @@ local function brackenCommand(bout, now)
         state.brackenAction = action
     end
     local age = now - round.botStartedAt
+    local rooted = now < (round.botRootedUntil or 0)
     local heading = action.basis.LookVector
     if bout.outroAt or phase == "recovery" then
         clearLane(state, "rushLane")
@@ -896,7 +923,9 @@ local function brackenCommand(bout, now)
     elseif phase == "setup" then
         local alpha = math.clamp((age - .12) / math.max(.01, attack.setupTime - .12), 0, 1)
         local stepLength = math.max(action.stepProgress, (attack.advance or 0) * alpha * alpha)
-        brackenStep(bout, heading * (stepLength - action.stepProgress), action.basis)
+        if not rooted then
+            brackenStep(bout, heading * (stepLength - action.stepProgress), action.basis)
+        end
         action.stepProgress = stepLength
     elseif phase == "windup" and descriptor.travelProgress then
         if not action.driveLength then
@@ -904,7 +933,9 @@ local function brackenCommand(bout, now)
             action.driveLength = math.clamp(gap - 1.94, .35, 3.1)
         end
         local progress = math.max(action.driveProgress, descriptor.travelProgress(age, attack.windup))
-        brackenStep(bout, heading * (action.driveLength * (progress - action.driveProgress)), action.basis)
+        if not rooted then
+            brackenStep(bout, heading * (action.driveLength * (progress - action.driveProgress)), action.basis)
+        end
         action.driveProgress = progress
     end
     rememberPosition(action.samples, now, bout.position)
@@ -962,12 +993,15 @@ local function sablecrestCommand(bout, now)
         state.sablecrestAction = action
     end
     local age = now - round.botStartedAt
+    local rooted = now < (round.botRootedUntil or 0)
     if bout.outroAt or phase == "recovery" then
         clearLane(state, "returnLane")
     elseif phase == "setup" then
         local progress = math.max(action.setupProgress, descriptor.setupProgress(age, attack.setupTime))
         local step = action.basis.RightVector * attack.strafe * (progress - action.setupProgress)
-        sablecrestStep(bout, step, action.basis)
+        if not rooted then
+            sablecrestStep(bout, step, action.basis)
+        end
         action.setupProgress = progress
     elseif phase == "windup" and descriptor.travelProgress then
         if not action.strikeBasis then
@@ -988,7 +1022,9 @@ local function sablecrestCommand(bout, now)
         end
         local progress = math.max(action.driveProgress, descriptor.travelProgress(age, attack.windup))
         local drive = action.strikeBasis.LookVector * action.driveLength * (progress - action.driveProgress)
-        sablecrestStep(bout, drive, action.strikeBasis)
+        if not rooted then
+            sablecrestStep(bout, drive, action.strikeBasis)
+        end
         action.driveProgress = progress
     end
     rememberPosition(action.samples, now, bout.position)
@@ -1382,7 +1418,23 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     end
     local state, root = bout.motion, actorRootAt(bout, time)
     local frame, groups = botPose(bout, time)
-    if move.projectile then
+    if move.shape == "snare" or move.shape == "wave" then
+        local cast = state.arenaFieldCast
+        if not cast or cast.clip.startedAt ~= castStartedAt or move.launch then
+            return false
+        end
+        local volumes = {}
+        for _, name in {"Left Leg", "Right Leg"} do
+            local joint = bout.joints[name]
+            table.insert(volumes, {frame = jointFrame(frame, groups, name, joint) * joint.shell,
+                size = joint.part.Size, grounded = true})
+        end
+        local field = cast.field
+        local foot = Fields.footContact(field, move, volumes, function(from, to)
+            return obstructed(bout, from, to)
+        end)
+        return foot ~= nil, foot, "body"
+    elseif move.projectile then
         local releaseRoot = actorRootAt(bout, castStartedAt + move.release)
         local start, finish, effect = pebbleSweep(state.pebbleEffects, state.arenaCast, releaseRoot, move, index)
         if not start then
@@ -1625,6 +1677,7 @@ function Motion.move(bout, now, dt)
     end
     local spacing = state.spacing
     bout.moving = not bout.outroAt and not state.shove and not state.crossKnock and now >= round.startsAt
+        and now >= (round.botRootedUntil or 0)
         and round.botPhase == "ready" and distance > spacing
     if bout.moving then
         local travel = bout.direction * math.min(distance - spacing, dt * bout.profile.pace)
@@ -1702,6 +1755,13 @@ function Motion.impact(bout, event)
         local heading = directionTo(center, bout.position, bout.root.CFrame.LookVector)
         state.crossKnock = {at = event.at, offset = heading * force, progress = 0,
             duration = if spike then .16 else .20, height = height, dropFrom = if spike then state.crossLift or 0 else nil,
+            basis = CFrame.lookAlong(Vector3.zero, heading)}
+    elseif damage and EmberAqua.shove[event.attack] then
+        local cast = bout.motion.arenaFieldCast
+        local center = if event.attack == "cavitationCannon" and cast then cast.field.center else bout.root.Position
+        local heading = directionTo(center, bout.position, bout.root.CFrame.LookVector)
+        bout.motion.crossKnock = {at = event.at, offset = heading * EmberAqua.shove[event.attack],
+            progress = 0, duration = if event.attack == "cavitationCannon" then .34 else .20, height = 0,
             basis = CFrame.lookAlong(Vector3.zero, heading)}
     elseif damage then
         if event.attack == "bellySlide" and penguin(bout) then

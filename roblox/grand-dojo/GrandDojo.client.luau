@@ -1738,6 +1738,7 @@ local cues = {
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
     projectileDeflected = "Projectile deflected!",
     gustPull = "Vortex pulls inward",
+    snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     needParry = "Parry a strike to unlock Rising.",
     ["Shell Set"] = "Shell Set · Wait out the brace",
     ["Kiln Rush"] = "Kiln Rush · Leave the lane",
@@ -1756,7 +1757,7 @@ local cooldownCues = {
 local priorityCues = {
     uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
-    gustPull = true,
+    gustPull = true, snareCaught = true,
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat
@@ -1766,7 +1767,8 @@ for _, fighter in fighterCatalog.ById do
             techniqueAction = combat.techniqueAction, techniqueName = combat.techniqueName, techniqueLabel = combat.techniqueLabel,
             techniqueCooldown = combat.techniqueCooldown,
             dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = combat.signatureName,
-            signatureLabel = combat.signatureLabel, signatureCooldown = combat.signatureCooldown, tint = Color3.fromHex(combat.tint),
+            signatureLabel = combat.signatureLabel, signatureCooldown = combat.signatureCooldown,
+            compactSignature = combat.compactSignature, tint = Color3.fromHex(combat.tint),
         }
         if combat.techniqueCue then
             cues[combat.techniqueCue] = combat.technique
@@ -1817,8 +1819,12 @@ local function refreshSparControls(now)
     combatButtons.dodge.Text = kit.dodgeLabel .. (if keyboard then separator .. "X" elseif gamepad then separator .. "LB" else "")
     combatButtons.signature.TextWrapped = kit.signatureCooldown ~= nil
     local cooling = if kit.signatureCooldown then cooldownSeconds(matchPresentation.nextSignature, clock) else 0
-    combatButtons.signature.Text = if cooling > 0 then string.format(kit.signatureCooldown, cooling)
-        else kit.signatureLabel .. (if keyboard then separator .. "F" elseif gamepad then separator .. "Y" else "")
+    local width = combatButtons.signature.AbsoluteSize.X
+    local short = kit.compactSignature and width > 0 and width < 70
+    local signatureLabel = if short then kit.compactSignature else kit.signatureLabel
+    local signatureCooldown = if short then signatureLabel .. "\n%ds" else kit.signatureCooldown
+    combatButtons.signature.Text = if cooling > 0 then string.format(signatureCooldown, cooling)
+        else signatureLabel .. (if keyboard then separator .. "F" elseif gamepad then separator .. "Y" else "")
     combatButtons.signature.TextColor3 = if cooling > 0 then palette.muted else palette.parchment
     combatButtons.exit.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · B" else "Leave"
 end
@@ -2055,7 +2061,8 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     end
     local cooldownCue = cooldownCues[feedback]
     local parryCue = parryOpensAt ~= nil and attackAt ~= nil and now >= parryOpensAt and now <= attackAt
-    sparHint.TextColor3 = if parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
+    sparHint.TextColor3 = if feedback == "snared" then palette.gold
+        elseif parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
         elseif phase == "windup" or phase == "setup" then opponentTint or palette.gold else palette.parchment
     if phase == "outro" then
         local roundResult = matchPresentation.roundResult
@@ -2064,6 +2071,8 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
             elseif roundResult == "draw" then "Round drawn" else "Round ended"
     elseif now < startsAt then
         sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
+    elseif feedback == "snared" then
+        sparHint.Text = cues.snared
     elseif matchPresentation.showcase and feedback == "parried" then
         sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
     elseif not parryCue and priorityCues[feedback] then

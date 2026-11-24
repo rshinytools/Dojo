@@ -64,7 +64,7 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
         local deflected = hit and Combatant.deflects(defender, at, move)
         local kind = if not hit then "miss" elseif deflected then "blocked" else defense(defender, at, facing)
         if hit and move.controlOnly then
-            kind = if kind then "blocked" else "pull"
+            kind = if kind then "blocked" elseif move.rootDuration then "snare" else "pull"
         elseif not kind then
             kind = if defender.counterUntil and at < defender.counterUntil then "counter" else "strike"
         end
@@ -79,7 +79,7 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
             fields.elementEffect = matchup.elementEffect
             fields.knockbackScale = matchup.knockbackScale
         end
-        table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and not move.projectile})
+        table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and move.shape ~= "wave" and not move.projectile})
         -- The authored Magma Trail budget spends unscaled move damage.
         return baseDamage
     end
@@ -116,6 +116,8 @@ local function resolveBatch(duel, time, batch)
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = time + PARRY_STUN
             end
+        elseif event.kind == "snare" then
+            defender.rootTime = math.max(defender.rootTime or 0, event.rootDuration)
         elseif event.kind == "blocked" and not event.deflected and not event.controlOnly then
             reaction(defender, "block", 1, 0)
         end
@@ -134,6 +136,9 @@ local function resolveBatch(duel, time, batch)
         end
         if plan.counterUntil then
             side.counterUntil = plan.counterUntil
+        end
+        if plan.rootTime and side.playerHealth > 0 then
+            Combatant.applyRoot(side, time, plan.rootTime)
         end
     end
 end

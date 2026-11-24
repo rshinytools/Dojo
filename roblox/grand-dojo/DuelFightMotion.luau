@@ -7,13 +7,15 @@ local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Frog = require(script.Parent.FrogCombatPoses)
 local Otter = require(script.Parent.OtterCombatPoses)
 local Sky = require(script.Parent.SkyFighterCombat)
+local EmberAqua = require(script.Parent.EmberAquaCombat)
+local Fields = require(script.Parent.ArenaFields)
 
 local Motion = {}
 local defeatSeconds = Geometry.defeatSeconds
 local joints = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
 local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true, lilyVault = true, eddyPalm = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
-    pebbleBarrage = true}
+    pebbleBarrage = true, cinderSnare = true, cavitationCannon = true}
 local sideStep = {
     reedguard = {distance = 2.45, time = .23, start = 0},
     silverback = {distance = 2.23, time = .29, start = .045},
@@ -22,6 +24,8 @@ local sideStep = {
     otter = {distance = 2.39, time = .24, start = .025},
     rooster = {distance = 2.45, time = .24, start = .025},
     glider = {distance = 2.58, time = .23, start = .025},
+    scorpion = {distance = 2.30, time = .245, start = .025},
+    shrimp = {distance = 2.40, time = .23, start = .025},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -268,8 +272,8 @@ end
 
 local function clearCast(actor)
     local cast = actor.cast
-    if cast and cast.warning then
-        cast.warning:Destroy()
+    if cast then
+        Fields.clearVisuals(cast)
     end
     actor.cast = nil
 end
@@ -345,6 +349,15 @@ local function updateWarning(duel, actor, cast, age)
         cast.warning = floorContour(duel, actor, name,
             center, skill.radius, if fan then origin.LookVector else nil, skill.halfAngle, tint)
     end
+end
+
+local function supportedTriangle(duel, field, at)
+    for _, node in field.vertices do
+        if not floorActive(duel, node, at) then
+            return false
+        end
+    end
+    return true
 end
 
 local function pathOffset(cast, age, opponent)
@@ -444,6 +457,7 @@ local function updateActor(duel, index, now)
     local traveling = clip and (travelActions[clip.action] or (travel and travel.axis))
     local planting = clip and plantedActions[clip.action]
     local live = now >= duel.round.startsAt and not duel.round.resolvedAt
+    local rooted = now < (state.rootedUntil or 0)
     if brawl then
         actor.humanoid.AutoRotate = live and not clip and not actor.knock and actor.wasAutoRotate
         if live and not floorActive(duel, root.Position, now) then
@@ -470,6 +484,10 @@ local function updateActor(duel, index, now)
             actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId, poses = state.kit.poses}
             if clip.action == "gustVortex" then
                 actor.cast.fieldCenter = Match.clampFloor(duel.bounds, origin:PointToWorldSpace(Sky.gust.center), duel.floor)
+            elseif clip.action == "cinderSnare" then
+                actor.cast.field = Fields.triangle(duel.bounds, duel.floor, origin, EmberAqua.snare.vertices)
+            elseif clip.action == "cavitationCannon" then
+                actor.cast.field = Fields.wave(duel.bounds, duel.floor, origin)
             end
             setHeld(actor, true)
             Match.move(root, origin)
@@ -477,10 +495,16 @@ local function updateActor(duel, index, now)
         if traveling then
             moveCast(duel, actor, other, actor.cast, now)
         end
-        updateWarning(duel, actor, actor.cast, now - clip.startedAt)
+        if actor.cast.field then
+            local field = actor.cast.field
+            Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
+                not field.vertices or supportedTriangle(duel, field, now))
+        else
+            updateWarning(duel, actor, actor.cast, now - clip.startedAt)
+        end
     else
         clearCast(actor)
-        setHeld(actor, not live or actor.knock ~= nil)
+        setHeld(actor, not live or rooted or actor.knock ~= nil)
     end
     moveKnock(duel, actor, other, now)
     if other then
@@ -707,11 +731,42 @@ local function radialCenter(duel, actor, root, move, at, castStartedAt)
     return if floorActive(duel, center, at) then center else nil
 end
 
+local function fieldFor(duel, actor, move, at, castStartedAt)
+    local cast = actor.cast
+    local field = cast and cast.clip.startedAt == castStartedAt and cast.field
+    if not field then
+        return nil
+    end
+    if move.shape == "snare" and not supportedTriangle(duel, field, at) then
+        return nil
+    end
+    return field
+end
+
+local function fieldContact(duel, index, move, at, target, field)
+    if not Match.inside(duel.bounds, target.Position) or not floorActive(duel, target.Position, at) then
+        return nil, false
+    end
+    local facing = defenderFacing(target, field.center)
+    local point = Fields.footContact(field, move, defenderVolumes(duel, index, at, target, facing), function(from, to)
+        return obstructed(duel, from, to)
+    end)
+    return point, facing
+end
+
 function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local other = 3 - side
     local actor = duel.actors[side]
     local root = clockFrame(actor, at)
     local target = clockFrame(duel.actors[other], at)
+    if move.shape == "snare" or move.shape == "wave" then
+        local field = fieldFor(duel, actor, move, at, castStartedAt)
+        if not field or move.launch then
+            return false
+        end
+        local point, facing = fieldContact(duel, other, move, at, target, field)
+        return point ~= nil, point, "body", facing
+    end
     if move.shape == "tile" then
         if move.marker then
             return plantMagma(duel, actor, move, at, index, castStartedAt)
@@ -763,6 +818,24 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     end
     local actor = brawl.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "snare" or move.shape == "wave" then
+        if move.launch then
+            return false
+        end
+        local field = fieldFor(brawl, actor, move, at, castStartedAt)
+        local contacts = {}
+        if field then
+            for other, defender in brawl.actors do
+                if other ~= side and (not brawl.enemies or brawl.enemies(side, other)) and activeActor(brawl, other) then
+                    local point, facing = fieldContact(brawl, other, move, at, clockFrame(defender, at), field)
+                    if point then
+                        table.insert(contacts, {defender = other, point = point, zone = "body", facing = facing})
+                    end
+                end
+            end
+        end
+        return contacts
+    end
     local fan, tile = move.shape == "fan", move.shape == "tile"
     if tile and move.marker then
         return plantMagma(brawl, actor, move, at, index, castStartedAt)
@@ -866,6 +939,25 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     end
     local actor = raid.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "snare" then
+        return false
+    elseif move.shape == "wave" then
+        if move.launch then
+            return false
+        end
+        local field = fieldFor(raid, actor, move, at, castStartedAt)
+        if field then
+            local targets = if raid.round.coreExposed then raid.exposedBossVolumes else raid.bossVolumes
+            for _, volume in targets do
+                local location = Geometry.nearestPoint(volume.part.CFrame, volume.part.Size, field.center + Vector3.yAxis * .45)
+                if location.Y <= field.center.Y + 3.25 and Fields.contains(field, move, location)
+                    and not obstructed(raid, field.center, location) then
+                    return true, location, volume.zone
+                end
+            end
+        end
+        return false
+    end
     local tile, fan = move.shape == "tile", move.shape == "fan"
     if tile and move.marker then
         return plantMagma(raid, actor, move, at, index, castStartedAt)
@@ -1015,6 +1107,11 @@ function Motion.impact(duel, event)
         local center = if action == "gustVortex" then event.point else root.Position
         local outward = heading(center, target.root.Position, direction)
         offset, duration, height = outward * force, if spike then .16 else .20, popHeight
+    elseif EmberAqua.shove[action] then
+        local field = attacker.cast and attacker.cast.field
+        local center = if action == "cavitationCannon" and field then field.center else root.Position
+        offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
+            (if action == "cavitationCannon" then .34 else .20), 0
     elseif action == "bellySlide" then
         offset, duration, height = direction * 1.38, .20, 0
     elseif action == "ridgePalm" then

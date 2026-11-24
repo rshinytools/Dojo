@@ -18,6 +18,7 @@ local tint = {
     deflected = Color3.fromRGB(173, 247, 122),
     gustPull = Color3.fromRGB(198, 211, 255),
     diveKick = Color3.fromRGB(255, 152, 105),
+    snared = Color3.fromRGB(255, 166, 103),
     braced = Color3.fromRGB(174, 211, 180),
     burst = Color3.fromRGB(255, 143, 75),
 }
@@ -80,6 +81,10 @@ end
 
 local inwardGust = {name = "Gust Vortex inward pulse", color = tint.gustPull,
     initial = 6, width = .85, compact = 1, life = .30}
+local snareMark = {name = "Cinder Snare hold", color = tint.snared,
+    initial = 1.88, width = .78, compact = .88, life = .72}
+local waveHit = {name = "Cavitation Cannon impact", color = Color3.fromRGB(126, 226, 255),
+    initial = .7, width = 2.7, compact = 2.0, life = .23}
 
 local function funnel(point, compact)
     local count = if compact then 6 else 10
@@ -124,7 +129,11 @@ function CombatEffects.play(kind, point, attack)
         end
         return
     end
-    local pulse = groundPulses[attack]
+    if kind == "snared" then
+        groundPulse(point, snareMark, compact, reduced)
+        return
+    end
+    local pulse = if attack == "cavitationCannon" then waveHit else groundPulses[attack]
     if pulse and not parry and kind ~= "blocked" then
         groundPulse(point, pulse, compact, reduced)
         return

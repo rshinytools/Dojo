@@ -175,7 +175,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
             notice.kind = if deflected then "blocked" else defense(defender, contactAt, target.facing)
             notice.deflected = if deflected then true else nil
             if move.controlOnly then
-                notice.kind = if notice.kind then "blocked" else "pull"
+                notice.kind = if notice.kind then "blocked" elseif move.rootDuration then "snare" else "pull"
                 notice.damage = 0
             elseif notice.kind then
                 notice.damage = 0
@@ -186,7 +186,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
                 notice.elementEffect, notice.knockbackScale = matchup.elementEffect, matchup.knockbackScale
                 spent = fields.damage
             end
-            notice.detached = move.shape == "tile" or move.projectile ~= nil
+            notice.detached = move.shape == "tile" or move.shape == "wave" or move.projectile ~= nil
             table.insert(batch, notice)
         end
         -- Each tile spends the authored cast budget once, regardless of how many fighters it catches.
@@ -227,6 +227,8 @@ local function resolveBatch(round, at, notices, eliminateMany)
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = at + PARRY_STUN
             end
+        elseif event.kind == "snare" then
+            defender.rootTime = math.max(defender.rootTime or 0, event.rootDuration)
         elseif event.kind == "blocked" and not event.deflected and not event.controlOnly then
             reaction(defender, "block", 1, 0)
         end
@@ -249,6 +251,9 @@ local function resolveBatch(round, at, notices, eliminateMany)
             end
             if plan.counterUntil then
                 side.counterUntil = plan.counterUntil
+            end
+            if plan.rootTime and side.playerHealth > 0 then
+                Combatant.applyRoot(side, at, plan.rootTime)
             end
         end
     end

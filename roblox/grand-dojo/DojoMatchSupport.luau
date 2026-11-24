@@ -10,6 +10,8 @@ Match.FighterKits = table.freeze({
     ["river-otter"] = "otter",
     ["rooster-kickboxer"] = "rooster",
     ["sugar-glider"] = "glider",
+    ["desert-scorpion"] = "scorpion",
+    ["pistol-shrimp"] = "shrimp",
 })
 
 local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
@@ -28,6 +30,9 @@ function Match.contactCue(event)
         return "deflected"
     end
     if event.controlOnly then
+        if event.rootDuration then
+            return if kind == "snare" then "snared" elseif kind == "blocked" or kind == "braced" then kind else nil
+        end
         return if kind == "pull" or kind == "miss" then "gustPull" else kind
     end
     if event.attack == "featherFlurry" and event.index == 3 and (event.damage or 0) > 0 then

@@ -7,6 +7,7 @@ local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Frog = require(script.Parent.FrogCombatPoses)
 local Otter = require(script.Parent.OtterCombatPoses)
 local Sky = require(script.Parent.SkyFighterCombat)
+local EmberAqua = require(script.Parent.EmberAquaCombat)
 local Round = {}
 
 Round.INTRO = 10
@@ -156,6 +157,9 @@ local kits = {
 for id, kit in Sky.kits do
     kits[id] = kit
 end
+for id, kit in EmberAqua.kits do
+    kits[id] = kit
+end
 
 local residents = {
     juniper = {startRange = 3.65, attackLabel = "palm"},
@@ -230,9 +234,29 @@ local function nextLight(round, at)
     return action
 end
 
+local function inMotion(side, action)
+    local travel = side.kit.poses.Travel
+    return action == side.kit.dodge or (travel and travel[action] ~= nil)
+end
+
+local function applyRoot(side, at, duration)
+    side.rootedUntil = math.max(side.rootedUntil or 0, at + duration)
+    if side.clip and inMotion(side, side.clip.action) then
+        side.clip, side.bufferedLight = nil, false
+    end
+end
+
 function Round.act(round, action, now, direction)
     if round.result or now < round.startsAt or now >= round.endsAt or now < round.playerStunUntil then
         return
+    end
+    local kit = round.kit
+    if now < (round.rootedUntil or 0) then
+        local attempted = if action == "secondary" then kit.secondary
+            elseif action == "signature" then kit.signature elseif action == "dodge" then kit.dodge else nil
+        if attempted and inMotion(round, attempted) then
+            return "snared"
+        end
     end
     local current = round.clip
     if current and now < current.endsAt then
@@ -244,7 +268,6 @@ function Round.act(round, action, now, direction)
             return
         end
     end
-    local kit = round.kit
     if action == "strike" then
         round.guardUntil = 0
         return nextLight(round, now)
@@ -297,7 +320,10 @@ local function resolveBotContact(round, at, fields, hit)
     end
     local brace = round.botPhase == "setup" and round.attack.brace
     if fields.controlOnly then
-        report(round, if brace then "braced" else "pull", at, fields)
+        if fields.rootDuration and not brace then
+            round.botRootedAt, round.botRootedUntil = at, math.max(round.botRootedUntil or 0, at + fields.rootDuration)
+        end
+        report(round, if brace then "braced" elseif fields.rootDuration then "snare" else "pull", at, fields)
         return 0
     end
     local counter = round.botPhase == "recovery" and round.recoveryKind == "parried"
@@ -328,7 +354,8 @@ local function contact(round, at, check, resolve, publishCast)
         return
     end
     local hit, point, resolvedZone, facing
-    if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter then
+    if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
+        or move.shape == "snare" or move.shape == "wave" then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -346,6 +373,7 @@ local function contact(round, at, check, resolve, publishCast)
         clip.connected = true
     end
     local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
+        rootDuration = move.rootDuration,
         castStartedAt = if publishCast then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
@@ -521,6 +549,7 @@ Round.Combatant = table.freeze({
     nextThreat = nextThreat,
     contact = contact,
     deflects = deflects,
+    applyRoot = applyRoot,
     advanceTrail = advanceTrail,
     PARRY_COUNTER_TIME = PARRY_COUNTER_TIME,
 })

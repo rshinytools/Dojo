@@ -43,7 +43,7 @@ for _, id in fighterCatalog.Order do
     if combat then
         table.insert(roster, {id = id, kit = combat.kit, name = fighter.shortName or fighter.name,
             style = combat.cardStyle or fighter.style, technique = combat.technique, techniqueAction = combat.techniqueAction,
-            signature = combat.signature, earned = (fighter.unlockLevel or 1) > 1})
+            signature = combat.signature, compactSignature = combat.compactSignature, earned = (fighter.unlockLevel or 1) > 1})
         if combat.techniqueCue then
             earnedCues[combat.techniqueCue] = combat.technique
         end
@@ -148,7 +148,8 @@ for _, fighter in roster do
 end
 local offerCancel = button(offerPanel, "Cancel", "Cancel", false)
 offerCancel.Position, offerCancel.Size = UDim2.new(1, -110, 1, -48), UDim2.fromOffset(96, 44)
-local offerClock = label(offerPanel, "Time", 14, 201, UDim2.new(1, -130, 0, 44), 11, regular, muted)
+local offerClock = label(offerPanel, "Time", 14, 0, UDim2.new(1, -130, 0, 44), 11, regular, muted)
+offerClock.Position = UDim2.new(0, 14, 1, -47)
 offerClock.TextWrapped = true
 
 local queue = panel("Queue", 380, 60)
@@ -245,6 +246,7 @@ local tips = {
     tagUnavailable = "Wait until Tag In is ready", knockedOut = "Knockout", guard = "Guard up",
     projectileDeflected = "Projectile deflected!",
     gustPull = "Vortex pulls inward",
+    snared = "Snared briefly", snareCaught = "Cinder Snare landed",
 }
 
 local offer, waiting, match
@@ -317,6 +319,9 @@ end
 
 local function layout()
     local width, height = gui.AbsoluteSize.X, gui.AbsoluteSize.Y
+    local offerHeight = math.clamp(height - 12, 152, 248)
+    offerPanel.Size = UDim2.new(.92, 0, 0, offerHeight)
+    backupList.Size = UDim2.new(1, -24, 0, offerHeight - 104)
     local compact = width <= 570 or height <= 430
     local touch = UserInputService.TouchEnabled and not isGamepad()
     local stacked = width < 510 or (touch and width < 630)
@@ -440,7 +445,9 @@ local function showCombatActions(now, own, kit)
     if kit.technique then
         cool(actions.technique, kit.technique, "V", "↑", match.nextSecondary)
     end
-    cool(actions.signature, kit.signature, "F", "Y", match.nextSignature)
+    local width = actions.signature.AbsoluteSize.X
+    local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature
+    cool(actions.signature, signature, "F", "Y", match.nextSignature)
     local canTag = live and match.canTag == true
     local wait = seconds(match.tagReadyAt, now)
     actions.tag.Active, actions.tag.AutoButtonColor = canTag, canTag
@@ -508,6 +515,8 @@ local function refresh()
         championship.hint.Text = tips[match.feedback] or earnedCues[match.feedback] or ""
         if match.feedback == "tagIn" or match.feedback == "tagStrike" or match.feedback == "parried" then
             championship.hint.TextColor3 = mint
+        elseif match.feedback == "snared" then
+            championship.hint.TextColor3 = gold
         end
     end
     showCombatActions(now, own, kit)

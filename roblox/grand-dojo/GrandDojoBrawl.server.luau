@@ -274,6 +274,9 @@ local function advance(match, now)
         elseif event.kind == "pull" then
             setFeedback(attacker, "gustPull", now)
             setFeedback(match.actors[event.defender], "gustPull", now)
+        elseif event.kind == "snare" then
+            setFeedback(attacker, "snareCaught", now)
+            setFeedback(match.actors[event.defender], "snared", now)
         elseif (event.damage or 0) > 0 then
             setFeedback(attacker, event.elementEffect or "strike", now)
             setFeedback(match.actors[event.defender], "hit", now)

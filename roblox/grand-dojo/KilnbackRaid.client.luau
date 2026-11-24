@@ -57,6 +57,7 @@ for _, fighter in fighterCatalog.ById do
         kits[combat.kit] = {
             name = fighter.shortName or fighter.name,
             technique = combat.technique, techniqueAction = combat.techniqueAction, signature = combat.signature,
+            compactSignature = combat.compactSignature,
         }
         if combat.techniqueCue then
             earnedCues[combat.techniqueCue] = combat.technique
@@ -228,6 +229,7 @@ local feedback = {
     needParry = "Parry to unlock Rising", down = "Knocked down",
     dodged = "Attack evaded", counter = "Counter hit confirmed", airborne = "Out of reach · Wait for landing",
     gustPull = "Vortex pulls inward",
+    snared = "Snared briefly", snareCaught = "Cinder Snare landed",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},
@@ -432,7 +434,9 @@ local function refreshActions(own, now)
     if kit.technique then
         cooldown(actions.technique, kit.technique, "V", "↑", match.nextSecondary)
     end
-    cooldown(actions.signature, kit.signature, "F", "Y", match.nextSignature)
+    local width = actions.signature.AbsoluteSize.X
+    local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature
+    cooldown(actions.signature, signature, "F", "Y", match.nextSignature)
 
     local ready = fighting and match.reviveTarget ~= nil and match.revive == nil
     actions.revive.Active, actions.revive.AutoButtonColor = ready, ready

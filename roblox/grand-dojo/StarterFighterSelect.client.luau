@@ -559,6 +559,7 @@ local function layout()
     local cardHeight = if compact then 44 else 49
     local columns = if not switching then (if tall then 2 else 4)
         elseif contentWidth >= 835 then math.min(8, #order)
+        elseif contentWidth >= 530 and #order > 8 then 5
         elseif contentWidth >= 450 then 4 elseif contentWidth >= 300 then 3 else 2
     local rosterY = pad + headingHeight + gap
     local footer = if compact then 42 else 48
@@ -589,7 +590,8 @@ local function layout()
         control.NextSelectionRight = if column < columns - 1 and order[index + 1]
             then cardById[order[index + 1]].control else control
         control.NextSelectionUp = if row > 0 then cardById[order[index - columns]].control else (if switching then close else control)
-        control.NextSelectionDown = if order[index + columns] then cardById[order[index + columns]].control else confirm
+        local nextRow = (row + 1) * columns + 1
+        control.NextSelectionDown = if order[nextRow] then cardById[order[math.min(index + columns, #order)]].control else confirm
     end
     revealSelection()
 

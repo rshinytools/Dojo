@@ -140,6 +140,7 @@ for _, fighter in fighterCatalog.ById do
         kits[combat.kit] = {
             fighter = fighter.shortName or fighter.name,
             technique = combat.technique, techniqueAction = combat.techniqueAction, signature = combat.signature,
+            compactSignature = combat.compactSignature,
         }
         if combat.techniqueCue then
             earnedCues[combat.techniqueCue] = combat.technique
@@ -162,6 +163,7 @@ local tips = {
     counter = "Counter landed", guard = "Guard up", needParry = "Parry to unlock Rising",
     projectileDeflected = "Projectile deflected!",
     gustPull = "Vortex pulls inward",
+    snared = "Snared briefly", snareCaught = "Cinder Snare landed",
 }
 
 local waiting, match, lastResultId
@@ -231,7 +233,9 @@ local function updateActionLabels(now, kit)
     if kit.technique then
         cooldown(actions.technique, kit.technique, "V", "↑", match.nextSecondary)
     end
-    cooldown(actions.signature, kit.signature, "F", "Y", match.nextSignature)
+    local width = actions.signature.AbsoluteSize.X
+    local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature
+    cooldown(actions.signature, signature, "F", "Y", match.nextSignature)
     leave.Text = hint(if sendingLeave then "Leaving…" else "Leave", "C", "B")
 end
 
@@ -271,6 +275,8 @@ local function refresh()
         cue.Text = if match.placement then string.format("Placed %d · Watch or leave", match.placement) else "Watch or leave"
     elseif seconds > 0 then
         cue.Text, cue.TextColor3 = string.format("Starts in %d", math.ceil(seconds)), gold
+    elseif match.feedback == "snared" then
+        cue.Text, cue.TextColor3 = tips.snared, gold
     elseif type(nextShrinkAt) == "number" and type(warningAt) == "number" and now >= warningAt and now < nextShrinkAt then
         cue.Text, cue.TextColor3 = string.format("Floor drops in %ds · Move inward", math.ceil(nextShrinkAt - now)), gold
     elseif now < stageCueUntil then
