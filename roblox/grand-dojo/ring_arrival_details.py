@@ -133,7 +133,7 @@ def build_ring_ceiling_panels(parent, *, purlins, cross_ties, height, item, part
                 panel("Honed cedar ceiling rim", (x, height + .12, lip), (width+.08, .17, .20), "9E6549")
 
 
-def build_ring_arrival_details(parent, *, center, deck_lift, item, part, prop, beam, banner,
+def build_ring_arrival_details(parent, *, center, deck_lift, item, part, prop,
                                slate, limestone, wood, metal, stone_variant, variant_field):
     """Give the existing stair threshold and covered bay more visual depth."""
     details = item(parent, "Model", "Ring threshold dressings")
@@ -215,19 +215,3 @@ def build_ring_arrival_details(parent, *, center, deck_lift, item, part, prop, b
                  (1.12, .21, .46), "7A6772", slate)
             trim(details, "Sandstone pier cap", (pier_x, foundation_top+.045, 20.77),
                  (1.46, .221, .56), "CBAA94", limestone)
-
-    # Suspend the new standards from the existing cross tie by the fighting
-    # floor. They sit behind the trainees and above Reedguard's head.
-    for side in (-1, 1):
-        x, y, z, scale = center + side * 8.05, 12.06, 7.83, 1.06
-        standard = item(details, "Model", "Suspended reed standard")
-        banner(standard, x, y, z, scale=scale, vermilion=True)
-        for offset in (-.94, .94):
-            hanger_x = x + offset * scale
-            beam(standard, "Cedar roof standard hanger", (hanger_x, 19.06, 7.42),
-                 (hanger_x, y + 2.08 * scale, z), .095, "7D513E")
-        for piece in standard.iter("Item"):
-            if (piece.attrib["class"] in ("Part", "WedgePart")
-                    and piece.find("Properties/bool[@name='CastShadow']") is None):
-                prop(piece, "bool", "CastShadow", False)
-

@@ -1,4 +1,4 @@
--- Decorative walkers and trainees use synchronized local poses. Guides stay server-owned.
+-- Decorative walkers use synchronized local poses. Guides stay server-owned.
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -12,8 +12,6 @@ local poses = {}
 local candidates = {}
 local PAUSE = .62
 local ACTIVE_RANGE = 92
-local DRILL_VIEW_RANGE = 90
-local DRILL_TURN = 3.4
 local limitedEffects = UserInputService.TouchEnabled or UserInputService.VREnabled
 local activeLimit = limitedEffects and 5 or 8
 local frameInterval = limitedEffects and 1 / 24 or 1 / 36
@@ -24,16 +22,10 @@ local swingWeights = {
     ["Left Paw"] = -.52, ["Right Paw"] = .52,
     ["Left Sleeve"] = -.19, ["Right Sleeve"] = .19,
 }
-local drillArms = {
-    ["Left Paw"] = {side = -1, reach = .88}, ["Right Paw"] = {side = 1, reach = .88},
-    ["Left Sleeve"] = {side = -1, reach = .32}, ["Right Sleeve"] = {side = 1, reach = .32},
-}
-
 local function register(model)
     local origin = model:FindFirstChild("PoseOrigin")
     local route = model:FindFirstChild("Walk route")
-    local drill = model:FindFirstChild("Drill phase")
-    if not origin or not (route or drill) then
+    if not origin or not route then
         return
     end
     local existing = restPoses[model]
@@ -48,17 +40,10 @@ local function register(model)
                 instance = part,
                 rest = origin.CFrame:ToObjectSpace(part.CFrame),
                 swing = swingWeights[part.Name] or 0,
-                drill = drillArms[part.Name],
             })
         end
     end
     if #parts == 0 then
-        return
-    end
-    if drill then
-        local trainee = {anchor = origin, parts = parts, center = origin.Position, drillPhase = drill.Value}
-        restPoses[model] = trainee
-        walkers[model] = trainee
         return
     end
     local ordered = {}
@@ -122,46 +107,7 @@ for _, model in townsfolk:GetChildren() do
     register(model)
 end
 
-local function pulse(time, start, span)
-    return math.sin(math.pi * math.clamp((time - start) / span, 0, 1)) ^ 2
-end
-
-local function addDrillPose(trainee, now)
-    local reduced = GuiService.ReducedMotionEnabled or UserInputService.VREnabled
-    if reduced and trainee.atRest then
-        return
-    end
-    trainee.atRest = reduced
-
-    local elapsed = (now + trainee.drillPhase) % (2 * DRILL_TURN)
-    local beat = elapsed % DRILL_TURN
-    local leading = elapsed < DRILL_TURN
-    local first = if reduced then 0 else pulse(beat, .45, .75)
-    local second = if reduced then 0 else pulse(beat, 1.41, .84)
-    local guard = if reduced or leading then 0 else pulse(beat, .24, 2.22)
-    local breath = if reduced then 0 else .021 * (1 + math.cos(now * 2.5))
-    local step = if leading then .31 * (first + second) else -.16 * guard
-    local turn = if leading then (first - second) * .17 else (second - first) * .11
-    local body = trainee.anchor.CFrame * CFrame.new(.12 * (first - second), breath - .032 * guard, -step)
-        * CFrame.Angles(0, turn, 0)
-    for _, detail in trainee.parts do
-        local arm = detail.drill
-        local localPose = detail.rest
-        if arm then
-            local reach = if leading then (if arm.side < 0 then first else second) else 0
-            localPose = CFrame.new(-arm.side * .065 * guard, .22 * guard - .055 * reach,
-                .08 * guard - arm.reach * reach) * localPose
-        end
-        table.insert(movingParts, detail.instance)
-        table.insert(poses, body * localPose)
-    end
-end
-
 local function addPose(walker, now)
-    if walker.drillPhase ~= nil then
-        addDrillPose(walker, now)
-        return
-    end
     local elapsed = (now + walker.phase) % walker.period
     for i, segment in walker.segments do
         local span = segment.travelTime + segment.pause
@@ -208,9 +154,7 @@ RunService.Heartbeat:Connect(function(dt)
         local offset = walker.center - viewpoint
         local distance = offset.Magnitude
         if distance <= ACTIVE_RANGE then
-            local visibleDrill = walker.drillPhase ~= nil and distance <= DRILL_VIEW_RANGE
-                and camera.CFrame.LookVector:Dot(offset) > .42 * distance
-            walker.distance = if visibleDrill then 0 else distance
+            walker.distance = distance
             table.insert(candidates, walker)
         end
     end

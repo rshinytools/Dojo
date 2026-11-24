@@ -2301,17 +2301,6 @@ for x in (23,49):
     beam(apron,"Ring pennant cedar rod",(x-1.76,3.53,front),(x+1.76,3.53,front),.17,"6E4438")
     reed_mark(apron,x,2.01,front+.105,.89)
     raise_geometry(apron,ring_deck_lift*.71)
-target=item(ring,"Model","Practice Target")
-part(target,"Target stand",(36,3.15+ring_rise,-.5),(3.2,.5,3.2),DARK)
-part(target,"Target post",(36,4.52+ring_rise,-.5),(.62,2.45,.62),WOOD)
-part(target,"Target pad",(36,5.5+ring_rise,-.3),(2.7,2.9,2.4),"B87644",shape=0)
-part(target,"Target stripe",(36,5.5+ring_rise,.96),(1.65,.28,.14),RED,collide=False)
-hit=part(target,"TargetPrompt",(36,4.75+ring_rise,1.35),(1,1,1),CREAM,transparency=1,collide=False)
-prompt=item(hit,"ProximityPrompt","PracticePrompt")
-prop(prompt,"string","ActionText","Strike target")
-prop(prompt,"string","ObjectText","Ring practice")
-prop(prompt,"float","MaxActivationDistance",7)
-prop(prompt,"bool","RequiresLineOfSight",False)
 spar=item(ring,"Model","Bot Spar Corner")
 spar_x,spar_z,spar_width,spar_depth=27.5,5,11.2,22
 part(spar,"Sparring Bounds",(spar_x,ring_floor+3,spar_z),(spar_width,6,spar_depth),
@@ -3660,8 +3649,8 @@ def ring_forecourt(parent):
 
 ring_forecourt(ring)
 build_ring_arrival_details(ring, center=36+ring_offset, deck_lift=ring_deck_lift,
-                           item=item, part=part, prop=prop, beam=beam,
-                           banner=banner, slate=SLATE, limestone=LIMESTONE, wood=WOOD_PLANK, metal=METAL,
+                           item=item, part=part, prop=prop,
+                           slate=SLATE, limestone=LIMESTONE, wood=WOOD_PLANK, metal=METAL,
                            stone_variant=PROMENADE_MORTAR, variant_field=MATERIAL_VARIANT_FIELD)
 
 
@@ -7548,8 +7537,7 @@ residents=item(scene,"Folder","City residents")
 townsfolk=item(scene,"Folder","Ambient townsfolk")
 
 
-def townsperson(parent,name,x,y,z,fur,coat,ears,yaw=0,*,species="bear",scale=1,guard=False,satchel=None,
-               training_gloves=None):
+def townsperson(parent,name,x,y,z,fur,coat,ears,yaw=0,*,species="bear",scale=1,guard=False,satchel=None):
     model=item(parent,"Model",name)
     prop(model,"token","ModelStreamingMode",1)
     parts=[
@@ -7581,14 +7569,12 @@ def townsperson(parent,name,x,y,z,fur,coat,ears,yaw=0,*,species="bear",scale=1,g
         length=.92 if species=="otter" else .72
         parts.extend([("Tail",(.48,.87,.60),(.63,.62,length),fur,0),
                       ("Tail tip",(.66,.82,.91),(.51,.42,.63),CREAM,0)])
-    guard_size=(.69,.70,.73) if training_gloves else (.58,.60,.60)
     for side,prefix in ((-1,"Left"),(1,"Right")):
         sleeve=(side*.61,2.07,-.24) if guard else (side*.67,1.94,-.003)
         paw=(side*.53,2.35,-.59) if guard else (side*.77,1.66,-.10)
         parts.extend([
             (f"{prefix} Sleeve",sleeve,(.43,.76,.52),coat,0),
-            (f"{prefix} Paw",paw,guard_size if guard else (.42,.53,.5),
-             (training_gloves or coat) if guard else fur,0),
+            (f"{prefix} Paw",paw,(.58,.60,.60) if guard else (.42,.53,.5),coat if guard else fur,0),
             (f"{prefix} Shin",(side*.33,.84,0),(1.04,.43,.48),coat,2),
             (f"{prefix} Foot",(side*.33,.31,-.12),(.56,.61,.76),fur,0),
             (f"{prefix} Eye",(side*.28,3.16,-.51),(.12,.187,.11),INK,0),
@@ -7639,7 +7625,7 @@ resident("Orchard Keeper","The lower road leads to Grand Dojo. Take the west ram
          *ORCHARD_KEEPER,"B57D64","705884",.48,180,species="red panda")
 resident("Tidewatch Keeper","The west ramp meets the Cinder road. Go east to Beacon Terrace for Harbor Sky Pier and the loop down to Lantern Quay.",
          *TIDEWATCH_KEEPER,"AA805E","3F7773",.40,173,species="otter")
-resident("Ring Steward","Climb the steps to the ring. Try three strikes on the practice target.",
+resident("Ring Steward","Look for the green Bot Spar sign at the top of the Dojo Ring stairs.",
          49.2+ring_offset,ring_floor,15.5,"8C736D","3F535E",.40,109)
 resident("Trophy Archivist","The center pedestal is yours. Finish an official Lantern Relay to light it.",
          -10,3.61,-40,"91A16C","6B6540",.3,180,species="tortoise")
@@ -7707,14 +7693,6 @@ roaming_townsperson("Mistline Messenger",mistline_deck[-2:0:-1],"D2AF8D","526C8A
                    return_walk=True,satchel="785D4E")
 roaming_townsperson("Market Porter",[(68,.15,-12),(67,.15,-24),(70,.15,-39),(71.4,.15,-28),(70.2,.15,-17)],
                    "933F37","69967C",.55,"red panda",5.2,5,1.02)
-for name,x,z,yaw,fur,coat,gloves,ears,species,scale,phase in (
-    ("Copper Court Trainee",36.60,14.45,-66.32,"DC935D","C26943","E37A39",.52,"red panda",1.26,0),
-    ("Jade Court Trainee",41.30,12.39,113.68,"BFC8C9","377D7D","63BBB0",.48,"bear",1.30,3.4),
-):
-    trainee=townsperson(townsfolk,name,x+ring_offset,ring_floor,z,fur,coat,ears,yaw,
-                        species=species,scale=scale,guard=True,training_gloves=gloves)
-    offset=item(trainee,"NumberValue","Drill phase")
-    prop(offset,"double","Value",phase)
 roaming_townsperson("Harbor Boatkeeper",[(219,3,17),(223,3,31),(228,3,40),(234,3,40),(226,3,37),(215,3,36)],
                    "A87654","428478",.38,"otter",5,3,1.1)
 for (name,x,y,z,yaw,accent,paving,sign_name),(title,fur,ears,species,phase) in zip(towns[1:],[

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.264 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.265 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -50,6 +50,7 @@ For an MCP-capable client, open one local place in Studio and enable **Studio as
 
 | Area | Evidence |
 | --- | --- |
+| Clear Dojo Ring mat | Removed two low-hanging reed banners, two decorative trainees and the practice dummy from the Grand Dojo mat. The Ring Steward directs players to Bot Spar. The retired target’s first-clear XP receipt stays compatible with existing profiles. The separate Tideharbor practice target remains available. Exact v0.265 desktop and Galaxy A06 landscape Studio Play verified the five removals, profile startup, all twelve treads, a 36-waypoint walk to the mat and starting and leaving a Juniper Tortoise spar. Desktop Studio also completed all seven official Relay gates, mounted Lantern Keeper in Trophy Hall and verified 80 XP and Level 2. |
 | Compact mobile progress HUD | On compact touch screens, a 124 × 32 level and XP badge sits in the safe upper-right area. The large city card and Roblox player list are hidden. The badge yields to full activity panels. Active parcel directions have a separate compact chip. Exact v0.264 Galaxy A06 Studio Play verified the layout, readable XP and clear touch controls in landscape and forced portrait. A three-hit practice set in landscape advanced the badge from 0/80 to 20/80 XP and filled 25% of the track. Desktop Play retained the full location HUD layout and player list. Physical-phone checks remain open. |
 | Trophy Hall title and cup sightlines | The Trophy Hall title sits 1.8 studs forward of its previous position, with slightly smaller lettering and room at both ends. The gold crest and smaller cup now sit ahead of the obstructions that hid the pedestal from low angles. Cedar brackets tie the projected sign and crest back to the gallery. Exact v0.263 desktop and Galaxy A06 landscape Studio Play each cleared 150 first-spawn lettering probes on the three landmarks. Three Hall approach views cleared 270 glyph probes and 145 cup silhouette probes per device setting. Both passed 15 doorway clearance rays, walked 19 checkpoints into the Hall without jumping, opened the trophy prompt, and loaded all three cup meshes. |
 | East plaza pine canopy | The original east plaza pine keeps its trunk and branch tips. Each needle pad now uses three overlapping irregular foliage clusters, with dark inner foliage and smaller sunlit edges. Matched Studio screenshots capture the same approach before and after. Published asset access and physical devices remain open. |

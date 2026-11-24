@@ -17,7 +17,6 @@ local city = workspace:WaitForChild("Grand Dojo City")
 local relay = city:WaitForChild("Lantern Relay")
 local board = relay:WaitForChild("EventBoard")
 local hall = city:WaitForChild("Trophy Hall"):WaitForChild("HallPrompt")
-local dojoTarget = city:WaitForChild("Fighting Ring"):WaitForChild("Practice Target"):WaitForChild("TargetPrompt")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoAction")
 local sparRemote = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local terrain = workspace.Terrain
@@ -234,7 +233,6 @@ end
 
 local function projectProgress(player, data, profile)
     local progress = PlayerProfiles.summary(profile)
-    data.dojoPracticeComplete = progress.dojoPracticeComplete
     data.firstSparWinComplete = progress.firstSparWinComplete
     player:SetAttribute("FirstSparWinComplete", progress.firstSparWinComplete)
     player:SetAttribute("LanternKeeper", progress.lanternKeeper)
@@ -247,7 +245,7 @@ local function projectProgress(player, data, profile)
 end
 
 local function pendingProgress(data)
-    return data.pendingRelay or data.pendingDojoPractice or data.pendingFirstSparWin
+    return data.pendingRelay or data.pendingFirstSparWin
 end
 
 local function saveRelay(player, data, token)
@@ -270,23 +268,6 @@ local function saveRelay(player, data, token)
         end
         print(string.format("[Grand Dojo] %s saved an official Relay in %.1fs. First trophy: %s",
             player.Name, pending.tenths / 10, tostring(first)))
-    end
-    return profile
-end
-
-local function saveDojoPractice(player, data, token)
-    local profile, _, first = profiles:commitDojoPractice(player.UserId, token, data.pendingDojoPractice)
-    if not profile then
-        return nil
-    end
-    data.pendingDojoPractice = nil
-    if not (data.departed or shuttingDown) then
-        projectProgress(player, data, profile)
-        player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
-        if first then
-            remote:FireClient(player, "notice", string.format("First Dojo practice set saved · +%d XP",
-                PlayerProfiles.FirstDojoPracticeXp))
-        end
     end
     return profile
 end
@@ -329,8 +310,6 @@ local function serveProgress(player, data)
         if data.profile and (pendingProgress(data) or now >= nextRefresh) then
             if data.pendingRelay then
                 data.profile = saveRelay(player, data, token)
-            elseif data.pendingDojoPractice then
-                data.profile = saveDojoPractice(player, data, token)
             elseif data.pendingFirstSparWin then
                 data.profile = saveFirstSparWin(player, data, token)
             else
@@ -342,8 +321,6 @@ local function serveProgress(player, data)
                 nextLoad = os.clock() + math.random(8, 12)
                 if data.pendingRelay then
                     remote:FireClient(player, "notice", "Your Relay result is pending. We'll retry while you're here.")
-                elseif data.pendingDojoPractice then
-                    remote:FireClient(player, "notice", "Your practice XP is pending. We'll retry while you're here.")
                 elseif data.pendingFirstSparWin then
                     sparRemote:FireClient(player, "rewardPending", "Your first-win XP is pending. We'll retry while you're here.")
                 end
@@ -358,9 +335,6 @@ local function serveProgress(player, data)
     if data.profile then
         if data.pendingRelay then
             saveRelay(player, data, token)
-        end
-        if data.pendingDojoPractice then
-            saveDojoPractice(player, data, token)
         end
         if data.pendingFirstSparWin then
             saveFirstSparWin(player, data, token)
@@ -536,13 +510,7 @@ local function bindPracticeTarget(target)
         local hits = (data.targetStrikes[target] or 0) + 1
         if hits == 3 then
             data.targetStrikes[target] = nil
-            local message = "Practice set complete!"
-            if target == dojoTarget and not data.dojoPracticeComplete and not data.pendingDojoPractice then
-                data.pendingDojoPractice = HttpService:GenerateGUID(false)
-                player:SetAttribute("ProgressStatus", "saving")
-                message = "Practice set complete! Saving first-clear XP…"
-            end
-            remote:FireClient(player, "strike", message, target.Parent)
+            remote:FireClient(player, "strike", "Practice set complete!", target.Parent)
         else
             data.targetStrikes[target] = hits
             remote:FireClient(player, "strike", string.format("Target hit  %d / 3", hits), target.Parent)
@@ -550,7 +518,6 @@ local function bindPracticeTarget(target)
     end)
 end
 
-bindPracticeTarget(dojoTarget)
 local tideharbor = city["Connected districts"]:FindFirstChild("Tideharbor Coast")
 local galleon = tideharbor and tideharbor:FindFirstChild("Sunken Pirate Galleon")
 local galleonPractice = galleon and galleon:FindFirstChild("Practice Target")
@@ -646,4 +613,4 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-print("[Grand Dojo] City, ring practice, Lantern Relay, harbor parcels and Wind Court chimes ready.")
+print("[Grand Dojo] City, Lantern Relay, harbor parcels and Wind Court chimes ready.")
