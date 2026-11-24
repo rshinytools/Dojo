@@ -561,7 +561,8 @@ function Motion.impact(duel, event)
     else
         return
     end
-    target.knock = {at = event.at, offset = offset, duration = duration, height = height, moved = 0}
+    local scale = event.knockbackScale or 1
+    target.knock = {at = event.at, offset = offset * scale, duration = duration, height = height * scale, moved = 0}
 end
 
 return Motion

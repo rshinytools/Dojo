@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.276 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.277 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -202,7 +202,7 @@ Complete advanced modes, matchmaking and clans.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | V0.276 adds separate local Casual and Best of 3 queues. Exact two-endpoint simulation exercised a casual knockout, a 2–0 series and a three-round 1–1 draw. Run an invited live two-client test. Implement competitive normalization, Elo persistence and cross-server ranked matchmaking. |
+| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | V0.277 adds a local Ranked queue with fixed Level 15 combat, elemental advantages, rating-gap matching and six Elo divisions. Exact tests verified one rating per outcome and recovery after interrupted writes. Verify an invited live two-client match and the published rating store. Build cross-server matchmaking and tune the ranked rules. |
 | P8.2 | Tag Team and Co-op Raids | Planned | Verify full teams can win, lose and reconnect without duplicate rewards or a stuck match. Keep Tag Team at the Grand Dojo Ring and test Co-op Raids as separate PvE encounters. Label each bot and show the roster and reward eligibility before play. |
 | P8.3 | Parties and clans | Planned | Roblox join settings and full servers resolve safely. An invited party can regroup in a common city and return together after a match. Server authorization protects clan resources and room visits, and contributions commit once. |
 | P8.4 | Cross-server failure drills | Planned | Players recover to a valid state and authoritative profile ownership remains unique. |

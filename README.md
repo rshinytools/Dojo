@@ -2,11 +2,11 @@
 
 Beast Dojo is a Roblox martial-arts adventure centered on the Dojo Ring. Players travel between six districts, train with animal fighters, and earn trophies through matches, exploration, and festival activities.
 
-**Current Roblox checkpoint** v0.276. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
+**Current Roblox checkpoint** v0.277. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
 
 ## Play the Roblox checkpoint
 
-Download [Beast_Dojo_Grand_Dojo_v0.276.zip](releases/Beast_Dojo_Grand_Dojo_v0.276.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**, preview the four starter fighters, and confirm who to play. Use Fighter Select on the east side of Festival Plaza to switch later. Each starter brings their own moves to every unlocked Bot Spar ring. Fight Juniper at Grand Dojo, Bracken at Cinder Terraces from Level 3, Sablecrest at Cloud-Top Temple from Level 5, and Granite at the Galleon Ring from Level 7. Two players sharing a server can use the Grand Dojo Duel sign and select the same format, **Casual** or **Best of 3**. Take Cedar Foothill Walk off the Skywalk approach, or climb Lantern Tower from Garden Lookout. The City Map on the east-side walk can plot a route to another district. Choose **Eagle Eye** on any district’s map to see the whole valley from above.
+Download [Beast_Dojo_Grand_Dojo_v0.277.zip](releases/Beast_Dojo_Grand_Dojo_v0.277.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**, preview the four starter fighters, and confirm who to play. Use Fighter Select on the east side of Festival Plaza to switch later. Each starter brings their own moves to every unlocked Bot Spar ring. Fight Juniper at Grand Dojo, Bracken at Cinder Terraces from Level 3, Sablecrest at Cloud-Top Temple from Level 5, and Granite at the Galleon Ring from Level 7. Two players sharing a server can use the Grand Dojo Duel sign and select **Casual**, **Best of 3**, or **Ranked**. Studio keeps ratings in the playtest session. Take Cedar Foothill Walk off the Skywalk approach, or climb Lantern Tower from Garden Lookout. The City Map on the east-side walk can plot a route to another district. Choose **Eagle Eye** on any district’s map to see the whole valley from above.
 
 The Reedguard–Juniper round was verified in desktop Studio and Galaxy A06 landscape simulation. The place refers to Roblox-hosted meshes, textures, and audio. Some need account or experience permissions. See [asset access](docs/IMPLEMENTATION.md#asset-access). Studio uses session data. Published data, purchases and physical devices have separate release tests.
 
@@ -25,6 +25,8 @@ Open `roblox/grand-dojo/Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. The build
 Open `browser-game/Beast_Dojo.html` for the offline browser concept. It has a separate save format and simulated matches. [Browser controls and testing](browser-game/README.md)
 
 Run `python3 -B tools/verify_checkout.py` for a clean-clone build check. Add `--checkpoint` to compare the rebuilt Studio file with the pinned ZIP and its recorded hash. The check runs locally with the Python standard library.
+
+With the standalone Luau runner installed, `python3 -B tools/verify_ranked_ledger.py luau` checks ranked rating writes, lost responses and reconnect recovery using the checked-in server modules.
 
 ## Continue with another AI coding agent
 

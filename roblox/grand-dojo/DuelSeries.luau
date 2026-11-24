@@ -1,4 +1,4 @@
--- Scoring and timing shared by the two Grand Dojo duel formats.
+-- Scoring and timing shared by the Grand Dojo duel formats.
 local Series = {}
 
 local opening = {
@@ -6,6 +6,7 @@ local opening = {
     series = table.freeze({intro = 10, duration = 45}),
 }
 local nextTiming = table.freeze({intro = 3, duration = 45})
+opening.ranked = opening.series
 
 function Series.supports(format)
     return type(format) == "string" and opening[format] ~= nil
@@ -13,7 +14,7 @@ end
 
 function Series.new(format)
     assert(Series.supports(format), "Unknown duel format")
-    return {format = format, roundIndex = 1, maxRounds = if format == "series" then 3 else 1, wins = {0, 0}}
+    return {format = format, roundIndex = 1, maxRounds = if format == "casual" then 1 else 3, wins = {0, 0}}
 end
 
 function Series.timing(series)

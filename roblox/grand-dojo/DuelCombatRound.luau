@@ -1,15 +1,23 @@
 -- Authoritative Duel round clock. The arena supplies contact geometry.
 local Spar = require(script.Parent.ReedguardRound)
+local RankRules = require(script.Parent.DuelRankRules)
 local Combatant = Spar.Combatant
 local Duel = {INTRO = Spar.INTRO, DURATION = Spar.DURATION, OUTRO = Spar.OUTRO}
 
 local PARRY_STUN = .56
 local HIT_STUN = .28
 
-function Duel.new(now, firstFighter, firstKitId, secondFighter, secondKitId, timing)
+function Duel.new(now, firstFighter, firstKitId, secondFighter, secondKitId, timing, ranked)
     local first = Combatant.new(now, firstFighter, firstKitId, timing)
     local second = Combatant.new(now, secondFighter, secondKitId, timing)
     first.kitId, second.kitId = firstKitId or "reedguard", secondKitId or "reedguard"
+    if ranked then
+        first.playerHealth = RankRules.health(firstFighter.health)
+        second.playerHealth = RankRules.health(secondFighter.health)
+        first.playerMaxHealth, second.playerMaxHealth = first.playerHealth, second.playerHealth
+        first.rankedMatchup = RankRules.matchup(firstFighter.element, secondFighter.element)
+        second.rankedMatchup = RankRules.matchup(secondFighter.element, firstFighter.element)
+    end
     return {
         introAt = now, startsAt = first.startsAt, endsAt = first.endsAt,
         sides = {first, second}, notices = {},
@@ -59,9 +67,17 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
         end
         local landed = kind == "strike" or kind == "counter"
         fields.attacker, fields.defender, fields.kind, fields.at = attackerIndex, defenderIndex, kind, at
-        fields.damage = if landed then fields.damage else 0
+        local baseDamage = if landed then fields.damage else 0
+        local matchup = attacker.rankedMatchup
+        fields.damage = baseDamage
+        if matchup and baseDamage > 0 then
+            fields.damage = math.round(baseDamage * matchup.damageScale)
+            fields.elementEffect = matchup.elementEffect
+            fields.knockbackScale = matchup.knockbackScale
+        end
         table.insert(batch, {notice = fields, direct = move.shape ~= "tile"})
-        return fields.damage
+        -- The authored Magma Trail budget spends unscaled move damage.
+        return baseDamage
     end
     if clipAt == time then
         Combatant.contact(attacker, time, sample, resolve, true)

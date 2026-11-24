@@ -934,7 +934,11 @@ local shownBoardPrompts = {}
 local sparringActive = false
 local sparResult
 local sparPicker
-local duelUi = {}
+local duelUi = {pendingRatings = {}}
+
+function duelUi.hasRounds(format)
+    return format == "series" or format == "ranked"
+end
 
 local function restoreWorldPrompts()
     ProximityPromptService.Enabled = not sparringActive and not panel.Visible
@@ -1679,7 +1683,7 @@ local function layoutCombatHud(compact)
     local top = if compact then 4 else 8
     local titleHeight = if compact then 18 else 23
     sparTitle.Position = UDim2.fromOffset(14, top)
-    local series = matchPresentation.format == "series"
+    local series = duelUi.hasRounds(matchPresentation.format)
     sparTitle.Size = if series then UDim2.new(.5, if compact then -64 else -83, 0, titleHeight)
         else UDim2.new(1, -90, 0, titleHeight)
     sparClock.Position = UDim2.new(1, -77, 0, top)
@@ -1724,7 +1728,7 @@ sparResult = make("Frame", gui, {
     Name = "SparringResult", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
     Size = UDim2.new(.90, 0, 0, 161), BackgroundColor3 = palette.ink, BorderSizePixel = 0, Visible = false,
 })
-make("UISizeConstraint", sparResult, {MaxSize = Vector2.new(416, 161)})
+duelUi.resultLimit = make("UISizeConstraint", sparResult, {MaxSize = Vector2.new(416, 161)})
 style(sparResult, 14, palette.edge)
 local outcome = label(sparResult, "Result", 23, palette.gold, titleFont)
 outcome.Position = UDim2.fromOffset(16, 14)
@@ -1733,6 +1737,11 @@ local winsDetail = label(sparResult, "Session wins", 14, palette.parchment, body
 winsDetail.Position = UDim2.fromOffset(16, 49)
 winsDetail.Size = UDim2.new(1, -32, 0, 42)
 winsDetail.TextWrapped = true
+duelUi.rating = label(sparResult, "RatingStatus", 14, palette.gold, titleFont)
+duelUi.rating.Position = UDim2.fromOffset(16, 93)
+duelUi.rating.Size = UDim2.new(1, -32, 0, 44)
+duelUi.rating.TextWrapped = true
+duelUi.rating.Visible = false
 local resultActions = make("Frame", sparResult, {
     Position = UDim2.new(0, 16, 1, -61), Size = UDim2.new(1, -32, 0, 46), BackgroundTransparency = 1,
 })
@@ -1776,6 +1785,7 @@ local resultAwaitingReward = false
 
 local function closeResult()
     resultAwaitingReward = false
+    duelUi.ratingMatchId = nil
     sparResult.Visible = false
     if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(sparResult) then
         GuiService.SelectedObject = nil
@@ -1884,7 +1894,7 @@ local function sendSparAction(action)
         direction = if left then -1 else 1
     end
     local actionRemote = if duelRound then duelRemote else sparRemote
-    if duelRound and matchPresentation.format == "series" then
+    if duelRound and duelUi.hasRounds(matchPresentation.format) then
         duelRemote:FireServer(action, direction, matchPresentation.matchId, matchPresentation.roundIndex)
     elseif direction then
         actionRemote:FireServer(action, direction)
@@ -1925,6 +1935,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
             duelUi.join("casual")
         elseif input.KeyCode == Enum.KeyCode.Two then
             duelUi.join("series")
+        elseif input.KeyCode == Enum.KeyCode.Three then
+            duelUi.join("ranked")
         end
     elseif sparPicker.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closePicker(true)
@@ -1990,7 +2002,7 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
             court = ring and ring:FindFirstChild("Duel Court")
             intro.sideIndex, intro.opponentUserId = opponent.sideIndex, opponent.opponentUserId
             intro.opponentFighter = opponentKit and opponentKit.challenger
-            if matchPresentation.format == "series" then
+            if duelUi.hasRounds(matchPresentation.format) then
                 intro.roundIndex = opponent.roundIndex
                 intro.quickRound = (opponent.roundIndex or 1) > 1
             end
@@ -2016,7 +2028,7 @@ local function matchClock(startsAt, endsAt)
 end
 
 local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, attackAt, parryOpensAt,
-    nextSignature, nextSecondary, opponentTint, braceName)
+    nextSignature, nextSecondary, opponentTint, braceName, elementEffect)
     if phase ~= matchPresentation.phase then
         matchPresentation.phase = phase
         layoutMatchControls()
@@ -2059,6 +2071,8 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
         sparHint.Text = cues[tell] or tell or "Watch your opponent’s stance"
     elseif feedback == "braced" and braceName then
         sparHint.Text = "You struck into " .. braceName .. "’s brace."
+    elseif elementEffect == "edge" or elementEffect == "resist" then
+        sparHint.Text = if elementEffect == "edge" then "Element edge!" else "Element resisted"
     elseif feedback and cues[feedback] then
         sparHint.Text = cues[feedback]
     elseif phase == "recovery" then
@@ -2068,7 +2082,7 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     end
 end
 
-local function showMatchResult(result, opponent, detail, showRetry)
+local function showMatchResult(result, opponent, detail, showRetry, ratingMatchId)
     fightIntro:Stop()
     settleCombatHealth()
     matchPresentation.inIntro = false
@@ -2077,6 +2091,12 @@ local function showMatchResult(result, opponent, detail, showRetry)
     outcome.Text = if result == "loss" and opponent then opponent .. " won" else (outcomes[result] or "Spar ended")
     outcome.TextTruncate = Enum.TextTruncate.AtEnd
     winsDetail.Text = detail
+    duelUi.ratingMatchId = ratingMatchId
+    duelUi.rating.Visible = ratingMatchId ~= nil
+    duelUi.rating.Text = if ratingMatchId then "Saving Rank Points…" else ""
+    local resultHeight = if ratingMatchId then 207 else 161
+    sparResult.Size = UDim2.new(.90, 0, 0, resultHeight)
+    duelUi.resultLimit.MaxSize = Vector2.new(416, resultHeight)
     retryButton.Visible = showRetry
     retryButton.Active = showRetry and not resultAwaitingReward
     retryButton.Text = if resultAwaitingReward then "Saving XP…" else "Retry"
@@ -2203,10 +2223,10 @@ do
 
     local picker = make("Frame", gui, {
         Name = "DuelFormatPicker", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
-        Size = UDim2.new(.94, 0, 0, 187), BackgroundColor3 = palette.ink, BorderSizePixel = 0,
+        Size = UDim2.new(.94, 0, 0, 243), BackgroundColor3 = palette.ink, BorderSizePixel = 0,
         Active = true, Visible = false,
     })
-    make("UISizeConstraint", picker, {MaxSize = Vector2.new(444, 187)})
+    make("UISizeConstraint", picker, {MaxSize = Vector2.new(444, 243)})
     style(picker, 14, palette.edge)
     local heading = label(picker, "Heading", 21, palette.gold, titleFont)
     heading.Position, heading.Size = UDim2.fromOffset(16, 8), UDim2.new(1, -32, 0, 32)
@@ -2215,26 +2235,52 @@ do
     local function formatOption(name, title, description, x, tone)
         local control = button(picker, "", false)
         control.Name = name
-        control.Position, control.Size = UDim2.new(x, if x == 0 then 16 else 4, 0, 48), UDim2.new(.5, -20, 0, 71)
+        control.Position, control.Size = UDim2.new(x, if x == 0 then 16 else 4, 0, 46), UDim2.new(.5, -20, 0, 62)
         local caption = label(control, "Format", 17, tone, titleFont)
-        caption.Position, caption.Size = UDim2.fromOffset(11, 8), UDim2.new(1, -22, 0, 23)
+        caption.Position, caption.Size = UDim2.fromOffset(11, 6), UDim2.new(1, -22, 0, 23)
         caption.Text = title
         local detail = label(control, "Rules", 12, palette.muted)
-        detail.Position, detail.Size = UDim2.fromOffset(11, 33), UDim2.new(1, -22, 0, 28)
+        detail.Position, detail.Size = UDim2.fromOffset(11, 27), UDim2.new(1, -22, 0, 27)
         detail.Text, detail.TextWrapped = description, true
-        return control
+        return control, detail
     end
 
     local casual = formatOption("Casual", "Casual", "One 60s round", 0, palette.parchment)
     local series = formatOption("BestOfThree", "Best of 3", "45s rounds · First to 2", .5, palette.gold)
+    local ranked, rankedRules = formatOption("Ranked", "Ranked", "Best of 3 · Fixed Level 15", 0, palette.gold)
+    ranked.Position, ranked.Size = UDim2.fromOffset(16, 116), UDim2.new(1, -32, 0, 66)
+    rankedRules.Position, rankedRules.Size = UDim2.fromOffset(11, 26), UDim2.new(1, -22, 0, 15)
+    local rankStatus = label(ranked, "RankStatus", 13, palette.parchment, titleFont)
+    rankStatus.Position, rankStatus.Size = UDim2.fromOffset(11, 42), UDim2.new(1, -22, 0, 18)
+    rankStatus.TextTruncate = Enum.TextTruncate.AtEnd
+
+    local function refreshRankStatus()
+        local status = player:GetAttribute("DuelRankStatus")
+        local points = player:GetAttribute("DuelRankPoints")
+        local division = player:GetAttribute("DuelRankDivision")
+        if status == "ready" and type(points) == "number" then
+            local prefix = if type(division) == "string" then division .. " · " else ""
+            rankStatus.Text = string.format("%s%d Rank Points", prefix, points)
+        elseif status == "loading" then
+            rankStatus.Text = "Loading Rank Points…"
+        elseif status == "pending" then
+            rankStatus.Text = "Rank save pending"
+        elseif status == "unavailable" then
+            rankStatus.Text = "Rank Points unavailable"
+        else
+            rankStatus.Text = "Rank Points load when you choose Ranked"
+        end
+    end
     local closeChoice = button(picker, "Close", false)
     closeChoice.Position, closeChoice.Size = UDim2.new(1, -130, 1, -57), UDim2.fromOffset(114, 48)
     closeChoice.TextSize = 15
     local keys = label(picker, "KeyboardHelp", 12, palette.muted)
     keys.Position, keys.Size = UDim2.new(0, 16, 1, -48), UDim2.new(1, -154, 0, 30)
-    keys.Text = "1 or 2 to choose"
+    keys.Text = "1, 2 or 3 to choose"
     casual.NextSelectionRight, series.NextSelectionLeft = series, casual
-    casual.NextSelectionDown, series.NextSelectionDown, closeChoice.NextSelectionUp = closeChoice, closeChoice, series
+    casual.NextSelectionDown, series.NextSelectionDown = ranked, ranked
+    ranked.NextSelectionUp, ranked.NextSelectionDown = casual, closeChoice
+    closeChoice.NextSelectionUp = ranked
     duelUi.picker = picker
 
     function duelUi.close(cancelOffer)
@@ -2262,6 +2308,7 @@ do
 
     function duelUi.open(expiresAt)
         duelUi.expiresAt = expiresAt
+        refreshRankStatus()
         picker.Visible = true
         restoreWorldPrompts()
         layout()
@@ -2282,8 +2329,12 @@ do
 
     casual.Activated:Connect(function() duelUi.join("casual") end)
     series.Activated:Connect(function() duelUi.join("series") end)
+    ranked.Activated:Connect(function() duelUi.join("ranked") end)
     closeChoice.Activated:Connect(function() duelUi.close(true) end)
     focusPicker()
+    for _, attribute in {"DuelRankStatus", "DuelRankPoints", "DuelRankDivision"} do
+        player:GetAttributeChangedSignal(attribute):Connect(refreshRankStatus)
+    end
     UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(focusPicker)
     player.CharacterRemoving:Connect(function() duelUi.close(true) end)
 end
@@ -2305,35 +2356,66 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
     elseif kind == "queue" then
         duelUi.close(false)
         duelUi.queued = info.queued
-        duelUi.queue.Text = if info.format == "series" then "Waiting for Best of 3 · Leave" else "Waiting for Casual · Leave"
+        duelUi.queue.Text = if info.format == "ranked" then "Waiting for Ranked · Leave"
+            elseif info.format == "series" then "Waiting for Best of 3 · Leave" else "Waiting for Casual · Leave"
         layout()
         if info.message then
             flash(info.message)
         end
+    elseif kind == "rating" then
+        local matchId = info.matchId
+        local previous = duelUi.pendingRatings[matchId]
+        if not previous or previous == info.status then
+            return
+        end
+        local detailText
+        if info.status == "saved" and type(info.after) == "number" and type(info.delta) == "number" then
+            local prefix = if type(info.division) == "string" then info.division .. " · " else ""
+            local points = string.format("%s%d Rank Points", prefix, info.after)
+            local change = if info.delta == 0 then "No change" else string.format("%+d this duel", info.delta)
+            detailText = points .. "\n" .. change
+        elseif info.status == "pending" then
+            detailText = "Rank save pending"
+        elseif info.status == "unavailable" then
+            detailText = "Rank save still unconfirmed"
+        else
+            return
+        end
+        duelUi.pendingRatings[matchId] = if info.status == "pending" then "pending" else nil
+        if sparResult.Visible and duelUi.ratingMatchId == matchId then
+            duelUi.rating.Text = detailText
+        else
+            flash((detailText:gsub("\n", " · ")))
+        end
     elseif kind == "result" then
-        if info.format == "series" and info.matchId ~= matchPresentation.matchId then
+        if duelUi.hasRounds(info.format) and info.matchId ~= matchPresentation.matchId then
             return
         end
         resultAwaitingReward = false
         local detailText = info.message or "Grand Dojo Duel"
-        if info.format == "series" then
+        if duelUi.hasRounds(info.format) then
             detailText ..= string.format("\nRounds %d–%d", info.playerRounds, info.opponentRounds)
         end
-        showMatchResult(info.result, info.opponentName, detailText, false)
+        local ratingMatchId = if info.format == "ranked" and info.ratingPending then info.matchId else nil
+        if ratingMatchId then
+            duelUi.pendingRatings[ratingMatchId] = "waiting"
+        end
+        showMatchResult(info.result, info.opponentName, detailText, false, ratingMatchId)
         matchPresentation.matchId = nil
     elseif kind == "begin" or ((kind == "update" or kind == "round") and sparringActive and duelRound) then
-        local series = info.format == "series"
+        local series = duelUi.hasRounds(info.format)
         local reset = kind ~= "update"
-        if kind ~= "begin" and matchPresentation.format == "series" then
+        if kind ~= "begin" and duelUi.hasRounds(matchPresentation.format) then
             local expected = matchPresentation.roundIndex + (if kind == "round" then 1 else 0)
-            if not series or info.matchId ~= matchPresentation.matchId or info.roundIndex ~= expected then
+            if info.format ~= matchPresentation.format or info.matchId ~= matchPresentation.matchId or info.roundIndex ~= expected then
                 return
             end
         end
         if reset then
             duelUi.close(false)
             duelUi.queued = false
-            showMatchHud(true, if series then "Best of 3 Duel" else "Grand Dojo Duel", info.startsAt, info.introAt,
+            local title = if info.format == "ranked" then "Ranked Duel" elseif series then "Best of 3 Duel" else "Grand Dojo Duel"
+            showMatchHud(true, title, info.startsAt, info.introAt,
                 "grand-dojo", info, info.kitId, info.nextSignature, info.nextSecondary)
         end
         if series then
@@ -2347,7 +2429,8 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         botHealth:Set(info.opponentHealth, info.opponentMaxHealth, info.opponentName, reset)
         if matchPresentation.showcase then
             updateMatchTimeline(info.startsAt, info.endsAt, info.phase, info.feedback, info.tell, info.attackAt,
-                info.parryOpensAt, info.nextSignature, info.nextSecondary, opponent and opponent.tint)
+                info.parryOpensAt, info.nextSignature, info.nextSecondary, opponent and opponent.tint, nil,
+                if info.format == "ranked" then info.elementEffect else nil)
         else
             local now = matchClock(info.startsAt, info.endsAt)
             sparHint.TextColor3 = if info.phase == "windup" then palette.gold else palette.parchment

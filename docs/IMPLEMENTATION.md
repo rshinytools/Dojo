@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.276 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.277 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -50,11 +50,21 @@ The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite
 
 ## Grand Dojo Duel formats
 
-Two nearby players in the same server each use the 1v1 Duel sign at the Grand Dojo court and choose the same format. The server pairs only players waiting in that format. **Casual** has one 60-second round. **Best of 3** uses 45-second rounds with a first-to-two win condition. After three rounds the higher win count prevails, and equal scores draw. A timed round counts remaining HP as a percentage of maximum HP. Both formats open with a 10-second intro. Later rounds use a 3-second countdown, full health, fresh cooldowns, and the original spawn marks. The result screen shows the final series score. These same-server test formats award no fighter XP or Rank Points.
+Two nearby players in the same server each use the 1v1 Duel sign at the Grand Dojo court and choose the same format. **Casual** has one 60-second round. **Best of 3** and **Ranked** use 45-second rounds with a first-to-two win condition. After three rounds the higher win count prevails, and equal scores draw. A timed round counts remaining HP as a percentage of maximum HP. All formats open with a 10-second intro. Later rounds use a 3-second countdown, full health, fresh cooldowns, and the original spawn marks. The result screen shows the final series score. Ranked adjusts Rank Points. Fighter XP remains tied to eligible activity and Bot Spar rewards.
 
 Each fighter brings the same named techniques, moves, health and cooldowns as in Bot Spar. The server resolves reach and facing at the authored contact frames. Late guard can parry and simultaneous hits can trade. The server ties series inputs to their match and round and clears old attack markers and movement state between rounds.
 
-Two-endpoint Luau simulations of the actual server exercised a casual knockout, a 2–0 series sweep, a three-round 1–1 draw on time, stale input rejection, leave and disconnect handling, and zero progression writes. Desktop Studio and Galaxy A06 landscape touch simulation joined and cancelled both native queues. A separate one-client series used a fitted Fire Salamander stand-in to verify Silverback’s palm, parry and slam in both rounds, the 3-second second-round reset, the 2–0 recap and camera return. A live match between two Roblox clients, ranked normalization and Elo, published access and physical-device checks remain open.
+V0.276 two-endpoint Luau simulations of the actual server exercised a casual knockout, a 2–0 series sweep, a three-round 1–1 draw on time, stale input rejection, leave and disconnect handling, and zero progression writes. Desktop Studio and Galaxy A06 landscape touch simulation joined and cancelled both v0.276 queues. A separate one-client series used a fitted Fire Salamander stand-in to verify Silverback’s palm, parry and slam in both rounds, the 3-second second-round reset, the 2–0 recap and camera return.
+
+## Ranked Duel
+
+The four starter kits keep their authored archetype differences. Ranked scales their base HP and damage to the same Level 15 baseline, independent of their XP. The Land, Aquatic, Magma and Sky cycle applies to confirmed hits. A favorable matchup adds 25% damage and 20% knockback to moves with a shove or lift. A resisted hit deals 80% damage and 85% knockback. Parries and whiffs preserve the existing rules.
+
+Local matchmaking starts with a 100-point gap and expands by 50 points every 10 seconds up to 300. A fresh rating starts at 1200 Bronze. The six divisions run from Bronze to Dojo Champion. At equal ratings, a win transfers 16 points. The match is rated after the first bell. An interrupted first intro leaves both ratings intact.
+
+The separate ranked store claims each player’s rating before the match. It records a final outcome with both changes, then applies each side’s change exactly once as that claim is cleared. Reopening a rating finishes a committed partial result. Unfinished reservations expire. Casual, Best of 3, and Bot Spar remain available when rating storage fails. Studio uses an in-memory store isolated from the published experience.
+
+Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
 
@@ -115,6 +125,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Cloud-Top custom kit and contact | [Silverback poses](../roblox/grand-dojo/SilverbackCombatPoses.luau), [Sablecrest poses](../roblox/grand-dojo/SablecrestCombatPoses.luau), [contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Galleon custom kit and delayed tiles | [Fire Salamander poses](../roblox/grand-dojo/FireSalamanderCombatPoses.luau), [Granite poses](../roblox/grand-dojo/GraniteCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau) |
 | Grand Dojo Duel | [Queue and match lifecycle](../roblox/grand-dojo/GrandDojoDuel.server.luau), [series scoring and timing](../roblox/grand-dojo/DuelSeries.luau), [symmetric round state](../roblox/grand-dojo/DuelCombatRound.luau), [pose and fitted contact](../roblox/grand-dojo/DuelFightMotion.luau) |
+| Ranked Duel | [Competitive stats, Elo and divisions](../roblox/grand-dojo/DuelRankRules.luau), [Rating transactions](../roblox/grand-dojo/DuelRankLedger.luau), [Lost-response regression](../tools/verify_ranked_ledger.py) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |

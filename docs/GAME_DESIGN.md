@@ -128,7 +128,7 @@ Reference ring radius is 65 studs (from center spawn to ring-out drop). Engineer
 
 4.1 Four Core Game Modes
 
-1. 1v1 Ranked Duels at Grand Dojo (Best of 3 Rounds, 45s/round). Elo matchmaking across 6 divisions (Bronze, Silver, Gold, Diamond, Master, Apex Predator). Uses Level 15 stat normalization so skill and elemental counter-picking decide winners.
+1. 1v1 Ranked Duels at Grand Dojo (Best of 3 Rounds, 45s/round). Elo matchmaking across 6 divisions (Bronze, Silver, Gold, Diamond, Master, Dojo Champion). Uses Level 15 stat normalization so skill and elemental counter-picking decide winners.
 
 2. 2v2 Tag-Team at Grand Dojo (90s Match). Each player brings a primary and backup animal. Pressing the 'Tag-In' button swaps fighters with a 12s cooldown and triggers an entry assist strike.
 

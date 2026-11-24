@@ -7953,6 +7953,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","ReedguardRound","ReedguardRound.luau"),
                                     (server,"ModuleScript","DuelCombatRound","DuelCombatRound.luau"),
                                     (server,"ModuleScript","DuelSeries","DuelSeries.luau"),
+                                    (server,"ModuleScript","DuelRankLedger","DuelRankLedger.luau"),
+                                    (server,"ModuleScript","DuelRankRules","DuelRankRules.luau"),
                                     (server,"ModuleScript","DuelFightMotion","DuelFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardFightMotion","ReedguardFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardCombatPoses","ReedguardCombatPoses.luau"),
