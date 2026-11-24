@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.261, climb to **Glacier Lantern Pavilion** and take its north opening onto **Snowbell Ridge**. Follow the amber lamps to the existing Mistline road into Skywalk Peaks. Read the Glacier Lantern sign to take the same route back.
+
 In v0.260, find the raised **Trophy Hall** marquee and walk the widened lower steps. The side routes still join the same entry. The gold cup above the entrance is the Hall crest. An earned **Lantern Keeper** displays on its pedestal inside.
 
 In v0.259, look between the **Trophy Hall** and **Fighting Ring** for the wide pine above **Reedfall**. The stepped planting is clearer from **Reedfall Overlook**. The existing gallery ramp climbs to **Cascade Lookout** and **Reedfall Crown**.
@@ -297,6 +299,8 @@ The Ice Garden now has a two-tier Frostglass Conservatory with indigo roof tiles
 Glacier Lantern Walk adds about 125 studs of stair-free path from Meltwater View to Mistline Vista. The covered pavilion sits at 28.90 studs. The two signed rail openings tie the route into the old circuits, and the relocated Meltwater bench leaves the fork clear. Pond Terrace, Frostglass High Walk, Glacier Lantern Walk and Mistline Vista now have distinct HUD labels. All six districts and 14 mapped interdistrict connections are retained. The exact desktop Studio place passed 48 waypoints each way on Glacier Lantern Walk without a jump. Mistline Crossing to Skywalk Peaks passed 64 waypoints each way. Meltwater High Walk to Lantern Circuit passed 57 each way. Each Frostglass location label selected the Frostglass music area. A scripted Studio check used the original reflector prompts, lit the receiver, recorded one local clear and reset the lenses for replay. Published streaming and actual-device checks remain open.
 
 Detached Studio screening found zero scripts in the five tested free winter assets. Frostglass uses three placements of Striatp’s Small Snowy Pine Tree and three of akmadman7273’s Snow Bush. These are anchored and visual-only. The exact desktop Studio client reported successful mesh and base texture loads. The snow cover rendered in the viewport. The conservatory and raised path also use foliage from the two owned packs. Hyper_verse’s USD 2.99 Low Poly Textured Snow Forest Pack remains an option for further winter foliage.
+
+The v0.261 **Snowbell Ridge** connector reuses four pines by Striatp and three shrubs by akmadman7273 from the same free Creator Store assets. All seven placements are anchored, noncolliding scenery and use the existing mesh and texture references. This pass required no purchases. Published asset loading remains a separate check. [Small Snowy Pine Tree](https://create.roblox.com/store/asset/76188132698241/Small-Snowy-Pine-Tree) · [Snow Bush](https://create.roblox.com/store/asset/1163700582/Snow-Bush)
 
 In v0.197, enter **Tideharbor Coast** and look up at **Harbor House**. Follow the Beacon boardwalk to **Harbor Sky Pier**. The covered **Sea Lantern Pavilion** overlooks the harbor and the far ramp returns to **Lantern Quay**.
 

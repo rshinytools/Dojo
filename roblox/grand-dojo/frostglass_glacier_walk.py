@@ -109,8 +109,10 @@ def build_frostglass_glacier_walk(
     deck = part(pavilion, "Glacier Lantern floor", ((west + east) / 2, top - .25, (north + south) / 2),
                 (east - west, .50, south - north), "BDC9D2", material=limestone)
     prop(deck, "string", variant_field, paving_variant)
+    north_exit_half_width = 3.03
     for u, v in (
-        ((west+.14, north+.14), (east-.14, north+.14)),
+        ((west+.14, north+.14), (cx-north_exit_half_width, north+.14)),
+        ((cx+north_exit_half_width, north+.14), (east-.14, north+.14)),
         ((west+.14, north+.14), (west+.14, south-.14)),
         ((west+.14, south), (cx-2.72, south)), ((cx+2.72, south), (east-.14, south)),
         ((east, north+.14), (east, cz-2.72)), ((east, cz+2.72), (east, south-.14)),
@@ -172,14 +174,15 @@ def build_frostglass_glacier_walk(
                fine_tiles=False, signature=True, corner_sweep=1.22)
     sign(pavilion, "GLACIER LANTERN", cx, top+6.22, cz+4.18, 7.52, .97, 0, "486D80")
 
-    seat = part(pavilion, "Glacier Lantern bench", (cx, top+.63, north+1.18),
-                (3.84, .27, 1.01), "AA826F", material=cedar, class_name="Seat")
+    bench_x = west + 1.75
+    seat = part(pavilion, "Glacier Lantern bench", (bench_x, top+.63, cz),
+                (3.84, .27, 1.01), "AA826F", yaw=-90, material=cedar, class_name="Seat")
     seat.find("Properties/bool[@name='CanTouch']").text = "true"
-    detail(pavilion, "Glacier Lantern cedar bench back", (cx, top+1.13, north+.70),
-           (3.94, .65, .18), "876F70", cedar)
-    for x in (cx-1.43,cx+1.43):
-        detail(pavilion, "Glacier Lantern granite bench foot", (x, top+.27, north+1.18),
-               (.55, .51, .77), "91A4B0", slate)
+    detail(pavilion, "Glacier Lantern cedar bench back", (bench_x-.48, top+1.13, cz),
+           (3.94, .65, .18), "876F70", cedar, yaw=-90)
+    for z in (cz-1.43,cz+1.43):
+        detail(pavilion, "Glacier Lantern granite bench foot", (bench_x, top+.27, z),
+               (.55, .51, .77), "91A4B0", slate, yaw=-90)
     for k, (x, z) in enumerate(((west+1.32,south-1.25), (east-1.39,north+1.45))):
         garden_shelf(pavilion, x, top+.39, z, 1.92, 1.80, .42, "9AAEB7", slate, collide=False)
         garden_shelf(pavilion, x, top+.45, z, 1.69, 1.55, .14, "91A591", grass, collide=False)

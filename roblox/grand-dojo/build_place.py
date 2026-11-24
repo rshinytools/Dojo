@@ -49,7 +49,9 @@ from district_gateways import build_district_gateway
 from festival_bridge_details import build_festival_bridge_details
 from frostglass_arrival_hall import build_frostglass_arrival_hall
 from frostglass_snow_ridges import build_frostglass_snow_ridges
-from frostglass_glacier_walk import build_frostglass_glacier_walk
+from frostglass_glacier_walk import ASCENT as GLACIER_ASCENT, BALCONY_JOIN, CROWN as GLACIER_PAVILION, build_frostglass_glacier_walk
+from snowbell_ridge import (NAME as SNOWBELL_RIDGE, MISTLINE_SEGMENT, MISTLINE_OPENING,
+                            build_snowbell_ridge, mistline_junction)
 from frostglass_reflectors import build_frostglass_reflectors
 from frostglass_store_planting import build_frostglass_approach_planting, build_frostglass_store_planting
 from hall_arrival_details import build_hall_arrival_details
@@ -7096,17 +7098,24 @@ def mistline_crossing(parent, west_path, east_path):
                 # Leave the junctions within the two courtyards open.
                 if (section is west and index==0) or (section is east and index==len(path)-2):
                     continue
-                for height in (.58,1.44):
-                    beam(section,"Mistline approach rail",(start[0],start[1]+height,start[2]),
-                         (end[0],end[1]+height,end[2]),.24,rail_tint,collide=True)
-                posts=max(1,round(hypot(end[0]-start[0],end[2]-start[2])/4.70))
-                for post_index in range(posts):
-                    t=(post_index+.16)/posts
-                    x,y,z=(a+(b-a)*t for a,b in zip(start,end))
-                    part(section,"Mistline approach newel",(x,y+.73,z),(.34,1.46,.34),rail_tint,
-                         material=WOOD_PLANK,collide=False)
-                    part(section,"Weathered brass rail cap",(x,y+1.48,z),(.43,.13,.43),
-                         "C5A267",collide=False)
+                spans = ((start, end),)
+                if section is west and side == 1 and index == MISTLINE_SEGMENT:
+                    rail_offset = approach_width / 2 - .20
+                    opening_start = mistline_junction(path, rail_offset, path_edge, -MISTLINE_OPENING)
+                    opening_end = mistline_junction(path, rail_offset, path_edge, MISTLINE_OPENING)
+                    spans = ((start, opening_start), (opening_end, end))
+                for a, b in spans:
+                    for height in (.58,1.44):
+                        beam(section,"Mistline approach rail",(a[0],a[1]+height,a[2]),
+                             (b[0],b[1]+height,b[2]),.24,rail_tint,collide=True)
+                    posts=max(1,round(hypot(b[0]-a[0],b[2]-a[2])/4.70))
+                    for post_index in range(posts):
+                        t=(post_index+.16)/posts
+                        x,y,z=(u+(v-u)*t for u,v in zip(a,b))
+                        part(section,"Mistline approach newel",(x,y+.73,z),(.34,1.46,.34),rail_tint,
+                             material=WOOD_PLANK,collide=False)
+                        part(section,"Weathered brass rail cap",(x,y+1.48,z),(.43,.13,.43),
+                             "C5A267",collide=False)
 
     for index,(section,(x,y,z)) in enumerate(((west,west_path[1]),(west,west_path[2]),
                                               (west,west_path[3]),(west,west_path[4]),
@@ -7438,6 +7447,11 @@ mistline_west=[(-173.90,14.027,-178.80),(-159.10,14.027,-178.80),(-142.60,16.74,
 mistline_east=[(-16.20,25.13,-239.30),(-9.90,25.046,-239.46),(-3.35,25.027,-240.05),
                (3.65,25.027,-240.36)]
 mistline_deck=mistline_crossing(roads,mistline_west,mistline_east)
+snowbell_path=build_snowbell_ridge(roads,mistline_west,item=item,prop=prop,part=part,beam=beam,
+                                  triangle=triangle,path_edge=path_edge,sign=sign,festival_lantern=festival_lantern,
+                                  vector=vector,asset=asset,cedar=WOOD_PLANK,slate=SLATE,rock=ROCK,
+                                  snow=SNOW,brass=METAL,cedar_variant=LANDMARK_CEDAR,rock_variant=VALLEY_ROCK,
+                                  variant_field=MATERIAL_VARIANT_FIELD)
 map_districts={"Grand Dojo City":(0,0,0), **{town[0]:tuple(town[1:4]) for town in towns}}
 map_paths=[(name,[(0,0,0),*points,map_districts[town[0]]],False)
            for (name,points,_),town in zip(routes,towns)]
@@ -7449,6 +7463,15 @@ map_paths.append(("Cloudstep Pass",[map_districts["Cinder Terraces"],(122,10,-18
                                    (34,25.027,-244.1),(22,25.027,-246),map_districts["Skywalk Peaks"]],True))
 map_paths.append(("Mistline Crossing",[map_districts["Frostglass Gardens"],*mistline_west,*mistline_east,
                                       (22,25.027,-240.4),map_districts["Skywalk Peaks"]],True))
+map_paths.append((SNOWBELL_RIDGE,[map_districts["Frostglass Gardens"],(-189,14.027,-164.90),
+                                 (-182.75,14.036,-164.90),(-182.75,18.636,-178.72),
+                                 (-182.96,18.624,-180.75),(-184.16,18.612,-182.12),
+                                 (-184.38,18.701,-183.57),(-182.70,18.701,-183.57),
+                                 (-170.78,21.53,-183.57),(-168.25,21.53,-183.57),
+                                 (-168.25,21.53,-174.62),BALCONY_JOIN,*GLACIER_ASCENT,GLACIER_PAVILION,
+                                 *snowbell_path,*mistline_west[MISTLINE_SEGMENT+1:],
+                                 *mistline_deck[1:-1],*mistline_east,
+                                 (22,25.027,-240.4),map_districts["Skywalk Peaks"]],True))
 map_paths.append((ORCHARD_WALK,[map_districts["Grand Dojo City"],routes[4][1][0],
                                *ORCHARD_ASCENT,*ORCHARD_DESCENT,routes[4][1][-1],
                                map_districts["Lantern Circuit"]],True))
@@ -7617,7 +7640,7 @@ for (name,x,y,z,yaw,accent,paving,sign_name),(title,line,fur,ears) in zip(towns,
     ("Harbor Steward","Follow the Beacon boardwalk up to Harbor Sky Pier. Lantern Quay loops back to the pier. Take the north road for Cinder Terraces.","90634C",.36),
     ("Kiln Steward","Head west to Potters’ Yard. Copper Kiln Walk climbs above the workshops to Glaze Terrace, and Cloudstep Pass leads to Skywalk Peaks.","A96651",.51),
     ("Wind Court Keeper","Ring Reed, Cloud, then Summit at Wind Court. Cloudstep Pass leads to Cinder, and Mistline Crossing leads to Frostglass.","CEA67C",.65),
-    ("Garden Keeper","Climb above Pond Terrace to Glacier Lantern Walk. It loops down to Mistline Vista. Follow Mistline Crossing east to Skywalk Peaks.","ADAEB2",.51),
+    ("Garden Keeper","Climb above Pond Terrace to Glacier Lantern Pavilion. Take Snowbell Ridge to Mistline Crossing for Skywalk Peaks, or follow the ramp down to Mistline Vista.","ADAEB2",.51),
     ("Night Market Steward","Follow Lantern Gallery to the upper stalls. Lantern Skyline Walk loops back by the Overlook ramp. Take the north road for Frostglass Gardens.","AD805C",.83),
 ]):
     resident(title,line,x+6,y,z+2,fur,accent,ears,180)

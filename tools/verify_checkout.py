@@ -46,7 +46,7 @@ def verify_place():
                 "Plaza city map board", "Cedar garden direction fascia", "Lantern Tower cedar ramp",
                 "Lantern Relay sandstone runner", "Lantern lane stepped gardens", "Relay music volume", "Cedar Foothill Walk", "Foothill overlook guardrail", "Skywalk road cedar banks",
                 "Cinder ravine clay terraces", "Frostglass snowy foothills", "Trophy Hall west blossom grove", "Western skyline peaks", "Whitewater crest streak", "Raised eave brass cheek", "Plum Lantern Walk", "EagleEye",
-                "Trophy Hall split stair", "Jade crossing hall ramp"}
+                "Trophy Hall split stair", "Jade crossing hall ramp", "Snowbell Ridge", "Snowbell walkable surface"}
     seen = set()
     routes = None
     notes = 0
@@ -63,7 +63,7 @@ def verify_place():
             if props.findtext("Content[@name='SoundId']/url"):
                 notes += 1
         node.clear()
-    if seen != required or routes != 15 or notes < 4:
+    if seen != required or routes != 16 or notes < 4:
         raise SystemExit(f"Studio place is missing expected content: {required - seen}; {routes=} {notes=}")
 
 

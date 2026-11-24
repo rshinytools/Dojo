@@ -365,6 +365,7 @@ local districtDescriptions = {
     ["Pond Terrace"] = "Frostglass Gardens",
     ["Frostglass High Walk"] = "Frostglass Gardens",
     ["Glacier Lantern Walk"] = "Frostglass Gardens",
+    ["Snowbell Ridge"] = "High route to Skywalk Peaks",
     ["Mistline Vista"] = "Frostglass Gardens",
     ["Lantern Circuit"] = "Night market",
     ["Lantern Skyline Walk"] = "Lantern Circuit",
@@ -396,6 +397,7 @@ local districtMusic = {
     ["Pond Terrace"] = "frostglass",
     ["Frostglass High Walk"] = "frostglass",
     ["Glacier Lantern Walk"] = "frostglass",
+    ["Snowbell Ridge"] = "frostglass",
     ["Mistline Vista"] = "frostglass",
     ["Lantern Circuit"] = "lantern",
     ["Lantern Skyline Walk"] = "lantern",
@@ -484,6 +486,9 @@ local function landmarkAt(position)
         end
     end
     local roads = city:FindFirstChild("Connecting roads")
+    if alongMarkedWalk(position, roads and roads:FindFirstChild("Snowbell Ridge"), "Snowbell Ridge location bounds") then
+        return "Snowbell Ridge"
+    end
     local glazeTerrace = roads and roads:FindFirstChild("Glaze Terrace")
     if aboveDeck(position, glazeTerrace and glazeTerrace:FindFirstChild("Glaze Terrace deck")) then
         return "Glaze Terrace"

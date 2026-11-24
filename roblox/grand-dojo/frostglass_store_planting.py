@@ -20,7 +20,7 @@ _ROCK_TONES = ("777588", "817E90", "89869B", "9692A4", "A29CAD")
 _SNOW_TONES = ("C9CCDC", "D4D8E5", "C3CBDA", "DDE0EA")
 
 
-def _planting(parent, label, *, item, prop, part, vector, asset):
+def frostglass_winter_foliage(parent, label, *, item, prop, part, vector, asset):
     planting = item(parent, "Model", label)
     prop(planting, "token", "ModelStreamingMode", 1)
 
@@ -45,29 +45,32 @@ def _planting(parent, label, *, item, prop, part, vector, asset):
         prop(material, "token", "AlphaMode", 1)
         asset(material, "ColorMapContent", "rbxassetid://6901062953")
 
-    return pine, mesh
+    # akmadman7273's Snow Bush, Creator Store 1163700582.
+    bush_size = (6.442000, 4.138090, 6.317780)
+    def shrub(name, x, z, yaw, scale, floor):
+        mesh(name, x, z, yaw, tuple(axis * scale for axis in bush_size),
+             bush_size, 742756209, 1093033181, floor)
+
+    return pine, shrub
 
 
 def build_frostglass_store_planting(town, *, item, prop, part, vector, asset):
-    pine, mesh = _planting(town, "Frostglass winter planting", item=item, prop=prop, part=part,
-                           vector=vector, asset=asset)
+    pine, shrub = frostglass_winter_foliage(town, "Frostglass winter planting", item=item, prop=prop,
+                                            part=part, vector=vector, asset=asset)
     floor = 14.027
     for x, z, yaw, scale in ((-216.27, -194.15, 18, .33), (-162.19, -204.20, 53, .37),
                              (-210.21, -204.84, 87, .42)):
         pine("Snow-dusted courtyard pine", x, z, yaw, scale, floor)
 
-    # akmadman7273's Snow Bush, Creator Store 1163700582.
-    bush_size = (6.442000, 4.138090, 6.317780)
     for x, z, yaw, scale in ((-198.80, -158.65, 35, .25), (-177.82, -154.29, 64, .21),
                              (-163.66, -204.53, 102, .24)):
-        mesh("Frosted garden shrub", x, z, yaw, tuple(axis * scale for axis in bush_size),
-             bush_size, 742756209, 1093033181, floor)
+        shrub("Frosted garden shrub", x, z, yaw, scale, floor)
 
 
 def build_frostglass_approach_planting(roads, *, item, prop, part, vector, asset, triangle,
                                       garden_prop, rock, snow, rock_variant, variant_field):
-    pine, _ = _planting(roads, "Frostglass approach pines", item=item, prop=prop, part=part,
-                        vector=vector, asset=asset)
+    pine, _ = frostglass_winter_foliage(roads, "Frostglass approach pines", item=item, prop=prop,
+                                        part=part, vector=vector, asset=asset)
     # Ground heights measured against native Terrain in Studio Play.
     for x, z, yaw, scale, floor in (
         (-219, -123, 18, .41, 7.40),
@@ -133,7 +136,8 @@ def _build_approach_bank(roads, side, sections, pines, *, item, prop, part, vect
         for band, (inner, outer) in enumerate(zip(contours[1:], contours[2:])):
             facet((toe, inner[end], outer[end]), False, band + 1)
 
-    pine, _ = _planting(bank, "Snow ledge trees", item=item, prop=prop, part=part, vector=vector, asset=asset)
+    pine, _ = frostglass_winter_foliage(bank, "Snow ledge trees", item=item, prop=prop,
+                                        part=part, vector=vector, asset=asset)
     for station, offset, yaw, scale in pines:
         x, _, z = point(station, offset, 0)
         ground = ridge_surface_height(faces, x, z)
