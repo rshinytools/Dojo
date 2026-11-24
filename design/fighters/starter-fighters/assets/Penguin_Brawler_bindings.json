@@ -1,0 +1,180 @@
+{
+  "art_height": 4.8794,
+  "triangles": 6486,
+  "blender_axes": "Z up, forward -Y.",
+  "gltf_axes": "Y up, forward -Z.",
+  "atlas": "Embedded 1024 \u00d7 1024 PNG with color and cavity shading.",
+  "groups": {
+    "Torso": {
+      "node": "Torso_Shell",
+      "triangles": 1928,
+      "blender_pivot_xyz": [
+        0,
+        0.009,
+        2.22
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        2.22,
+        0.009
+      ],
+      "blender_bounds_min_xyz": [
+        -1.3646,
+        -0.6965,
+        0.91
+      ],
+      "blender_bounds_max_xyz": [
+        0.865,
+        1.3538,
+        3.4977
+      ]
+    },
+    "Head": {
+      "node": "Head_Shell",
+      "triangles": 2442,
+      "blender_pivot_xyz": [
+        0.003,
+        -0.118,
+        3.39
+      ],
+      "gltf_pivot_xyz": [
+        0.003,
+        3.39,
+        -0.118
+      ],
+      "blender_bounds_min_xyz": [
+        -0.69,
+        -1.138,
+        3.37
+      ],
+      "blender_bounds_max_xyz": [
+        0.718,
+        0.387,
+        4.8794
+      ]
+    },
+    "Right Arm": {
+      "node": "Right_Arm_Shell",
+      "triangles": 310,
+      "blender_pivot_xyz": [
+        0.706,
+        0.011,
+        3.048
+      ],
+      "gltf_pivot_xyz": [
+        0.706,
+        3.048,
+        0.011
+      ],
+      "blender_bounds_min_xyz": [
+        0.5865,
+        -0.1883,
+        2.3794
+      ],
+      "blender_bounds_max_xyz": [
+        1.8329,
+        0.6407,
+        3.2579
+      ]
+    },
+    "Left Arm": {
+      "node": "Left_Arm_Shell",
+      "triangles": 310,
+      "blender_pivot_xyz": [
+        -0.701,
+        -0.037,
+        3.049
+      ],
+      "gltf_pivot_xyz": [
+        -0.701,
+        3.049,
+        -0.037
+      ],
+      "blender_bounds_min_xyz": [
+        -1.3892,
+        -1.16,
+        2.3446
+      ],
+      "blender_bounds_max_xyz": [
+        -0.5816,
+        0.1477,
+        3.2688
+      ]
+    },
+    "Right Leg": {
+      "node": "Right_Leg_Shell",
+      "triangles": 716,
+      "blender_pivot_xyz": [
+        0.434,
+        -0.04,
+        1.225
+      ],
+      "gltf_pivot_xyz": [
+        0.434,
+        1.225,
+        -0.04
+      ],
+      "blender_bounds_min_xyz": [
+        0.141,
+        -0.7573,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        0.9672,
+        0.3739,
+        1.431
+      ]
+    },
+    "Left Leg": {
+      "node": "Left_Leg_Shell",
+      "triangles": 712,
+      "blender_pivot_xyz": [
+        -0.431,
+        0.12,
+        1.225
+      ],
+      "gltf_pivot_xyz": [
+        -0.431,
+        1.225,
+        0.12
+      ],
+      "blender_bounds_min_xyz": [
+        -0.9889,
+        -0.4593,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        -0.1545,
+        0.604,
+        1.431
+      ]
+    },
+    "Tail": {
+      "node": "Tail_Shell",
+      "triangles": 68,
+      "blender_pivot_xyz": [
+        0,
+        0.441,
+        1.559
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        1.559,
+        0.441
+      ],
+      "blender_bounds_min_xyz": [
+        -0.1945,
+        0.3182,
+        1.1378
+      ],
+      "blender_bounds_max_xyz": [
+        0.1945,
+        1.0655,
+        1.7612
+      ]
+    }
+  },
+  "display_name": "Penguin Brawler",
+  "asset": "Penguin_Brawler.glb",
+  "unit": "1 Blender unit per intended Roblox stud"
+}

@@ -1,0 +1,112 @@
+{
+  "title": "Four Roads to Grand Dojo",
+  "story": "The morning before the Training Festival, four fighters arrived at Grand Dojo to help reopen the reed court. Reedguard repaired the practice flags, Penguin brought a bell from the quay, Silverback helped hang it, and Fire Salamander painted the starting marks with the same glaze she used in Potters’ Yard. When the bell finally rang, they each stepped onto the mat to show what they had learned on the road.",
+  "balance": "First-pass level-one values for short 1v1 rounds. Health uses one tenth of the GDD values to match the current 100 HP Reedguard spar. Normal-hit damage starts from the 13-damage Reedguard strike and scales by each fighter’s GDD attack rating. The production roster and progression values stay in the GDD.",
+  "rules": "All four share Strike, Guard and the same timed parry window in the playtest design. Each kit adds a tactical power and its GDD signature. Damage applies at most once per target per activation, apart from the three authored contacts in Reedstep Rising. Show windups with body poses and high-contrast shapes. Use short cartoon impact effects and keep camera motion optional.",
+  "fighters": [
+    {
+      "id": "reedguard-kangaroo",
+      "name": "Reedguard Kangaroo",
+      "title": "Keeper of the Reed Court",
+      "home": "Grand Dojo · Reedgrove Court",
+      "element": "Land",
+      "rarity": "Common",
+      "role": "Agile",
+      "style": "Counterfighter",
+      "health": 100,
+      "normal_hit": 13,
+      "story": "Reedguard took over the little training court when its best students began chasing medals and the youngest stopped showing up. On the night of the Lantern Relay storm, he wove a brace from reeds pulled loose beside the canal so he could keep repairing the practice yard. He kept wearing it. When a challenger rushes him, he turns the exchange and leaves room for the next lesson.",
+      "quote": "A good guard gives you time to choose.",
+      "powers": [
+        {
+          "name": "Reed Counter",
+          "effect": "Land a timed parry, then pivot into one close-range palm counter for 23 damage while the opponent recovers.",
+          "counter": "Vary the timing of your first strike and step clear if Reedguard gets the parry."
+        },
+        {
+          "name": "Reedstep Rising",
+          "effect": "A drop in the reed-guard shoulder signals a body strike, an opposite palm and a short spring-rise. A clean three-contact sequence deals 32 damage total and briefly lifts the opponent.",
+          "counter": "Back away from the opening body strike. A missed starter ends the sequence and leaves Reedguard open."
+        }
+      ]
+    },
+    {
+      "id": "penguin-brawler",
+      "name": "Penguin Brawler",
+      "title": "The Quayside Skater",
+      "home": "Tideharbor Coast · Lantern Quay",
+      "element": "Aquatic",
+      "rarity": "Common",
+      "role": "Agile",
+      "style": "Sliding and repositioning",
+      "health": 98,
+      "normal_hit": 12,
+      "story": "The quickest courier on Lantern Quay arrived at the Ropekeeper’s stall so fast that three baskets ended up in the tide pool. He spent a winter on the Frostglass ponds learning to stop exactly where he wanted. He still likes a fast delivery. The blue scarf flares when he leans into a turn, so the other skaters know which way he’s going.",
+      "quote": "Anyone can go fast. Watch where I stop.",
+      "powers": [
+        {
+          "name": "Floe Turn",
+          "effect": "Angle the flippers and skate a short arc to change sides, then plant both feet. The reposition deals zero damage.",
+          "counter": "Track the planted feet and leave space for the next move."
+        },
+        {
+          "name": "Belly-Slide Blitz",
+          "effect": "A low crouch and a blue lane announce one belly slide. A clean hit deals 30 damage and pushes the opponent along the lane.",
+          "counter": "Step sideways before the slide commits. The skid at the end gives you time to strike."
+        }
+      ]
+    },
+    {
+      "id": "silverback-gorilla",
+      "name": "Silverback Gorilla",
+      "title": "The Pinecrest Rigger",
+      "home": "Skywalk Peaks · Pinecrest Crossing",
+      "element": "Land",
+      "rarity": "Rare",
+      "role": "Heavy",
+      "style": "Close-range space control",
+      "health": 135,
+      "normal_hit": 15,
+      "story": "Silverback used to win hauling contests by moving first. While working on Pinecrest Crossing, an apprentice asked him to hold one swaying span still while the crew set its rails. Holding his position took more patience than any contest he’d won. He kept the old rope wraps and brought that same measured stance to the dojo.",
+      "quote": "One firm step is plenty.",
+      "powers": [
+        {
+          "name": "Ridge Palm",
+          "effect": "Set both feet and push with one long palm for 20 damage and a short shove. The planted stance makes the strike easy to spot at range.",
+          "counter": "Step back before the arm extends, then move around the side."
+        },
+        {
+          "name": "Seismic Chest-Pound",
+          "effect": "Two chest taps and a fixed floor circle warn of a ground slam. Its dust-ring pulse deals 34 damage and briefly pops the target upward.",
+          "counter": "Walk outside the circle and use the long wind-down to close the gap."
+        }
+      ]
+    },
+    {
+      "id": "fire-salamander",
+      "name": "Fire Salamander",
+      "title": "The Ember Glazer",
+      "home": "Cinder Terraces · Potters’ Yard",
+      "element": "Magma",
+      "rarity": "Common",
+      "role": "Agile",
+      "style": "Flanking and area control",
+      "health": 96,
+      "normal_hit": 14,
+      "story": "Fire Salamander learned glaze work by watching the last colors fade from cooling tiles. When younger apprentices kept taking the wrong workshop path, she painted the safe turns in bright ochre and found a way to guide them with color. She uses that same instinct in the ring, laying a trail that makes her opponent choose a direction.",
+      "quote": "See where the marks lead before you decide.",
+      "powers": [
+        {
+          "name": "Ember Sweep",
+          "effect": "An amber fan and a low tail sweep cover the space in front for 18 damage. The sparks dissipate at contact.",
+          "counter": "Stay outside the marked fan or guard the tail’s committed swing."
+        },
+        {
+          "name": "Magma Trail",
+          "effect": "A quick loop leaves two glowing marks on the mat. After a visible beat they pop for up to 30 damage total and push upward in a burst of abstract embers.",
+          "counter": "Watch the marked tiles and use the open lane between them. The two bursts share one damage cap."
+        }
+      ]
+    }
+  ]
+}

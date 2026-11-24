@@ -31,6 +31,8 @@ The public Trophy Hall is a city landmark and the planned entrance to each playe
 
 The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport verified the exports. Studio rigging, animation, combat tuning and gameplay integration remain open.
 
+The [closed-alpha starter fighter package](../design/fighters/starter-fighters/README.md) includes Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. It holds editable models, rendered previews, GLBs, pivot data and their [stories and proposed kits](../design/fighters/starter-fighters/roster.json). The production GDD retains its own scale. Studio integration and four-fighter acceptance remain open.
+
 | Work area | First files to inspect |
 | --- | --- |
 | Place generation and map links | [build_place.py](../roblox/grand-dojo/build_place.py), the corresponding geometry module, and the generated `CityRoutes` ModuleScript |

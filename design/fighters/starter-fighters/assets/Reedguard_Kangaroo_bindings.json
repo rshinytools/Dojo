@@ -1,0 +1,180 @@
+{
+  "art_height": 4.9213,
+  "triangles": 12272,
+  "blender_axes": "Z up, forward -Y.",
+  "gltf_axes": "Y up, forward -Z.",
+  "atlas": "Embedded 1024 \u00d7 1024 PNG with color and cavity shading.",
+  "groups": {
+    "Torso": {
+      "node": "Torso_Shell",
+      "triangles": 5252,
+      "blender_pivot_xyz": [
+        0,
+        0,
+        2.132
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        2.132,
+        0
+      ],
+      "blender_bounds_min_xyz": [
+        -0.756,
+        -0.5691,
+        0.8138
+      ],
+      "blender_bounds_max_xyz": [
+        0.8224,
+        0.5447,
+        3.064
+      ]
+    },
+    "Head": {
+      "node": "Head_Shell",
+      "triangles": 3244,
+      "blender_pivot_xyz": [
+        0,
+        0,
+        3.075
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        3.075,
+        0
+      ],
+      "blender_bounds_min_xyz": [
+        -1.0191,
+        -0.891,
+        2.88
+      ],
+      "blender_bounds_max_xyz": [
+        0.7165,
+        0.4193,
+        4.9213
+      ]
+    },
+    "Right Arm": {
+      "node": "Right_Arm_Shell",
+      "triangles": 1084,
+      "blender_pivot_xyz": [
+        0.82,
+        0,
+        2.706
+      ],
+      "gltf_pivot_xyz": [
+        0.82,
+        2.706,
+        0
+      ],
+      "blender_bounds_min_xyz": [
+        0.6159,
+        -0.7699,
+        1.43
+      ],
+      "blender_bounds_max_xyz": [
+        1.3969,
+        0.351,
+        2.875
+      ]
+    },
+    "Left Arm": {
+      "node": "Left_Arm_Shell",
+      "triangles": 1084,
+      "blender_pivot_xyz": [
+        -0.82,
+        0,
+        2.706
+      ],
+      "gltf_pivot_xyz": [
+        -0.82,
+        2.706,
+        0
+      ],
+      "blender_bounds_min_xyz": [
+        -1.3969,
+        -0.7699,
+        1.43
+      ],
+      "blender_bounds_max_xyz": [
+        -0.6159,
+        0.351,
+        2.875
+      ]
+    },
+    "Right Leg": {
+      "node": "Right_Leg_Shell",
+      "triangles": 716,
+      "blender_pivot_xyz": [
+        0.4674,
+        0,
+        1.394
+      ],
+      "gltf_pivot_xyz": [
+        0.4674,
+        1.394,
+        0
+      ],
+      "blender_bounds_min_xyz": [
+        0.0967,
+        -0.8081,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        0.826,
+        0.462,
+        1.49
+      ]
+    },
+    "Left Leg": {
+      "node": "Left_Leg_Shell",
+      "triangles": 716,
+      "blender_pivot_xyz": [
+        -0.4674,
+        0,
+        1.394
+      ],
+      "gltf_pivot_xyz": [
+        -0.4674,
+        1.394,
+        0
+      ],
+      "blender_bounds_min_xyz": [
+        -0.826,
+        -0.8081,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        -0.0967,
+        0.462,
+        1.49
+      ]
+    },
+    "Tail": {
+      "node": "Tail_Shell",
+      "triangles": 176,
+      "blender_pivot_xyz": [
+        0,
+        0.369,
+        1.599
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        1.599,
+        0.369
+      ],
+      "blender_bounds_min_xyz": [
+        -0.2503,
+        0.1051,
+        0.339
+      ],
+      "blender_bounds_max_xyz": [
+        0.4884,
+        2.9876,
+        1.8342
+      ]
+    }
+  },
+  "display_name": "Reedguard Kangaroo",
+  "asset": "Reedguard_Kangaroo.glb",
+  "unit": "1 Blender unit per intended Roblox stud"
+}

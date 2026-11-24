@@ -33,6 +33,7 @@ def load_module(path):
 
 
 p = load_module(PRIMITIVES)
+REEDGUARD_PIVOTS = dict(p.PIVOTS)
 
 
 def new_collection(name):
@@ -54,10 +55,11 @@ def select(objects):
     bpy.context.view_layer.objects.active = objects[0]
 
 
-def build_bot(slug, title):
+def build_bot(slug, title, source=SOURCE):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     p.GROUPS = {name: [] for name in (*sorted(GROUPS), "Tail")}
-    pivots = load_module(SOURCE / f"{slug}.py").build(p)
+    p.PIVOTS = dict(REEDGUARD_PIVOTS)
+    pivots = load_module(source / f"{slug}.py").build(p)
     assert GROUPS <= pivots.keys() <= GROUPS | {"Tail"}, pivots
     assert set(pivots) == {name for name, parts in p.GROUPS.items() if parts}, pivots
     # Recalculate after beveling and joining. The separate pieces keep their
@@ -256,9 +258,9 @@ def save_blend(file, image_path):
     bpy.ops.wm.save_as_mainfile(filepath=str(file), compress=True)
 
 
-def individual(spec, out, quick=False, preview_only=False):
+def individual(spec, out, quick=False, preview_only=False, *, source=SOURCE, preview_pose=None):
     slug, title, filename, tint, _ = spec
-    objects = build_bot(slug, title)
+    objects = build_bot(slug, title, source)
     if not preview_only:
         report = p.model_report()
         report["atlas"] = f"Embedded {ATLAS_SIZE} × {ATLAS_SIZE} PNG with color and cavity shading."
@@ -270,6 +272,8 @@ def individual(spec, out, quick=False, preview_only=False):
         verify_export(path, report)
         (out / (filename + "_bindings.json")).write_text(json.dumps(report, indent=2) + "\n")
         print(f"{title}: {report['art_height']:.2f} units, {report['triangles']} triangles", flush=True)
+    if preview_pose:
+        preview_pose()
     studio()
     platform(0, tint)
     dimensions = (540, 640) if quick else (900, 1080)
@@ -284,12 +288,12 @@ def individual(spec, out, quick=False, preview_only=False):
         render(out / (filename + "_Shell.jpg"), dimensions, quick)
 
 
-def lineup(out, quick=False):
+def lineup(out, quick=False, *, roster=ROSTER, filename="Dojo_Bot_Lineup"):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     studio(wide=True)
-    for pose, x in zip(ROSTER, (-7.25,-2.48,2.48,7.25)):
-        _, title, filename, tint, turn = pose
-        with bpy.data.libraries.load(str(out / (filename + ".blend")), link=False) as (source, destination):
+    for pose, x in zip(roster, (-7.25,-2.48,2.48,7.25), strict=True):
+        _, title, model, tint, turn = pose
+        with bpy.data.libraries.load(str(out / (model + ".blend")), link=False) as (source, destination):
             assert title in source.collections
             destination.collections = [title]
         collection = destination.collections[0]
@@ -297,12 +301,12 @@ def lineup(out, quick=False):
         rotation = Matrix.Rotation(radians(turn), 3, "Z")
         for obj in collection.objects:
             obj.location = rotation @ obj.location + Vector((x,0,0))
-            obj.rotation_euler.rotate_axis("Z", radians(turn))
+            obj.rotation_euler = (rotation @ obj.rotation_euler.to_matrix()).to_euler(obj.rotation_euler.order)
         platform(x, tint)
     set_camera("Lineup camera", (1,-25,7.85), (0,0,2.58), 20.8)
-    image = out / "Dojo_Bot_Lineup.jpg"
+    image = out / (filename + ".jpg")
     render(image, (1200, 445) if quick else (1920, 710), quick)
-    save_blend(out / "Dojo_Bot_Lineup.blend", image)
+    save_blend(out / (filename + ".blend"), image)
 
 
 def main():

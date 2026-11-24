@@ -1,0 +1,156 @@
+{
+  "art_height": 5.621,
+  "triangles": 8054,
+  "blender_axes": "Z up, forward -Y.",
+  "gltf_axes": "Y up, forward -Z.",
+  "atlas": "Embedded 1024 \u00d7 1024 PNG with color and cavity shading.",
+  "groups": {
+    "Torso": {
+      "node": "Torso_Shell",
+      "triangles": 2348,
+      "blender_pivot_xyz": [
+        0,
+        0.1,
+        2.5
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        2.5,
+        0.1
+      ],
+      "blender_bounds_min_xyz": [
+        -1.4153,
+        -0.853,
+        1.3414
+      ],
+      "blender_bounds_max_xyz": [
+        1.4153,
+        1.0664,
+        4.54
+      ]
+    },
+    "Head": {
+      "node": "Head_Shell",
+      "triangles": 2550,
+      "blender_pivot_xyz": [
+        0,
+        -0.26,
+        4.25
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        4.25,
+        -0.26
+      ],
+      "blender_bounds_min_xyz": [
+        -0.88,
+        -1.118,
+        4.065
+      ],
+      "blender_bounds_max_xyz": [
+        0.88,
+        0.309,
+        5.621
+      ]
+    },
+    "Right Arm": {
+      "node": "Right_Arm_Shell",
+      "triangles": 1012,
+      "blender_pivot_xyz": [
+        1.211,
+        0.116,
+        3.818
+      ],
+      "gltf_pivot_xyz": [
+        1.211,
+        3.818,
+        0.116
+      ],
+      "blender_bounds_min_xyz": [
+        0.7931,
+        -1.3865,
+        2.1984
+      ],
+      "blender_bounds_max_xyz": [
+        2.159,
+        0.666,
+        4.14
+      ]
+    },
+    "Right Leg": {
+      "node": "Right_Leg_Shell",
+      "triangles": 588,
+      "blender_pivot_xyz": [
+        0.567,
+        0.168,
+        1.807
+      ],
+      "gltf_pivot_xyz": [
+        0.567,
+        1.807,
+        0.168
+      ],
+      "blender_bounds_min_xyz": [
+        0.0506,
+        -0.975,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        1.2489,
+        0.5851,
+        1.994
+      ]
+    },
+    "Left Arm": {
+      "node": "Left_Arm_Shell",
+      "triangles": 968,
+      "blender_pivot_xyz": [
+        -1.211,
+        0.116,
+        3.818
+      ],
+      "gltf_pivot_xyz": [
+        -1.211,
+        3.818,
+        0.116
+      ],
+      "blender_bounds_min_xyz": [
+        -2.2394,
+        -1.0935,
+        1.7209
+      ],
+      "blender_bounds_max_xyz": [
+        -0.7931,
+        0.666,
+        4.14
+      ]
+    },
+    "Left Leg": {
+      "node": "Left_Leg_Shell",
+      "triangles": 588,
+      "blender_pivot_xyz": [
+        -0.567,
+        0.168,
+        1.807
+      ],
+      "gltf_pivot_xyz": [
+        -0.567,
+        1.807,
+        0.168
+      ],
+      "blender_bounds_min_xyz": [
+        -1.2489,
+        -0.62,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        -0.0506,
+        0.7416,
+        1.994
+      ]
+    }
+  },
+  "display_name": "Silverback Gorilla",
+  "asset": "Silverback_Gorilla.glb",
+  "unit": "1 Blender unit per intended Roblox stud"
+}
