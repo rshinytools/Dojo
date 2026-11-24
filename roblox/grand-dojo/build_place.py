@@ -1983,10 +1983,11 @@ prop(spawn,"int","Duration",0)
 ring=item(scene,"Model","Fighting Ring")
 prop(ring,"token","ModelStreamingMode",1)
 ring_offset=5.2
-ring_deck_lift=2.46
+ring_deck_lift=3.36
 ring_rise=.92+ring_deck_lift
 ring_floor=2.92+ring_rise
-ring_forecourt_y=.98
+ring_forecourt_y=1.40
+forecourt_lantern_lift=ring_forecourt_y-.98
 part(ring,"Basalt arena foundation",(36,1.20+ring_deck_lift/2,5),
      (37,2.4+ring_deck_lift,31),"6D606E",material=SLATE)
 deck=part(ring,"Cedar arena platform",(36,2.91+ring_deck_lift,5),
@@ -2013,12 +2014,12 @@ for step in range(stair_count):
     front=stair_front-step*stair_run
     z=front-stair_run/2
     width=stair_width-step*stair_taper
-    tread_tint=("AE9491","A88F8E","B09994")[(step//2)%3]
+    tread_tint=("BD9B90","B69588","C09C90")[(step//2)%3]
     tread=part(ring_steps,"Arena slate tread",(36,top/2,z),(width,top,stair_run+.035),tread_tint,material=SLATE)
     prop(tread,"string",MATERIAL_VARIANT_FIELD,PROMENADE_MORTAR)
     # Separate the thin nosing from the tread surface to avoid overlapping depth.
     nosing=part(ring_steps,"Sandstone stair nosing",(36,top-.054,front-.037),(width,.108,.195),
-                ("CFAD93","BF9D84")[(step//2)%2],material=LIMESTONE,collide=False)
+                ("DCB79B","D1AA8E")[(step//2)%2],material=LIMESTONE,collide=False)
     prop(nosing,"string",MATERIAL_VARIANT_FIELD,PROMENADE_STONE)
     prop(nosing,"bool","CastShadow",False)
     breaks=(-.50,-.20,.15,.50) if step%2==0 else (-.50,-.33,.03,.30,.50)
@@ -2037,12 +2038,13 @@ build_ring_stone_cheeks(stair_dressing,center=36,front=stair_front,back=stair_ba
                        variant_field=MATERIAL_VARIANT_FIELD)
 for side in (-1,1):
     plinth_x=36+side*9.73
-    part(ring_steps,"Stair lantern plinth",(plinth_x,1.11,29.93),(1.62,1.62,1.75),"846F7A",material=SLATE)
+    part(ring_steps,"Stair lantern plinth",(plinth_x,1.11+forecourt_lantern_lift,29.93),
+         (1.62,1.62,1.75),"846F7A",material=SLATE)
     build_ring_stair_lantern_plinth(stair_dressing,plinth_x,29.93,item=item,part=part,prop=prop,
                                    slate=SLATE,limestone=LIMESTONE,stone_variant=PROMENADE_STONE,
-                                   variant_field=MATERIAL_VARIANT_FIELD)
+                                   variant_field=MATERIAL_VARIANT_FIELD,floor_lift=forecourt_lantern_lift)
     lamp_scale=.87 if side<0 else .97
-    lamp_y=2.01+lamp_scale*1.19
+    lamp_y=2.01+lamp_scale*1.19+forecourt_lantern_lift
     build_ring_paper_lantern(ring_steps,plinth_x,lamp_y,29.93,lamp_scale*1.075,
                             item=item,part=part,prop=prop,neon=NEON,wood=WOOD_PLANK,metal=METAL,
                             lantern_light=lantern_light,light_profile=(.98,11.3),standing=True)
@@ -3559,9 +3561,10 @@ def ring_forecourt(parent):
                 prop(paver,"bool","CastShadow",False)
     for side in (-1,1):
         end_x=center+side*8.10
-        part(court,"Slate forecourt apron",(end_x-side*.11,.47,29.15),(.28,.87,8.16),
+        skirt_height=deck_y-.11
+        part(court,"Slate forecourt apron",(end_x-side*.11,skirt_height/2+.035,29.15),(.28,skirt_height,8.16),
              "88747A",material=SLATE,collide=False)
-        part(court,"Sandstone forecourt rim",(end_x-side*.08,.97,29.12),(.20,.16,8.00),
+        part(court,"Sandstone forecourt rim",(end_x-side*.08,deck_y-.01,29.12),(.20,.16,8.00),
              "C0A394",material=LIMESTONE,collide=False)
         garden=item(court,"Model","Ring forecourt rock garden")
         prop(garden,"token","ModelStreamingMode",1)
@@ -3579,9 +3582,9 @@ def ring_forecourt(parent):
             garden_shelf(garden,x+side*.28,high+.24,z-.18,5.03,4.61,.31,"6D8848",GRASS_MAT,collide=False)
             if shoulder==0:
                 shoreline_slate(garden,x+side*.46,z-.61,high-.16,4.07,2.91,
-                                .82 if canal_side else 1.67,23*side,shadow=False)
+                                .59 if canal_side else 1.67,23*side,shadow=False)
             else:
-                golden_sedge(garden,x+side*.36,high+.23,z+1.06,.45 if canal_side else .93,side)
+                golden_sedge(garden,x+side*.36,high+.23,z+1.06,.35 if canal_side else .93,side)
                 for stalk in garden.findall("Item"):
                     if stalk.findtext("Properties/string[@name='Name']").startswith("Golden sedge"):
                         prop(stalk,"bool","CastShadow",False)
@@ -3598,7 +3601,7 @@ def ring_forecourt(parent):
                 if canal_side and key=="grassBlade":
                     size*=.68
                 if canal_side and key=="bankRock":
-                    size*=.77
+                    size*=.67
                 garden_prop(garden,key,(x+side*dx,floor,z+dz),size,
                             side*39+shoulder*52+dx*19,tint)
 
