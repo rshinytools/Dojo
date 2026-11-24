@@ -1334,7 +1334,7 @@ def flowering_lotus(parent, x, z, scale, yaw, *, folded=False, notched_leaves=Fa
          "F5C56A",shape=0,collide=False)
 
 
-def canal_bank(parent, x, z, side, length, yaw):
+def canal_bank(parent, x, z, side, length, yaw, *, rock_scale):
     bank=item(parent,"Model","Layered canal bank")
     prop(bank,"token","ModelStreamingMode",1)
     garden_shelf(bank,x,.54,z,4.35,length,.51,"82747D",SLATE,collide=False)
@@ -1345,7 +1345,7 @@ def canal_bank(parent, x, z, side, length, yaw):
         part(bank,"Slate embankment face",(px,.41*scale,pz),(1.65*scale,1.30*scale,1.91*scale),
              ("9A8991","8D7D87","AA969A")[index],material=SLATE,collide=False,
              yaw=yaw+69*index,roll=side*(10+index*4),class_name="WedgePart")
-    garden_prop(bank,"bankRock",(x-side*.64,.15,z-length*.20),.26,yaw+65,"907F87")
+    garden_prop(bank,"bankRock",(x-side*.64,.15,z-length*.20),rock_scale,yaw+65,"907F87")
     garden_prop(bank,"meadowCover",(x+side*.28,.74,z+.15),.18,yaw,"98A962")
     garden_prop(bank,"meadowFlowers",(x+side*.48,.78,z+length*.25),.34,yaw+20,"F3B5C6")
     garden_prop(bank,"cattails" if side>0 else "tallReeds",(x-side*.89,.18,z+length*.34),.33,yaw+90)
@@ -1465,6 +1465,7 @@ scene=item(workspace, "Model", "Grand Dojo City")
 plaza=item(scene, "Folder", "Plaza & streets")
 canal_x, canal_z = -18, 10
 canal_width, canal_length = 12, 108
+festival_bridge_z=38
 canal_west=canal_x-canal_width/2
 canal_east=canal_x+canal_width/2
 cove_west,cove_north,cove_south=canal_west-4,48,64
@@ -1566,7 +1567,8 @@ for x,z in ((-18.85,48.85),(-18.4,28.8),(-17.46,14.72),(-17.3,-12),(-18.6,-33.7)
 arrival_water=item(canal,"Model","Arrival canal shallows")
 prop(arrival_water,"token","ModelStreamingMode",1)
 build_arrival_canal_reflection(arrival_water,item=item,prop=prop,triangle=triangle,
-                              water_beam=horizontal_water_beam,neon=NEON,smooth=SMOOTH)
+                              water_beam=horizontal_water_beam,neon=NEON,smooth=SMOOTH,
+                              bridge_z=festival_bridge_z)
 
 for x,z,radius in ((-19.59,52.35,.86),(-16.24,42.05,.65),(-21.55,25.4,.78),(-25.80,57.62,.71)):
     for index,angle in enumerate((.17,.59,1.23,1.73,3.22,3.66,4.82)):
@@ -1587,9 +1589,10 @@ for start,end,widths,palette in (
                           "0 1 0 .27 .78 0 .69 .76 0 1 1 0 ",4.18)
 bridge_reflections=item(arrival_water,"Model","Bridge lantern reflections")
 prop(bridge_reflections,"token","ModelStreamingMode",1)
+near_reflection_z=festival_bridge_z+4.25
 for x,drift,reach in ((-23.06,1.11,9.68),(-13.31,-.42,3.39)):
-    horizontal_water_beam(bridge_reflections,"Canal surface ripple",(x,.096,38.25),
-                          (x+drift,.096,38.25+reach),(1.18,.52),
+    horizontal_water_beam(bridge_reflections,"Canal surface ripple",(x,.096,near_reflection_z),
+                          (x+drift,.096,near_reflection_z+reach),(1.18,.52),
                           "0 .91 .63 .38 0 .38 1 .81 .54 0 1 .82 .57 .38 0 ",
                           "0 1 0 .26 .72 0 .65 .84 0 1 1 0 ",3.6)
 for x,z,side,scale in ((-27.55,58.17,-1,1.12),(-5.22,58.02,1,.49),
@@ -1749,18 +1752,19 @@ for index,z in enumerate((53,44,35,26,19,6,-6,-15,-36,-41)):
     side = -1 if index%2==0 else 1
     garden_prop(pocket,"lilyFlowers" if index in (1,4,5) else "lilyPads",(x,.178,z),.73,index*31)
     garden_prop(pocket,"reeds" if index%2 else "cattails",(x+side*1.10,.10,z+1.15),.31,index*71)
-    garden_prop(pocket,"bankRock",(x+side*1.88,.07,z-1.5),.22,index*67)
+    rock_scale=.13 if z==44 else .22
+    garden_prop(pocket,"bankRock",(x+side*1.88,.07,z-1.5),rock_scale,index*67)
     if index in (0,3,6):
         garden_prop(pocket,"tallReeds",(x+side*2.24,.14,z+2.6),.36,index*61)
         garden_prop(pocket,"mossFlowers",(x+side*2.42,.20,z-2.5),.24,index*27)
-for x,z,side,length,yaw in ((-28.89,53.41,-1,7.1,36),(-11.16,49.40,1,3.08,75),
-                           (-24.76,22.68,-1,6.4,112),(-11.42,22.05,1,5.4,-13),
-                           (-24.90,1.02,-1,5.3,153),(-11.62,-13.52,1,6.7,104)):
-    canal_bank(plaza,x,z,side,length,yaw)
-for z in (34,8,-24.25):
+for x,z,side,length,yaw,rock_scale in ((-28.89,53.41,-1,7.1,36,.26),(-11.16,49.40,1,3.08,75,.14),
+                                      (-24.76,22.68,-1,6.4,112,.26),(-11.42,22.05,1,5.4,-13,.26),
+                                      (-24.90,1.02,-1,5.3,153,.26),(-11.62,-13.52,1,6.7,104,.26)):
+    canal_bank(plaza,x,z,side,length,yaw,rock_scale=rock_scale)
+for z in (festival_bridge_z,8,-24.25):
     bridge=item(canal,"Model","Arched red footbridge")
     prop(bridge,"token","ModelStreamingMode",1)
-    signature=z==34
+    signature=z==festival_bridge_z
     half=8.82 if signature else 7.56
     if signature:
         # Near-level crest and controlled shoulders on the same two landings.
@@ -1798,7 +1802,7 @@ for z in (34,8,-24.25):
                 part(bridge,"Bridge forged pin",(x,y+.83,rz+side*.175),(.115,.115,.062),
                      "D7A05A",shape=0,collide=False)
     if signature:
-        canal_bridge_walk=[(x,y,33.26) for x,y in samples]
+        canal_bridge_walk=[(x,y,z-.74) for x,y in samples]
         start_x=canal_x-half
         part(bridge,"West bridge landing",(start_x-1.05,.032,z),(2.24,.27,7.14),
              "9B8587",material=LIMESTONE)
@@ -1822,7 +1826,7 @@ for z in (44,-2):
         top = -.03-i*.48
         part(canal,"Canal exit step",(-12.42-i*.78,top-.35,z),(.83,.70,4),"807681",material=SLATE)
 for x,z,depth,scale,yaw,tint in (
-        (-23.65,53,-.58,.42,21,"797381"),(-23.74,43,-.24,.35,154,"817982"),
+        (-23.65,53,-.58,.42,21,"797381"),(-23.74,43,-.24,.20,154,"817982"),
         (-5.06,50.22,-.75,.23,43,"766F80"),(-23.35,21,-.72,.47,67,"777080"),
         (-12.34,18,-.36,.31,78,"837983"),(-23.41,-14,-.48,.42,33,"796F7D"),
 ):

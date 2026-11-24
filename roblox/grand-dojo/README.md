@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.255, head left from **Festival Plaza** to the red bridge and cross toward **Lantern Relay**. The richer red rails and visible arch mark the route. The swim steps are on the plaza side just south of the bridge.
+
 In v0.254, follow **Festival Canal** from the arrival board toward the red bridge. The near lotus cove extends toward the plaza. Swim along its shore to the rose slate stairs if you drop into the water. The event board still directs you to the Lantern Relay arch.
 
 In v0.253, look above the **Fighting Ring** for the sunset between the eastern ridges, then follow the canal to the **red bridge**. Walk behind the ring to **Reedfall Overlook** for the new side cascades. The existing climb continues through **Cascade Lookout** to **Reedfall Crown**.

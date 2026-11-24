@@ -6,7 +6,7 @@ from math import atan2, degrees, hypot
 def build_festival_bridge_details(parent, *, samples, z, canal_x, canal_width, item,
                                   prop, part, triangle, beam, slate, wood, metal,
                                   variant_field, stone_variant):
-    """Follow the deck profile with an arched fascia and grounded stone seats."""
+    """Follow the deck profile with an arched fascia, railing and stone seats."""
     finish = item(parent, "Model", "Festival bridge millwork and stone seats")
     landing = min(y for _, y in samples)
     rise = max(y for _, y in samples) - landing
@@ -22,6 +22,7 @@ def build_festival_bridge_details(parent, *, samples, z, canal_x, canal_width, i
     cedar_tints = ("AE4934", "B65038", "AC4936", "B34D36")
     for side in (-1, 1):
         face_z = z + side * 3.695
+        rail_face_z = z + side * 3.625
         for index, ((ax, ay), (bx, by)) in enumerate(segments):
             top_a = (ax, fascia_top(ay), face_z)
             top_b = (bx, fascia_top(by), face_z)
@@ -42,6 +43,21 @@ def build_festival_bridge_details(parent, *, samples, z, canal_x, canal_width, i
             beam(finish, "Dark cedar lower arch lamination",
                  (ax, low_a[1] + .069, face_z + side * .09),
                  (bx, low_b[1] + .069, face_z + side * .09), .158, "66332C", collide=False)
+
+            # The lacquer face overlaps the native guard and follows its rise.
+            # One intermediate slat per bay leaves the open railing legible at a distance.
+            midpoint_x, midpoint_y = (ax + bx) / 2, (ay + by) / 2
+            part(finish, "Lacquered bridge upper rail facing",
+                 (midpoint_x, midpoint_y + 1.525, rail_face_z),
+                 (span + .066, .274, .142), "C7573E", roll=pitch, material=wood, collide=False)
+            if side > 0:
+                part(finish, "Lacquered bridge lower rail facing",
+                     (midpoint_x, midpoint_y + .69, rail_face_z),
+                     (span + .066, .197, .132), "A84636", roll=pitch, material=wood, collide=False)
+            if index % 3 == 1:
+                part(finish, "Lacquered bridge intermediate slat",
+                     (midpoint_x, midpoint_y + 1.095, rail_face_z - side * .032),
+                     (.177, .96, .165), "B54B36", material=wood, collide=False)
 
     footings = item(finish, "Model", "Stepped bridge springing stones")
     for bank in (-1, 1):

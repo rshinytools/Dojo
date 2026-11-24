@@ -45,7 +45,7 @@ BLUE_SHEEN = (
 )
 
 
-def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, neon, smooth):
+def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, neon, smooth, bridge_z):
     surface = item(parent, "Folder", "Arrival sunset water ribbons")
 
     def draw_quad(corners, tint, transparency, name, material):
@@ -114,6 +114,7 @@ def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, 
             if rows is BRIDGE_GLINTS:
                 x += .22 + 1.02 * max(0, (z - 42.9) / 8.0)
                 widen *= 1.01 + .19 * progress
+                z += bridge_z - 34
             elif rows is BOARD_GLINTS:
                 x += 1.23
             warm_stroke(x, z, width * widen, depth, index + 1, warmth, glint)
@@ -123,9 +124,9 @@ def build_arrival_canal_reflection(parent, *, item, prop, triangle, water_beam, 
     reflected_light = item(surface, "Folder", "Soft lantern reflections")
     lantern_tints = "0 .90 .50 .25 0 .46 1 .72 .37 0 .73 1 .87 .62 0 1 .95 .57 .31 0 "
     for start, end, widths, texture_length, alpha in (
-        ((-18.80, .078, 37.30), (-18.08, .084, 44.42), (.78, 1.62), 2.06, .26),
-        ((-18.58, .089, 39.01), (-17.54, .081, 46.75), (.48, 1.28), 1.44, .43),
-        ((-17.56, .081, 46.12), (-16.80, .088, 50.94), (1.16, 1.87), 2.22, .37),
+        ((-18.80, .078, bridge_z + 3.30), (-18.08, .084, bridge_z + 10.42), (.78, 1.62), 2.06, .26),
+        ((-18.58, .089, bridge_z + 5.01), (-17.54, .081, bridge_z + 12.75), (.48, 1.28), 1.44, .43),
+        ((-17.56, .081, bridge_z + 12.12), (-16.80, .088, bridge_z + 16.94), (1.16, 1.87), 2.22, .37),
         ((-15.66, .089, 53.45), (-14.62, .086, 58.31), (.76, 1.68), 1.77, .22),
         ((-15.32, .078, 53.99), (-14.63, .084, 58.61), (.46, 1.41), 1.17, .43),
     ):
