@@ -159,6 +159,12 @@ function Motion.close(duel)
     duel.motion = nil
 end
 
+function Motion.reopenActor(duel, index, now)
+    local actor = duel.actors[index]
+    beginActor(duel, actor, index, duel.motion.brawl)
+    actor.history[1].at = now
+end
+
 local function activeActor(duel, index)
     local actor = duel.actors[index]
     return actor and actor.motionActive and actor.root.Parent == actor.character
@@ -707,7 +713,7 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     local area = center ~= nil or previous ~= nil
     local candidates, closest = {}, math.huge
     for other, defender in brawl.actors do
-        if other == side or not activeActor(brawl, other) then
+        if other == side or (brawl.enemies and not brawl.enemies(side, other)) or not activeActor(brawl, other) then
             continue
         end
         local target = clockFrame(defender, at)

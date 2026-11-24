@@ -57,6 +57,7 @@ from sparring_bot_models import build_sparring_bot_models
 from district_dojo_rings import build_district_dojo_rings
 from dojo_duel import build_dojo_duel
 from dojo_brawl import build_dojo_brawl
+from dojo_tag_team import build_dojo_tag_team
 from fighter_select_station import build_fighter_select_station
 from ring_training import build_ring_training
 from frostglass_reflectors import build_frostglass_reflectors
@@ -7723,6 +7724,9 @@ build_dojo_duel(ring, ring_floor, ring_offset, item=item, part=part, prop=prop, 
                 wood=WOOD_PLANK, metal=METAL)
 build_dojo_brawl(ring, item=item, part=part, prop=prop, sign=sign, showcase_tree=showcase_tree,
                  garden_prop=garden_prop, wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
+build_dojo_tag_team(ring, item=item, part=part, prop=prop, sign=sign, showcase_tree=showcase_tree,
+                    wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON, fabric=FABRIC,
+                    triangle=triangle, limestone=LIMESTONE)
 build_ring_training(scene, {
     "lantern-timing": (8, .15, 36, 90),
     "kiln-rhythm": (150, 10.027, -182, 0),
@@ -7734,6 +7738,7 @@ item(storage,"RemoteEvent","GrandDojoAction")
 item(storage,"RemoteEvent","GrandDojoSparring")
 item(storage,"RemoteEvent","GrandDojoDuel")
 item(storage,"RemoteEvent","GrandDojoBrawl")
+item(storage,"RemoteEvent","GrandDojoTagTeam")
 item(storage,"RemoteEvent","StarterFighterChoice")
 starter_roster = json.loads((ROOT / "design/fighters/starter-fighters/roster.json").read_text(encoding="utf-8"))
 starter_catalog = {"Order": [], "ById": {}}
@@ -7951,6 +7956,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"Script","GrandDojoSparring","GrandDojoSparring.server.luau"),
                                     (server,"Script","GrandDojoDuel","GrandDojoDuel.server.luau"),
                                     (server,"Script","GrandDojoBrawl","GrandDojoBrawl.server.luau"),
+                                    (server,"Script","GrandDojoTagTeam","GrandDojoTagTeam.server.luau"),
                                     (server,"Script","GrandDojoRingTraining","GrandDojoRingTraining.server.luau"),
                                     (server,"Script","CloudbreakTrial","CloudbreakTrial.server.luau"),
                                     (server,"Script","FrostglassReflectorLogic","FrostglassReflectors.server.luau"),
@@ -7962,6 +7968,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","DuelRankRules","DuelRankRules.luau"),
                                     (server,"ModuleScript","DuelFightMotion","DuelFightMotion.luau"),
                                     (server,"ModuleScript","BrawlCombatRound","BrawlCombatRound.luau"),
+                                    (server,"ModuleScript","TagCombatRound","TagCombatRound.luau"),
                                     (server,"ModuleScript","BrawlFightMotion","BrawlFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardFightMotion","ReedguardFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardCombatPoses","ReedguardCombatPoses.luau"),
@@ -7989,6 +7996,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (opening,"LocalScript","GrandDojoSplash","GrandDojoSplash.client.luau"),
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
                                     (scripts,"LocalScript","GrandDojoBrawlClient","GrandDojoBrawl.client.luau"),
+                                    (scripts,"LocalScript","GrandDojoTagTeamClient","GrandDojoTagTeam.client.luau"),
                                     (scripts,"LocalScript","StarterFighterSelect","StarterFighterSelect.client.luau"),
                                     (scripts,"LocalScript","GrandDojoMusic","GrandDojoMusic.client.luau"),
                                     (scripts,"LocalScript","FrostglassReflectorDisplay","FrostglassReflectors.client.luau"),

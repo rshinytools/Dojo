@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.280, use **2v2 Tag Team** by the Grand Dojo stairs. Pick one backup, then wait for three other players on the same server. Press **T**, D-pad Right or **Tag In** during combat. Your backup starts with a short assist strike and your benched fighter keeps their health. A knockout brings in a surviving backup. Check both teams’ reserve health under the clock.
+
 In v0.279, start Bot Spar or Duel to see the Festival Championship HUD. The gold trail shows how much health the last hit removed. Best of 3 and Ranked show round wins below the timer. Brawl uses the same visual treatment with a single health bar and a count of fighters still on the floor.
 
 In v0.278, find **Dojo Brawl** beside the Grand Dojo stairs. The queue counts to eight. At the mountain court, listen for the start and look for the amber floor before each of the three drops. Move inward to keep your footing, or push an opponent over an edge. After elimination you can watch from the viewing deck until the result.

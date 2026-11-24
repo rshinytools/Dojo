@@ -940,12 +940,14 @@ function duelUi.hasRounds(format)
     return format == "series" or format == "ranked"
 end
 
-local function brawlUiVisible()
+local function groupCombatUiOpen()
     return player:GetAttribute("BrawlActive") or player:GetAttribute("BrawlRecapOpen")
+        or player:GetAttribute("TagTeamActive") or player:GetAttribute("TagTeamOfferOpen")
+        or player:GetAttribute("TagTeamRecapOpen")
 end
 
 local function restoreWorldPrompts()
-    ProximityPromptService.Enabled = not sparringActive and not brawlUiVisible() and not panel.Visible
+    ProximityPromptService.Enabled = not sparringActive and not groupCombatUiOpen() and not panel.Visible
         and not (sparResult and sparResult.Visible) and not (sparPicker and sparPicker.Visible)
         and not (duelUi.picker and duelUi.picker.Visible)
 end
@@ -1101,13 +1103,13 @@ local function layout()
     scale.Scale = math.max(.1, math.min(1, (size.X - 26)/width, (size.Y - 54)/height))
     local showingResult = sparResult and sparResult.Visible
     local choosingFight = (sparPicker and sparPicker.Visible) or (duelUi.picker and duelUi.picker.Visible)
-    local inBrawl = brawlUiVisible()
-    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not inBrawl and not showingResult and not choosingFight
+    local inGroupCombat = groupCombatUiOpen()
+    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not inGroupCombat and not showingResult and not choosingFight
         and not race.Visible and not panel.Visible and not aerial
     if aerial then
         boardHint.Visible = false
     end
-    local showingWorldHud = not sparringActive and not inBrawl and not showingResult and not choosingFight
+    local showingWorldHud = not sparringActive and not inGroupCombat and not showingResult and not choosingFight
         and not race.Visible and not aerial
     badge.Visible = not compact and showingWorldHud and not (panel.Visible and narrow)
         and (not boardHint.Visible or parcelObjective.Visible)
@@ -1207,7 +1209,7 @@ local function updateTrophyPanel()
 end
 
 local function show(kind, elapsed, first, practiceRun, xpReward)
-    if sparringActive or (sparPicker and sparPicker.Visible) or (duelUi.picker and duelUi.picker.Visible) then
+    if sparringActive or groupCombatUiOpen() or (sparPicker and sparPicker.Visible) or (duelUi.picker and duelUi.picker.Visible) then
         return
     end
     if eagleEye then
@@ -2323,7 +2325,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
     if kind == "notice" then
         flash(info)
     elseif kind == "offer" then
-        if not sparringActive and not sparPicker.Visible and not panel.Visible and not race.Visible
+        if not sparringActive and not groupCombatUiOpen() and not sparPicker.Visible and not panel.Visible and not race.Visible
             and not player:GetAttribute("StarterSelectionRequired") and not player:GetAttribute("FighterSelectOpen")
             and type(info.expiresAt) == "number" and info.expiresAt > workspace:GetServerTimeNow() then
             closeResult()
@@ -2422,8 +2424,8 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
     end
 end)
 
-player:GetAttributeChangedSignal("BrawlActive"):Connect(function()
-    if player:GetAttribute("BrawlActive") then
+local function syncGroupCombatUi()
+    if groupCombatUiOpen() then
         duelUi.close(false)
         closePicker(false)
         closeResult()
@@ -2431,8 +2433,7 @@ player:GetAttributeChangedSignal("BrawlActive"):Connect(function()
     end
     restoreWorldPrompts()
     layout()
-end)
-player:GetAttributeChangedSignal("BrawlRecapOpen"):Connect(function()
-    restoreWorldPrompts()
-    layout()
-end)
+end
+for _, attribute in {"BrawlActive", "BrawlRecapOpen", "TagTeamActive", "TagTeamOfferOpen", "TagTeamRecapOpen"} do
+    player:GetAttributeChangedSignal(attribute):Connect(syncGroupCombatUi)
+end

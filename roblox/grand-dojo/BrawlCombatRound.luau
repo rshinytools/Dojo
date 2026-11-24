@@ -139,7 +139,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
         targets = {}
         for _, hit in contacts or {} do
             local defender = round.sides[hit.defender]
-            if hit.defender ~= index and defender and not defender.eliminated and not used[hit.defender] then
+            if defender and attacker.matchups[hit.defender] and not defender.eliminated and not used[hit.defender] then
                 used[hit.defender] = true
                 table.insert(targets, hit)
                 if not move.shape and not move.singleHit then
@@ -168,6 +168,9 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
             notice.defender = target.defender
             notice.zone = target.zone or move.zone
             notice.point = target.point or fields.point
+            if clipAt == contactAt and attacker.clip.tagEntry then
+                notice.tagEntry = true
+            end
             notice.kind = defense(defender, contactAt, target.facing)
             if notice.kind then
                 notice.damage = 0
@@ -201,7 +204,7 @@ local function reaction(plan, action, priority, stun)
     plan.stun = math.max(plan.stun, stun)
 end
 
-local function resolveBatch(round, at, notices)
+local function resolveBatch(round, at, notices, eliminateMany)
     local plans = {}
     for index in round.sides do
         plans[index] = {damage = 0, priority = 0, stun = 0}
@@ -244,7 +247,7 @@ local function resolveBatch(round, at, notices)
             end
         end
     end
-    Brawl.eliminateMany(round, knockedOut, at)
+    eliminateMany(round, knockedOut, at)
 end
 
 local function fractionDifference(a, b)
@@ -277,7 +280,7 @@ local function timeout(round)
     finish(round, round.endsAt, "timeout", leaders)
 end
 
-function Brawl.step(round, now, check)
+function Brawl.step(round, now, check, eliminateMany, resolveTimeout)
     if round.result or now < round.startsAt then
         return
     end
@@ -306,11 +309,12 @@ function Brawl.step(round, now, check)
             Combatant.complete(side, at)
         end
         if #notices > 0 then
-            resolveBatch(round, at, notices)
+            resolveBatch(round, at, notices, eliminateMany or Brawl.eliminateMany)
         end
     end
     if not round.result and now >= round.endsAt then
-        timeout(round)
+        local finishOnTime = resolveTimeout or timeout
+        finishOnTime(round)
     end
 end
 

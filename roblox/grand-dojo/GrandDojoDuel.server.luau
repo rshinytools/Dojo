@@ -120,7 +120,7 @@ local function eligible(player, extraRange)
     local root = Match.root(player)
     local id = player:GetAttribute("SelectedStarterFighter")
     return player.Parent == Players and prompt.Enabled and Match.available(player)
-        and not player:GetAttribute("BrawlQueued")
+        and not player:GetAttribute("BrawlQueued") and not player:GetAttribute("TagTeamQueued")
         and Match.FighterKits[id] ~= nil and fighters[id] ~= nil
         and Match.near(root, entry, prompt.MaxActivationDistance + extraRange) and root
 end

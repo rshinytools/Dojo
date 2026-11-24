@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.279 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.280 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -39,14 +39,14 @@ All six districts remain connected and open for exploration. A ring's level gate
 
 | Ring | District | Unlock | Resident bot | Combat |
 | --- | --- | ---: | --- | --- |
-| Grand Dojo Ring | Grand Dojo City | Level 1 · 0 XP | Juniper Tortoise | Bot Spar, same-server Duel and Brawl |
+| Grand Dojo Ring | Grand Dojo City | Level 1 · 0 XP | Juniper Tortoise | Bot Spar, same-server Duel, Tag Team and Brawl |
 | Cinder Terraces Ring | Cinder Terraces | Level 3 · 180 XP | Bracken Boar | Bot Spar |
 | Cloud-Top Temple | Skywalk Peaks | Level 5 · 460 XP | Sablecrest Lynx | Bot Spar |
 | Galleon Ring | Tideharbor Coast | Level 7 · 830 XP | Granite Rhino | Bot Spar |
 
 Earn 60 XP on the first Bot Spar win, 80 XP on the first official Lantern Relay and 40 XP for Lantern Timing. Later Bot Spar wins award 30 XP, official Relay repeats award 25 XP, and Lantern Timing, Kiln Rhythm and Wind Court Signals each award 40 XP per completed drill with a short cooldown. Official Relay times and Lantern Keeper remain account-wide. XP goes to the fighter active when the activity ends.
 
-The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers same-server Duel and Brawl. The Duel sign offers Casual, Best of 3 and Ranked. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, 2v2 Tag Team and co-op raids are still in development. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
+The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers same-server Duel, Tag Team and Brawl. The Duel sign offers Casual, Best of 3 and Ranked. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues and co-op raids are still in development. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
 
 ## Grand Dojo Duel formats
 
@@ -55,6 +55,14 @@ Two nearby players in the same server each use the 1v1 Duel sign at the Grand Do
 Each fighter brings the same named techniques, moves, health and cooldowns as in Bot Spar. The server resolves reach and facing at the authored contact frames. Late guard can parry and simultaneous hits can trade. The server ties series inputs to their match and round and clears old attack markers and movement state between rounds.
 
 V0.276 two-endpoint Luau simulations of the actual server exercised a casual knockout, a 2–0 series sweep, a three-round 1–1 draw on time, stale input rejection, leave and disconnect handling, and zero progression writes. Desktop Studio and Galaxy A06 landscape touch simulation joined and cancelled both v0.276 queues. A separate one-client series used a fitted Fire Salamander stand-in to verify Silverback’s palm, parry and slam in both rounds, the 3-second second-round reset, the 2–0 recap and camera return.
+
+## Grand Dojo Tag Team
+
+Use the **2v2 Tag Team** sign by the Grand Dojo stairs and choose a backup different from your equipped fighter. Four players in the same server start a 10-second introduction and a 90-second match on a separate Grand Dojo terrace. The first two arrivals play Jade and the next two play Ember. Combat uses the Level 15 baseline and existing elemental advantages.
+
+Tap **Tag In**, press **T**, or use **D-pad Right** to swap fighters. Each fighter keeps their health and ability cooldowns while benched. A voluntary tag has a 12-second cooldown and waits for any attack, stun or planted trail to finish. The incoming fighter opens with a fitted light strike that an opponent can guard or parry. At zero HP the fighter falls, then an available backup enters automatically. When both are out, the player can watch from the viewing deck. At the time limit, the team with the greater total remaining health percentage across its four fighters wins. A tie ends in a draw.
+
+The Championship HUD shows both teams and their reserve health. The result returns players to Grand Dojo with their equipped city fighters. Desktop Studio ran the existing server with one client and three fitted stand-ins. A Penguin tag assist dealt 23 damage and the second tag restored Reedguard at 134 HP. A rival hit zero, fell to the mat and was replaced by their backup. Desktop runs finished by forfeit and by full team knockout. The knockout run moved a fully eliminated rival to the viewing deck before the final win and restored the player’s city fighter. Galaxy A06 landscape simulation used touch for the backup pick, queue cancellation and both fighter swaps. The final compact action row cleared the thumb controls and kept touch targets at least 44 pixels wide and tall. Exact-source tests covered the 16 starter matchup combinations, no friendly hits, parries, a simultaneous team knockout, timeout by total health, and cancellation before the bell. Match rewards, matchmaking across servers and published four-player validation remain open.
 
 ## Grand Dojo Brawl
 
@@ -135,6 +143,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Cloud-Top custom kit and contact | [Silverback poses](../roblox/grand-dojo/SilverbackCombatPoses.luau), [Sablecrest poses](../roblox/grand-dojo/SablecrestCombatPoses.luau), [contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Galleon custom kit and delayed tiles | [Fire Salamander poses](../roblox/grand-dojo/FireSalamanderCombatPoses.luau), [Granite poses](../roblox/grand-dojo/GraniteCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau) |
 | Grand Dojo Duel | [Queue and match lifecycle](../roblox/grand-dojo/GrandDojoDuel.server.luau), [series scoring and timing](../roblox/grand-dojo/DuelSeries.luau), [symmetric round state](../roblox/grand-dojo/DuelCombatRound.luau), [pose and fitted contact](../roblox/grand-dojo/DuelFightMotion.luau) |
+| Grand Dojo Tag Team | [Queue, fighter switching and return](../roblox/grand-dojo/GrandDojoTagTeam.server.luau), [team rules](../roblox/grand-dojo/TagCombatRound.luau), [HUD](../roblox/grand-dojo/GrandDojoTagTeam.client.luau), [court](../roblox/grand-dojo/dojo_tag_team.py) |
 | Grand Dojo Brawl | [Court geometry](../roblox/grand-dojo/dojo_brawl.py), [Queue and floor](../roblox/grand-dojo/GrandDojoBrawl.server.luau), [Eight-way combat and placements](../roblox/grand-dojo/BrawlCombatRound.luau), [HUD](../roblox/grand-dojo/GrandDojoBrawl.client.luau) |
 | Ranked Duel | [Competitive stats, Elo and divisions](../roblox/grand-dojo/DuelRankRules.luau), [Rating transactions](../roblox/grand-dojo/DuelRankLedger.luau), [Lost-response regression](../tools/verify_ranked_ledger.py) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |

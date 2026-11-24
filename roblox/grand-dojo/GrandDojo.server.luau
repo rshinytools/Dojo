@@ -472,7 +472,7 @@ end)
 local function activeActivity(player, data)
     return data.run or player:GetAttribute("SparringActive") or player:GetAttribute("SkywalkTrialMode")
         or player:GetAttribute("RingTrainingActive") or player:GetAttribute("RingTrainingPending")
-        or player:GetAttribute("DuelQueued")
+        or player:GetAttribute("DuelQueued") or player:GetAttribute("BrawlQueued") or player:GetAttribute("TagTeamQueued")
         or (player:GetAttribute("ParcelStage") or 0) > 0
 end
 

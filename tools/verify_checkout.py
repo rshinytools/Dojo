@@ -41,6 +41,7 @@ def verify_place():
                 "DuelFightMotion", "Duel Court", "JoinDuelPrompt",
                 "GrandDojoBrawl", "GrandDojoBrawlClient", "BrawlCombatRound", "BrawlFightMotion",
                 "Brawl Entry", "Brawl Court", "JoinBrawlPrompt", "Spectator Return",
+                "GrandDojoTagTeam", "GrandDojoTagTeamClient", "TagCombatRound", "Tag Team Entry", "Tag Team Court", "JoinTagTeamPrompt",
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander",
