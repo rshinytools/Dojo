@@ -52,6 +52,7 @@ local categories = {
 local raidAwards = {
     ["world-01"] = {attribute = "KilnKeeper", boss = "Kilnback Custodian"},
     ["world-02"] = {attribute = "DeepwaterTeam", boss = "Abyssal Kraken"},
+    ["world-03"] = {attribute = "DawnReturn", boss = "Solar Phoenix"},
 }
 
 local function describe(player, id)

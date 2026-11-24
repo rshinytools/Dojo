@@ -60,6 +60,7 @@ from dojo_brawl import build_dojo_brawl
 from dojo_tag_team import build_dojo_tag_team
 from kilnback_raid import build_kilnback_raid
 from abyssal_raid import build_abyssal_raid
+from solar_raid import build_solar_raid
 from fighter_select_station import build_fighter_select_station
 from ring_training import build_ring_training
 from frostglass_reflectors import build_frostglass_reflectors
@@ -7737,6 +7738,10 @@ build_abyssal_raid(next(town for town in outer.findall("Item")
                        if town.findtext("Properties/string[@name='Name']") == "Tideharbor Coast"),
                   item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE,
                   metal=METAL, neon=NEON, limestone=LIMESTONE, smooth=SMOOTH, color=color)
+build_solar_raid(next(town for town in outer.findall("Item")
+                      if town.findtext("Properties/string[@name='Name']") == "Lantern Circuit"),
+                 item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE,
+                 metal=METAL, neon=NEON, limestone=LIMESTONE, smooth=SMOOTH, color=color, triangle=triangle)
 build_ring_training(scene, {
     "lantern-timing": (8, .15, 36, 90),
     "kiln-rhythm": (150, 10.027, -182, 0),
@@ -7751,6 +7756,7 @@ item(storage,"RemoteEvent","GrandDojoBrawl")
 item(storage,"RemoteEvent","GrandDojoTagTeam")
 item(storage,"RemoteEvent","KilnbackRaid")
 item(storage,"RemoteEvent","AbyssalRaid")
+item(storage,"RemoteEvent","SolarRaid")
 item(storage,"RemoteEvent","StarterFighterChoice")
 starter_roster = json.loads((ROOT / "design/fighters/starter-fighters/roster.json").read_text(encoding="utf-8"))
 starter_catalog = {"Order": [], "ById": {}}
@@ -7986,6 +7992,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","KilnbackRaidRound","KilnbackRaidRound.luau"),
                                     (server,"ModuleScript","KilnbackRaidVisuals","KilnbackRaidVisuals.luau"),
                                     (server,"ModuleScript","AbyssalRaidVisuals","AbyssalRaidVisuals.luau"),
+                                    (server,"ModuleScript","SolarRaidVisuals","SolarRaidVisuals.luau"),
                                     (server,"ModuleScript","BrawlFightMotion","BrawlFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardFightMotion","ReedguardFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardCombatPoses","ReedguardCombatPoses.luau"),

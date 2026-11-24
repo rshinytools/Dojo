@@ -6,7 +6,9 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
-In v0.282, use **Abyssal Raid** in Tideharbor Coast before the Galleon. Four players enter the Storm Basin. Step inside or outside the Undertow ring, dodge between the four tentacles, then attack the open mantle. The first eligible clear earns **Deepwater Team** in the Trophy Hall journal. The two raid gates are immediately available in Studio and configured to alternate in published play.
+In v0.283, use **Solar Raid** in Lantern Circuit. Leave the Sunspot circles and marked Sundive lane. When Solar Phoenix touches down, strike the exposed chest before it takes off. Eligible first clears earn **Dawn Return** in Trophy Hall. All three raid gates are available in Studio. The published configuration rotates them on the twenty-minute bell.
+
+In v0.282, use **Abyssal Raid** in Tideharbor Coast before the Galleon. Four players enter the Storm Basin. Step inside or outside the Undertow ring, dodge between the four tentacles, then attack the open mantle. The first eligible clear earns **Deepwater Team** in the Trophy Hall journal. The gate is immediately available in Studio.
 
 In v0.281, use **Kilnback Raid** in Cinder Terraces. Four players share the kiln chamber. Step out of the pulse and rolling tile warnings, then hit the exposed core. Use **G**, D-pad Right or **Revive** near a downed teammate. Eligible clears save a token and shard grant. The first also earns **Kiln Keeper** in the Trophy Hall journal.
 

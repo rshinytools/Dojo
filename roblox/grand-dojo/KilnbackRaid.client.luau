@@ -35,6 +35,12 @@ local raids = {
         clear = "The party defeated the Abyssal Kraken.", panel = Color3.fromRGB(18, 38, 52),
         rim = Color3.fromRGB(76, 139, 148), accent = Color3.fromRGB(155, 237, 235),
         health = Color3.fromRGB(109, 216, 209), lastMatchId = 0, nextStatusAt = 0},
+    {id = "phoenix", remote = ReplicatedStorage:WaitForChild("SolarRaid"), district = "Lantern Circuit",
+        entry = "Solar Raid Entry", gate = "Solar Raid Queue", label = "Solar Raid",
+        name = "Solar Phoenix", short = "Solar Phoenix", target = "Chest", defeated = "Solar Phoenix defeated",
+        clear = "The party defeated the Solar Phoenix.", panel = Color3.fromRGB(53, 28, 34),
+        rim = Color3.fromRGB(180, 103, 74), accent = Color3.fromRGB(255, 210, 137),
+        health = Color3.fromRGB(246, 132, 79), lastMatchId = 0, nextStatusAt = 0},
 }
 
 local kits = {
@@ -205,14 +211,17 @@ local feedback = {
     strike = "Hit confirmed", blocked = "Guard held", parried = "Parry! Counter now",
     revived = "Revived", reviveCancelled = "Revive interrupted",
     needParry = "Parry to unlock Rising", down = "Knocked down",
-    dodged = "Attack evaded", counter = "Counter hit confirmed",
+    dodged = "Attack evaded", counter = "Counter hit confirmed", airborne = "Out of reach · Wait for landing",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},
     sweep = {name = "Tile Sweep", hint = "Leave the marked lane", moving = "Tile wave moving", safe = "Stay out of the lane"},
     undertow = {name = "Undertow", hint = "Inside or beyond the ring"},
     cataclysm = {name = "Tentacle Cataclysm", hint = "Move between the arms", moving = "Tentacles striking",
-        safe = "Stay between the arms"},
+        safe = "Stay between the arms", untilLastHit = true},
+    solarFlare = {name = "Sunspots", hint = "Clear the circles", moving = "Sunspots bursting",
+        safe = "Stay outside the circles", untilLastHit = true},
+    sunDive = {name = "Sundive", hint = "Step out of the lane"},
 }
 
 local match, matchRaid, outcome, outcomeRaid, reward, earlyReward
@@ -423,9 +432,10 @@ local function refreshCue(own, now)
     local copy = attack and attackCues[attack.id]
     local attackName = attack and (attack.name or (copy and copy.name) or "Attack")
     local warning = attack and attack.impactAt and now >= (attack.windupAt or 0) and now < attack.impactAt
-    local movementEnd = attack and (if attack.id == "cataclysm" then attack.lastImpactAt or attack.endAt else attack.endAt)
+    local movementEnd = attack and (if copy and copy.untilLastHit then attack.lastImpactAt or attack.endAt else attack.endAt)
     local moving = copy and copy.moving and attack.impactAt and movementEnd
         and now >= attack.impactAt and now < movementEnd
+    local descending = attack and attack.id == "dawnLanding" and type(attack.landAt) == "number" and now < attack.landAt
     reviveMeter.Visible = false
     if match.resolvedAt then
         message = if match.bossHealth <= 0 then matchRaid.defeated else "Encounter over"
@@ -450,12 +460,16 @@ local function refreshCue(own, now)
         color = amber
     elseif moving then
         message, color = copy.moving .. " · " .. copy.safe, amber
-    elseif match.vulnerableUntil and now < match.vulnerableUntil then
+    elseif descending then
+        message, color = string.format("Dawn Landing · %.1fs", attack.landAt - now), amber
+    elseif not match.bossAirborne and match.vulnerableUntil and now < match.vulnerableUntil then
         message = string.format("%s exposed · %.1fs", matchRaid.target, match.vulnerableUntil - now)
         color = mint
     elseif match.reviveTarget then
         message = "Revive " .. participantName(match.slots[match.reviveTarget])
         color = mint
+    elseif match.bossAirborne and message == "" then
+        message = "Airborne · Watch the floor"
     end
     cue.Text, cue.TextColor3 = message, color
 end

@@ -814,7 +814,7 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     return false, center or point
 end
 
-local function krakenFootprint(raid, index, at, root, facing, origin, strike, axis)
+local function raidFootprint(raid, index, at, root, facing, origin, strike, axis)
     for _, volume in defenderVolumes(raid, index, at, root, facing) do
         if not volume.grounded then
             continue
@@ -848,6 +848,7 @@ end
 function Motion.raidThreatHits(raid, _attack, strike, at, origin, direction)
     local hits = {}
     local axis = strike.axisX and Vector3.new(strike.axisX, 0, strike.axisZ)
+    local radialCenter = if strike.centerX then origin + Vector3.new(strike.centerX, 0, strike.centerZ) else origin
     local rowCenter = strike.offset and (origin + direction * strike.offset)
     local row = rowCenter and CFrame.lookAlong(rowCenter, direction)
     for index, actor in raid.actors do
@@ -861,9 +862,9 @@ function Motion.raidThreatHits(raid, _attack, strike, at, origin, direction)
         local facing = defenderFacing(root, origin)
         local hit
         if axis or strike.innerRadius then
-            hit = krakenFootprint(raid, index, at, root, facing, origin, strike, axis)
+            hit = raidFootprint(raid, index, at, root, facing, origin, strike, axis)
         elseif strike.radius then
-            hit = floorContact(raid, index, at, root, origin, strike.radius)
+            hit, facing = floorContact(raid, index, at, root, radialCenter, strike.radius)
         else
             for _, volume in defenderVolumes(raid, index, at, root, facing) do
                 if volume.grounded then

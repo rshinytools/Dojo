@@ -46,6 +46,8 @@ def verify_place():
                 "Kilnback Raid Entry", "Kilnback Raid Court", "JoinKilnbackRaidPrompt", "Kilnback Custodian", "Core Hit",
                 "DojoRaids", "AbyssalRaid", "AbyssalRaidVisuals", "Abyssal Raid Entry", "Abyssal Raid Court",
                 "JoinAbyssalRaidPrompt", "Abyssal Kraken",
+                "SolarRaid", "SolarRaidVisuals", "Solar Raid Entry", "Solar Raid Court", "JoinSolarRaidPrompt",
+                "Solar Phoenix",
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander",

@@ -18,7 +18,8 @@ local STARTERS = {
 local LANTERN_KEEPER = "world-04"
 local KILN_KEEPER = "world-01"
 local DEEPWATER_TEAM = "world-02"
-local RAID_TROPHIES = {kilnback = KILN_KEEPER, kraken = DEEPWATER_TEAM}
+local DAWN_RETURN = "world-03"
+local RAID_TROPHIES = {kilnback = KILN_KEEPER, kraken = DEEPWATER_TEAM, phoenix = DAWN_RETURN}
 local RAID_TOKENS, RAID_SHARDS = 20, 2
 local LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
 PlayerProfiles.FirstRelayXp = FIRST_RELAY_XP
@@ -54,6 +55,8 @@ local function validRaidReceipt(receipt)
         and whole(receipt.tokens, 0, 1e12) and whole(receipt.shards, 0, 1e12)
         and validCompletionId(receipt.id)
         and (receipt.raidId == nil or RAID_TROPHIES[receipt.raidId] ~= nil)
+        and (receipt.encounterId == nil or RAID_TROPHIES[receipt.encounterId] ~= nil
+            and (receipt.raidId == nil or receipt.raidId == receipt.encounterId))
         and (receipt.grantedTokens == nil or whole(receipt.grantedTokens, 0, RAID_TOKENS))
         and (receipt.grantedShards == nil or whole(receipt.grantedShards, 0, RAID_SHARDS))
 end
@@ -174,6 +177,7 @@ function PlayerProfiles.summary(profile, fighterId)
         lanternKeeper = profile.trophies[LANTERN_KEEPER] ~= nil,
         kilnKeeper = profile.trophies[KILN_KEEPER] ~= nil,
         deepwaterTeam = profile.trophies[DEEPWATER_TEAM] ~= nil,
+        dawnReturn = profile.trophies[DAWN_RETURN] ~= nil,
         raidTokens = raid and raid.tokens or 0,
         mythicShards = raid and raid.shards or 0,
         dojoPracticeComplete = profile.dojoPracticeId ~= nil,
@@ -298,14 +302,17 @@ function PlayerProfiles:commitRaid(userId, token, raidId, window, completionId)
         end
         local tokens, shards = previous and previous.tokens or 0, previous and previous.shards or 0
         local grantTokens, grantShards = math.min(RAID_TOKENS, 1e12 - tokens), math.min(RAID_SHARDS, 1e12 - shards)
-        profile.kilnback = {raidId = raidId, window = window, id = completionId,
+        -- The previous checkpoint only accepts Kilnback and Kraken in raidId.
+        -- Keep Phoenix's identity in the additive field for safe rollback.
+        profile.kilnback = {raidId = if raidId == "phoenix" then nil else raidId,
+            encounterId = raidId, window = window, id = completionId,
             tokens = tokens + grantTokens, shards = shards + grantShards, grantedTokens = grantTokens, grantedShards = grantShards}
     end)
     if not saved then
         return nil, reason
     end
     local receipt = saved.kilnback
-    local applied = receipt and (receipt.raidId or "kilnback") == raidId
+    local applied = receipt and (receipt.encounterId or receipt.raidId or "kilnback") == raidId
         and receipt.window == window and receipt.id == completionId
     local trophy = saved.trophies[trophyId]
     return saved, nil, {status = if applied then "saved" else "already",

@@ -406,7 +406,15 @@ Undertow builds a raised ring of surf. The inner circle and the far perimeter pr
 
 An eligible first clear earns Deepwater Team. Final boss audio, published play and physical-device verification remain release work.
 
-### 8.4 Production asset rules
+### 8.4 Solar Phoenix
+
+The Solar Phoenix guards the Dawn Observatory at Lantern Circuit. Its wings unfold in two joints on each side, with layered tails and overlapping plates protecting a bright chest. The observatory floor carries a bronze time dial and open views of the dawn canopy.
+
+The Phoenix takes off before preparing three marked Sunspots. The round circles erupt in sequence, leaving gaps to move through. Sundive fixes a long path at the first warning, then carries the bird across the arena. During Dawn Landing the Phoenix folds its wings, touches down and opens its chest for stronger hits. The chest closes as the bird takes off. At half health the warnings accelerate and the danger zones grow.
+
+An eligible first clear earns Dawn Return. Final boss audio, published play and physical-device verification remain release work.
+
+### 8.5 Production asset rules
 
 Create independent silhouettes, costume details, lore, maps, UI art, voices, music, effects and choreography. Do not use ripped or near-recreated franchise assets. Changing only a name or color does not establish clearance.
 

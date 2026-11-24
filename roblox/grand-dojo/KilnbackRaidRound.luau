@@ -25,8 +25,17 @@ local bosses = {
             {id = "airPocket", name = "Air Pocket", hint = "Strike the exposed mantle"},
         },
     },
+    phoenix = {
+        health = 1650, duration = 125,
+        attacks = {
+            {id = "solarFlare", name = "Sunspots", hint = "Leave the marked circles"},
+            {id = "sunDive", name = "Sundive", hint = "Move out of the marked lane"},
+            {id = "dawnLanding", name = "Dawn Landing", hint = "Strike the exposed chest"},
+        },
+    },
 }
 local cardinal = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
+local sunspots = {{-11, 7}, {11, 7}, {0, -11}}
 local inputs = {strike = true, guard = true, heavy = true, uppercut = true, dodge = true, secondary = true, signature = true}
 local evades = {sidestep = true, floeTurn = true}
 
@@ -48,6 +57,7 @@ function Raid.new(now, entrants, bossId)
     return {
         introAt = now, startsAt = startsAt, endsAt = startsAt + boss.duration, sides = sides,
         bossId = bossId, bossHealth = boss.health, bossMaxHealth = boss.health, bossPhase = 1, coreExposed = false,
+        bossAirborne = if bossId == "phoenix" then true else nil,
         nextAttackAt = startsAt + 1.35, attackIndex = 0, lastTarget = 0,
         revives = {}, notices = {}, steppedAt = now,
     }
@@ -216,6 +226,24 @@ local function beginAttack(round, at, chooseTarget)
                 halfWidth = if faster then 3.8 else 3.25, damage = if faster then 40 else 34}
         end
         attack.endsAt = attack.steps[4].at + (if faster then .66 else .90)
+    elseif id == "solarFlare" then
+        attack.impactAt = at + (if faster then 1.31 else 1.62)
+        for index, center in sunspots do
+            attack.steps[index] = {index = index, at = attack.impactAt + (index - 1) * (if faster then .18 else .25),
+                centerX = center[1], centerZ = center[2], radius = if faster then 5.6 else 4.75,
+                damage = if faster then 32 else 25}
+        end
+        attack.endsAt = attack.steps[#sunspots].at + (if faster then .54 else .70)
+    elseif id == "sunDive" then
+        attack.target = nextTarget(round, at, chooseTarget)
+        attack.impactAt = at + (if faster then 1.56 else 1.90)
+        attack.steps[1] = {index = 1, at = attack.impactAt, offset = 0, halfWidth = if faster then 23 else 22,
+            halfSpan = if faster then 4.3 else 3.3, damage = if faster then 43 else 36}
+        attack.endsAt = attack.impactAt + (if faster then .65 else .85)
+    elseif id == "dawnLanding" then
+        attack.landAt = at + (if faster then .74 else .88)
+        attack.steps[1] = {index = 1, at = attack.landAt, kind = "land"}
+        attack.endsAt = attack.landAt + (if faster then 5.40 else 6.20)
     else
         local duration = if faster then 4.5 elseif id == "airPocket" then 5.15 else 5.2
         attack.endsAt = at + duration
@@ -250,10 +278,17 @@ local function advanceBoss(round, at, chooseTarget, checkBoss, hits)
     if not strike then
         round.attack = nil
         round.coreExposed, round.cooldownUntil = false, nil
+        if attack.id == "dawnLanding" then
+            round.bossAirborne = true
+        end
         round.nextAttackAt = at + (if round.bossPhase == 2 then .46 else .68)
         return
     end
     attack.nextStep += 1
+    if strike.kind == "land" then
+        round.bossAirborne, round.coreExposed, round.cooldownUntil = false, true, attack.endsAt
+        return
+    end
     local seen = {}
     for _, contact in checkBoss(attack, strike, at) or {} do
         local index = contact.index
@@ -282,7 +317,7 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
     end
     local function resolve(_, contactAt, fields, hit, _facing, _move)
         fields.source, fields.attacker, fields.at = "player", index, contactAt
-        if hit then
+        if hit and not round.bossAirborne then
             local baseDamage = fields.damage
             local core = round.coreExposed and fields.zone == "core"
             local scale = if core then 1.64 elseif round.coreExposed then 1.18 else .72
@@ -291,7 +326,7 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
             table.insert(hits, fields)
             return baseDamage
         end
-        fields.kind, fields.damage = "miss", 0
+        fields.kind, fields.damage = if hit then "airborne" else "miss", 0
         table.insert(hits, fields)
         return 0
     end

@@ -15,7 +15,7 @@ local PERIOD, ENROLLMENT, SEATS = 1200, 120, Round.SIZE
 local REVIVE_DISTANCE = 5.65
 local studio = RunService:IsStudio()
 local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true, dodge = true, signature = true}
-local ROTATION_LENGTH = 2
+local ROTATION_LENGTH = 3
 local studioWindow = 0
 
 local function mount(encounter)
@@ -162,7 +162,7 @@ local function mount(encounter)
         local attack = round.attack
         local packetAttack = attack and {id = attack.id, name = attack.name, windupAt = attack.warningAt or attack.startedAt,
             impactAt = attack.impactAt, lastImpactAt = if #attack.steps > 0 then attack.steps[#attack.steps].at else nil,
-            endAt = attack.endsAt, hint = attack.hint}
+            landAt = attack.landAt, endAt = attack.endsAt, hint = attack.hint}
         for index, actor in match.actors do
             local player, side = actor.player, round.sides[index]
             if not actor.returned and player.Parent == Players then
@@ -170,6 +170,7 @@ local function mount(encounter)
                 send(player, kind, {matchId = match.id, introAt = round.introAt, startsAt = round.startsAt,
                     endsAt = round.endsAt, resolvedAt = round.resolvedAt, bossHealth = round.bossHealth,
                     bossMaxHealth = round.bossMaxHealth, phase = round.bossPhase, attack = packetAttack,
+                    bossAirborne = round.bossAirborne == true,
                     vulnerableUntil = round.cooldownUntil, selfIndex = index, slots = slots,
                     nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                     feedback = if now < actor.feedbackUntil then actor.feedback else nil,
@@ -517,4 +518,8 @@ mount({
 mount({
     id = "kraken", prefix = "Abyssal", district = "Tideharbor Coast",
     bossName = "Abyssal Kraken", rotationSlot = 1, visuals = require(script.Parent.AbyssalRaidVisuals),
+})
+mount({
+    id = "phoenix", prefix = "Solar", district = "Lantern Circuit",
+    bossName = "Solar Phoenix", rotationSlot = 2, visuals = require(script.Parent.SolarRaidVisuals),
 })

@@ -14,8 +14,9 @@ local raidCompleted = script.Parent:WaitForChild("DojoRaidCompleted")
 local raidRemotes = {
     kilnback = ReplicatedStorage:WaitForChild("KilnbackRaid"),
     kraken = ReplicatedStorage:WaitForChild("AbyssalRaid"),
+    phoenix = ReplicatedStorage:WaitForChild("SolarRaid"),
 }
-local raidTrophyNames = {kilnback = "Kiln Keeper", kraken = "Deepwater Team"}
+local raidTrophyNames = {kilnback = "Kiln Keeper", kraken = "Deepwater Team", phoenix = "Dawn Return"}
 
 local studio = RunService:IsStudio()
 local store = if studio then PlayerProfiles.memoryStore() else DataStoreService:GetDataStore("BeastDojoPlayerProfiles")
@@ -252,6 +253,7 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("LanternKeeper", progress.lanternKeeper)
     player:SetAttribute("KilnKeeper", progress.kilnKeeper)
     player:SetAttribute("DeepwaterTeam", progress.deepwaterTeam)
+    player:SetAttribute("DawnReturn", progress.dawnReturn)
     player:SetAttribute("RaidTokens", progress.raidTokens)
     player:SetAttribute("MythicShards", progress.mythicShards)
     player:SetAttribute("RelayBest", progress.relayBest)
