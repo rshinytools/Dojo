@@ -25,6 +25,18 @@ local function rotation(pitch, yaw, roll)
 	return CFrame.Angles(math.rad(pitch), math.rad(yaw), math.rad(roll))
 end
 
+Poses.Defeat = {
+	angle = Vector3.new(math.rad(88), 0, math.rad(5)),
+	joints = {
+		Head = {joints.neck, rotation(5, 0, -5)},
+		["Right Arm"] = {joints.rightArm, rotation(6, -15, -6)},
+		["Left Arm"] = {joints.leftArm, rotation(0, 8, -18)},
+		["Right Leg"] = {joints.rightLeg, rotation(-9, -5, -8)},
+		["Left Leg"] = {joints.leftLeg, rotation(-9, 5, 8)},
+		Tail = {joints.tail, rotation(19, 75, 15)},
+	},
+}
+
 local function around(pivot, pitch, yaw, roll, y, z)
 	return CFrame.new(pivot + Vector3.new(0, y or 0, z or 0))
 		* rotation(pitch, yaw, roll)

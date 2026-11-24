@@ -1,6 +1,7 @@
 -- Featured sparring uses the same authored frame for posing and contact.
 local Match = require(script.Parent.DojoMatchSupport)
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
+local reedguardSupport = require(script.Parent.ReedguardDefeatSupport)
 local Juniper = require(script.Parent.JuniperCombatPoses)
 local Penguin = require(script.Parent.PenguinCombatPoses)
 local Bracken = require(script.Parent.BrackenCombatPoses)
@@ -20,6 +21,8 @@ local Debris = game:GetService("Debris")
 local Motion = {}
 
 local fallSeconds = .57
+local playerFall = Vector3.new(math.rad(4), math.rad(62), math.rad(88))
+local residentFall = Vector3.new(math.rad(86), 0, math.rad(10))
 local tracked = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
 local slideClearance = 2.65
 local brackenDriveClearance = 2.05
@@ -136,7 +139,7 @@ local function verticalHalfExtent(frame, size)
         + math.abs(frame.LookVector.Y) * size.Z) * .5
 end
 
-local function defeatSnapshot(base, parts, floor)
+local function defeatSnapshot(base, parts, floor, rotation)
     local bottom, top = math.huge, -math.huge
     local pieces = {}
     for _, part in parts do
@@ -147,7 +150,8 @@ local function defeatSnapshot(base, parts, floor)
     end
     local empty = bottom == math.huge
     local pivot = if empty then Vector3.zero else base:PointToObjectSpace(Vector3.new(base.X, (bottom + top) * .5, base.Z))
-    return {base = base, pieces = pieces, pivot = pivot, floor = floor, bottom = if empty then base.Y - 2.5 else bottom}
+    return {base = base, pieces = pieces, pivot = pivot, floor = floor, rotation = rotation,
+        bottom = if empty then base.Y - 2.5 else bottom}
 end
 
 local function mountedBounds(shell)
@@ -162,18 +166,78 @@ local function mountedBounds(shell)
     return parts
 end
 
+local function partBottom(frame, part, points)
+    if not points then
+        return frame.Y - verticalHalfExtent(frame, part.Size)
+    end
+    local direction = frame:VectorToObjectSpace(Vector3.yAxis)
+    local bottom = math.huge
+    for _, point in points do
+        bottom = math.min(bottom, direction:Dot(point))
+    end
+    return frame.Y + bottom
+end
+
+local function stageReedguardDefeat(defeat, shell, motors)
+    defeat.rotation = Reedguard.Defeat.angle
+    defeat.neutralRoot = motors.RootJoint.rest
+    defeat.inverseRoot = defeat.firstJoint:Inverse()
+    defeat.limbs, defeat.partLimbs, defeat.support = {}, {}, {}
+    defeat.bottom = math.huge
+    for part in defeat.pieces do
+        local samples = part.Parent == shell and reedguardSupport[part.Name]
+        if samples then
+            local scaled = table.create(#samples)
+            for index, point in samples do
+                scaled[index] = point * part.Size
+            end
+            defeat.support[part] = scaled
+        end
+        defeat.bottom = math.min(defeat.bottom, partBottom(part.CFrame, part, defeat.support[part]))
+    end
+    for group, pose in Reedguard.Defeat.joints do
+        local binding, piece = motors[pose[1]], shell:FindFirstChild(group)
+        if binding and piece then
+            local motor, rest = binding.motor, binding.rest
+            local parent = defeat.base:ToObjectSpace(motor.Part0.CFrame)
+            -- The joint change is applied in the captured root's coordinates.
+            local limb = {motor = motor, start = motor.C0, parent = parent,
+                undo = motor.C0:Inverse() * parent:Inverse(),
+                target = CFrame.new(rest.Position) * pose[2] * rest.Rotation}
+            table.insert(defeat.limbs, limb)
+            defeat.partLimbs[piece] = limb
+            for _, detail in piece:GetDescendants() do
+                if defeat.pieces[detail] then
+                    defeat.partLimbs[detail] = limb
+                end
+            end
+        end
+    end
+end
+
 local function fallenFrame(defeat, age)
     if defeat.settledFrame then
         return defeat.settledFrame
     end
     local phase = math.clamp(age / fallSeconds, 0, 1)
     local progress = phase * phase * (3 - 2 * phase)
+    local rotation = defeat.rotation * progress
     local frame = defeat.base * CFrame.new(0, 0, .64 * progress) * CFrame.new(defeat.pivot)
-        * CFrame.Angles(math.rad(86) * progress, 0, math.rad(10) * progress) * CFrame.new(-defeat.pivot)
+        * CFrame.Angles(0, rotation.Y, 0) * CFrame.Angles(rotation.X, 0, rotation.Z) * CFrame.new(-defeat.pivot)
+    if defeat.neutralRoot then
+        frame *= defeat.firstJoint:Lerp(defeat.neutralRoot, progress) * defeat.inverseRoot
+        for _, limb in defeat.limbs do
+            local pose = limb.start:Lerp(limb.target, progress)
+            limb.delta = limb.parent * pose * limb.undo
+            limb.motor.C0 = pose
+        end
+    end
     local bottom = math.huge
     for part, relative in defeat.pieces do
-        local piece = frame * relative
-        bottom = math.min(bottom, piece.Y - verticalHalfExtent(piece, part.Size))
+        local limb = defeat.partLimbs and defeat.partLimbs[part]
+        local piece = if limb then frame * limb.delta * relative else frame * relative
+        local points = defeat.support and defeat.support[part]
+        bottom = math.min(bottom, partBottom(piece, part, points))
     end
     if bottom == math.huge then
         bottom = frame.Y - 2.5 + 1.65 * progress
@@ -196,8 +260,12 @@ local function renderPlayerDefeat(state, root, floor, age)
     if not defeat then
         local character = root.Parent
         local shell = character:FindFirstChild("Starter Fighter Shell")
-        defeat = defeatSnapshot(root.CFrame, mountedBounds(shell), floor)
+        -- A side fall keeps the tail beside the fighter instead of under their back.
+        defeat = defeatSnapshot(root.CFrame, mountedBounds(shell), floor, playerFall)
         defeat.firstJoint = joint.motor.C0
+        if shell and shell:GetAttribute("FighterId") == "reedguard-kangaroo" and next(defeat.pieces) then
+            stageReedguardDefeat(defeat, shell, state.motors)
+        end
         defeat.collisions = {}
         for _, part in character:GetDescendants() do
             if part:IsA("BasePart") and part.CanCollide then
@@ -1814,7 +1882,7 @@ function Motion.render(bout, now)
             for _, joint in bout.joints do
                 table.insert(parts, joint.part)
             end
-            state.botDefeat = defeatSnapshot(bout.bot.PrimaryPart.CFrame, parts, bout.arena.floor)
+            state.botDefeat = defeatSnapshot(bout.bot.PrimaryPart.CFrame, parts, bout.arena.floor, residentFall)
         end
         local frame = fallenFrame(state.botDefeat, now - bout.outroAt)
         for part, relative in state.botDefeat.pieces do

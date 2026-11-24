@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.288 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.289 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -138,7 +138,7 @@ Exact-source tests covered 16 ranked and 16 casual contact pairings, the element
 
 V0.279 applies the Festival Championship HUD to Bot Spar, all Duel formats and Brawl. Teal and red health bars drain toward server-confirmed damage. A gold trail briefly shows the size of each hit. Gold-framed 3D busts use the original fighter meshes and baked colors. The clock sits between the two fighters, with round scores for Best of 3 and Ranked. Brawl uses one health bar alongside the number of players still fighting and the floor-drop warning. Reduce Motion and VR snap the bar to the latest HP. Portraits use at most two static mesh groups per fighter and fall back to initials while loading or if the assets are unavailable.
 
-At zero HP, the defeated fighter tips back onto the canvas in about half a second and stays down while the clock holds. The recap follows the in-ring knockout. Positive-health timeouts keep the fighter upright. V0.288 holds a final Tag Team or Brawl knockout through the full round outro on intact flooring. Earlier knockouts still allow backup entry or the viewing-deck transfer. Raid teammates stay down until revived or the encounter ends.
+At zero HP, the defeated fighter drops onto the canvas in about half a second and stays down while the clock holds. Reedguard has an articulated knockout that lowers both boots and sweeps his tail beside him. The tail is 25% smaller around its existing joint, and original mesh support points seat the pose on the floor. Other playable fighters use the shared side fall. The recap follows the in-ring knockout. Positive-health timeouts keep the fighter upright. V0.288 holds a final Tag Team or Brawl knockout through the full round outro on intact flooring. Earlier knockouts still allow backup entry or the viewing-deck transfer. Raid teammates stay down until revived or the encounter ends. Desktop Studio v0.289 verified both Reedguard boots settling within 0.09 studs of the canvas, a city idle within 0.04 studs of the floor, and a native Retry click that reset both fighters and replayed the ten-second intro.
 
 The intro and active fight camera fit both fighters to the current viewport. VR and Reduce Motion use the normal camera, and the city camera returns at the recap. Ground slams and planted tile bursts show a compact pulse at the resolved floor point. Guard and parry have separate contact effects.
 
