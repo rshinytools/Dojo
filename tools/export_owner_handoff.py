@@ -77,6 +77,17 @@ def implementation_plan(plan):
         f"Portable phase snapshot for Studio checkpoint {plan['version']}, updated {plan['updated']}. "
         "See [Implementation](IMPLEMENTATION.md) for code entry points, verified play and open work."
     )
+    if ring_plan := plan.get("world", {}).get("ringPlan"):
+        yield "## Four combat rings"
+        rows = [["Ring", "Unlock level", "Resident bot", "Match access"]]
+        rows.extend(
+            [ring["name"], str(ring["level"]), ring["bot"], "Bot Spar and PvP" if ring["pvp"] else "Bot Spar"]
+            for ring in ring_plan["rings"]
+        )
+        yield markdown_table(rows)
+        yield portable(ring_plan["access"])
+        yield portable(ring_plan["pvp"])
+        yield portable(ring_plan["progression"])
     for phase in plan["phases"]:
         yield f"## {phase['id']} {phase['name']}"
         yield portable(phase["goal"])
@@ -102,9 +113,15 @@ def main():
     (ROOT / "docs/GAME_DESIGN.md").write_text("\n\n".join(game_design(body)) + "\n", encoding="utf-8")
     (ROOT / "docs/ROADMAP.md").write_text("\n\n".join(implementation_plan(plan)) + "\n", encoding="utf-8")
     if args.refresh_browser_data:
-        data = dict(districts=plan["world"]["districts"], trophies=plan["trophies"]["catalog"],
+        browser_data = ROOT / "design/world-content.json"
+        previous = json.loads(browser_data.read_text(encoding="utf-8"))
+        existing = {district["id"]: district for district in previous["districts"]}
+        # Keep the six-area browser simulation playable until its combat and quest rules migrate.
+        districts = [dict(district, arena=existing[district["id"]]["arena"],
+                          steps=existing[district["id"]]["steps"]) for district in plan["world"]["districts"]]
+        data = dict(districts=districts, trophies=plan["trophies"]["catalog"],
                     fighters=list(roster_from_word(body)))
-        (ROOT / "design/world-content.json").write_text(
+        browser_data.write_text(
             json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
 

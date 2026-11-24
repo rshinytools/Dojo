@@ -2,6 +2,8 @@
 
 Open `Beast_Dojo.html` in a browser for the portable build, or open `index.html` alongside the source files. The private production notebook also hosts the game. Progress belongs to the current browser and origin. Use the same entry point when continuing a save.
 
+This browser concept uses the earlier six-ring layout. The current Roblox production plan specifies four combat rings and Grand Dojo as the sole PvP venue.
+
 Start with Reedguard in Dojo Valley. Open the Journal and choose **Follow objective** if you need guidance. Each district offers a mentor chapter, two activities, three seals and an arena. Complete all six chapters, return to the Grand Dojo and win the graduation trial. Replay matches, event challenges and expert routes to finish all 30 trophies and unlock all 24 fighters. Trophies can be placed on six pedestals in a room you can walk around.
 
 - Keyboard: WASD or arrow keys to move, E to interact, G to follow the objective, J to strike, K for the style skill, I for a charged signature, L to parry, Space to dash, R to tag and Escape to pause.

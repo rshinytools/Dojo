@@ -378,10 +378,10 @@
     },
     {
       "id": "play",
-      "name": "Mode and arena selection",
-      "primaryAction": "Choose 1v1, 2v2, Brawl or Raid",
-      "elements": "Four mode cards, ranked rules, arena preview, party readiness",
-      "states": "eligible, locked, party mismatch, scheduled raid"
+      "name": "Grand Dojo PvP selection",
+      "primaryAction": "Choose Duel, Tag Team or Brawl",
+      "elements": "Three Grand Dojo PvP mode cards, ranked rules, Grand Dojo preview, party readiness",
+      "states": "eligible, locked, party mismatch"
     },
     {
       "id": "queue",

@@ -27,6 +27,23 @@ The planned **Play Together** flow adds in-game invites and regrouping. If a cit
 
 The public Trophy Hall is a city landmark and the planned entrance to each player's **personal trophy room**. Each owner chooses six featured trophies plus paged wall displays. Layouts and earned trophies are saved per account and follow the owner across servers. The room defaults to private. Owners can invite guests to inspect displays, and only the owner can change the layout. The Studio build has the Hall, an owner-specific journal and the first Lantern Keeper display. Private rooms, visit invites and published multiplayer verification are planned.
 
+## Four-ring progression plan
+
+The six districts stay connected. The main ring will host Juniper and every player-vs-player queue and match. Each of the three satellite rings hosts a resident bot for a local PvE challenge. Frostglass Gardens and Lantern Circuit remain activity districts.
+
+| Ring | District | Unlock level | Fighter XP at that level | Resident bot | Planned play |
+| --- | --- | ---: | ---: | --- | --- |
+| Grand Dojo Ring | Grand Dojo City | 1 | 0 | Juniper Tortoise | Bot Spar and the sole PvP queue and venue |
+| Cinder Terraces Ring | Cinder Terraces | 3 | 180 | Bracken Boar | Bot Spar |
+| Cloud-Top Temple | Skywalk Peaks | 5 | 460 | Sablecrest Lynx | Bot Spar |
+| Galleon Ring | Tideharbor Coast | 7 | 830 | Granite Rhino | Bot Spar |
+
+These XP totals come from the current ten-level Reedguard curve. A server-verified fighter reaching the threshold will permanently unlock the ring for the player's account. Switching to a lower-level fighter keeps the ring open. The selected fighter's recommended level is guidance shown alongside the access status. Locked combat entries show the requirement and a route to earn XP. District roads and activities stay open. [Current XP curve](../roblox/grand-dojo/PlayerProfiles.luau)
+
+The first eligible Bot Spar win gives 60 XP once per account and the first official Lantern Relay gives 80 XP. On the same fighter, that leaves 40 XP to reach Level 3. The proposed bridge is a first-time Dojo Valley mentor activity, such as a local lantern timing drill introduced by the Ring Steward. Validate its completion on the server and award 40 XP once. The guided activity and durable grant need implementation. Later levels should be reachable through several PvE paths, including mentor quests, events and activities available before their respective ring gates.
+
+The Grand Dojo Ring will host 1v1 Duels, 2v2 Tag Team and eight-player Brawl. Four-player Co-op Raids remain a separately staged PvE mode. In v0.265 the main ring offers Juniper Bot Spar and the Galleon has a practice target. The four-ring unlock system, satellite bot encounters and human queues are pending. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
+
 ## Source map
 
 The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport verified the exports. Studio rigging, animation, combat tuning and gameplay integration remain open.
@@ -124,7 +141,7 @@ Use the [Studio walkthrough](../roblox/grand-dojo/README.md) for feature-specifi
 
 ## Preserve the release scope
 
-The full v1 design includes 24 fighters with three forms, six arenas, four match modes, three original bosses, 30 earned trophies and personal rooms, six dense districts, mentor quests, events, and supported-device coverage. The current native world is a substantial playable slice. The browser prototype exercises broader progression and matchmaking ideas with local state and simulated opponents.
+The full v1 design includes 24 fighters with three forms, four combat rings, four match modes, three original bosses, 30 earned trophies and personal rooms, six dense districts, mentor quests, events, and supported-device coverage. The current native world is a substantial playable slice. The browser prototype exercises broader progression and matchmaking ideas with local state and simulated opponents.
 
 Priorities remain production Reedguard combat, published persistence, additional trophy grants, cross-device onboarding and HUD, and isolated staging. Expand content, matchmaking, monetization and launch work through the acceptance gates in the [roadmap](ROADMAP.md). The target for the final cartoon fighting is Mild, pending review of the actual Roblox experience. The optional VPS supports telemetry and private operations. Roblox progression and gameplay should remain usable if the VPS is unavailable.
 

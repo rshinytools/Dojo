@@ -1,10 +1,10 @@
 # Beast Dojo Master Game Design and Production Specification
 
-Revision 0.4  Original identity and gated solo implementation plan
+Revision 0.5  Four-ring progression and solo production plan
 
-Beast Dojo is a shared animal martial-arts adventure world centered on the Grand Dojo. Players explore connected districts, meet mentors, complete quests and activities, collect permanent trophies and enter arena fights. This specification defines the full v1 content baseline, progression, economy, all-device requirements and a gated path to production for one developer working with Codex. The optional VPS supports operations; the new world and trophy systems are planned, not implemented.
+Beast Dojo is a shared animal martial-arts adventure world centered on the Grand Dojo. Players explore connected districts, meet mentors, complete quests and activities, collect permanent trophies and enter arena fights. This specification defines the full v1 content baseline, progression, economy, all-device requirements and a gated path to production for one developer working with Codex. The optional VPS supports operations. See the implementation handoff for current play and release work.
 
-| EXECUTIVE PRODUCTION BRIEF (FOR DEVELOPMENT TEAM)<br>• Target Release Scope: Full-scale, feature-complete v1.0 launch (24 custom-rigged animals, 3 evolution stages per fighter, 6 interactive arenas, 4 game modes, Trading Plaza, Personal Trophy Rooms and Clan Dojos, and Battle Pass). The release also includes a shared six-district open world centered on the Grand Dojo, NPC mentor chapters, activities, secrets, permanent personal trophy collections and display rooms. Section 11 defines the content baseline.<br>• Tone & Roblox Compliance: Lighthearted, high-energy cartoon martial arts brawler (original animal fighters with independent martial arts styles, expressive poses and readable ring-out combat). Zero realistic blood, gore, or animal cruelty—use cartoon knockout stars, ragdoll knockouts, and comic-book VFX.<br>• Cross Platform Launch Requirement: Full compatibility with every device family currently supported by Roblox: iOS and Android phones/tablets, Windows and macOS computers, supported Chromebooks, Xbox, PlayStation, and supported VR headsets. Touch, keyboard/mouse, gamepad, and VR controls must support the complete core experience. Retain 3 active skills + Dash/Parry + Jump/Move; Tag-In is contextual in 2v2. Mobile usability is a baseline requirement for the shared design. |
+| EXECUTIVE PRODUCTION BRIEF (FOR DEVELOPMENT TEAM)<br>• Target Release Scope: Full-scale, feature-complete v1.0 launch (24 custom-rigged animals, 3 evolution stages per fighter, 4 fighting rings, 4 game modes, Trading Plaza, Personal Trophy Rooms and Clan Dojos, and Battle Pass). The release also includes a shared six-district open world centered on the Grand Dojo, NPC mentor chapters, activities, secrets, permanent personal trophy collections and display rooms. Section 11 defines the content baseline.<br>• Tone & Roblox Compliance: Lighthearted, high-energy cartoon martial arts brawler (original animal fighters with independent martial arts styles, expressive poses and readable ring-out combat). Zero realistic blood, gore, or animal cruelty—use cartoon knockout stars, ragdoll knockouts, and comic-book VFX.<br>• Cross Platform Launch Requirement: Full compatibility with every device family currently supported by Roblox: iOS and Android phones/tablets, Windows and macOS computers, supported Chromebooks, Xbox, PlayStation, and supported VR headsets. Touch, keyboard/mouse, gamepad, and VR controls must support the complete core experience. Retain 3 active skills + Dash/Parry + Jump/Move; Tag-In is contextual in 2v2. Mobile usability is a baseline requirement for the shared design. |
 | --- |
 
 1. Core Gameplay Loop & Combat Mechanics
@@ -13,7 +13,7 @@ Beast Dojo is a shared animal martial-arts adventure world centered on the Grand
 
 1. Explore and Choose: Enter the Grand Dojo grounds, restore your tracked goal and choose a mentor quest, district activity, secret hunt, social visit or arena match. Meet the mentor and earn a free starter on the first visit. Advanced trials and fast travel unlock through earned progress.
 
-2. Adventure and Training: Walk into connected districts to follow mentor stories, solve puzzles, practice traversal, find permanent seals and enter marked encounters. Arena pads at world destinations provide 1v1 duels, 2v2 tag-team, eight-player brawl and four-player boss raids.
+2. Adventure and Training: Walk into connected districts to follow mentor stories, solve puzzles, practice traversal, find permanent seals and enter marked encounters. The Grand Dojo Ring hosts Bot Spar and all competitive modes. Three district rings host local Bot Spar. Four-player boss raids use separate encounters.
 
 3. Real-Time Physics Brawl (45–60s): Fast-paced arena combat where players deplete opponent HP or knock them outside the arena ring-out boundaries. Round endings use brief stylized ring-outs and neutral resets, without blood, injury detail, execution-like finishers or prolonged suffering. Target Mild for repeated mild cartoon violence, subject to actual content review.
 
@@ -94,7 +94,7 @@ All 24 launch fighters are distributed evenly across the 4 elements (6 per eleme
 
 3.3 Level 1–30 Progression, XP Curve & Stat Scaling Table
 
-Reference progression table using a Standard Common Fighter (Base HP: 1,000 | Base ATK: 100 | Base KB: 100) versus a Mythic Fighter (Base HP: 1,500 | Base ATK: 140 | Base KB: 135). Ranked 1v1/2v2 modes apply a 'Competitive Normalization Cap' (clamping stats to Level 15 equivalent) while 8-Player Brawl, Boss Raids, and Open Arenas use full uncapped stats.
+Reference progression table using a Standard Common Fighter (Base HP: 1,000 | Base ATK: 100 | Base KB: 100) versus a Mythic Fighter (Base HP: 1,500 | Base ATK: 140 | Base KB: 135). Ranked 1v1/2v2 modes apply a 'Competitive Normalization Cap' (clamping stats to Level 15 equivalent) while 8-Player Brawl, Boss Raids and Bot Spar use full uncapped stats.
 
 | Level | Evolution Stage | XP to Next | Cumulative XP | Scale Mult | Common HP | Common ATK/KB | Mythic HP | Mythic ATK | Unlocks |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -128,24 +128,26 @@ Reference ring radius is 65 studs (from center spawn to ring-out drop). Engineer
 
 4.1 Four Core Game Modes
 
-1. 1v1 Ranked Duels (Best of 3 Rounds, 45s/round): Elo matchmaking across 6 divisions (Bronze, Silver, Gold, Diamond, Master, Apex Predator). Uses Level 15 stat normalization so skill and elemental counter-picking decide winners.
+1. 1v1 Ranked Duels at Grand Dojo (Best of 3 Rounds, 45s/round). Elo matchmaking across 6 divisions (Bronze, Silver, Gold, Diamond, Master, Apex Predator). Uses Level 15 stat normalization so skill and elemental counter-picking decide winners.
 
-2. 2v2 Tag-Team (90s Match): Each player brings a primary and backup animal. Pressing the 'Tag-In' button swaps fighters with a 12s cooldown and triggers an entry assist strike.
+2. 2v2 Tag-Team at Grand Dojo (90s Match). Each player brings a primary and backup animal. Pressing the 'Tag-In' button swaps fighters with a 12s cooldown and triggers an entry assist strike.
 
-3. 8-Player King-of-the-Ring Brawl (60s Match): Chaotic free-for-all using full uncapped stats. Every 15 seconds, the outer ring tiles drop away, shrinking the safe platform until a final sudden-death showdown.
+3. 8-Player King-of-the-Ring Brawl at Grand Dojo (60s Match). Chaotic free-for-all using full uncapped stats. Every 15 seconds, the outer ring tiles drop away, shrinking the safe platform until a final sudden-death showdown.
 
-4. Co-op Boss Raids (4-Player PvE, Every 20 Mins): Players team up against massive raid bosses (Kilnback Custodian, Abyssal Kraken, Solar Phoenix) with telegraphed AoE attacks to earn Raid Tokens and Mythic Capsule shards.
+4. Co-op Boss Raids (4-Player PvE, Every 20 Mins) take place in separate raid encounters. Players team up against massive raid bosses (Kilnback Custodian, Abyssal Kraken, Solar Phoenix) with telegraphed AoE attacks to earn Raid Tokens and Mythic Capsule shards.
 
-4.2 Six Launch Arenas & Environmental Hazards
+4.2 Four Fighting Rings and Their Unlocks
 
-| Arena Name | Theme | Ring Geometry | Dynamic Hazard / Interactive Mechanic |
+| Fighting Ring | Gate | Resident Bot | Play and Ring Features |
 | --- | --- | --- | --- |
-| 1. Grand Bamboo Dojo | Classic Martial Arts | Circular Ring (65r) | Bouncy gong bumpers on perimeter; clean competitive layout. |
-| 2. Sunken Pirate Galleon | Aquatic / Nautical | Rectangular Deck | Ship tilts left/right every 15s, sliding players and cannonballs. |
-| 3. Molten Caldera | Magma / Volcanic | Octagonal Stone | Geysers erupt with 2s warning circles, launching fighters upward. |
-| 4. Cloud-Top Temple | Sky / Storm | 3 Connected Islands | Gust bridges connect outer platforms; lightning strikes center every 20s. |
-| 5. Glacial Ice Floe | Arctic / Aquatic | Shrinking Hexagon | Low-friction ice floor + outer ice chunks break off during final 20s. |
-| 6. Cyber Neon Arena | Futuristic / Mythic | Elevated Octagon | Speed boost pads on corners and laser barriers that toggle every 10s. |
+| Grand Dojo Ring<br>Grand Dojo City | Level 1<br>0 XP | Juniper Tortoise | Bot Spar and all PvP. Circular main ring. Competitive layouts use clear boundaries and readable perimeter bumpers. |
+| Cinder Terraces Ring<br>Cinder Terraces | Level 3<br>180 XP | Bracken Boar | Bot Spar. Octagonal stone ring with clearly telegraphed geysers. |
+| Cloud-Top Temple<br>Skywalk Peaks | Level 5<br>460 XP | Sablecrest Lynx | Bot Spar. Linked platforms with gust bridges and telegraphed lightning. |
+| Galleon Ring<br>Tideharbor Coast | Level 7<br>830 XP | Granite Rhino | Bot Spar. Rectangular ship deck with a readable tilting mechanic. |
+
+The server checks ring entry. When any fighter first reaches the required level, the ring unlock is saved to that player's account. Switching to a lower-level fighter keeps the ring open. Show the recommended fighter level alongside access status, and show how to earn XP when entry is locked. District roads, activities and spectator approaches remain open.
+
+The XP totals above use the current ten-level Reedguard prototype curve. The first eligible Bot Spar win grants 60 XP and the first official Lantern Relay clear grants 80 XP. Each grant is available once per account. A proposed first completion of the Dojo Valley mentor's lantern-timing step adds 40 XP. Crediting all three to the same fighter reaches Level 3 at 180 XP. Later gates need several available XP paths from earlier bouts, mentor quests and activities.
 
 4.3 Economy, Trading Plaza & Clan Dojos
 
@@ -187,7 +189,7 @@ Implementation references: Roblox Creator Hub cross-platform development https:/
 
 ## 6 Solo Production Roadmap
 
-Revision 0.4 defines solo production through acceptance evidence. The full v1 target includes a six-district world, permanent trophy collections, 24 fighters with three evolution stages, six arenas, four modes, trading, clans, reliable saving and all supported devices. Milestones replace fixed calendar promises.
+Revision 0.5 defines solo production through acceptance evidence. The full v1 target includes a six-district world, permanent trophy collections, 24 fighters with three evolution stages, four fighting rings, four modes, trading, clans, reliable saving and all supported devices. Milestones replace fixed calendar promises.
 
 The detailed implementation record is maintained at the owner-private production notebook Each phase below has explicit prerequisites, subphases and an exit gate. Optional VPS work can proceed alongside core work and does not gate launch.
 
@@ -287,9 +289,9 @@ Scale the proven fighter, world, quest and collection pipelines to full v1.
 
 Prerequisites: P5, P6
 
-Subphases: P7.1 Remaining twenty fighters; P7.2 Evolution, breeds and mutations; P7.3 Six arenas and original bosses; P7.4 Content balance and regression; P7.5 Six connected world districts; P7.6 Complete trophies and world events.
+Subphases: P7.1 Remaining twenty fighters; P7.2 Evolution, breeds and mutations; P7.3 Four fighting rings and original bosses; P7.4 Content balance and regression; P7.5 Six connected world districts; P7.6 Complete trophies and world events.
 
-Exit gate: 24 fighters, three stages, six districts and arenas, 18 mentor quest steps, 12 activity variants, 18 secrets, 30 trophies and two repeatable world events pass content checks.
+Exit gate: 24 fighters, three stages, six connected districts, four fighting rings, 18 mentor quest steps, 12 activity variants, 18 secrets, 30 trophies and two repeatable world events pass content checks.
 
 ### P8 Full multiplayer and social systems
 
@@ -368,7 +370,7 @@ Exit gate: The game is live with verified smoke tests, monitored progression/eco
 
 ## 8 Original Identity and Asset Requirements
 
-Revision 0.4 applies the authorized IP remediation. The current title is Beast Dojo. The former shared subtitle and Kong-related boss are retired and appear only in archived research or revision history. These substitutions reduce known associations; final title and production-asset clearance remain release requirements.
+Revision 0.4 applied the authorized IP remediation. The current title is Beast Dojo. The former shared subtitle and Kong-related boss are retired and appear only in archived research or revision history. These substitutions reduce known associations; final title and production-asset clearance remain release requirements.
 
 ### 8.1 Reedguard Kangaroo
 
@@ -480,13 +482,13 @@ Roblox Kids and Select — Roblox Creator Hub https://create.roblox.com/docs/pro
 
 A shared animal martial-arts adventure world, with the Grand Dojo as the home, training and social center. Explore a district, meet a mentor, complete a quest or challenge, earn progress and a trophy, then return to your dojo to train and display what you achieved.
 
-The user requested the richer open-world direction and personal trophy collections. The detailed district names and content counts below are the editable production baseline. The existing 24 fighters, three stages per fighter, six arenas, four fighting modes, clans, trading, saving and every Roblox-supported device remain required. Mild remains the target; new world content must be included in actual ratings and rights review.
+The user requested the richer open-world direction and personal trophy collections. The detailed district names and content counts below are the editable production baseline. The existing 24 fighters, three stages per fighter, four fighting rings, four fighting modes, clans, trading, saving and every Roblox-supported device remain required. Mild remains the target; new world content must be included in actual ratings and rights review.
 
 ### 11.1 Grand Dojo and world structure
 
-Six connected, walkable districts with authored routes and landmarks. Build a compact, activity-rich world; size is determined by measured traversal and device budgets. Arenas are destinations inside this world, with separate match instances where needed.
+Six connected, walkable districts with authored routes and landmarks. Build a compact, activity-rich world; size is determined by measured traversal and device budgets. Four fighting rings have entrances in the city. Grand Dojo can use separate match instances for queued PvP. Co-op boss raids have their own encounters.
 
-Grand Dojo: mentors, training courts, arena entry, world map and quest board.
+The Grand Dojo houses mentors, training courts, the main ring, the world map and the quest board.
 
 Dojo grounds: market, gardens, social seating, secrets and routes into the world.
 
@@ -500,7 +502,7 @@ Full v1 baseline: six districts, six mentor chapters with three quest steps each
 
 #### Dojo Valley
 
-Grand Dojo and Reedgrove Court. Arena destination: Grand Bamboo Dojo.
+Grand Dojo City and Reedgrove Court. The Grand Dojo Ring opens at Level 1. Juniper Tortoise runs Bot Spar, and this ring hosts every PvP mode.
 
 Mentor: Reed court keeper. Chapter: Find your footing.
 
@@ -510,37 +512,37 @@ Activities: Reed-path parkour; Lantern timing drill. Secrets: Three tucked-away 
 
 #### Tideharbor Coast
 
-Harbor paths, tide pools and shipwreck overlook. Arena destination: Sunken Pirate Galleon.
+Harbor paths, tide pools and shipwreck overlook. The Galleon Ring opens at Level 7 for Bot Spar with Granite Rhino.
 
 Mentor: Harbor instructor. Chapter: Restore the harbor route.
 
-Quest path: Find the harbor instructor and activate the shore marker. Then Carry training parcels across the tide-path route. Then Complete the harbor practice encounter and report back.
+Quest path: Find the harbor instructor and activate the shore marker. Then Carry training parcels across the tide-path route. Then Finish the harbor practice drill and report back.
 
 Activities: Tide-path traversal; Harbor delivery route. Secrets: Three hidden tide seals. Mastery: Tide-path expert course.
 
 #### Cinder Terraces
 
-Kiln workshops, steam lifts and ceramic gardens. Arena destination: Molten Caldera.
+Kiln workshops, steam lifts and ceramic gardens. The Cinder Terraces Ring opens at Level 3 for Bot Spar with Bracken Boar.
 
 Mentor: Kiln workshop keeper. Chapter: Set the workshop right.
 
-Quest path: Meet the keeper and inspect three marked vents. Then Solve the bellows timing puzzle to restore the lift. Then Complete the workshop spar and return the repaired training tile.
+Quest path: Meet the keeper and inspect three marked vents. Then Solve the bellows timing puzzle to restore the lift. Then Finish the workshop practice drill and return the repaired training tile.
 
 Activities: Bellows timing puzzle; Steam-lift ascent. Secrets: Three hidden kiln seals. Mastery: Steam-lift expert course.
 
 #### Skywalk Peaks
 
-Wind bridges, cliff paths and the cloud temple. Arena destination: Cloud-Top Temple.
+Wind bridges, cliff paths and the cloud temple. Cloud-Top Temple opens at Level 5 for Bot Spar with Sablecrest Lynx.
 
 Mentor: Wind-court instructor. Chapter: Reconnect the wind courts.
 
-Quest path: Reach the wind court using its marked accessible route. Then Activate the bridge switches through a movement challenge. Then Complete the temple practice encounter and reconnect the route.
+Quest path: Reach the wind court using its marked accessible route. Then Activate the bridge switches through a movement challenge. Then Finish the temple practice drill and reconnect the route.
 
 Activities: Wind-bridge course; Chime sequence puzzle. Secrets: Three hidden wind seals. Mastery: Wind-bridge expert course.
 
 #### Frostglass Gardens
 
-Ice gardens, warm shelters and frozen ponds. Arena destination: Glacial Ice Floe.
+Ice gardens, warm shelters and frozen ponds anchor the district's activities and mentor chapter.
 
 Mentor: Garden caretaker. Chapter: Bring the garden to life.
 
@@ -550,23 +552,23 @@ Activities: Ice-slide course; Reflector light puzzle. Secrets: Three hidden fros
 
 #### Lantern Circuit
 
-Neon courtyards, rooftop paths and a night market. Arena destination: Cyber Neon Arena.
+Neon courtyards, rooftop paths and a night market anchor the district's activities and mentor chapter.
 
 Mentor: Circuit instructor. Chapter: Light the circuit.
 
-Quest path: Meet the instructor and discover the rooftop route. Then Complete a signal-routing puzzle and delivery challenge. Then Finish the circuit practice encounter and open the night display.
+Quest path: Meet the instructor and discover the rooftop route. Then Complete a signal-routing puzzle and delivery challenge. Then Finish the circuit practice drill and open the night display.
 
 Activities: Rooftop delivery route; Signal-routing puzzle. Secrets: Three hidden circuit seals. Mastery: Rooftop expert course.
 
 ### 11.3 Activities and progression
 
-NPC mentor chapters with short stories, persistent objectives and original dialogue.
+NPC mentor chapters with short stories, persistent objectives and original dialogue. Chapter training drills stay available before a district's ring unlocks.
 
 Traversal, timing, delivery and puzzle activities using reusable systems with different district layouts.
 
 Permanent secrets and a discovery journal; exploration rewards do not require random purchases.
 
-Opt-in sparring courts, the existing four fighting modes and co-op boss destinations.
+Opt-in Bot Spar at the four rings, all three PvP modes at Grand Dojo, and four-player Co-op Boss Raids at separate encounters.
 
 Repeatable Lantern Relay and Training Festival world events; schedule and player-count scaling tested before release.
 
@@ -576,7 +578,7 @@ Original ambient soundscapes, small NPC interactions and recognizable district l
 
 Basic exploration opens after the introduction; mentor chapters unlock advanced trials and discovered fast-travel points. No paid key is required for the core world.
 
-World progress is account-wide; fighter XP, evolution and move mastery remain separate. Changing animals does not reset quests or discoveries.
+World progress and ring unlocks are account-wide. Fighter XP, evolution and move mastery remain per fighter. Changing animals preserves quests, discoveries and unlocked rings.
 
 Track one chosen quest and show a clear return-to-dojo action. Let players choose exploration or arena play without forcing a ranked win to continue the story.
 

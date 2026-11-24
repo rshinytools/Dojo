@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable phase snapshot for Studio checkpoint 0.243, updated 2026-11-23. See [Implementation](IMPLEMENTATION.md) for code entry points, verified play and open work.
+Portable production roadmap aligned with Studio checkpoint v0.265 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -63,9 +63,9 @@ Implement safe saving before a persistent economy or trading.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P3.1 | Versioned account profile | Prototype ready | Verify cloud reconnect and future migrations preserve XP and trophy history. Production adds the remaining account fields and boost expiry. |
+| P3.1 | Versioned account profile | Prototype ready | Verify cloud reconnect and future migrations preserve XP and trophy history. Restore permanent ring access across reconnects, server changes and fighter switches once any owned fighter reached the threshold. Production also adds the remaining account fields and boost expiry. |
 | P3.2 | Session ownership and safe loading | Prototype ready | Repeat the conflict, expiry and failed-load checks on staging. Automatic teleport handoff remains planned. |
-| P3.3 | Idempotent rewards | Prototype ready | Verify the cloud grant and retry path. Extend it to further match and purchase receipts in the relevant phases. |
+| P3.3 | Idempotent rewards | Prototype ready | Verify the cloud grant and retry path. Extend it to the planned first-time mentor XP grant and later match and purchase receipts. |
 | P3.4 | Autosave and recovery | In progress | Exercise cloud throttling and abrupt server loss on staging. Versioned support tooling and future migrations remain open. |
 | P3.5 | Player save feedback | Prototype ready | Verify native UI feedback on a staging outage and reconnect. Add support tools for the last committed revision. |
 
@@ -88,7 +88,7 @@ Translate the UI direction to Roblox while the feature set is still small.
 
 ## P4W Open-world city foundation and Dojo Valley slice
 
-Prove a walkable city around the central Fighting Ring, with different experiences along connected streets, before producing all districts.
+Prove a walkable city around the Grand Dojo Ring, with different experiences along connected streets, before producing all districts. Keep district roads and activity entrances accessible independently of combat ring unlocks.
 
 **Status** In progress
 
@@ -99,7 +99,7 @@ Prove a walkable city around the central Fighting Ring, with different experienc
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P4W.1 | World layout and traversal | Prototype ready | Play through the current plaza, ring, canal and official Relay in Studio. Check the raised ring, both gateway appearances, the marquee from spawn and as players turn toward the ring, and the revised waterfall. Walk the forecourt from the plaza and Reed Market, take the main stair to Bot Spar and check the view across the cleared mat. Check the title and the exterior and rear pennants from the garden, the approach and the practice canvas on touch, gamepad and VR. Cross the taller red bridge in both directions, verify the lanterns, new planting and ripples on device, swim between the cove and the main canal, use both exits, and confirm the new map position is visible and readable from spawn. Check Trophy Hall’s crest and the two lower wings from spawn, under the porch and from the east ramp. Compare the four new emissive panes at high and low graphics settings. Take the viewing gallery stairs in both directions, greet the curator and check the sightline to the center trophy from above. Walk Weavers’ Walk in both directions, greet the Reed Weaver, enter the workshop and follow the Tideharbor ramp onto the existing causeway. Complete Harbor Parcel Delivery twice across all target input families. Check objective visibility, prompts, respawn and how the route streams in. Inspect the upper spring, two linked plunge basins and lower pool from both Reedfall overlooks. Desktop Studio verified all seven official Relay gates and the trophy on the center pedestal after the approach from the front stairs. Repeat the check by the east ramp and on target hardware. Walk all nine signed roads, the overlooks and both Skywalk branches with the generated terrain loaded. Walk the Ring Viewing Terrace in both directions, check the flat turn and sightline, and cross the lower causeway while the terrace streams in. Visit the new Wind Court from the square and from Cloudstep Pass. Verify the stairs and chime prompts on each supported device family. Follow Cloudstep Pass from Potters’ Yard to the Skywalk courtyard and back. Verify the stairs and ramp joins into both towns, the viewpoint, map line, guide prompt and streamed terrain. The Pinecrest Crossing models passed both Studio walking directions in desktop and Galaxy A06 simulation. Exact Studio launches of v0.241 and v0.242 later verified the crossing HUD and v0.242 exercised both Skywalk town connectors. Physical-phone profiling remains open. Exact v0.240 Studio Play verified the Reedfall arrival view, Ring practice and the Crown route to Cinder. The v0.239 Studio test copy verified the split Trophy Hall approach and all three ways into the Hall. Exact v0.238 Studio Play verified the shared Eagle Eye button and single-image overview in desktop Play and Galaxy landscape simulation. Exact v0.237 desktop verified Plum Lantern Walk, the covered porch and both main road directions. Exact v0.236 desktop verified the revised canal, both bridge directions and both swim exits. Exact v0.235 desktop verified the new paving and walked to the Fighting Ring and Trophy Hall gallery. Exact v0.234 desktop verified the revised western ridge views and traversed Mistline Crossing in both directions. Exact v0.233 desktop verified the Reed Market to Fighting Ring route and Mistline Crossing in both directions. Exact v0.232 desktop verified the revised overflow and six route legs around Reedfall and Cinder Gate. Exact v0.231 desktop verified the changed northern skyline and five routes in both directions. Exact v0.230 desktop verified the Trophy Hall stairs, gallery and both approaches, then completed the official Relay. Exact v0.229 desktop verified Glacier Lantern Walk, Mistline Crossing and the Upper Market road in both directions. Exact v0.228 desktop verified Copper Kiln Walk, Cloudstep and the Cinder–Tideharbor road both ways. Verify the new rock references and frame time on physical devices. Exact v0.227 desktop confirmed the clear Skywalk gate, both Pinecrest directions and the Mistline and Cloudstep links. Exact v0.226 desktop and Galaxy landscape Studio walked Cedar Foothill Walk both ways. Desktop also verified the Skywalk bridge and the Mistline and Cloudstep crossings. Verify the new grades and frame time on physical devices. Exact v0.225 desktop and Galaxy landscape verified the revised skyline from arrival. Verify ridge rendering and frame time on physical devices. Desktop Studio verified both directions on the cedar ramp and original stone stairs from Garden Lookout to Lantern Tower. The Galaxy A06 landscape simulator covered both ramp legs with scripted movement. Verify rail clearance and the Relay view using touch, gamepad and VR on target hardware. Walk the Saltwind approach, terrace and descent in both directions. Check both joins with the direct causeway after terrain generation and streaming. Walk the waterfront loop in both directions from the square, visit Mooring Rest, greet the Ropekeeper, test the swim return and take the Cinder road, then climb to Potters’ Yard and descend via the lower street. Walk both ramps at Frostglass, take the Mistline Vista loop in both directions and continue from its return to Skywalk Peaks. Follow the Frostglass road to Lantern Circuit and verify the upper market loop. Walk both directions through the Reedfall Gallery and its junction with the Cinder road. Cross the Frostglass bridge in both directions, inspect the lookout and try both meltwater bank exits. Follow the Promenade Garden signs, walk both ramps in both directions, and enter the seating spur. Walk the arrival canal lookout ramp, use and leave the bench, and verify the reverse map emblem. Walk Mistline Crossing in both directions, including the marked lanes from the Frostglass and Skywalk courtyards. Sit on all three Ring Balcony seats, observe the mat with the default camera, and leave for the Skybridge or Tideharbor ramp. Walk from Pond Terrace to Mistline Vista and under the Frostglass span on the direct road. Walk the revised terrace to the Skybridge with the default follow camera and read both directions at the junction. Check first spawn and respawn with the default Roblox camera, the three landmark titles, the direction post and the relocated map prompt. Compare with the authored Blender views. Check the overlook sightlines, rail clearance and map readability across supported device families. Open a city map in the plaza and at each town post. Use touch, keyboard and mouse, gamepad and VR to select and clear a route. Follow the Frostglass to Skywalk result via Mistline Crossing. Verify each input family on hardware and finish district activities. |
-| P4W.2 | Quest and activity framework | Prototype ready | Verify the current practice forms, Relay entrance and wayfinding, prompts, retries, timeouts and reconnect behavior. Add festival drills, market errands, clues and the complete mentor chapter. Durable duplicate protection is a production gate. |
+| P4W.2 | Quest and activity framework | Prototype ready | Verify the current practice forms, Relay entrance and wayfinding, prompts, retries, timeouts and reconnect behavior. Guide players from the Ring Steward to the planned first mentor activity that closes the 40 XP gap to Level 3. Add festival drills, market errands, clues and the complete mentor chapter. Durable duplicate protection is a production gate. |
 | P4W.3 | Streaming and server budgets | In progress | Measure terrain initialization, creek travel, rapid return, slow streaming, memory and frame time in Studio and on target low-end devices. Verify that proximity effects and prompts recover after streaming out. Missing objects cannot grant rewards. |
 | P4W.4 | Shared-world rules and recovery | In progress | Unsolicited attacks cannot damage players in safe areas. Verify two players can explore the same city across district boundaries, including Roblox friend joins, in published staging. Test full servers, recoverable transfers and unique profile ownership. |
 
@@ -150,7 +150,7 @@ Validate fun, pacing and saving with a small complete game.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P6.1 | Four complete fighters | Planned | All four are playable with progression transitions and no placeholder skill. |
-| P6.2 | Duel and brawl alpha | Planned | Full occupancy, disconnects and repeated matches produce correct results/rewards. |
+| P6.2 | Duel and brawl alpha | Planned | Queues and matches run through the Grand Dojo Ring. Full occupancy, disconnects and repeated matches produce correct results and rewards. |
 | P6.3 | Alpha playtests and measurement | Planned | Players find an activity, finish a quest, earn/display a trophy and return to an arena. Record findings; no invented retention data. |
 | P6.4 | Alpha exit review | Planned | No unresolved defect threatens data or makes the world/combat loop unusable. |
 
@@ -162,13 +162,22 @@ Scale the proven fighter, world, quest and collection pipelines to full v1.
 
 **Dependencies** P5, P6
 
-**Release gate** 24 fighters, three stages, six districts and arenas, 18 mentor quest steps, 12 activity variants, 18 secrets, 30 trophies and two repeatable world events pass content checks.
+**Release gate** 24 fighters, three stages, six districts, four combat rings, three original bosses, 18 mentor quest steps, 12 activity variants, 18 secrets, 30 trophies and two repeatable world events pass content checks.
+
+| Ring | District | Account unlock level | Resident bot | Planned combat |
+| --- | --- | ---: | --- | --- |
+| Grand Dojo Ring | Grand Dojo City | 1 | Juniper Tortoise | Bot Spar and the sole PvP queue and venue |
+| Cinder Terraces Ring | Cinder Terraces | 3 | Bracken Boar | Bot Spar only |
+| Cloud-Top Temple | Skywalk Peaks | 5 | Sablecrest Lynx | Bot Spar only |
+| Galleon Ring | Tideharbor Coast | 7 | Granite Rhino | Bot Spar only |
+
+Frostglass Gardens and Lantern Circuit remain activity districts. The v0.265 checkpoint includes Grand Dojo Bot Spar and the Galleon practice target. The unlock gates, satellite bot encounters and PvP queue and matches are planned. [Current checkpoint and XP path](IMPLEMENTATION.md#four-ring-progression-plan)
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P7.1 | Remaining twenty fighters | Planned | Counts and unlock data match approved rules; every fighter completes a match. |
-| P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | A new player can see the next milestone and reach Level 2 through a first official Lantern Relay clear. Confirm the live XP curve and move milestones before revising the 30-level GDD baseline. No evolution or mutation conceals hazards or creates a collision advantage. |
-| P7.3 | Six arenas and original bosses | In progress | Warnings remain visible at all quality tiers; every asset passes source/originality review. |
+| P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | A first eligible Bot Spar win and first official Lantern Relay award 140 XP together. Plan a first-time 40 XP Dojo Valley mentor activity, such as a local lantern timing drill, to reach 180 XP on one fighter. Verify Levels 5 and 7 are reachable through multiple PvE mentor, event and activity paths available before each gate. Confirm the production XP curve and move milestones. Keep hazards visible and collision fair across evolutions and mutations. |
+| P7.3 | Four combat rings and original bosses | In progress | Finish the four ring approaches and resident bot fights. Verify server-authoritative account unlocks when any owned fighter reaches the threshold. Test locked entries, switch to a lower-level fighter, reconnect, and confirm access remains after unlock. Show the selected fighter's recommended level as guidance. Verify the route signs, safe returns, visible warnings at all quality tiers and asset originality. |
 | P7.4 | Content balance and regression | Planned | Fix outliers and ensure content additions do not regress the alpha save/input contract. |
 | P7.5 | Six connected world districts | Planned | All six three-step chapters, twelve activity variants and eighteen secrets have original content, valid earning paths, usable routes and persistent progress. |
 | P7.6 | Complete trophies and world events | Planned | Every trophy has valid/invalid path evidence; events scale within measured occupancy, return regularly and preserve existing earned records. |
@@ -181,12 +190,12 @@ Complete advanced modes, matchmaking and clans.
 
 **Dependencies** P3, P6, P7
 
-**Release gate** All four modes, parties and social progression work through disconnects, teleports and recovery.
+**Release gate** 1v1 Duels, 2v2 Tag Team and eight-player Brawl share the Grand Dojo Ring queue and venue. Four-player Co-op Raids remain a separately staged PvE mode. All four modes, parties and social progression work through disconnects, teleports and recovery.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | Browser simulates casual/ranked search and acceptance; its practice path has three playable bot tiers. Staging must verify human pairing, connection and skill bounds, bot consent, teleport/requeue recovery, and that bot or mixed results never award Rank Points or competitive trophies. |
-| P8.2 | Tag-team and co-op raids | Planned | Full teams can win/lose/reconnect without reward duplication or a stuck match. Label each bot and confirm the roster and reward eligibility before play. |
+| P8.1 | Matchmaking, ranked rules and bots | Prototype ready | The browser simulates casual and ranked search and acceptance and has three playable bot tiers. Staging must verify the sole human queue and match venue at the Grand Dojo Ring, pairing and skill bounds, consent for bot practice and teleport or requeue recovery. Satellite rings offer local Bot Spar. Bot or mixed results never award Rank Points or competitive trophies. |
+| P8.2 | Tag Team and Co-op Raids | Planned | Verify full teams can win, lose and reconnect without duplicate rewards or a stuck match. Keep Tag Team at the Grand Dojo Ring and test Co-op Raids as separate PvE encounters. Label each bot and show the roster and reward eligibility before play. |
 | P8.3 | Parties and clans | Planned | Roblox join settings and full servers resolve safely. An invited party can regroup in a common city and return together after a match. Server authorization protects clan resources and room visits, and contributions commit once. |
 | P8.4 | Cross-server failure drills | Planned | Players recover to a valid state and authoritative profile ownership remains unique. |
 

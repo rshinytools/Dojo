@@ -4,7 +4,8 @@ Read [README.md](README.md), [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md), a
 
 ## Working rules
 
-- Preserve the Grand Dojo-centered, six-district open world and existing routes. Preserve the full design including 24 fighters, three forms, six arenas, four match modes, permanent trophies, and every supported Roblox device family including VR. Treat readiness for each device as a separate test.
+- Preserve the Grand Dojo-centered, six-district open world and existing routes. V1 has four combat rings, 24 fighters, three forms, four match modes, permanent trophies, and every supported Roblox device family including VR. Treat readiness for each device as a separate test.
+- Use the [approved ring plan](docs/IMPLEMENTATION.md#four-ring-progression-plan). Grand Dojo opens at Level 1 with Juniper and is the sole PvP venue for Duel, Tag Team and Brawl. Cinder Level 3 has Bracken, Cloud-Top Temple Level 5 has Sablecrest, and the Galleon Level 7 has Granite. The satellites are Bot Spar venues. Unlock permanently for the account when any fighter meets the threshold. Keep district activities and co-op boss raids separately accessible under their own rules.
 - Keep one Roblox Studio window. When delegating, assign independent files and give one agent control of Studio. Integrate and test the final built place.
 - Show matched Studio screenshots when changing art or UI. Label offline renders, browser previews, Studio simulation and hardware checks accurately.
 - Edit the Python builders, Luau runtime, and original art sources. Rebuild the generated place. Use [the source map](docs/IMPLEMENTATION.md#source-map) to find entry points.
