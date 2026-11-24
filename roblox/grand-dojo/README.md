@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.259, look between the **Trophy Hall** and **Fighting Ring** for the wide pine above **Reedfall**. The stepped planting is clearer from **Reedfall Overlook**. The existing gallery ramp climbs to **Cascade Lookout** and **Reedfall Crown**.
+
 In v0.258, look down from **Clay Lantern Lookout** for the curved coves and slate shelves. The sandy shoreline slopes into the harbor. You can swim between the cove and the existing channel, then walk onto the bank.
 
 In v0.257, follow the coastal road from **Tideharbor Coast** towards **Cinder Terraces**. The **Clay Lantern** signs mark a short ramp detour on the sea side of the road. Walk over the covered lookout for a view of the coast, then descend to the same road.

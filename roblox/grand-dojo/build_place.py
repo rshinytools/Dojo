@@ -3262,7 +3262,7 @@ def reedfall_cascade(parent,x,z,top,bottom,width,basin_reach):
                        width*.55, width*.83, height*.31, height*.22)
 
 
-reedfall_drops=((29.20,-43.65,47.85,22.17,10.60,12.8),
+reedfall_drops=((29.20,-43.65,43.72,22.17,10.60,12.8),
                 (32.20,-33.35,22.06,9.16,6.78,6.9),
                 (30.76,-26.74,9.04,.68,7.14,4.42))
 upper_x,upper_z,upper_top,_,upper_width,_=reedfall_drops[0]
@@ -3319,7 +3319,7 @@ build_reedfall_ledge_gardens(falls, item=item, prop=prop, part=part, triangle=tr
                              slate=SLATE, rock=ROCK, grass=GRASS_MAT, rock_variant=VALLEY_ROCK,
                              variant_field=MATERIAL_VARIANT_FIELD)
 build_reedfall_arrival_backdrop(falls, item=item, prop=prop, part=part, triangle=triangle,
-                               garden_prop=garden_prop, cedar_part=north_ridge_cedar_part,
+                               garden_prop=garden_prop, showcase_tree=showcase_tree,
                                slate=SLATE, rock=ROCK, grass=GRASS_MAT, rock_variant=VALLEY_ROCK,
                                variant_field=MATERIAL_VARIANT_FIELD)
 build_reedfall_arrival_terraces(falls, item=item, prop=prop, part=part, triangle=triangle,
