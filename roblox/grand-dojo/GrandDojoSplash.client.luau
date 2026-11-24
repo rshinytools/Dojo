@@ -363,9 +363,39 @@ local function framePlazaArrival()
             or facing:Dot(spawn.CFrame.LookVector) < math.cos(math.rad(1)) then
             return
         end
+        local viewport = camera.ViewportSize
+        local distance = (camera.CFrame.Position - camera.Focus.Position).Magnitude
+        local initialZoom = 12.5
+        if math.abs(distance - initialZoom) > .12 then
+            return
+        end
+        local wide = viewport.X >= viewport.Y * 1.65
+        local pitch = if wide then 6.3 else 8
         local right = facing:Cross(Vector3.yAxis)
-        local aim = facing + right * math.tan(math.rad(1.5)) - Vector3.yAxis * math.tan(math.rad(8))
+        local aim = facing + right * math.tan(math.rad(1.5)) - Vector3.yAxis * math.tan(math.rad(pitch))
         camera.CFrame = CFrame.lookAt(camera.CFrame.Position, camera.CFrame.Position + aim)
+
+        local arrivalZoom = 10.2
+        local maxZoom = player.CameraMaxZoomDistance
+        if not wide or player.CameraMinZoomDistance > arrivalZoom or maxZoom < initialZoom then
+            return
+        end
+
+        -- Let the native zoom controller settle at the new starting distance,
+        -- then restore the player's full zoom range before the splash lifts.
+        player.CameraMaxZoomDistance = arrivalZoom
+        local clampedZoom = player.CameraMaxZoomDistance
+        local restoreStep = "BeastDojoRestoreArrivalZoom"
+        local frames = 0
+        RunService:BindToRenderStep(restoreStep, Enum.RenderPriority.Camera.Value + 1, function()
+            frames += 1
+            if frames >= 2 or workspace.CurrentCamera ~= camera or player.Character ~= character then
+                RunService:UnbindFromRenderStep(restoreStep)
+                if player.CameraMaxZoomDistance == clampedZoom then
+                    player.CameraMaxZoomDistance = maxZoom
+                end
+            end
+        end)
     end)
 end
 
@@ -377,10 +407,12 @@ if not ok then
 end
 if reason == "ready" and failed == 0 then
     setProgress(1, "Entering Festival Plaza…")
-    framePlazaArrival()
 else
     status.Text = "Continuing into the city…"
     progress.Text = ""
+end
+if reason == "ready" then
+    framePlazaArrival()
 end
 
 if motionAllowed() then

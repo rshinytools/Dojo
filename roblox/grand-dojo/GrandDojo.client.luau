@@ -1071,8 +1071,8 @@ local function refreshViewport()
         local size = camera.ViewportSize
         if size.X > 1 and size.Y > 1 then
             local aspect = size.X / size.Y
-            -- A 90-degree vertical view at 4:3 keeps all three arrival titles in frame.
-            local fit = math.deg(2 * math.atan(4 / (3 * aspect)))
+            -- Keep the outer plaza titles readable with the closer landscape arrival.
+            local fit = math.deg(2 * math.atan(1.46 / aspect))
             camera.FieldOfView = if aspect < 1 then 70 else math.clamp(fit, 68, 90)
         end
     end
