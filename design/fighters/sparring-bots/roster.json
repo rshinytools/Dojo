@@ -1,0 +1,104 @@
+{
+  "title": "The Night of the Last Lantern",
+  "story": "A squall darkened the Lantern Relay just as the last runners were crossing the city. Juniper brought the stragglers to the red bridge. Granite helped them across. Bracken built a shelter for the flame, and Sablecrest carried it down from Wind Court. The four meet at the Dojo Ring each festival to pass on what they learned that night.",
+  "balance": "First-pass values for a 100 HP Reedguard in solo Bot Spar. The first three health and normal-hit values come from the roster draft. Sablecrest and the signature moves are new proposals for playtesting.",
+  "rules": "Give every damaging move a readable body cue, an optional sound cue and a recovery opening. Direct hits retain a 0.32-second parry window. Each signature can connect at most once per activation. Use abstract effects and avoid forced camera motion. The first eligible Bot Spar win grants 60 XP once per account across the roster.",
+  "bots": [
+    {
+      "id": "juniper",
+      "name": "Juniper Tortoise",
+      "title": "Keeper of the Red Bridge",
+      "home": "Dojo Valley · Festival Canal",
+      "difficulty": "Starter",
+      "health": 90,
+      "normal_hit": 18,
+      "style": "Patient defense",
+      "story": "Juniper used to race the Lantern Relay for medals. Then he finished first one year and realized his own partner was still out in the dark. He became the keeper who crosses the bridge last. During the squall, he marked the canal path with the last of his lanterns and walked each runner home. The copper edge on his jade shell is a thank-you from Bracken, who repaired it after the storm.",
+      "quote": "Easy. A lantern only looks steady after it stops swinging.",
+      "powers": [
+        {
+          "name": "Shell Set",
+          "effect": "Juniper plants his feet and lifts his shell rim. A jade ring marks 0.8 seconds of bracing. Incoming strikes deal half damage during the brace.",
+          "counter": "Wait for him to lower his shell, then strike. The brace ends before he attacks."
+        },
+        {
+          "name": "Stillwater Palm",
+          "effect": "A widening jade ripple signals a single short-range palm strike for 22 HP after a 0.95-second windup.",
+          "counter": "Guard or time a parry as his palm comes forward. Attack during the reset."
+        }
+      ]
+    },
+    {
+      "id": "bracken",
+      "name": "Bracken Boar",
+      "title": "The Kiln Yard Bruiser",
+      "home": "Cinder Terraces · Potters’ Yard",
+      "difficulty": "Challenger",
+      "health": 110,
+      "normal_hit": 22,
+      "style": "Forward pressure",
+      "story": "Bracken was the fastest kiln runner at Potters’ Yard, and the first to brag about it. He once rushed a festival batch and cracked every lantern in it. During the squall he spent the night fitting clay shutters around the last flame, one piece at a time. He still loves to charge into a challenge. The fired plates on his armor remind him to finish it properly.",
+      "quote": "I know how to wait. I just like seeing if you do.",
+      "powers": [
+        {
+          "name": "Bellows Step",
+          "effect": "A short stomping approach with an ember-colored footprint. It closes a small gap and deals zero damage.",
+          "counter": "Take a small step back or around him. Save Guard for the following strike."
+        },
+        {
+          "name": "Kiln Rush",
+          "effect": "Bracken scrapes a hoof and lowers a shoulder. An amber lane holds for 0.90 seconds before one straight charge for 28 HP.",
+          "counter": "Step out of the lane. A missed rush leaves him open while he finds his feet."
+        }
+      ]
+    },
+    {
+      "id": "granite",
+      "name": "Granite Rhino",
+      "title": "The Breakwater Builder",
+      "home": "Tideharbor Coast · Tidewatch Walk",
+      "difficulty": "Expert",
+      "health": 145,
+      "normal_hit": 29,
+      "style": "Space control",
+      "story": "Granite built the seawall at Tideharbor and spent years insisting he could move every stone himself. When the red bridge shook in the storm, he braced the railing while the last runners crossed. He could hold his corner. It took the others to get everyone home. He wears a single indigo shoulder plate shaped like the harbor supports he used to build alone.",
+      "quote": "Set your feet. Then decide where you want to go.",
+      "powers": [
+        {
+          "name": "Harbor Sweep",
+          "effect": "He draws back the armored shoulder for 1.0 second, tracing a broad fan in front of him. The sweeping strike deals 29 HP.",
+          "counter": "Move around the fan or parry the committed swing, then close in."
+        },
+        {
+          "name": "Breakwater Stamp",
+          "effect": "Granite raises a foot and marks a wide slate-colored circle. After 1.2 seconds, a single ground pulse deals 34 HP inside its boundary.",
+          "counter": "Walk outside the circle, then step back in during his long recovery."
+        }
+      ]
+    },
+    {
+      "id": "sablecrest",
+      "name": "Sablecrest Lynx",
+      "title": "The Wind Court Courier",
+      "home": "Skywalk Peaks · Wind Court",
+      "difficulty": "Footwork specialist",
+      "health": 78,
+      "normal_hit": 16,
+      "style": "Feints and timing",
+      "story": "Sablecrest knew every shortcut out of Wind Court and loved arriving before anyone heard the bell. On the night of the squall, clouds swallowed the trail markers. She stopped to listen to the chimes and followed their familiar rhythm home, carrying the last lit lantern under her scarf. She still wins plenty of races. In the ring, she wants to see who can tell a quick movement from the moment that matters.",
+      "quote": "Watch my paws. The first beat is only the opening.",
+      "powers": [
+        {
+          "name": "Chime Crossstep",
+          "effect": "A quick lateral feint leaves a pale wind trail and deals zero damage.",
+          "counter": "Hold the center and track the real fighter. Wait for the planted-paw cue."
+        },
+        {
+          "name": "Wind Court Return",
+          "effect": "Sablecrest plants a paw. A narrow line and a two-note chime signal one dash strike for 24 HP after a 0.72-second committed windup.",
+          "counter": "Step off the line or parry the actual dash. Catch her while she resets."
+        }
+      ]
+    }
+  ]
+}

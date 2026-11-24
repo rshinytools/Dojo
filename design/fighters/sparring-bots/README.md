@@ -11,6 +11,10 @@ Four original Blender models for Dojo Ring sparring. The lineup shows the same a
 
 [Lineup render](assets/Dojo_Bot_Lineup.jpg) · [Editable Blender lineup](assets/Dojo_Bot_Lineup.blend)
 
+## Bot stories and combat design
+
+The [roster brief](roster.json) includes the four backstories, their shared Lantern Relay story, and proposed health, damage, powers and counters. The current 100 HP Reedguard spar provides the balance reference. The proposed moves need playtesting.
+
 ## Roblox handoff
 
 Each GLB contains six or seven rigid mesh groups with separate body-part pivots, soles at ground level, Y up, and forward −Z. Its single embedded 1024 × 1024 color map carries the painted colors and baked contact shading. The matching `_bindings.json` lists the pivots, bounds and triangle counts. The files are sized around the 4.92-stud Reedguard shell. Use the Stud scale unit when checking the import preview. [Roblox Blender guidance](https://create.roblox.com/docs/art/blender) · [Studio Importer](https://create.roblox.com/docs/studio/importer)

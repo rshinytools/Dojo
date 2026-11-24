@@ -29,7 +29,7 @@ The public Trophy Hall is a city landmark and the planned entrance to each playe
 
 ## Source map
 
-The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. Blender reimport verified the exports. Studio rigging, animation and gameplay integration remain open.
+The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport verified the exports. Studio rigging, animation, combat tuning and gameplay integration remain open.
 
 | Work area | First files to inspect |
 | --- | --- |
