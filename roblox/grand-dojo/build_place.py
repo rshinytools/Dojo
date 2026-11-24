@@ -15,6 +15,7 @@ from art.promenade_layout import (ARRIVAL_LAMPS, INLET_EDGE, INLET_NORTH, INLET_
                                    ring_forecourt_pigment, stone_pigment, tint_stone)
 from art.garden_tree_layout import garden_knuckles, garden_tree, rotate_garden_point
 from art.north_ridge_relief import north_ridge_facets
+from clay_lantern_shore import build_clay_lantern_shore
 from clay_lantern_walk import (build_clay_lantern_walk,
                                road_coordinates as clay_lantern_road_coordinates)
 from art.valley_ridge_layout import VALLEY_RIDGES
@@ -6287,6 +6288,10 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
                                   swept_roof=swept_roof,festival_lantern=festival_lantern,
                                   slate=SLATE,wood=WOOD_PLANK,metal=METAL,neon=NEON,
                                   cedar_variant=LANDMARK_CEDAR,variant_field=MATERIAL_VARIANT_FIELD)
+        build_clay_lantern_shore(town,item=item,prop=prop,part=part,vector=vector,asset=asset,
+                                 garden_prop=garden_prop,shoreline_slate=shoreline_slate,
+                                 rock=ROCK,cedar=WOOD_PLANK,grass=GRASS_MAT,
+                                 bank_variant=BANK_STONE,variant_field=MATERIAL_VARIANT_FIELD)
         offshore=build_tideharbor_offshore(town,item=item,prop=prop,part=part,triangle=triangle,
                                           garden_shelf=garden_shelf,garden_prop=garden_prop,
                                           sign=sign,beam=beam,slate=SLATE,grass=GRASS_MAT,wood=WOOD_PLANK)

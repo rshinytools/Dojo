@@ -111,6 +111,66 @@ if offshore then
     end
 end
 
+local tideShore = harbor:FindFirstChild("Clay Lantern tide shore")
+if tideShore then
+    local stations = HttpService:JSONDecode(tideShore["Coastline stations"].Value)
+    local resolution = 4
+    local west, east = 208, 272
+    local north, south = stations[1][1], stations[#stations][1]
+    local bottom = -12
+    local bounds = Region3.new(Vector3.new(west, bottom, north), Vector3.new(east, 8, south))
+    local data = terrain:ReadVoxelChannels(bounds, resolution,
+        {"SolidMaterial", "SolidOccupancy", "LiquidOccupancy"})
+    local seaLevel = seaCenter.Y + 2.4
+    local segment = 1
+
+    for zi = 1, data.Size.Z do
+        local z = north + (zi - .5) * resolution
+        while z > stations[segment + 1][1] do
+            segment += 1
+        end
+        local a, b = stations[segment], stations[segment + 1]
+        local t = (z - a[1]) / (b[1] - a[1])
+        local shoreX = a[2] + (b[2] - a[2]) * t
+        local bluff = a[3] + (b[3] - a[3]) * t
+        local lengthBlend = math.min(1, (z - north) / 14, (south - z) / 14)
+
+        for xi = 1, data.Size.X do
+            local x = west + (xi - .5) * resolution
+            local blend = lengthBlend * math.min(1, (x - west) / 16, (east - x) / 12)
+            local inland = shoreX - x
+            local seaward = math.clamp((x - 212) / 24, 0, 1)
+            local undulation = math.cos((x - west) * .23 + (z - north) * .18) * .24
+            local crest = math.max(.38, bluff * (.33 + .43 * seaward) + undulation)
+            local height = seaLevel + math.clamp(inland * .32, -5.35, crest)
+            local surface = if inland <= 4 then Enum.Material.Sand
+                elseif bluff > 2.9 and inland < 13 then Enum.Material.Rock
+                else Enum.Material.Grass
+
+            for yi = 1, data.Size.Y do
+                local floor = bottom + (yi - 1) * resolution
+                local oldSolid = data.SolidOccupancy[xi][yi][zi]
+                local oldLiquid = data.LiquidOccupancy[xi][yi][zi]
+                local solid = math.clamp((height - floor) / resolution, 0, 1)
+                local liquid = math.clamp((seaLevel - floor) / resolution - solid, 0, 1 - solid)
+                local mergedSolid = oldSolid + (solid - oldSolid) * blend
+                data.SolidOccupancy[xi][yi][zi] = mergedSolid
+                data.LiquidOccupancy[xi][yi][zi] = math.min(1 - mergedSolid, oldLiquid + (liquid - oldLiquid) * blend)
+                if mergedSolid < .004 then
+                    data.SolidMaterial[xi][yi][zi] = Enum.Material.Air
+                elseif blend >= .5 or oldSolid < .004 then
+                    data.SolidMaterial[xi][yi][zi] = if height - floor > 7 then Enum.Material.Rock else surface
+                end
+            end
+        end
+    end
+    terrain:WriteVoxelChannels(bounds, resolution, {
+        SolidMaterial = data.SolidMaterial,
+        SolidOccupancy = data.SolidOccupancy,
+        LiquidOccupancy = data.LiquidOccupancy,
+    })
+end
+
 local gates = relay:WaitForChild("Checkpoints"):GetChildren()
 table.sort(gates, function(a, b)
     return tonumber(a.Name) < tonumber(b.Name)
