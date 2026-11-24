@@ -3312,21 +3312,57 @@ build_reedfall_west_spill(falls, item=item, prop=prop, part=part, triangle=trian
                           vector=vector, asset=asset, slate=SLATE, grass=GRASS_MAT, glass=GLASS,
                           rock=ROCK, rock_variant=VALLEY_ROCK, variant_field=MATERIAL_VARIANT_FIELD)
 
-# A narrow side spill crosses the green ledge in front of the eastern rock shoulder.
-# It uses static sheets while the three main curtains retain their scrolling beams.
+# Two smaller drops step forward along the east shoulder. Their shallow pools
+# trace the path from the upper notch to the lower basin in the arrival view.
 side_spill=item(falls,"Model","Reedfall side spill")
-spill_bands=((35.9,40.44,-42.45,1.38),(36.02,40.23,-41.83,1.49),
-             (36.10,38.70,-41.52,1.37),(36.01,36.21,-41.29,1.26),
-             (35.73,33.57,-40.92,1.58))
-for start,end in zip(spill_bands,spill_bands[1:]):
-    for lo,hi,tint in ((-.50,-.09,"64AFC0"),(-.09,.23,"A6DDE4"),(.23,.50,"75C0CB")):
-        a,b=((start[0]+offset*start[3],start[1],start[2]) for offset in (lo,hi))
-        c,d=((end[0]+offset*end[3],end[1],end[2]) for offset in (lo,hi))
-        triangle(side_spill,a,c,d,tint,name="Reedfall water sheet",thickness=.058,shadow=False,transparency=.19)
-        triangle(side_spill,a,d,b,tint,name="Reedfall water sheet",thickness=.058,shadow=False,transparency=.19)
-spill_pocket=part(side_spill,"Waterfall plunge shelf",(35.73,33.572,-41.08),(1.69,.07,.85),"91C9D2",
-                  shape=0,material=GLASS,transparency=.22,collide=False)
-prop(spill_pocket,"bool","CastShadow",False)
+side_falls=(
+    ((37.67,40.43,-42.14,2.65), (37.81,40.21,-41.10,3.22),
+     (38.02,38.99,-40.53,3.55), (38.24,35.61,-40.37,3.28),
+     (38.45,33.77,-39.80,3.92)),
+    ((40.24,33.56,-36.93,3.55), (40.38,32.91,-36.19,4.08),
+     (40.57,29.29,-35.53,3.93), (40.84,24.88,-35.22,4.16),
+     (41.06,22.10,-34.81,4.63)),
+)
+side_sections=((-0.50,0,-.11),(-.16,.035,.20),(.13,.054,.24),(.50,-.02,-.06))
+for bands in side_falls:
+    contours=[[(x+width*u,y+rise,z+reach) for u,rise,reach in side_sections]
+              for x,y,z,width in bands]
+    for upper,lower in zip(contours,contours[1:]):
+        for index,(tint,opacity) in enumerate((("69ABC8",.20),("B0E2ED",.13),("7FBFD3",.17))):
+            a,b=upper[index:index+2]
+            c,d=lower[index:index+2]
+            for vertices in ((a,c,d),(a,d,b)):
+                triangle(side_spill,*vertices,tint,name="Reedfall side curtain",thickness=.052,
+                         shadow=False,transparency=opacity)
+    # A pale roll-over and broken foam line emphasize the horizontal pauses.
+    for index in (1,-1):
+        x,y,z,width=bands[index]
+        crest=part(side_spill,"Reedfall side foam",(x+.05,y+.034,z+.28),
+                   (width*.72,.062,.32 if index==1 else .65),"C6E8EB",
+                   shape=0,material=GLASS,transparency=.19,collide=False)
+        prop(crest,"bool","CastShadow",False)
+
+for x,y,z,width,depth in ((37.67,40.42,-42.61,3.68,1.93),
+                         (38.52,33.71,-40.21,5.1,4.83),
+                         (39.97,33.55,-37.87,5.8,3.16),
+                         (40.49,22.01,-34.97,7.9,3.72)):
+    first=len(side_spill)
+    garden_shelf(side_spill,x,y-.21,z-.51,width,depth,1.08,"988591",SLATE,collide=False)
+    for stone in side_spill[first:]:
+        prop(stone,"bool","CastShadow",False)
+    pocket=part(side_spill,"Reedfall side plunge pool",(x,y,z),(width*.80,.081,depth*.90),
+                "69AABA",shape=0,material=GLASS,transparency=.16,collide=False)
+    prop(pocket,"bool","CastShadow",False)
+
+for x,y,z,scale,yaw in ((40.47,33.83,-40.38,.26,29),(42.60,33.48,-37.91,.32,-9),
+                        (43.34,22.13,-34.10,.35,44),(37.30,22.02,-34.83,.22,-21)):
+    first=len(side_spill)
+    garden_prop(side_spill,"bankRock",(x,y-.35,z),scale,yaw,"998B91")
+    garden_prop(side_spill,"meadowCover",(x+.17,y-.09,z+.09),scale*.64,yaw+24,"829F60")
+    for detail in side_spill[first:]:
+        shadow=detail.find("Properties/bool[@name='CastShadow']")
+        if shadow is not None:
+            shadow.text="false"
 
 air_effect(falls,"Reedfall upper lip foam",(31.76,22.26,-33.77),(4.6,.08,.73),16808075391,
            tint="DDEFF0",rate=3,lifetime=(.67,1.10),speed=(.36,.74),size=(.74,1.88),

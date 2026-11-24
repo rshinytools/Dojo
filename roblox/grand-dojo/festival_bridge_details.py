@@ -16,10 +16,10 @@ def build_festival_bridge_details(parent, *, samples, z, canal_x, canal_width, i
 
     def fascia_bottom(y):
         # A narrower section at the crest exposes the opening below the span.
-        return fascia_top(y) - (.880 - .265 * (y - landing) / rise)
+        return fascia_top(y) - (.880 - .340 * (y - landing) / rise)
 
     segments = tuple(zip(samples, samples[1:]))
-    cedar_tints = ("923F2F", "9B4632", "983F31", "9A4330")
+    cedar_tints = ("AE4934", "B65038", "AC4936", "B34D36")
     for side in (-1, 1):
         face_z = z + side * 3.695
         for index, ((ax, ay), (bx, by)) in enumerate(segments):
@@ -32,16 +32,16 @@ def build_festival_bridge_details(parent, *, samples, z, canal_x, canal_width, i
                 triangle(finish, a, b, c, tint, name="Deep lacquered bridge fascia",
                          thickness=.31, material=wood, shadow=False)
 
-            # A slim warm rail edge and a darker laminated return give the
-            # fascia thickness when seen at water level or from either bank.
+            # The continuous warm reveal makes the deck arc readable from
+            # Festival Plaza. The laminated return stays dark over the water.
             span = hypot(bx - ax, by - ay)
             pitch = degrees(atan2(by - ay, bx - ax))
-            part(finish, "Muted tan bridge edge trim", ((ax + bx) / 2,
+            part(finish, "Amber bridge fascia reveal", ((ax + bx) / 2,
                  (top_a[1] + top_b[1]) / 2 - .152, face_z + side * .155),
-                 (span + .04, .080, .096), "C8996A", roll=pitch, material=wood, collide=False)
+                 (span + .04, .133, .104), "D6A36B", roll=pitch, material=wood, collide=False)
             beam(finish, "Dark cedar lower arch lamination",
                  (ax, low_a[1] + .069, face_z + side * .09),
-                 (bx, low_b[1] + .069, face_z + side * .09), .188, "603431", collide=False)
+                 (bx, low_b[1] + .069, face_z + side * .09), .158, "66332C", collide=False)
 
     footings = item(finish, "Model", "Stepped bridge springing stones")
     for bank in (-1, 1):

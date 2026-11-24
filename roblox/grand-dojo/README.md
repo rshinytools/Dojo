@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.253, look above the **Fighting Ring** for the sunset between the eastern ridges, then follow the canal to the **red bridge**. Walk behind the ring to **Reedfall Overlook** for the new side cascades. The existing climb continues through **Cascade Lookout** to **Reedfall Crown**.
+
 In v0.252, let the splash clear without moving the camera. Reedguard starts closer on wide landscape displays, with the **Lantern Relay**, **Trophy Hall** and **Fighting Ring** titles visible. The normal orbit and zoom controls are available after loading.
 
 In v0.251, cross the **Tideharbor Coast** gate and follow the **Harbor Square** sign. A cargo hoist stands between Harbor Receiving and the pier approach. At **Cinder Terraces**, walk through **Kiln Hall** to see the pottery and glaze display. Both walks passed on desktop and in the landscape phone simulator.
