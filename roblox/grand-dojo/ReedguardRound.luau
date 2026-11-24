@@ -118,9 +118,23 @@ local residentByOpener = {
 local combo = {jab = "cross", cross = "body"}
 local PARRY_COUNTER_TIME = 2.4
 
-function Round.new(now, bot, fighter, kitId, botId)
+local function newCombatant(now, fighter, kitId)
     local kit = kits[kitId or "reedguard"]
     assert(kit, "Unknown combat kit")
+    local startsAt = now + Round.INTRO
+    return {
+        kit = kit,
+        introAt = now, startsAt = startsAt, endsAt = startsAt + Round.DURATION,
+        playerHealth = fighter.health, playerMaxHealth = fighter.health,
+        playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
+        guardFrom = 0, guardUntil = 0, signatureUntil = 0,
+        nextSignature = if kit.signatureCooldown then startsAt else nil,
+        nextSecondary = if kit.secondaryCooldown then startsAt else nil,
+    }
+end
+
+function Round.new(now, bot, fighter, kitId, botId)
+    local round = newCombatant(now, fighter, kitId)
     if not botId then
         -- Earlier callers supplied the resident's attack profile without its ID.
         local opener = bot.attacks and bot.attacks[1]
@@ -128,18 +142,11 @@ function Round.new(now, bot, fighter, kitId, botId)
     end
     local resident = residents[botId]
     assert(resident, "Unknown sparring resident")
-    local startsAt = now + Round.INTRO
-    return {
-        kit = kit, resident = resident,
-        introAt = now, startsAt = startsAt, endsAt = startsAt + Round.DURATION,
-        playerHealth = fighter.health, playerMaxHealth = fighter.health,
-        botHealth = bot.health, botMaxHealth = bot.health,
-        botPhase = "ready", botAt = startsAt + .58, attackIndex = 0, attacks = bot.attacks,
-        playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
-        guardFrom = 0, guardUntil = 0, signatureUntil = 0, notices = {},
-        nextSignature = if kit.signatureCooldown then startsAt else nil,
-        nextSecondary = if kit.secondaryCooldown then startsAt else nil,
-    }
+    round.resident = resident
+    round.botHealth, round.botMaxHealth = bot.health, bot.health
+    round.botPhase, round.botAt, round.attackIndex = "ready", round.startsAt + .58, 0
+    round.attacks, round.notices = bot.attacks, {}
+    return round
 end
 
 function Round.parryOpensAt(round)
@@ -228,7 +235,11 @@ function Round.act(round, action, now, direction)
     end
 end
 
-local function landContact(round, at, fields)
+local function resolveBotContact(round, at, fields, hit)
+    if not hit then
+        report(round, "miss", at, fields)
+        return 0
+    end
     local brace = round.botPhase == "setup" and round.attack.brace
     local counter = round.botPhase == "recovery" and round.recoveryKind == "parried"
     local damage = if brace then math.ceil(fields.damage / 2) else fields.damage
@@ -241,7 +252,8 @@ local function landContact(round, at, fields)
     return damage
 end
 
-local function contact(round, clip, at, check)
+local function contact(round, at, check, resolve, publishCast)
+    local clip = round.clip
     local attacks = round.kit.clips[clip.action]
     local move = attacks[clip.nextContact]
     local index = clip.nextContact
@@ -249,26 +261,29 @@ local function contact(round, clip, at, check)
     if move.singleHit and clip.connected then
         return
     end
-    local hit, point, resolvedZone
-    if round.kit == kits.salamander then
-        hit, point, resolvedZone = check(clip.action, move, at, index, clip.startedAt)
+    local hit, point, resolvedZone, facing
+    if publishCast or round.kit == kits.salamander then
+        hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
     end
-    if not hit then
-        if not move.singleHit or index == #attacks then
-            report(round, "miss", at, {attack = clip.action, index = index, point = point})
-        end
+    if not hit and move.singleHit and index ~= #attacks then
         return
     end
-    if move.singleHit then
+    if hit and move.singleHit then
         clip.connected = true
     end
-    landContact(round, at,
-        {attack = clip.action, index = index, point = point, zone = resolvedZone or move.zone, damage = move.damage})
+    local fields = {attack = clip.action, index = index, point = point,
+        castStartedAt = if publishCast then clip.startedAt else nil}
+    if hit then
+        fields.zone, fields.damage = resolvedZone or move.zone, move.damage
+    end
+    resolve(round, at, fields, hit, facing, move)
 end
 
-local function advanceTrail(round, trail, move, at, check)
+local function advanceTrail(round, at, check, resolve)
+    local trail = round.trail
+    local move = magmaTimeline[trail.nextEvent]
     trail.nextEvent += 1
     if trail.nextEvent > #magmaTimeline then
         round.trail = nil
@@ -283,17 +298,56 @@ local function advanceTrail(round, trail, move, at, check)
     if not trail.planted[index] or trail.remainingDamage <= 0 then
         return
     end
-    local hit, point, resolvedZone = check("magmaTrail", move, at, index, trail.startedAt)
+    local hit, point, resolvedZone, facing = check("magmaTrail", move, at, index, trail.startedAt)
     if not point then
         return
     end
     local fields = {attack = "magmaTrail", index = index, point = point, castStartedAt = trail.startedAt}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, math.min(move.damage, trail.remainingDamage)
-        trail.remainingDamage -= landContact(round, at, fields)
-    else
-        report(round, "miss", at, fields)
     end
+    trail.remainingDamage -= resolve(round, at, fields, hit, facing, move)
+end
+
+local function nextContacts(round)
+    local clip = round.clip
+    local attacks = clip and round.kit.clips[clip.action]
+    local hit = attacks and attacks[clip.nextContact]
+    local trail = round.trail
+    local markOrBurst = trail and magmaTimeline[trail.nextEvent]
+    return if hit then clip.startedAt + hit.at else math.huge,
+        if markOrBurst then trail.startedAt + markOrBurst.at else math.huge,
+        if clip then clip.endsAt else math.huge
+end
+
+local function completeClip(round, at)
+    round.clip = nil
+    if round.bufferedLight then
+        round.bufferedLight = false
+        nextLight(round, at)
+    end
+end
+
+local function nextThreat(round)
+    local earliest, action = math.huge, nil
+    local clip = round.clip
+    local attacks = clip and round.kit.clips[clip.action]
+    local strike = attacks and attacks[clip.nextContact]
+    if strike and not (strike.singleHit and clip.connected) then
+        earliest, action = clip.startedAt + strike.at, clip.action
+    end
+    local trail = round.trail
+    if trail and trail.remainingDamage > 0 then
+        for index = trail.nextEvent, #magmaTimeline do
+            local move = magmaTimeline[index]
+            local at = trail.startedAt + move.at
+            if not move.marker and trail.planted[move.index] and at < earliest then
+                earliest, action = at, "magmaTrail"
+                break
+            end
+        end
+    end
+    return earliest, action
 end
 
 local function advanceBot(round, at, distance, check)
@@ -352,27 +406,16 @@ function Round.step(round, now, distance, checkPlayer, checkBot)
         round.botAt = now + .1
     end
     while not round.result do
-        local clip = round.clip
-        local attacks = clip and round.kit.clips[clip.action]
-        local hit = attacks and attacks[clip.nextContact]
-        local contactAt = if hit then clip.startedAt + hit.at else math.huge
-        local trail = round.trail
-        local markOrBurst = trail and magmaTimeline[trail.nextEvent]
-        local trailAt = if markOrBurst then trail.startedAt + markOrBurst.at else math.huge
-        local completeAt = clip and clip.endsAt or math.huge
+        local contactAt, trailAt, completeAt = nextContacts(round)
         local eventAt = math.min(contactAt, trailAt, completeAt, round.botAt)
         if eventAt > limit then
             break
         elseif eventAt == contactAt then
-            contact(round, clip, eventAt, checkPlayer)
+            contact(round, eventAt, checkPlayer, resolveBotContact)
         elseif eventAt == trailAt then
-            advanceTrail(round, trail, markOrBurst, eventAt, checkPlayer)
+            advanceTrail(round, eventAt, checkPlayer, resolveBotContact)
         elseif eventAt == completeAt then
-            round.clip = nil
-            if round.bufferedLight then
-                round.bufferedLight = false
-                nextLight(round, eventAt)
-            end
+            completeClip(round, eventAt)
         else
             advanceBot(round, eventAt, distance, checkBot)
         end
@@ -382,5 +425,16 @@ function Round.step(round, now, distance, checkPlayer, checkBot)
         round.result = if lead > 0 then "win" elseif lead < 0 then "loss" else "draw"
     end
 end
+
+Round.Combatant = table.freeze({
+    new = newCombatant,
+    play = play,
+    complete = completeClip,
+    nextContacts = nextContacts,
+    nextThreat = nextThreat,
+    contact = contact,
+    advanceTrail = advanceTrail,
+    PARRY_COUNTER_TIME = PARRY_COUNTER_TIME,
+})
 
 return Round

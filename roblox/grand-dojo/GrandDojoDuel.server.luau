@@ -3,21 +3,37 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
+local Round = require(script.Parent:WaitForChild("DuelCombatRound"))
+local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local remote = ReplicatedStorage:WaitForChild("GrandDojoDuel")
+local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local court = workspace:WaitForChild("Grand Dojo City"):WaitForChild("Fighting Ring"):WaitForChild("Duel Court")
 local bounds = court:WaitForChild("Duel Bounds")
 local entry = court:WaitForChild("Duel Queue")
 local prompt = entry:WaitForChild("JoinDuelPrompt")
 local spawns = {court:WaitForChild("First Spawn"), court:WaitForChild("Second Spawn")}
 local returns = {court:WaitForChild("First Return"), court:WaitForChild("Second Return")}
+local floor = bounds.Position.Y - bounds.Size.Y * .5
 
 local QUEUE_SECONDS = 55
-local ROUND_SECONDS = 60
-local STRIKE_WINDUP = .27
-local STRIKE_RANGE = 6.25
-local GUARD_TIME = .64
-local PARRY_TIME = .24
+local OUTSIDE_GRACE = 1.65
+
+local actions = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true,
+    dodge = true, signature = true}
+local tells = {
+    jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike",
+    uppercut = "Uppercut", reedstep = "Reedstep Rising", bellySlide = "Belly-Slide Blitz",
+    ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
+    emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
+}
+local resultMessages = {
+    win = "You won the duel.",
+    loss = "Your opponent won the duel.",
+    draw = "The duel ended in a draw.",
+    left = "You left the duel.",
+    outside = "You left the mat.",
+}
 
 local queued, active
 
@@ -38,126 +54,129 @@ local function eligible(player, extraRange)
     local root = Match.root(player)
     local id = player:GetAttribute("SelectedStarterFighter")
     return player.Parent == Players and prompt.Enabled and Match.available(player)
-        and fighters[id] ~= nil and Match.near(root, entry, prompt.MaxActivationDistance + extraRange) and root
+        and Match.FighterKits[id] ~= nil and fighters[id] ~= nil
+        and Match.near(root, entry, prompt.MaxActivationDistance + extraRange) and root
 end
 
-local function combatant(player, root)
-    local data = fighters[player:GetAttribute("SelectedStarterFighter")]
-    return {player = player, root = root, arms = Match.armMotors(player.Character),
-        health = data.health, maxHealth = data.health, damage = data.normalHit,
-        nextStrike = 0, nextGuard = 0, guardFrom = 0, guardUntil = 0,
-        nextInput = 0, feedbackUntil = 0}
+local function actor(player, root)
+    local id = player:GetAttribute("SelectedStarterFighter")
+    return {player = player, root = root, kit = Match.FighterKits[id], fighter = fighters[id], nextInput = 0, feedbackUntil = 0}
 end
 
 local function publish(duel, kind, now)
-    for i, side in duel.sides do
-        local other = duel.sides[3 - i]
-        remote:FireClient(side.player, kind, {
-            playerHealth = side.health, playerMaxHealth = side.maxHealth,
-            opponentHealth = other.health, opponentMaxHealth = other.maxHealth,
-            opponentName = other.player.DisplayName, startsAt = duel.startsAt, endsAt = duel.endsAt,
-            phase = if other.attackAt then "windup" else "ready", attackAt = other.attackAt,
-            feedback = if now < side.feedbackUntil then side.feedback else nil,
+    local round = duel.round
+    for i, side in round.sides do
+        local challenger, opponent = duel.actors[i], duel.actors[3 - i]
+        if challenger.player.Parent ~= Players then
+            continue
+        end
+        local rival = round.sides[3 - i]
+        local opensAt, attackAt, attack = Round.parryOpensAt(round, i)
+        remote:FireClient(challenger.player, kind, {
+            playerHealth = side.playerHealth, playerMaxHealth = side.playerMaxHealth,
+            opponentHealth = rival.playerHealth, opponentMaxHealth = rival.playerMaxHealth,
+            opponentName = opponent.player.DisplayName, opponentUserId = opponent.player.UserId, sideIndex = i,
+            kitId = challenger.kit, opponentKitId = opponent.kit,
+            introAt = round.introAt, startsAt = round.startsAt, endsAt = round.endsAt,
+            phase = if round.result then "outro" elseif attackAt then "windup" else "ready",
+            attackAt = attackAt, parryOpensAt = opensAt, tell = tells[attack],
+            nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
+            feedback = if now < challenger.feedbackUntil then challenger.feedback else nil,
         })
     end
 end
 
 local function begin(first, firstRoot, second, secondRoot, now)
     clearQueue()
-    local duel = {startsAt = now + 3, endsAt = now + 3 + ROUND_SECONDS,
-        sides = {combatant(first, firstRoot), combatant(second, secondRoot)}, lastUpdate = now}
+    local a, b = actor(first, firstRoot), actor(second, secondRoot)
+    local round = Round.new(now, a.fighter, a.kit, b.fighter, b.kit)
+    local telegraph = Instance.new("Folder")
+    telegraph.Name = "Duel attack tells"
+    telegraph.Parent = court
+    local duel = {round = round, actors = {a, b}, bounds = bounds, floor = floor, telegraph = telegraph, lastUpdate = now}
     active = duel
-    for i, side in duel.sides do
+    for i, side in duel.actors do
         side.player:SetAttribute("DuelActive", true)
         side.player:SetAttribute("SparringActive", true)
         side.player:SetAttribute("ActiveDojoRing", "grand-dojo")
         Match.move(side.root, spawns[i].CFrame)
     end
+    Motion.open(duel)
+    Motion.render(duel, now)
     publish(duel, "begin", now)
 end
 
-local function stop(duel, results, text, leaving)
+local function stop(duel, result, departing, walkover)
     active = nil
-    for i, side in duel.sides do
-        Match.clearPose(side.arms)
+    Motion.close(duel)
+    duel.telegraph:Destroy()
+    for i, side in duel.actors do
         local player = side.player
-        if player ~= leaving and player.Parent == Players then
+        if player ~= departing and player.Parent == Players then
             player:SetAttribute("DuelActive", nil)
             player:SetAttribute("SparringActive", nil)
             player:SetAttribute("ActiveDojoRing", nil)
             if Match.root(player) == side.root then
                 Match.move(side.root, returns[i].CFrame)
             end
-            remote:FireClient(player, "result", {result = results[i], message = text[i],
-                opponentName = duel.sides[3 - i].player.DisplayName})
+            local message = if walkover and result[i] == "win" then "Your opponent left the duel." else resultMessages[result[i]]
+            remote:FireClient(player, "result", {result = result[i], message = message,
+                opponentName = duel.actors[3 - i].player.DisplayName})
         end
     end
 end
 
-local function forfeit(duel, index, reason, leaving)
-    local outcomes = {"win", "win"}
-    outcomes[index] = if reason == "outside" then "outside" else "left"
-    local messages = {"Your opponent left the duel.", "Your opponent left the duel."}
-    messages[index] = if reason == "outside" then "You left the mat." else "You left the duel."
-    stop(duel, outcomes, messages, leaving)
-end
-
-local function byHealth(duel, first, second)
-    if first.health * second.maxHealth == second.health * first.maxHealth then
-        stop(duel, {"draw", "draw"}, {"The duel ended in a draw.", "The duel ended in a draw."})
-    elseif first.health * second.maxHealth > second.health * first.maxHealth then
-        stop(duel, {"win", "loss"}, {"You won the duel.", "Your opponent won the duel."})
-    else
-        stop(duel, {"loss", "win"}, {"Your opponent won the duel.", "You won the duel."})
+local function forfeit(duel, index, reason, departing)
+    if duel.round.result then
+        stop(duel, duel.round.result, departing)
+        return
     end
+    local result = {"win", "win"}
+    result[index] = reason
+    stop(duel, result, departing, true)
 end
 
-local function setFeedback(side, text, now)
-    side.feedback, side.feedbackUntil = text, now + .8
+local function setFeedback(side, feedback, now)
+    side.feedback, side.feedbackUntil = feedback, now + .82
 end
 
 local function onMat(side)
     return Match.root(side.player) == side.root and Match.inside(bounds, side.root.Position)
 end
 
-local function land(attacker, defender, now)
-    if not attacker.attackAt or now < attacker.attackAt then
-        return 0
-    end
-    attacker.attackAt = nil
-    local delta = Match.flat(defender.root.Position - attacker.root.Position)
-    local distance = delta.Magnitude
-    if not onMat(attacker) or not onMat(defender) or distance > STRIKE_RANGE
-        or (distance >= .01 and attacker.root.CFrame.LookVector:Dot(delta.Unit) < .15) then
-        setFeedback(attacker, "Miss", now)
-        return 0
-    end
-    local facing = distance < .01 or defender.root.CFrame.LookVector:Dot(-delta.Unit) >= .15
-    if facing and now <= defender.guardUntil then
-        local parry = now <= defender.guardFrom + PARRY_TIME
-        if parry then
-            attacker.nextStrike = math.max(attacker.nextStrike, now + .78)
+local function resolve(duel, now)
+    local round = duel.round
+    Round.step(round, now, function(attacker, _, action, move, at, index, castStartedAt)
+        return Motion.strike(duel, attacker, action, move, at, index, castStartedAt)
+    end)
+    duel.outroAt = round.resolvedAt
+    for _, event in round.notices do
+        Motion.impact(duel, event)
+        local a, b = duel.actors[event.attacker], duel.actors[event.defender]
+        local kind = event.kind
+        if kind == "parried" or kind == "blocked" then
+            setFeedback(a, if kind == "parried" then "attackParried" else "attackBlocked", now)
+            setFeedback(b, kind, now)
+        elseif event.damage and event.damage > 0 then
+            setFeedback(a, kind, now)
+            setFeedback(b, "hit", now)
+        elseif event.attack ~= "magmaTrail" then
+            setFeedback(a, kind, now)
         end
-        setFeedback(attacker, if parry then "Strike parried" else "Strike blocked", now)
-        setFeedback(defender, if parry then "Parry" else "Block", now)
-        return 0
+        if event.point and (kind == "parried" or kind == "blocked" or (event.damage or 0) > 0) then
+            effects:FireAllClients("impact", kind, event.point, event.attack)
+        elseif event.point and event.attack == "magmaTrail" then
+            effects:FireAllClients("impact", "burst", event.point, event.attack)
+        end
     end
-    setFeedback(attacker, "Strike landed", now)
-    setFeedback(defender, "Hit", now)
-    return attacker.damage
+    local changed = #round.notices > 0
+    table.clear(round.notices)
+    return changed
 end
 
-local function resolve(duel, now)
-    local first, second = duel.sides[1], duel.sides[2]
-    if now >= duel.endsAt then
-        byHealth(duel, first, second)
-        return
-    end
-    local dealtByFirst, dealtBySecond = land(first, second, now), land(second, first, now)
-    first.health, second.health = math.max(0, first.health - dealtBySecond), math.max(0, second.health - dealtByFirst)
-    if first.health == 0 or second.health == 0 then
-        byHealth(duel, first, second)
-    end
+local function advance(duel, now)
+    Motion.move(duel, now)
+    return resolve(duel, now)
 end
 
 prompt.Triggered:Connect(function(player)
@@ -188,18 +207,21 @@ prompt.Triggered:Connect(function(player)
         message = "Waiting for another player at the Grand Dojo."})
 end)
 
-remote.OnServerEvent:Connect(function(player, action)
+remote.OnServerEvent:Connect(function(player, action, direction)
+    if type(action) ~= "string" then
+        return
+    end
     if action == "cancel" and queued and queued.player == player then
         clearQueue("You left the duel queue.")
         return
-    elseif action ~= "leave" and action ~= "strike" and action ~= "guard" then
+    elseif action ~= "leave" and not actions[action] then
         return
     end
     local duel = active
     if not duel then
         return
     end
-    local index = if duel.sides[1].player == player then 1 elseif duel.sides[2].player == player then 2 else nil
+    local index = if duel.actors[1].player == player then 1 elseif duel.actors[2].player == player then 2 else nil
     if not index then
         return
     elseif action == "leave" then
@@ -207,31 +229,26 @@ remote.OnServerEvent:Connect(function(player, action)
         return
     end
     local now = workspace:GetServerTimeNow()
-    local side = duel.sides[index]
-    if now < duel.startsAt or now < side.nextInput or not onMat(side) then
+    local side = duel.actors[index]
+    if now < duel.round.startsAt or now < side.nextInput or duel.round.result or not onMat(side)
+        or not Motion.canAct(duel, index, action) then
         return
     end
     side.nextInput = now + .08
-    resolve(duel, now)
-    if active ~= duel or side.attackAt then
-        return
+    -- A new input must not replace an earlier contact still due after a long frame.
+    local changed = advance(duel, now)
+    local feedback = if not duel.round.result
+        then Round.act(duel.round, index, action, now, if direction == -1 then -1 else 1) else nil
+    if feedback then
+        setFeedback(side, feedback, now)
     end
-    if action == "strike" and now >= side.nextStrike and now > side.guardUntil then
-        side.nextStrike, side.attackAt = now + .66, now + STRIKE_WINDUP
-        Match.pose(side.arms, "strike")
-    elseif action == "guard" and now >= side.nextGuard then
-        side.nextGuard, side.guardFrom, side.guardUntil = now + 1.12, now, now + GUARD_TIME
-        Match.pose(side.arms, "guard")
+    if changed or feedback then
+        duel.lastUpdate = now
+        publish(duel, "update", now)
     end
 end)
 
-local accumulated = 0
-RunService.Heartbeat:Connect(function(elapsed)
-    accumulated += elapsed
-    if accumulated < .045 then
-        return
-    end
-    accumulated = 0
+RunService.Heartbeat:Connect(function()
     local now = workspace:GetServerTimeNow()
     if queued then
         if now >= queued.expiresAt then
@@ -244,14 +261,14 @@ RunService.Heartbeat:Connect(function(elapsed)
     if not duel then
         return
     end
-    for i, side in duel.sides do
+    for i, side in duel.actors do
         if Match.root(side.player) ~= side.root then
             forfeit(duel, i, "left")
             return
         end
         if not onMat(side) then
             side.outsideAt = side.outsideAt or now
-            if now - side.outsideAt > 1.65 then
+            if now - side.outsideAt > OUTSIDE_GRACE then
                 forfeit(duel, i, "outside")
                 return
             end
@@ -259,8 +276,13 @@ RunService.Heartbeat:Connect(function(elapsed)
             side.outsideAt = nil
         end
     end
-    resolve(duel, now)
-    if active == duel and now - duel.lastUpdate >= .10 then
+    local changed = advance(duel, now)
+    if duel.round.result and now >= duel.round.outroAt then
+        stop(duel, duel.round.result)
+        return
+    end
+    Motion.render(duel, now)
+    if changed or now - duel.lastUpdate >= .10 then
         duel.lastUpdate = now
         publish(duel, "update", now)
     end
@@ -271,7 +293,7 @@ Players.PlayerRemoving:Connect(function(player)
         clearQueue(nil, player)
     end
     if active then
-        for i, side in active.sides do
+        for i, side in active.actors do
             if side.player == player then
                 forfeit(active, i, "left", player)
                 return

@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.274, both players in the same server use the **Duel Queue** sign at Grand Dojo for a casual 1v1. Each keeps the same signature moves and cooldowns as in Bot Spar. After the 10-second introduction, a single 60-second round ends in a knockout or a result at the bell. Each player returns to the city after the recap. Use Bot Spar for solo progression.
+
 In v0.273, switch to any starter at the Festival Plaza Fighter Select station and take that fighter to any previously unlocked Bot Spar ring. Try Ember Sweep against Juniper at Grand Dojo or Belly-Slide Blitz against Sablecrest at Cloud-Top. The selected fighter supplies the controls and the ring supplies the resident’s attacks.
 
 In v0.272, choose Fire Salamander, reach Level 7 and enter Galleon Ring Bot Spar. **V** or D-pad Up uses Ember Sweep. **F** or **Y** uses Magma Trail. Both have touch buttons and their own cooldowns. Aim the tail sweep from close range and watch both tiles burst on the deck. Granite shows the glove path for Harbor Sweep and a circle before Breakwater Stamp.

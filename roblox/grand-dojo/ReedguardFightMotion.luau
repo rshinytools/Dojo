@@ -1200,17 +1200,12 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     return false, point
 end
 
-local function actorVolumes(bout, time, guardFacing)
-    local state = bout.motion
-    local actor = bout.root.Parent
-    local shell = actor:FindFirstChild("Starter Fighter Shell")
+local function fittedVolumes(character, root, motors, offsets, guardFacing)
+    local shell = character:FindFirstChild("Starter Fighter Shell")
     if not shell then
         return {}
     end
-    local action, age, direction = playerAction(bout, time)
-    local offsets = state.playerPoses.sample(action, age, direction)
-    local root = actorRootAt(bout, time)
-    local rootJoint = state.motors.RootJoint
+    local rootJoint = motors.RootJoint
     if not rootJoint then
         return {}
     end
@@ -1219,7 +1214,7 @@ local function actorVolumes(bout, time, guardFacing)
     local function add(name, motorName, zone, grounded)
         local mesh = shell:FindFirstChild(name)
         local weld = mesh and mesh:FindFirstChildOfClass("Weld")
-        local joint = motorName and state.motors[motorName]
+        local joint = motorName and motors[motorName]
         if not (mesh and weld) or (motorName and not joint) then
             return
         end
@@ -1236,6 +1231,13 @@ local function actorVolumes(bout, time, guardFacing)
     add("Right Leg", "Right Hip", "body", true)
     add("Left Leg", "Left Hip", "body", true)
     return volumes
+end
+
+local function actorVolumes(bout, time, guardFacing)
+    local state = bout.motion
+    local action, age, direction = playerAction(bout, time)
+    local offsets = state.playerPoses.sample(action, age, direction)
+    return fittedVolumes(bout.root.Parent, actorRootAt(bout, time), state.motors, offsets, guardFacing)
 end
 
 local function featuredBotStrike(bout, time)
@@ -1461,5 +1463,18 @@ function Motion.impact(bout, event)
         end
     end
 end
+
+Motion.geometry = table.freeze({
+    fittedVolumes = fittedVolumes,
+    nearestPoint = nearestPoint,
+    sweptContact = sweptContact,
+    pathOffset = pathOffset,
+    stopAtActor = stopAtActor,
+    safeTravel = safeTravel,
+    castParameters = castParameters,
+    positionAt = positionAt,
+    rememberPosition = rememberPosition,
+    groundContour = galleonContour,
+})
 
 return Motion

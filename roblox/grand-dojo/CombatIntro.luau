@@ -1,6 +1,7 @@
 local ContextActionService = game:GetService("ContextActionService")
 local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -92,6 +93,29 @@ end
 local function rootOf(player)
     local character = player.Character
     return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function startingMarkers(court, presentation)
+    if not court then
+        return nil, nil
+    end
+    if presentation.duel then
+        local first, second = court:FindFirstChild("First Spawn"), court:FindFirstChild("Second Spawn")
+        if presentation.sideIndex == 2 then
+            return second, first
+        end
+        return first, second
+    end
+    return court:FindFirstChild("Player Spawn"), court:FindFirstChild("Bot Spawn")
+end
+
+local function opponentModel(court, presentation)
+    if presentation.duel then
+        local userId = presentation.opponentUserId
+        local opponent = if type(userId) == "number" then Players:GetPlayerByUserId(userId) else nil
+        return opponent and opponent.Character
+    end
+    return court and court:FindFirstChild(presentation.resident)
 end
 
 local function warmActor(model, art)
@@ -199,9 +223,8 @@ function Intro:_shot(court, stage, age, presentation)
         self:_restoreCamera()
         return
     end
-    local playerSpawn = court and court:FindFirstChild("Player Spawn")
-    local botSpawn = court and court:FindFirstChild("Bot Spawn")
-    if not (playerSpawn and botSpawn) then
+    local playerSpawn, opponentSpawn = startingMarkers(court, presentation)
+    if not (playerSpawn and opponentSpawn) then
         self:_restoreCamera()
         return
     end
@@ -213,7 +236,8 @@ function Intro:_shot(court, stage, age, presentation)
     local headroom = if wideFighters then .34 else 0
     local closeDistance = if wideFighters then 6.9 else 6.2
     local challenger = playerSpawn.Position + up * (.28 + headroom)
-    local resident = botSpawn.Position + up * (2.26 + headroom)
+    local opponentHeight = if presentation.duel then .28 else 2.26
+    local resident = opponentSpawn.Position + up * (opponentHeight + headroom)
     local middle = challenger:Lerp(resident, .54)
     local narrow = camera.ViewportSize.X < camera.ViewportSize.Y
     if stage == 1 then
@@ -233,9 +257,10 @@ function Intro:_shot(court, stage, age, presentation)
 end
 
 function Intro:_startLive(court, presentation)
-    local spawn = court and court:FindFirstChild("Player Spawn")
-    local bot = court and court:FindFirstChild(presentation.resident)
-    if not spawn or not bot then
+    local spawn = startingMarkers(court, presentation)
+    local opponent = opponentModel(court, presentation)
+    local follow = if opponent and presentation.duel then opponent:FindFirstChild("HumanoidRootPart") else opponent
+    if not spawn or not follow then
         return
     end
     local saved = takeCamera(self.player)
@@ -251,7 +276,7 @@ function Intro:_startLive(court, presentation)
     local currentFocus, currentEye
     self.liveRender = RunService.RenderStepped:Connect(function(dt)
         local root, camera = rootOf(self.player), saved.camera
-        if not root or not bot.Parent or workspace.CurrentCamera ~= camera
+        if not root or not follow.Parent or not opponent.Parent or workspace.CurrentCamera ~= camera
             or camera.CameraType ~= Enum.CameraType.Scriptable
             or UserInputService.VREnabled or GuiService.ReducedMotionEnabled then
             self.liveRender:Disconnect()
@@ -259,9 +284,10 @@ function Intro:_startLive(court, presentation)
             self:_restoreCamera()
             return
         end
-        local botFloor = bot:GetPivot().Position
-        local center = root.Position:Lerp(botFloor + Vector3.new(0, 2.1, 0), .5) + Vector3.yAxis * headroom
-        local separation = math.min((root.Position - botFloor).Magnitude, 13)
+        local target = if presentation.duel then follow.Position else follow:GetPivot().Position
+        local focus = if presentation.duel then target else target + Vector3.new(0, 2.1, 0)
+        local center = root.Position:Lerp(focus, .5) + Vector3.yAxis * headroom
+        local separation = math.min((root.Position - target).Magnitude, 13)
         local depth = 8.3 + .34 * separation + depthBias
         local eye = center + right * depth - forward * 1.8 + Vector3.yAxis * height
         local alpha = 1 - math.exp(-dt * 10)
@@ -308,14 +334,18 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
         if self.camera and serverNow >= nextWarmAt and (not challengerArt.queued or not residentArt.queued) then
             nextWarmAt = serverNow + .25
             local character = self.player.Character
+            local opponent = opponentModel(court, presentation)
+            local shell = if opponent and presentation.duel then opponent:FindFirstChild("Starter Fighter Shell") else opponent
             warmActor(character and character:FindFirstChild("Starter Fighter Shell"), challengerArt)
-            warmActor(court and court:FindFirstChild(presentation.resident), residentArt)
+            warmActor(shell, residentArt)
         end
         local age = math.max(0, startsAt - introAt - remaining)
         local stage = if age < 2.3 then 1 elseif age < 4.8 then 2 elseif remaining > 3 then 3 else 4
         if stage ~= previousStage then
             previousStage = stage
-            self.small.Text = if stage == 2 then "CHALLENGER" elseif stage == 3 then "RESIDENT" else "BOT SPAR"
+            self.small.Text = if stage == 2 then "CHALLENGER"
+                elseif stage == 3 then presentation.opponentFighter or (if presentation.duel then "OPPONENT" else "RESIDENT")
+                elseif presentation.duel then "1V1 DUEL" else "BOT SPAR"
             self.title.Text = if stage == 1 then presentation.ring elseif stage == 2 then presentation.challenger
                 elseif stage == 3 then presentation.resident
                 else presentation.challengerShort .. "  vs  " .. presentation.residentShort

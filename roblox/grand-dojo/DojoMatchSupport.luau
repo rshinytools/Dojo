@@ -1,6 +1,13 @@
 local TweenService = game:GetService("TweenService")
 local Match = {}
 
+Match.FighterKits = table.freeze({
+    ["reedguard-kangaroo"] = "reedguard",
+    ["penguin-brawler"] = "penguin",
+    ["silverback-gorilla"] = "silverback",
+    ["fire-salamander"] = "salamander",
+})
+
 function Match.flat(vector)
     return Vector3.new(vector.X, 0, vector.Z)
 end

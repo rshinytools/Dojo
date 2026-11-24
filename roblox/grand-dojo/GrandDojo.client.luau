@@ -1781,6 +1781,8 @@ local cues = {
     counter = "Counter landed!", strike = "Strike landed.", miss = "Face your opponent and step closer.",
     dodged = "You evaded the strike.",
     stunned = "Your opponent parried. Reset your guard.",
+    attackBlocked = "Your opponent blocked the strike.",
+    attackParried = "Your opponent parried the strike.",
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike", uppercut = "Uppercut",
     reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
     floeTurn = "Floe Turn", bellySlide = "Belly-Slide Blitz",
@@ -1904,16 +1906,16 @@ local function sendSparAction(action)
     end
     if not action then
         return
-    elseif duelRound then
-        duelRemote:FireServer(action)
-    elseif action == "dodge" then
+    end
+    local actionRemote = if duelRound then duelRemote else sparRemote
+    if action == "dodge" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         local left = root and humanoid and humanoid.MoveDirection:Dot(root.CFrame.RightVector) < -.2
-        sparRemote:FireServer(action, if left then -1 else 1)
+        actionRemote:FireServer(action, if left then -1 else 1)
     else
-        sparRemote:FireServer(action)
+        actionRemote:FireServer(action)
     end
 end
 strikeButton.Activated:Connect(function() sendSparAction("strike") end)
@@ -1980,13 +1982,28 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     layoutMatchControls()
     if kit then
         local deckView = ringId == "galleon"
+        local opponentKit = if isDuel then showcaseKits[opponent.opponentKitId] else nil
+        local opponentName = if isDuel then opponent.opponentName else opponent.name
+        local opponentShort = if isDuel then (opponentKit and opponentKit.challengerShort or opponentName)
+            else residentLabel(opponent)
         local intro = {
             ring = title, challenger = kit.challenger, challengerShort = kit.challengerShort,
-            resident = opponent.name, residentShort = residentLabel(opponent),
-            challengerTint = kit.tint, residentTint = opponent.tint,
-            wideFighters = kit.wideFighters or deckView or ringId == "cloud-top", deckView = deckView,
+            resident = opponentName, residentShort = opponentShort,
+            challengerTint = kit.tint, residentTint = if isDuel then opponentKit and opponentKit.tint else opponent.tint,
+            wideFighters = kit.wideFighters or (opponentKit and opponentKit.wideFighters)
+                or deckView or ringId == "cloud-top",
+            deckView = deckView, duel = isDuel,
         }
-        fightIntro:Start(introAt, startsAt, showcaseCourt(ringId), intro, function()
+        local court
+        if isDuel then
+            local ring = city:FindFirstChild("Fighting Ring")
+            court = ring and ring:FindFirstChild("Duel Court")
+            intro.sideIndex, intro.opponentUserId = opponent.sideIndex, opponent.opponentUserId
+            intro.opponentFighter = opponentKit and opponentKit.challenger
+        else
+            court = showcaseCourt(ringId)
+        end
+        fightIntro:Start(introAt, startsAt, court, intro, function()
             matchPresentation.inIntro = false
             refreshSparControls()
             layoutMatchControls()
@@ -2000,6 +2017,54 @@ local function matchClock(startsAt, endsAt)
     local seconds = math.max(0, math.ceil(endsAt - math.max(now, startsAt)))
     sparClock.Text = string.format("%d:%02d", math.floor(seconds / 60), seconds % 60)
     return now
+end
+
+local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, attackAt, parryOpensAt,
+    nextSignature, nextSecondary, opponentTint, braceName)
+    if phase ~= matchPresentation.phase then
+        matchPresentation.phase = phase
+        layoutMatchControls()
+    end
+    local now = matchClock(startsAt, endsAt)
+    local kit = matchPresentation.kit
+    if kit and kit.signatureCooldown then
+        matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
+        matchPresentation.nextSecondary = if type(nextSecondary) == "number" then nextSecondary else nil
+        refreshSparControls(now)
+    end
+    local cooldownCue = cooldownCues[feedback]
+    local parryCue = parryOpensAt ~= nil and attackAt ~= nil and now >= parryOpensAt and now <= attackAt
+    sparHint.TextColor3 = if parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
+        elseif phase == "windup" or phase == "setup" then opponentTint or palette.gold else palette.parchment
+    if phase == "outro" then
+        sparHint.Text = "Round ended"
+    elseif now < startsAt then
+        sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
+    elseif matchPresentation.showcase and feedback == "parried" then
+        sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
+    elseif not parryCue and (feedback == "uppercut" or feedback == "floeTurn" or feedback == "bellySlide"
+        or feedback == "ridgePalm" or feedback == "seismicChestPound" or feedback == "emberSweep"
+        or feedback == "magmaTrail" or feedback == "attackBlocked" or feedback == "attackParried") then
+        sparHint.Text = cues[feedback]
+    elseif not parryCue and cooldownCue then
+        local cooling = cooldownSeconds(matchPresentation[cooldownCue.field], now)
+        sparHint.Text = if cooling > 0 then string.format("%s ready in %ds", cooldownCue.label, cooling)
+            else cooldownCue.label .. " ready"
+    elseif phase == "windup" then
+        sparHint.Text = if feedback == "guard" then "Guard up"
+            elseif parryCue then "Guard now to parry!"
+            else cues[tell] or ((tell or "Incoming strike") .. " · Watch the mat")
+    elseif phase == "setup" and not feedback then
+        sparHint.Text = cues[tell] or tell or "Watch your opponent’s stance"
+    elseif feedback == "braced" and braceName then
+        sparHint.Text = "You struck into " .. braceName .. "’s brace."
+    elseif feedback and cues[feedback] then
+        sparHint.Text = cues[feedback]
+    elseif phase == "recovery" then
+        sparHint.Text = "Opponent recovering. Counter now!"
+    else
+        sparHint.Text = "Face your opponent and move within reach."
+    end
 end
 
 local function showMatchResult(result, opponent, detail, showRetry)
@@ -2109,53 +2174,14 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     elseif kind ~= "state" or not sparringActive or duelRound then
         return
     end
-    if phase ~= matchPresentation.phase then
-        matchPresentation.phase = phase
-        layoutMatchControls()
-    end
     local showcase = matchPresentation.showcase
     local kit = matchPresentation.kit
-    local shortName = if showcase then residentLabel(opponent) else opponent.name
+    local resident = residentLabel(opponent)
+    local shortName = if showcase then resident else opponent.name
     playerHealth(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin", showcase)
     botHealth(b, opponent.health, shortName, kind == "begin", showcase, if showcase then opponent.tint else nil)
-    local now = matchClock(startsAt, endsAt)
-    if kit and kit.signatureCooldown then
-        matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
-        matchPresentation.nextSecondary = if type(nextSecondary) == "number" then nextSecondary else nil
-        refreshSparControls(now)
-    end
-    local cooldownCue = cooldownCues[feedback]
-    local parryCue = parryOpensAt ~= nil and now >= parryOpensAt and now <= botAt
-    sparHint.TextColor3 = if parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
-        elseif phase == "windup" or phase == "setup" then opponent.tint else palette.parchment
-    if phase == "outro" then
-        sparHint.Text = "Round ended"
-    elseif now < startsAt then
-        sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
-    elseif showcase and feedback == "parried" then
-        sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
-    elseif not parryCue and (feedback == "uppercut" or feedback == "floeTurn" or feedback == "bellySlide"
-        or feedback == "ridgePalm" or feedback == "seismicChestPound" or feedback == "emberSweep" or feedback == "magmaTrail") then
-        sparHint.Text = cues[feedback]
-    elseif not parryCue and cooldownCue then
-        local cooling = cooldownSeconds(matchPresentation[cooldownCue.field], now)
-        sparHint.Text = if cooling > 0 then string.format("%s ready in %ds", cooldownCue.label, cooling)
-            else cooldownCue.label .. " ready"
-    elseif phase == "windup" then
-        sparHint.Text = if feedback == "guard" then "Guard up"
-            elseif parryCue then "Guard now to parry!"
-            else cues[tell] or ((tell or "Incoming strike") .. " · Watch the mat")
-    elseif phase == "setup" and not feedback then
-        sparHint.Text = cues[tell] or tell or "Watch your opponent’s stance"
-    elseif feedback == "braced" then
-        sparHint.Text = "You struck into " .. residentLabel(opponent) .. "’s brace."
-    elseif feedback and cues[feedback] then
-        sparHint.Text = cues[feedback]
-    elseif phase == "recovery" then
-        sparHint.Text = "Opponent recovering. Counter now!"
-    else
-        sparHint.Text = "Face your opponent and move within reach."
-    end
+    updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, botAt, parryOpensAt,
+        nextSignature, nextSecondary, opponent.tint, resident)
 end)
 
 local duelQueue = button(gui, "Leave Duel Queue", false)
@@ -2179,15 +2205,24 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
     elseif kind == "begin" or (kind == "update" and sparringActive and duelRound) then
         if kind == "begin" then
             duelQueue.Visible = false
-            showMatchHud(true, "Grand Dojo Duel", info.startsAt)
+            showMatchHud(true, "Grand Dojo Duel", info.startsAt, info.introAt, "grand-dojo", info, info.kitId,
+                info.nextSignature, info.nextSecondary)
         end
-        playerHealth(info.playerHealth, info.playerMaxHealth, nil, kind == "begin")
-        botHealth(info.opponentHealth, info.opponentMaxHealth, info.opponentName, kind == "begin")
-        local now = matchClock(info.startsAt, info.endsAt)
-        sparHint.TextColor3 = if info.phase == "windup" then palette.gold else palette.parchment
-        sparHint.Text = if now < info.startsAt then string.format("Starting in %d", math.ceil(info.startsAt - now))
-            elseif info.feedback then cues[info.feedback] or info.feedback
-            elseif info.phase == "windup" then "Incoming strike · Guard or step away"
-            else "Face your opponent and move within reach."
+        local kit = matchPresentation.kit
+        local opponent = showcaseKits[info.opponentKitId]
+        local reset, showcase = kind == "begin", matchPresentation.showcase
+        playerHealth(info.playerHealth, info.playerMaxHealth, kit and kit.challengerShort, reset, showcase)
+        botHealth(info.opponentHealth, info.opponentMaxHealth, info.opponentName, reset, showcase, opponent and opponent.tint)
+        if showcase then
+            updateMatchTimeline(info.startsAt, info.endsAt, info.phase, info.feedback, info.tell, info.attackAt,
+                info.parryOpensAt, info.nextSignature, info.nextSecondary, opponent and opponent.tint)
+        else
+            local now = matchClock(info.startsAt, info.endsAt)
+            sparHint.TextColor3 = if info.phase == "windup" then palette.gold else palette.parchment
+            sparHint.Text = if now < info.startsAt then string.format("Starting in %d", math.ceil(info.startsAt - now))
+                elseif info.feedback then cues[info.feedback] or info.feedback
+                elseif info.phase == "windup" then "Incoming strike · Guard or step away"
+                else "Face your opponent and move within reach."
+        end
     end
 end)

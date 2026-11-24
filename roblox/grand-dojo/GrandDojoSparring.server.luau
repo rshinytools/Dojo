@@ -21,12 +21,6 @@ local rings = {
     ["cloud-top"] = districts:WaitForChild("Skywalk Peaks"):WaitForChild("Cloud-Top Temple"),
     galleon = districts:WaitForChild("Tideharbor Coast"):WaitForChild("Sunken Pirate Galleon"):WaitForChild("Tideharbor practice ring"),
 }
-local fighterKits = {
-    ["reedguard-kangaroo"] = "reedguard",
-    ["penguin-brawler"] = "penguin",
-    ["silverback-gorilla"] = "silverback",
-    ["fire-salamander"] = "salamander",
-}
 local activeByPlayer, offers, rematches, lastAction = {}, {}, {}, {}
 
 local function notice(player, message)
@@ -128,7 +122,7 @@ local function begin(player, arena, now, retrying)
     local telegraph = Instance.new("Folder")
     telegraph.Name = "Attack tell"
     telegraph.Parent = arena.corner
-    local kit, botId = fighterKits[fighterId], arena.config.botId
+    local kit, botId = Match.FighterKits[fighterId], arena.config.botId
     local round = if kit then FeaturedRound.new(now, profile, fighter, kit, botId) else Round.new(now, profile, fighter)
     local bout = {featured = kit ~= nil, kit = kit, botId = botId, arena = arena, player = player, root = root, fighterId = fighterId,
         bot = bot, profile = profile, cue = cue, joints = jointMap(bot), telegraph = telegraph,

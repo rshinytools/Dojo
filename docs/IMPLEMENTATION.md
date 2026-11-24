@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.273 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.274 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -13,7 +13,7 @@ The v0.273 Studio checkpoint is the starting point for new work. This repository
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to switch among the four free starters. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains its ring unlocks. In Bot Spar, the starter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place. The current Grand Dojo Duel uses shared Strike and Guard.
+Choose an original starter on first join. Use the Fighter Select station between activities to switch among the four free starters. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains its ring unlocks. In Bot Spar, the starter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place. Casual Grand Dojo Duel uses each participant’s starter kit.
 
 ## Roblox listing artwork
 
@@ -46,7 +46,15 @@ All six districts remain connected and open for exploration. A ring's level gate
 
 Earn 60 XP on the first Bot Spar win, 80 XP on the first official Lantern Relay and 40 XP for Lantern Timing. Later Bot Spar wins award 30 XP, official Relay repeats award 25 XP, and Lantern Timing, Kiln Rhythm and Wind Court Signals each award 40 XP per completed drill with a short cooldown. Official Relay times and Lantern Keeper remain account-wide. XP goes to the fighter active when the activity ends.
 
-The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers a same-server 1v1 Duel queue. Studio verified consent and cancellation for one player. A two-player Luau simulation covered pairing and combat. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, ranked play, 2v2 Tag Team, and eight-player Brawl remain in development. Co-op raids are separate PvE encounters. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
+The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers a same-server 1v1 Duel queue. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, ranked play, 2v2 Tag Team, and eight-player Brawl remain in development. Co-op raids are separate PvE encounters. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
+
+## Grand Dojo casual 1v1
+
+Two nearby players in the same server each use the Duel Queue sign at the Grand Dojo court. This opens a 10-second intro and one 60-second round. Each fighter brings the same named techniques, moves, health and cooldowns as in Bot Spar. The server resolves reach and facing at the authored contact frames. Late guard can parry, simultaneous hits can trade, and both players see their own health, cooldowns and result. This casual test round awards no fighter XP or Rank Points.
+
+Six Luau simulations of the actual server script exercised two player endpoints, including pairing, input, parrying, knockout, and return on leave or disconnect. A stalled-frame regression verified that committed hits resolve before later input. Desktop Studio used one real player to join and cancel the actual queue. A separate one-client Studio test used a fitted Fire Salamander stand-in to exercise the native physics and HUD through Silverback’s 20-damage Ridge Palm, a zero-damage Ember Sweep parry, 34-damage Seismic Chest-Pound, knockout and camera restoration. A live match between two Roblox clients, published access and physical-device checks remain open.
+
+The same v0.274 desktop Studio copy also completed Reedguard versus Juniper through knockout and awarded 60 first-win XP in the local test profile.
 
 ## Starter kits across all four rings
 
@@ -98,6 +106,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Cinder custom kit and contact | [Penguin poses](../roblox/grand-dojo/PenguinCombatPoses.luau), [Bracken poses](../roblox/grand-dojo/BrackenCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau), [motion and reach](../roblox/grand-dojo/ReedguardFightMotion.luau) |
 | Cloud-Top custom kit and contact | [Silverback poses](../roblox/grand-dojo/SilverbackCombatPoses.luau), [Sablecrest poses](../roblox/grand-dojo/SablecrestCombatPoses.luau), [contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Galleon custom kit and delayed tiles | [Fire Salamander poses](../roblox/grand-dojo/FireSalamanderCombatPoses.luau), [Granite poses](../roblox/grand-dojo/GraniteCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau) |
+| Grand Dojo Duel | [Queue and match lifecycle](../roblox/grand-dojo/GrandDojoDuel.server.luau), [symmetric round state](../roblox/grand-dojo/DuelCombatRound.luau), [pose and fitted contact](../roblox/grand-dojo/DuelFightMotion.luau) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |
