@@ -40,7 +40,6 @@ local now = 0
 local nextUpdate = 0
 local sawSplash = false
 local started = false
-local volumeTarget = 0
 local worldArea = "city"
 local worldCandidate
 local settleAt = 0
@@ -77,14 +76,6 @@ local function chooseArea()
         return "relay"
     end
     return worldArea
-end
-
-local function updateVolume()
-    local level = player:GetAttribute("MusicVolume")
-    if type(level) ~= "number" or level ~= level then
-        level = DEFAULT_VOLUME
-    end
-    volumeTarget = if player:GetAttribute("MusicMuted") == true then 0 else math.clamp(level, 0, 1)
 end
 
 local function play(track)
@@ -193,11 +184,11 @@ local heartbeat = RunService.Heartbeat:Connect(function(dt)
                 or (not hasSplash and (sawSplash or now >= SPLASH_DISCOVERY_SECONDS))
         end
         if started then
-            updateVolume()
             updateMusic()
         end
     end
 
+    local volumeTarget = if started then DEFAULT_VOLUME else 0
     local step = dt / VOLUME_RAMP_SECONDS
     music.Volume += math.clamp(volumeTarget - music.Volume, -step, step)
     if fade then

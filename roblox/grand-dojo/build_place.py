@@ -52,6 +52,7 @@ from frostglass_snow_ridges import build_frostglass_snow_ridges
 from frostglass_glacier_walk import ASCENT as GLACIER_ASCENT, BALCONY_JOIN, CROWN as GLACIER_PAVILION, build_frostglass_glacier_walk
 from snowbell_ridge import (NAME as SNOWBELL_RIDGE, MISTLINE_SEGMENT, MISTLINE_OPENING,
                             build_snowbell_ridge, mistline_junction)
+from snowbell_hollow import build_snowbell_hollow
 from frostglass_reflectors import build_frostglass_reflectors
 from frostglass_store_planting import build_frostglass_approach_planting, build_frostglass_store_planting
 from hall_arrival_details import build_hall_arrival_details
@@ -579,7 +580,7 @@ def arrival_hanging_lantern(parent, x, y, z, scale, *, light=True, entrance_pape
 
 
 def sign(parent, label, x, y, z, width, height, yaw=0, tint=DARK, *, roll=0, face_only=False,
-         finished_back=False, reverse_label=None):
+         finished_back=False, reverse_label=None, single_line=False):
     def letters(board, message, face, canvas_size):
         surface=item(board,"SurfaceGui",message)
         prop(surface,"token","Face",face)
@@ -592,7 +593,9 @@ def sign(parent, label, x, y, z, width, height, yaw=0, tint=DARK, *, roll=0, fac
         prop(lettering,"string","Text",message)
         color(lettering,"TextColor3",CREAM)
         prop(lettering,"token","Font",4)
-        prop(lettering,"bool","TextScaled",True)
+        prop(lettering,"bool","TextScaled",not single_line)
+        if single_line:
+            prop(lettering,"float","TextSize",round(canvas_size[1]*.69))
         prop(lettering,"float","TextStrokeTransparency",.65)
 
     if width > 5 and not face_only:
@@ -611,7 +614,8 @@ def sign(parent, label, x, y, z, width, height, yaw=0, tint=DARK, *, roll=0, fac
         z+=cos(radians(yaw))*setback
     plaque = part(parent, label + " sign", (x, y, z), (width, height, .5), tint,
                   yaw=yaw, roll=roll, transparency=int(face_only), collide=False)
-    canvas_size = (round(width*50), round(height*50)) if face_only else (800,190)
+    canvas_size = (round(width*80), round(height*80)) if single_line else (
+        (round(width*50), round(height*50)) if face_only else (800,190))
     letters(plaque,label,2,canvas_size)
     return plaque
 
@@ -782,7 +786,7 @@ def curved_plaque(parent,x,z,profile,height,face,edge,*,rim_height=.17,rim_depth
 
 # Fredoka One advances in em units, measured from the original font.
 MARQUEE_ADVANCES={" ":.253,"A":.765,"B":.657,"C":.681,"D":.718,"E":.638,"F":.637,
-                  "G":.714,"H":.699,
+                  "G":.714,"H":.699,"J":.549,
                   "I":.257,"K":.639,"L":.587,"N":.720,"O":.775,"P":.632,"R":.631,
                   "S":.645,"T":.731,"U":.714,"W":.999,"Y":.686}
 
@@ -965,7 +969,7 @@ def gate(parent, x, z, yaw=0, *, span=14, label=None, trim=RED, y=0, lanterns=Tr
             part(parent, "Brass crest tip", point(side*span*.56, 9.55, .74),
                  (1.42,.23,.47), GOLD, yaw=yaw, roll=side*24, collide=False)
         sign(parent, label, *point(0, 8.43, 1.18), span-2.6, 2.15, yaw, "7B2827")
-        if label in ("FIGHTING RING","LANTERN RELAY") and not yaw:
+        if label in ("DOJO RING","LANTERN RELAY") and not yaw:
             for side in (-1,1):
                 banner(parent,*point(side*(span/2+1.47),5.27,1.0),scale=.86)
 
@@ -1976,7 +1980,7 @@ part(directions,"Direction post cedar",(direction_x,1.86,direction_z),(.33,3.00,
      "8B543D",material=WOOD_PLANK,collide=False)
 part(directions,"Direction post cap",(direction_x,3.38,direction_z),(.50,.24,.48),
      "BA8751",collide=False)
-for label,y,tint in (("FIGHTING RING  →",3.02,"883B33"),
+for label,y,tint in (("DOJO RING  →",3.02,"883B33"),
                      ("TROPHY HALL  ↑",2.30,"735B3A"),
                      ("←  LANTERN RELAY",1.58,"734960")):
     sign(directions,label,direction_x+.18,y,direction_z+.16,3.5,.61,yaw=49,tint=tint)
@@ -2144,7 +2148,9 @@ for side in (-1,1):
     beam(marquee,"Marquee timber brace",(36+side*15.79,11.52+portal_rise,ring_front_z+.55),
          (36+side*13.02,12.67+portal_rise,marquee_z-.16),.54,"995337")
 
-marquee_title(marquee,"FIGHTING RING",36,marquee_z,ring_profile,3.86)
+marquee_title(marquee,"DOJO RING",36,marquee_z,ring_profile,4.65)
+sign(marquee,"Combat to Earn Rewards",36,portal_rise+11.52,marquee_z+.13,10.2,.93,
+     tint="62332B",single_line=True)
 
 def ring_entry_pier(parent,x,z,side):
     """Frame the stairs with slate and lacquer in both gateway modes."""
@@ -7452,6 +7458,9 @@ snowbell_path=build_snowbell_ridge(roads,mistline_west,item=item,prop=prop,part=
                                   vector=vector,asset=asset,cedar=WOOD_PLANK,slate=SLATE,rock=ROCK,
                                   snow=SNOW,brass=METAL,cedar_variant=LANDMARK_CEDAR,rock_variant=VALLEY_ROCK,
                                   variant_field=MATERIAL_VARIANT_FIELD)
+build_snowbell_hollow(roads,item=item,prop=prop,part=part,triangle=triangle,garden_prop=garden_prop,
+                      vector=vector,asset=asset,rock=ROCK,snow=SNOW,grass=LEAFY_GRASS,
+                      rock_variant=VALLEY_ROCK,variant_field=MATERIAL_VARIANT_FIELD)
 map_districts={"Grand Dojo City":(0,0,0), **{town[0]:tuple(town[1:4]) for town in towns}}
 map_paths=[(name,[(0,0,0),*points,map_districts[town[0]]],False)
            for (name,points,_),town in zip(routes,towns)]

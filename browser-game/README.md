@@ -8,9 +8,9 @@ Start with Reedguard in Dojo Valley. Open the Journal and choose **Follow object
 - Touch: tap paths and markers or drag the stick, then use the on-screen actions. Settings can show touch controls on any browser.
 - Gamepad: use the left stick to move and A / Cross to interact. X / Square strikes, Y / Triangle triggers the style skill, RT / R2 uses the charged signature, B / Circle parries, LB / L1 dashes and RB / R1 tags. Menu opens the journal or pauses combat. The D-pad moves focus in menus.
 
-## Finding the ring and seeing the trophy room
+## Finding the Dojo Ring and seeing the trophy room
 
-Look for the gold **Fighting Ring** sign at the entrance to the red-trimmed platform. Click or tap the sign, or choose **Arena → Guide me to the ring**. Follow the gold trail to the gate and choose **Start guided spar** when you're ready.
+Look for the gold **Dojo Ring** sign at the entrance to the red-trimmed platform. Click or tap the sign, or choose **Arena → Guide me to the Dojo Ring**. Follow the gold trail to the gate and choose **Start guided spar** when you're ready.
 
 To try leveling right away, choose **Arena → Choose a bot → Fight Beginner bot**. A clean first win grants 105 XP, enough to reach Level 2. Check **Fighters** for XP to the next level. Each fighter has their own XP, with Warrior at Level 5 and Grandmaster at Level 10. Existing browser saves keep their XP and trophies.
 

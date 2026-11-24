@@ -233,7 +233,9 @@
   const width=148;
   box(c,x-width/2,y-74,width,35,8,'#ffe08f','#623a2d');
   c.font='950 17px system-ui';c.fillStyle='#422a26';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('FIGHTING RING',x,y-56);
+  c.fillText('DOJO RING',x,y-63);
+  c.font='700 11px system-ui';
+  c.fillText('Combat to Earn Rewards',x,y-48,width-16);
   poly(c,[[x-8,y-40],[x+8,y-40],[x,y-29]],'#ffe08f','#623a2d');
  }
  function nameplate(c,x,y,label){

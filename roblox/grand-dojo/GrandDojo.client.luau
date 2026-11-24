@@ -9,9 +9,6 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 player:SetAttribute("MusicArea", "city")
-if player:GetAttribute("MusicMuted") == nil then
-    player:SetAttribute("MusicMuted", false)
-end
 local city = workspace:WaitForChild("Grand Dojo City")
 local districts = city:WaitForChild("District Markers")
 local relay = city:WaitForChild("Lantern Relay")
@@ -267,20 +264,6 @@ local xpFill = make("Frame", xpTrack, {
 })
 style(xpFill, 2)
 
-local musicToggle = button(gui, "Music on", false)
-musicToggle.Name = "MusicToggle"
-musicToggle.Size = UDim2.fromOffset(98, 44)
-musicToggle.TextSize = 13
-musicToggle.Selectable = true
-local function updateMusicToggle()
-    musicToggle.Text = if player:GetAttribute("MusicMuted") == true then "Music off" else "Music on"
-end
-musicToggle.Activated:Connect(function()
-    player:SetAttribute("MusicMuted", player:GetAttribute("MusicMuted") ~= true)
-end)
-player:GetAttributeChangedSignal("MusicMuted"):Connect(updateMusicToggle)
-updateMusicToggle()
-
 local function updateFighterProgress()
     local status = player:GetAttribute("ProgressStatus")
     local snapshot = player:GetAttribute("FighterHudProgress")
@@ -324,14 +307,6 @@ local function positionLocationHud()
     local badgePosition = if showBelow then UDim2.new(0, 12, 1, -height - 63) else UDim2.fromOffset(12, 54)
     if badge.Position ~= badgePosition then
         badge.Position = badgePosition
-    end
-    -- Short touch viewports need the space below the badge for the movement control.
-    local shortTouchViewport = size and size.Y < 480
-        and UserInputService.TouchEnabled and not UserInputService.VREnabled
-    local togglePosition = if shortTouchViewport then UDim2.new(1, -12 - musicToggle.Size.X.Offset, 0, 12)
-        else badgePosition + UDim2.fromOffset(0, height + 7)
-    if musicToggle.Position ~= togglePosition then
-        musicToggle.Position = togglePosition
     end
 end
 
@@ -1055,10 +1030,6 @@ local function layout()
     end
     badge.Visible = not sparringActive and not showingResult and not race.Visible and not aerial and not (panel.Visible and narrow)
         and (not boardHint.Visible or parcelObjectives[player:GetAttribute("ParcelStage")] ~= nil)
-    musicToggle.Visible = badge.Visible and not panel.Visible
-    if not musicToggle.Visible and GuiService.SelectedObject == musicToggle then
-        GuiService.SelectedObject = nil
-    end
 end
 
 for _, attribute in {"SkywalkTrialMode", "SkywalkTrialNext", "SkywalkTrialStartedAt", "SkywalkTrialRecoveries"} do

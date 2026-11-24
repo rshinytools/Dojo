@@ -96,14 +96,14 @@
    body+=card(d.chapter,paragraph(d.steps[Math.min(2,Math.max(0,step-1))])+row(action(step===4?'See the world map':'Continue exploring',step===4?'panel:map':'close',{primary:true})));
   }else if(modal==='map'){
    title='World map';category=p.found.length+' of 6 districts discovered';
-   body=paragraph('Follow the bridges from the Grand Dojo. A gold fighting ring sign marks the local arena.');
+   body=paragraph('Follow the bridges from the Grand Dojo. A gold Dojo Ring sign marks the local arena.');
    body+='<div class="world-map">'+districts.map(d=>'<button style="--region:'+d.palette[2]+'" data-command="region:'+d.index+'">'+text(d.name)+'<small>'+(p.found.includes(d.index)?(p.quests[d.index]===4?'Chapter complete':'Discovered'):'Unexplored')+(d.index===state.region?' · Here':'')+'</small></button>').join('')+'</div>';
    body+=row(action('Return to Grand Dojo','travel:0')+action('World journal','panel:journal'));
   }else if(modal==='region'){
    const d=districts[pendingNode.district];title=d.name;category=d.landmark;
    body=paragraph(d.chapter+' · '+districtSeals(p,d.index)+' / 3 seals found');
-   body+=grid(d.nodes.filter(n=>['mentor','route','puzzle','spar','boss'].includes(n.kind)).map(n=>card(n.kind==='spar'?'Fighting ring':n.label,
-    (n.kind==='spar'?paragraph(n.label):'')+action(n.kind==='spar'?'Guide me to the ring':'Set destination','go:'+d.index+':'+n.id,{primary:n.kind==='spar'}))));
+   body+=grid(d.nodes.filter(n=>['mentor','route','puzzle','spar','boss'].includes(n.kind)).map(n=>card(n.kind==='spar'?'Dojo Ring':n.label,
+    (n.kind==='spar'?paragraph(n.label):'')+action(n.kind==='spar'?'Guide me to the Dojo Ring':'Set destination','go:'+d.index+':'+n.id,{primary:n.kind==='spar'}))));
    body+=row(action('Track this chapter','track:'+d.index)+action('Fast travel','travel:'+d.index,{disabled:!p.found.includes(d.index)})+action('Back to map','panel:map'));
   }else if(modal==='journal'){
    title='Field journal';category=p.quests.filter(n=>n===4).length+' of 6 mentor chapters';
@@ -146,14 +146,14 @@
    if(!picking&&Object.keys(p.trophies).length===0)body+=paragraph('Meet the Reed court keeper to earn your first trophy.');
   }else if(modal==='arena'||modal==='ring'){
    const atRing=modal==='ring',d=atRing?districts[pendingNode.district]:district;
-   title=atRing?'Fighting ring':'Arena matches';category=d.arena+' · Browser edition';
-   body=paragraph(fighter().name+' · '+progressLabel(p.fighterXP[p.active]||0));
+   title=atRing?'Dojo Ring':'Arena matches';category=d.arena+' · Browser edition';
+   body=(atRing?paragraph('Combat to Earn Rewards'):'')+paragraph(fighter().name+' · '+progressLabel(p.fighterXP[p.active]||0));
    body+=grid([
     card('Fight a bot',paragraph('Choose a difficulty, play one round and earn fighter XP.')+action('Choose a bot','practice:'+d.index,{primary:true}),'earned'),
     card('Matchmaking preview',paragraph('Try the search, wait and match-found flow. All queue activity is simulated.')+row(action('Join casual queue','queue:casual:'+d.index)+action('Join ranked queue','queue:ranked:'+d.index)))
    ]);
    body+=atRing?card('Guided spar',paragraph('A win against the training automaton counts toward this district’s mentor chapter.')+action('Start guided spar','fight:spar')):
-    row(action('Guide me to the ring','go:'+d.index+':spar'));
+    row(action('Guide me to the Dojo Ring','go:'+d.index+':spar'));
    body+=grid(arenaModes.map(m=>card(m.name,paragraph(m.id==='duel'?'Best of three against a computer-controlled fighter.':m.detail)+action(m.id==='raid'?'Choose a boss':'Enter '+m.name,'fight:'+m.id))));
    body+=row(action('Boost preview','panel:boosts')+action('Fighter collection','panel:fighters'));
   }else if(modal==='practice'){
@@ -323,7 +323,7 @@
   if(cmd==='region'){pendingNode={district:Number(a)};show('region');return;}
   if(cmd==='go'){
    const n=districts[Number(a)].nodes.find(n=>n.id===b);closePanel();game.exitRoom();game.approach(n);
-   if(n.kind==='spar')toast('Follow the gold route to the fighting ring');
+   if(n.kind==='spar')toast('Follow the gold route to the Dojo Ring');
    return;
   }
   if(cmd==='track'){p.track=Number(a);p.pin=null;game.save();closePanel();objectiveGo();return;}
@@ -394,9 +394,9 @@
   const status=$('save-state');if(status.textContent!==state.status)status.textContent=state.status;
   state.objective=game.objective();$('location').textContent=state.room?'Personal Dojo':districts[state.region].name;
   const ringRoute=state.target?.kind==='spar';
-  $('objective-name').textContent=ringRoute?'Fighting ring':state.objective.title;
+  $('objective-name').textContent=ringRoute?'Dojo Ring':state.objective.title;
   $('objective-detail').textContent=ringRoute?'Heading to '+state.target.label:state.objective.detail;
-  const n=game.nearby(), label=n?.kind==='spar'?'Enter fighting ring':n?.label;
+  const n=game.nearby(), label=n?.kind==='spar'?'Enter Dojo Ring':n?.label;
   const interactButton=$('interact');
   interactButton.hidden=!!modal||!n;interactButton.className='primary';
   if(n)interactButton.textContent=(input.kind==='keys'?'E · ':input.kind==='pad'?'A / Cross · ':'')+label;
