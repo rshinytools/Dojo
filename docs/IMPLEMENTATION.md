@@ -68,6 +68,10 @@ Equip Silverback Gorilla and enter Bot Spar at the Level 5 Cloud-Top Temple. Sil
 
 Desktop and Galaxy A06 landscape Studio Play ran the match through the 10-second intro, parries of both bot attacks, a heavy finish and the 60 XP first-win recap. Both sessions measured a single damage change from 78 to 58 for Ridge Palm and from 58 to 24 for Seismic Chest-Pound. The phone simulator used a native touch tap on Ridge Palm and observed rejected retries during the 3.4-second Ridge and 7.8-second Seismic cooldowns. The Seismic warning stayed fixed until the hit, and Silverback’s root stayed planted. The Level 5 gate check seeded 480 XP through the Studio activity-grant path and verified the win took it to 540 XP. Desktop regressions replayed Reedguard–Juniper and Penguin–Bracken through their first-win recaps. Published play and hardware remain open.
 
+## Galleon combat in development
+
+[Fire Salamander’s poses](../roblox/grand-dojo/FireSalamanderCombatPoses.luau) and [Granite’s poses](../roblox/grand-dojo/GraniteCombatPoses.luau) are ready for integration. Local Luau checks measured Fire Salamander’s tail sweep and grounded tile steps against her shipped meshes, and Granite’s sweeping glove and stamping sole against his mesh pivots. The next checkpoint mounts the two kits, resolves Magma Trail’s two delayed contacts in the server, and plays the Level 7 fight through the reward. The v0.271 ZIP still uses the standard Galleon Bot Spar flow.
+
 ## Source map
 
 The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. The [roster brief](../design/fighters/sparring-bots/roster.json) records their backstories and proposed health, powers and counters. Blender reimport and Studio asset fetch verified the exports. The native [bot import manifest](../roblox/grand-dojo/sparring_bot_assets.json) records the asset IDs and source checksums.
