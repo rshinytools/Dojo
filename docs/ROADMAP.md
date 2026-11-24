@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.267 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.268 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -50,6 +50,8 @@ Make Reedguard Kangaroo enjoyable and controllable before producing the roster.
 | P2.2 | Movement and camera | Planned | Ring edges, respawns, slopes and input changes do not break movement. |
 | P2.3 | Original combat kit | Planned | Clients cannot invent damage or bypass cooldowns. Review actual impacts, audio, finishers and camera against current rating definitions; no copied choreography. |
 | P2.4 | One arena and end-to-end loop | Prototype ready | Verify final Reedguard shoulder poses and late guard cue in a fresh Studio Play session. Confirm the same complete loop using touch, gamepad and VR. Add remaining skills, animation polish and full combat feedback in the original combat kit. |
+
+Desktop Studio verified the playable Reedguard–Juniper intro, contact-timed attacks, defense, knockout and first-win reward in v0.268. Touch, controller, VR, published play and remaining custom kits still need verification.
 
 ## P3 Persistent player progression
 

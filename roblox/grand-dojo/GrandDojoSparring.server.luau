@@ -4,6 +4,8 @@ local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Round = require(script.Parent:WaitForChild("SparringRound"))
+local FeaturedRound = require(script.Parent:WaitForChild("ReedguardRound"))
+local Motion = require(script.Parent:WaitForChild("ReedguardFightMotion"))
 local progression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local bots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
@@ -30,8 +32,9 @@ local function publish(bout, kind, now)
     local tell = if round.botPhase == "setup" then round.attack.setup
         elseif round.botPhase == "windup" then round.attack.name else nil
     remote:FireClient(bout.player, kind, round.playerHealth, round.botHealth, round.startsAt, round.endsAt,
-        round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt,
-        Round.parryOpensAt(round), bout.arena.config.botId, round.playerMaxHealth, bout.arena.id, tell)
+        if bout.outroAt then "outro" else round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt,
+        (if bout.featured then FeaturedRound else Round).parryOpensAt(round), bout.arena.config.botId,
+        round.playerMaxHealth, bout.arena.id, tell, round.introAt)
 end
 
 local function finish(bout, result, now, disconnected)
@@ -39,7 +42,11 @@ local function finish(bout, result, now, disconnected)
     arena.active, activeByPlayer[player] = nil, nil
     bout.bot:Destroy()
     bout.telegraph:Destroy()
-    Match.clearPose(bout.arms)
+    if bout.motion then
+        Motion.close(bout)
+    else
+        Match.clearPose(bout.arms)
+    end
     player:SetAttribute("SparringActive", nil)
     player:SetAttribute("ActiveDojoRing", nil)
     if disconnected then
@@ -115,16 +122,21 @@ local function begin(player, arena, now, retrying)
     local telegraph = Instance.new("Folder")
     telegraph.Name = "Attack tell"
     telegraph.Parent = arena.corner
-    local bout = {arena = arena, player = player, root = root, fighterId = fighterId,
+    local featured = arena.id == "grand-dojo" and fighterId == "reedguard-kangaroo" and arena.config.botId == "juniper"
+    local bout = {featured = featured, arena = arena, player = player, root = root, fighterId = fighterId,
         bot = bot, profile = profile, cue = cue, joints = jointMap(bot), telegraph = telegraph,
         position = arena.botSpawn.Position, direction = arena.botSpawn.CFrame.LookVector,
-        round = Round.new(now, profile, fighter), messageUntil = 0, lastPublish = now,
+        round = (if featured then FeaturedRound else Round).new(now, profile, fighter), messageUntil = 0, lastPublish = now,
         arms = Match.armMotors(player.Character)}
     arena.active, activeByPlayer[player] = bout, bout
     player:SetAttribute("SparringActive", true)
     player:SetAttribute("ActiveDojoRing", arena.id)
     bot.Parent = arena.corner
     Match.move(root, arena.playerSpawn.CFrame)
+    if featured then
+        Motion.open(bout)
+        Motion.render(bout, now)
+    end
     publish(bout, "begin", now)
 end
 
@@ -250,7 +262,7 @@ for _, id in progression.Order do
     end)
 end
 
-remote.OnServerEvent:Connect(function(player, action)
+remote.OnServerEvent:Connect(function(player, action, direction)
     if type(action) ~= "string" then
         return
     end
@@ -284,7 +296,16 @@ remote.OnServerEvent:Connect(function(player, action)
         return
     end
     if action == "leave" then
-        finish(bout, "left", now)
+        finish(bout, if bout.outroAt then bout.round.result else "left", now)
+    elseif bout.featured then
+        if Match.root(player) ~= bout.root or not Match.inside(bout.arena.bounds, bout.root.Position) then
+            return
+        end
+        local feedback = FeaturedRound.act(bout.round, action, now, direction)
+        if feedback then
+            bout.message, bout.messageUntil = feedback, now + .74
+            publish(bout, "state", now)
+        end
     elseif (action == "strike" or action == "guard") and Match.root(player) == bout.root
         and Match.inside(bout.arena.bounds, bout.root.Position) then
         local distance, facing = distanceFacing(bout, action == "strike")
@@ -298,6 +319,47 @@ remote.OnServerEvent:Connect(function(player, action)
         end
     end
 end)
+
+local function tickShowcase(bout, now, dt)
+    local round = bout.round
+    local distance = Motion.move(bout, now, dt)
+    local before = round.botPhase
+    FeaturedRound.step(round, now, distance, function(action, move, time, index)
+        return Motion.strike(bout, action, move, time, index)
+    end, function(time)
+        return Motion.palm(bout, time)
+    end)
+    local hadImpact = #round.notices > 0
+    for _, event in round.notices do
+        Motion.impact(bout, event)
+        bout.message, bout.messageUntil = event.kind, now + .86
+        if RunService:IsStudio() then
+            bout.bot:SetAttribute("LastContactAt", event.at)
+            bout.bot:SetAttribute("LastContactKind", event.kind)
+            bout.bot:SetAttribute("LastContactAttack", event.attack)
+            bout.bot:SetAttribute("LastContactIndex", event.index)
+        end
+    end
+    table.clear(round.notices)
+    if round.result then
+        bout.outroAt = bout.outroAt or now
+        if now >= bout.outroAt + FeaturedRound.OUTRO then
+            finish(bout, round.result, now)
+            return
+        end
+    end
+    Motion.render(bout, now)
+    local opensAt = FeaturedRound.parryOpensAt(round)
+    local parryCue = not bout.outroAt and opensAt ~= nil and now >= opensAt and now <= round.botAt
+    local cueChanged = parryCue ~= bout.parryCue
+    bout.parryCue = parryCue
+    bout.cue.Enabled = parryCue
+    bout.cue.OutlineColor = Color3.fromRGB(151, 235, 248)
+    if cueChanged or hadImpact or before ~= round.botPhase or now - bout.lastPublish >= .14 then
+        publish(bout, "state", now)
+        bout.lastPublish = now
+    end
+end
 
 local function tickBout(bout, now, dt)
     local round, arena = bout.round, bout.arena
@@ -313,6 +375,10 @@ local function tickBout(bout, now, dt)
             finish(bout, "outside", now)
             return
         end
+    end
+    if bout.featured then
+        tickShowcase(bout, now, dt)
+        return
     end
     local before = round.botPhase
     local distance, facing = distanceFacing(bout)
@@ -353,15 +419,16 @@ end
 local elapsed = 0
 RunService.Heartbeat:Connect(function(dt)
     elapsed += dt
-    if elapsed < .05 then
-        return
-    end
+    local tickStandard = elapsed >= .05
     local step = math.min(elapsed, .15)
-    elapsed = 0
+    if tickStandard then
+        elapsed = 0
+    end
     local now = workspace:GetServerTimeNow()
     for _, arena in arenas do
-        if arena.active then
-            tickBout(arena.active, now, step)
+        local bout = arena.active
+        if bout and (bout.featured or tickStandard) then
+            tickBout(bout, now, if bout.featured then math.min(dt, .15) else step)
         end
     end
 end)

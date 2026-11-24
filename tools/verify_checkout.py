@@ -28,6 +28,7 @@ def digest(stream):
 def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SparringBots",
+                "CombatIntro", "ReedguardRound", "ReedguardFightMotion", "ReedguardCombatPoses", "JuniperCombatPoses",
                 "Juniper Tortoise", "Bracken Boar", "Sablecrest Lynx", "Granite Rhino", "SplashArtwork",
                 "Fighter Select Station", "SwitchFighterPrompt", "Resident Dojo Bots",
                 "Cinder Terraces Ring", "Cloud-Top Temple", "Tideharbor practice ring",

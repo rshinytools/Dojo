@@ -1107,6 +1107,7 @@ end
 updateCloudbreakText()
 
 local cameraViewport
+local layoutMatchControls
 local function refreshViewport()
     local camera = workspace.CurrentCamera
     if camera and not UserInputService.VREnabled then
@@ -1119,6 +1120,9 @@ local function refreshViewport()
         end
     end
     layout()
+    if layoutMatchControls then
+        layoutMatchControls()
+    end
 end
 
 local function watchCamera()
@@ -1517,6 +1521,8 @@ print("[Grand Dojo] Event board and personal trophy display ready.")
 local sparBots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local ringProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local duelRound = false
+local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
+local matchPresentation = {showcase = false}
 
 sparPicker = make("Frame", gui, {
     Name = "SparringPicker", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
@@ -1600,21 +1606,38 @@ local function healthBar(name, side, tint)
         Size = UDim2.new(.5, -18, 0, 10), BackgroundColor3 = palette.raised, BorderSizePixel = 0,
     })
     style(track, 5)
+    local damage = make("Frame", track, {
+        Name = "Recent damage", Size = UDim2.fromScale(1, 1), BackgroundColor3 = tint:Lerp(palette.parchment, .58),
+        BorderSizePixel = 0, Visible = false,
+    })
+    style(damage, 5)
     local fill = make("Frame", track, {Size = UDim2.fromScale(1, 1), BackgroundColor3 = tint, BorderSizePixel = 0})
     style(fill, 5)
     caption.TextTruncate = Enum.TextTruncate.AtEnd
-    local lastRatio, tween
-    return function(health, maxHealth, displayName, reset)
+    local lastRatio, tween, damageTween
+    return function(health, maxHealth, displayName, reset, showcase)
         local ratio = math.clamp(health / maxHealth, 0, 1)
         if ratio ~= lastRatio or reset then
             if tween then
                 tween:Cancel()
             end
+            if damageTween then
+                damageTween:Cancel()
+                damageTween = nil
+            end
             local target = UDim2.fromScale(ratio, 1)
+            local chip = showcase and not reset and lastRatio and not GuiService.ReducedMotionEnabled and ratio < lastRatio
+            damage.Visible = chip == true
+            damage.Size = if chip then UDim2.fromScale(lastRatio, 1) else target
+            if chip then
+                damageTween = TweenService:Create(damage,
+                    TweenInfo.new(.34, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, .18), {Size = target})
+                damageTween:Play()
+            end
             if reset or GuiService.ReducedMotionEnabled then
                 fill.Size = target
             else
-                tween = TweenService:Create(fill, TweenInfo.new(.18, Enum.EasingStyle.Quad), {Size = target})
+                tween = TweenService:Create(fill, TweenInfo.new(if showcase then .09 else .18, Enum.EasingStyle.Quad), {Size = target})
                 tween:Play()
             end
             lastRatio = ratio
@@ -1634,15 +1657,23 @@ local sparControls = make("Frame", gui, {
     Name = "SparringControls", AnchorPoint = Vector2.new(.5, 1), Position = UDim2.new(.5, 0, 1, -64),
     Size = UDim2.new(.82, 0, 0, 48), BackgroundTransparency = 1, Visible = false,
 })
-make("UISizeConstraint", sparControls, {MaxSize = Vector2.new(394, 48)})
+local controlSize = make("UISizeConstraint", sparControls, {MaxSize = Vector2.new(394, 48)})
 local strikeButton = button(sparControls, "Strike", true)
 local guardButton = button(sparControls, "Guard", false)
 local leaveButton = button(sparControls, "Leave", false)
-for index, control in {strikeButton, guardButton, leaveButton} do
-    control.Position = UDim2.fromScale((index - 1) / 3, 0)
-    control.Size = UDim2.new(1 / 3, -4, 1, 0)
-    control.TextSize = 14
-end
+local combatButtons = {
+    heavy = button(sparControls, "Heavy", false),
+    dodge = button(sparControls, "Dodge", false),
+    signature = button(sparControls, "Reedstep Rising", false),
+    exit = button(gui, "Leave spar", false),
+}
+combatButtons.signature.Name = "ReedstepRising"
+combatButtons.exit.Name = "LeaveShowcaseSpar"
+combatButtons.exit.AnchorPoint = Vector2.new(1, 0)
+combatButtons.exit.Position = UDim2.new(1, -10, 0, 12)
+combatButtons.exit.Size = UDim2.fromOffset(82, 44)
+combatButtons.exit.TextSize = 13
+combatButtons.exit.Visible = false
 
 sparResult = make("Frame", gui, {
     Name = "SparringResult", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
@@ -1673,6 +1704,9 @@ local cues = {
     counter = "Counter landed!", strike = "Strike landed.", miss = "Face your opponent and step closer.",
     dodged = "You evaded the strike.", braced = "You struck into Juniper’s brace.",
     stunned = "Your opponent parried. Reset your guard.",
+    jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike",
+    reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
+    needParry = "Parry a strike to unlock Rising.",
 }
 
 local resultAwaitingReward = false
@@ -1693,22 +1727,68 @@ local function refreshSparControls()
     strikeButton.Text = if keyboard then "Strike · E" elseif gamepad then "Strike · RT" else "Strike"
     guardButton.Text = if keyboard then "Guard · Q" elseif gamepad then "Guard · LT" else "Guard"
     leaveButton.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · Y" else "Leave"
+    combatButtons.heavy.Text = if keyboard then "Heavy · R" elseif gamepad then "Heavy · RB" else "Heavy"
+    combatButtons.dodge.Text = if keyboard then "Dodge · X" elseif gamepad then "Dodge · LB" else "Dodge"
+    combatButtons.signature.Text = if keyboard then "Rising · F" elseif gamepad then "Rising · Y" else "Rising"
+    combatButtons.exit.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · B" else "Leave"
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(refreshSparControls)
 refreshSparControls()
 
+layoutMatchControls = function()
+    local showcase = matchPresentation.showcase
+    local ready = sparringActive and not matchPresentation.inIntro and matchPresentation.phase ~= "outro"
+    sparControls.Visible = ready
+    controlSize.MaxSize = Vector2.new(if showcase then 512 else 394, 48)
+    sparControls.Size = UDim2.new(if showcase then .94 else .82, 0, 0, 48)
+    local touch = UserInputService.PreferredInput == Enum.PreferredInput.Touch
+    sparControls.Position = UDim2.new(.5, 0, 1, if showcase and touch then -102 else -64)
+    local controls = if showcase then {strikeButton, guardButton, combatButtons.heavy, combatButtons.dodge,
+        combatButtons.signature} else {strikeButton, guardButton, leaveButton}
+    local count = #controls
+    for index, control in controls do
+        control.Position = UDim2.fromScale((index - 1) / count, 0)
+        control.Size = UDim2.new(1 / count, -4, 1, 0)
+        control.TextSize = if showcase then 13 else 14
+    end
+    leaveButton.Visible = not showcase
+    combatButtons.heavy.Visible = showcase
+    combatButtons.dodge.Visible = showcase
+    combatButtons.signature.Visible = showcase
+    local camera = workspace.CurrentCamera
+    local narrow = camera and camera.ViewportSize.X < 660
+    combatButtons.exit.Position = UDim2.new(1, -10, 0, if narrow and not matchPresentation.inIntro then 132 else 12)
+    combatButtons.exit.Visible = showcase and sparringActive and matchPresentation.phase ~= "outro"
+    sparHud.Visible = sparringActive and not matchPresentation.inIntro
+end
+UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(layoutMatchControls)
+
 local function sendSparAction(action)
-    if sparringActive then
-        if duelRound then
-            duelRemote:FireServer(action)
-        else
-            sparRemote:FireServer(action)
-        end
+    if not sparringActive or matchPresentation.phase == "outro" then
+        return
+    elseif action ~= "leave" and workspace:GetServerTimeNow() < (matchPresentation.startsAt or 0) then
+        return
+    elseif not matchPresentation.showcase and (action == "heavy" or action == "dodge" or action == "signature") then
+        return
+    elseif duelRound then
+        duelRemote:FireServer(action)
+    elseif action == "dodge" then
+        local character = player.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        local left = root and humanoid and humanoid.MoveDirection:Dot(root.CFrame.RightVector) < -.2
+        sparRemote:FireServer(action, if left then -1 else 1)
+    else
+        sparRemote:FireServer(action)
     end
 end
 strikeButton.Activated:Connect(function() sendSparAction("strike") end)
 guardButton.Activated:Connect(function() sendSparAction("guard") end)
 leaveButton.Activated:Connect(function() sendSparAction("leave") end)
+combatButtons.exit.Activated:Connect(function() sendSparAction("leave") end)
+for _, action in {"heavy", "dodge", "signature"} do
+    combatButtons[action].Activated:Connect(function() sendSparAction(action) end)
+end
 retryButton.Activated:Connect(function() sparRemote:FireServer("retry") end)
 exitButton.Activated:Connect(closeResult)
 local sparKeys = {
@@ -1716,27 +1796,50 @@ local sparKeys = {
     [Enum.KeyCode.Q] = "guard", [Enum.KeyCode.ButtonL2] = "guard",
     [Enum.KeyCode.C] = "leave", [Enum.KeyCode.ButtonY] = "leave",
 }
+local showcaseKeys = {
+    [Enum.KeyCode.R] = "heavy", [Enum.KeyCode.ButtonR1] = "heavy",
+    [Enum.KeyCode.X] = "dodge", [Enum.KeyCode.ButtonL1] = "dodge",
+    [Enum.KeyCode.F] = "signature", [Enum.KeyCode.ButtonY] = "signature",
+    [Enum.KeyCode.ButtonB] = "leave",
+}
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed or UserInputService:GetFocusedTextBox() then
         return
     end
     if sparPicker.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closePicker(true)
-    elseif sparringActive and sparKeys[input.KeyCode] then
-        sendSparAction(sparKeys[input.KeyCode])
+    elseif sparringActive then
+        local action = if matchPresentation.showcase then showcaseKeys[input.KeyCode] or sparKeys[input.KeyCode]
+            else sparKeys[input.KeyCode]
+        if action then
+            sendSparAction(action)
+        end
     elseif sparResult.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closeResult()
     end
 end)
 
-local function showMatchHud(isDuel, title)
+local function showMatchHud(isDuel, title, startsAt, introAt)
+    fightIntro:Stop()
     duelRound = isDuel
     sparringActive = true
+    matchPresentation.startsAt = startsAt
+    matchPresentation.phase = nil
+    matchPresentation.showcase = type(introAt) == "number"
+    matchPresentation.inIntro = matchPresentation.showcase and workspace:GetServerTimeNow() < startsAt
     closePicker(false)
     closeResult()
     hide()
     sparTitle.Text = title
-    sparHud.Visible, sparControls.Visible = true, true
+    layoutMatchControls()
+    if matchPresentation.inIntro then
+        local ring = city:FindFirstChild("Fighting Ring")
+        local court = ring and ring:FindFirstChild("Bot Spar Corner")
+        fightIntro:Start(introAt, startsAt, court, function()
+            matchPresentation.inIntro = false
+            layoutMatchControls()
+        end)
+    end
     layout()
 end
 
@@ -1748,8 +1851,10 @@ local function matchClock(startsAt, endsAt)
 end
 
 local function showMatchResult(result, opponent, detail, showRetry)
+    fightIntro:Stop()
+    matchPresentation.inIntro = false
     sparringActive = false
-    sparHud.Visible, sparControls.Visible = false, false
+    layoutMatchControls()
     outcome.Text = if result == "loss" and opponent then opponent .. " won" else (outcomes[result] or "Spar ended")
     outcome.TextTruncate = Enum.TextTruncate.AtEnd
     winsDetail.Text = detail
@@ -1757,14 +1862,32 @@ local function showMatchResult(result, opponent, detail, showRetry)
     retryButton.Active = showRetry and not resultAwaitingReward
     retryButton.Text = if resultAwaitingReward then "Saving XP…" else "Retry"
     sparResult.Visible = true
+    ProximityPromptService.Enabled = false
     layout()
     if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
         GuiService.SelectedObject = if showRetry then retryButton else exitButton
     end
 end
 
+local function clearInterruptedMatch()
+    fightIntro:Stop()
+    if sparringActive then
+        matchPresentation.inIntro = false
+        sparringActive = false
+        ProximityPromptService.Enabled = not panel.Visible and not sparResult.Visible and not sparPicker.Visible
+        layoutMatchControls()
+        layout()
+    end
+end
+player.CharacterRemoving:Connect(clearInterruptedMatch)
+player:GetAttributeChangedSignal("SparringActive"):Connect(function()
+    if not player:GetAttribute("SparringActive") then
+        clearInterruptedMatch()
+    end
+end)
+
 sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt,
-    id, playerMaxHealth, ringId, tell)
+    id, playerMaxHealth, ringId, tell, introAt)
     if kind == "offer" then
         local ring = ringProgression.ById[a]
         local opponent = ring and sparBots[ring.botId]
@@ -1826,18 +1949,27 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     if not opponent then
         return
     elseif kind == "begin" then
-        showMatchHud(false, ringProgression.ById[ringId].name)
+        showMatchHud(false, ringProgression.ById[ringId].name, startsAt, introAt)
     elseif kind ~= "state" or not sparringActive or duelRound then
         return
     end
-    playerHealth(a, playerMaxHealth, nil, kind == "begin")
-    botHealth(b, opponent.health, opponent.name, kind == "begin")
+    if phase ~= matchPresentation.phase then
+        matchPresentation.phase = phase
+        layoutMatchControls()
+    end
+    local showcase = matchPresentation.showcase
+    playerHealth(a, playerMaxHealth, if showcase then "Reedguard" else nil, kind == "begin", showcase)
+    botHealth(b, opponent.health, if showcase then "Juniper" else opponent.name, kind == "begin", showcase)
     local now = matchClock(startsAt, endsAt)
     local parryCue = parryOpensAt ~= nil and now >= parryOpensAt and now <= botAt
     sparHint.TextColor3 = if parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
         elseif phase == "windup" or phase == "setup" then opponent.tint else palette.parchment
-    if now < startsAt then
+    if phase == "outro" then
+        sparHint.Text = "Round ended"
+    elseif now < startsAt then
         sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
+    elseif showcase and feedback == "parried" then
+        sparHint.Text = "Parried! Use Rising now."
     elseif phase == "windup" then
         sparHint.Text = if feedback == "guard" then "Guard up"
             elseif parryCue then "Guard now to parry!"
@@ -1874,7 +2006,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
     elseif kind == "begin" or (kind == "update" and sparringActive and duelRound) then
         if kind == "begin" then
             duelQueue.Visible = false
-            showMatchHud(true, "Grand Dojo Duel")
+            showMatchHud(true, "Grand Dojo Duel", info.startsAt)
         end
         playerHealth(info.playerHealth, info.playerMaxHealth, nil, kind == "begin")
         botHealth(info.opponentHealth, info.opponentMaxHealth, info.opponentName, kind == "begin")

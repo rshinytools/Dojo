@@ -2,13 +2,13 @@
 
 Beast Dojo is a Roblox martial-arts adventure centered on the Dojo Ring. Players travel between six districts, train with animal fighters, and earn trophies through matches, exploration, and festival activities.
 
-**Current Roblox checkpoint** v0.267. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
+**Current Roblox checkpoint** v0.268. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
 
 ## Play the Roblox checkpoint
 
-Download [Beast_Dojo_Grand_Dojo_v0.267.zip](releases/Beast_Dojo_Grand_Dojo_v0.267.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**, preview the four starter fighters, and confirm who to play. Use Fighter Select on the east side of Festival Plaza to switch later. Follow the ring signs to Bot Spar, or take the roads to the Cinder, Cloud-Top and Galleon courts. Take Cedar Foothill Walk off the Skywalk approach, or climb Lantern Tower from Garden Lookout. The City Map on the east-side walk can plot a route to another district. Choose **Eagle Eye** on any district’s map to see the whole valley from above.
+Download [Beast_Dojo_Grand_Dojo_v0.268.zip](releases/Beast_Dojo_Grand_Dojo_v0.268.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**, preview the four starter fighters, and confirm who to play. Use Fighter Select on the east side of Festival Plaza to switch later. Follow the ring signs to Bot Spar, or take the roads to the Cinder, Cloud-Top and Galleon courts. Take Cedar Foothill Walk off the Skywalk approach, or climb Lantern Tower from Garden Lookout. The City Map on the east-side walk can plot a route to another district. Choose **Eagle Eye** on any district’s map to see the whole valley from above.
 
-The ZIP is the verified Studio checkpoint for desktop and Galaxy A06 simulated layouts. The place refers to Roblox-hosted meshes, textures, and audio. Some need account or experience permissions. See [asset access](docs/IMPLEMENTATION.md#asset-access). Studio uses session data. Published data, purchases and physical devices have separate release tests.
+The Reedguard–Juniper round was verified in desktop Studio. The previous four-ring checkpoint also covered Galaxy A06 simulation. The place refers to Roblox-hosted meshes, textures, and audio. Some need account or experience permissions. See [asset access](docs/IMPLEMENTATION.md#asset-access). Studio uses session data. Published data, purchases and physical devices have separate release tests.
 
 ## Build from source
 
