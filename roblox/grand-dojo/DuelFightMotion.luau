@@ -814,10 +814,42 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     return false, center or point
 end
 
-function Motion.raidThreatHits(raid, attack, strike, at, origin, direction)
+local function krakenFootprint(raid, index, at, root, facing, origin, strike, axis)
+    for _, volume in defenderVolumes(raid, index, at, root, facing) do
+        if not volume.grounded then
+            continue
+        end
+        local delta = Match.flat(volume.frame.Position - origin)
+        local sample
+        if axis then
+            sample = axis * math.clamp(delta:Dot(axis), strike.innerReach, strike.outerReach)
+        else
+            local radial = if delta.Magnitude > .01 then delta.Unit else Vector3.zAxis
+            sample = radial * math.clamp(delta.Magnitude, strike.innerRadius, strike.radius)
+        end
+        local point = Geometry.nearestPoint(volume.frame, volume.size, origin + sample + Vector3.new(0, .24, 0))
+        local offset = Match.flat(point - origin)
+        local inside
+        if axis then
+            local along = offset:Dot(axis)
+            inside = along >= strike.innerReach and along <= strike.outerReach
+                and math.abs(offset:Cross(axis).Y) <= strike.halfWidth
+        else
+            inside = offset.Magnitude >= strike.innerRadius and offset.Magnitude <= strike.radius
+        end
+        if inside and point.Y <= origin.Y + .78
+            and not obstructed(raid, origin, point + Vector3.new(0, .13, 0)) then
+            return point
+        end
+    end
+    return nil
+end
+
+function Motion.raidThreatHits(raid, _attack, strike, at, origin, direction)
     local hits = {}
-    local center = if strike.radius then origin else origin + direction * strike.offset
-    local row = if not strike.radius then CFrame.lookAlong(center, direction) else nil
+    local axis = strike.axisX and Vector3.new(strike.axisX, 0, strike.axisZ)
+    local rowCenter = strike.offset and (origin + direction * strike.offset)
+    local row = rowCenter and CFrame.lookAlong(rowCenter, direction)
     for index, actor in raid.actors do
         if not activeActor(raid, index) then
             continue
@@ -828,15 +860,17 @@ function Motion.raidThreatHits(raid, attack, strike, at, origin, direction)
         end
         local facing = defenderFacing(root, origin)
         local hit
-        if strike.radius then
-            hit = floorContact(raid, index, at, root, center, strike.radius)
+        if axis or strike.innerRadius then
+            hit = krakenFootprint(raid, index, at, root, facing, origin, strike, axis)
+        elseif strike.radius then
+            hit = floorContact(raid, index, at, root, origin, strike.radius)
         else
             for _, volume in defenderVolumes(raid, index, at, root, facing) do
                 if volume.grounded then
-                    local point = Geometry.nearestPoint(volume.frame, volume.size, center + Vector3.new(0, .27, 0))
+                    local point = Geometry.nearestPoint(volume.frame, volume.size, rowCenter + Vector3.new(0, .27, 0))
                     local offset = row:PointToObjectSpace(point)
                     if offset.Y <= .83 and math.abs(offset.X) <= strike.halfSpan and math.abs(offset.Z) <= strike.halfWidth
-                        and not obstructed(raid, center, point + Vector3.new(0, .12, 0)) then
+                        and not obstructed(raid, rowCenter, point + Vector3.new(0, .12, 0)) then
                         hit = point
                         break
                     end

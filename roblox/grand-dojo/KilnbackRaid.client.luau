@@ -6,7 +6,6 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local remote = ReplicatedStorage:WaitForChild("KilnbackRaid")
 local Health = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -23,6 +22,20 @@ local coral = Color3.fromRGB(255, 155, 137)
 local amber = Color3.fromRGB(255, 201, 117)
 local track = Color3.fromRGB(40, 31, 36)
 local bold, regular = Enum.Font.GothamBold, Enum.Font.GothamMedium
+
+local raids = {
+    {id = "kilnback", remote = ReplicatedStorage:WaitForChild("KilnbackRaid"), district = "Cinder Terraces",
+        entry = "Kilnback Raid Entry", gate = "Kilnback Raid Queue", label = "Kilnback Raid",
+        name = "Kilnback Custodian", short = "Kilnback", target = "Core", defeated = "Kilnback shut down",
+        clear = "The party shut down Kilnback Custodian.", panel = ink, rim = bronze, accent = gold,
+        lastMatchId = 0, nextStatusAt = 0},
+    {id = "kraken", remote = ReplicatedStorage:WaitForChild("AbyssalRaid"), district = "Tideharbor Coast",
+        entry = "Abyssal Raid Entry", gate = "Abyssal Raid Queue", label = "Abyssal Raid",
+        name = "Abyssal Kraken", short = "Abyssal Kraken", target = "Mantle", defeated = "Abyssal Kraken defeated",
+        clear = "The party defeated the Abyssal Kraken.", panel = Color3.fromRGB(18, 38, 52),
+        rim = Color3.fromRGB(76, 139, 148), accent = Color3.fromRGB(155, 237, 235),
+        health = Color3.fromRGB(109, 216, 209), lastMatchId = 0, nextStatusAt = 0},
+}
 
 local kits = {
     reedguard = {name = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
@@ -87,12 +100,12 @@ local function panel(name, width, height, dock)
     node.AnchorPoint = Vector2.new(.5, if dock then 1 else .5)
     node.Position = UDim2.fromScale(.5, if dock then 1 else .5)
     node.Size = UDim2.new(.94, 0, 0, height)
-    trim(node, 10, bronze)
+    local rim = trim(node, 10, bronze)
     local bounds = make("UISizeConstraint", node, {MaxSize = Vector2.new(width, height)})
-    return node, bounds
+    return node, bounds, rim
 end
 
-local queue = panel("Queue", 384, 65, true)
+local queue, _, queueRim = panel("Queue", 384, 65, true)
 local queueTitle = text(queue, "Heading", bold, 16, gold)
 queueTitle.Position, queueTitle.Size = UDim2.fromOffset(13, 7), UDim2.new(1, -26, 0, 21)
 local queueDetail = text(queue, "Detail", regular, 12, muted)
@@ -108,14 +121,17 @@ local noticeText = text(notice, "Message", regular, 12, paper, Enum.TextXAlignme
 noticeText.Position, noticeText.Size = UDim2.fromOffset(8, 0), UDim2.new(1, -16, 1, 0)
 noticeText.TextWrapped = true
 
-local hud, hudLimit = panel("Match", 660, 91)
+local hud, hudLimit, hudRim = panel("Match", 660, 91)
 hud.AnchorPoint, hud.Position = Vector2.new(.5, 0), UDim2.new(.5, 0, 0, 8)
 local heading = text(hud, "Heading", bold, 20, paper)
-heading.Text = "Kilnback Custodian"
 local timer = text(hud, "Timer", bold, 19, gold, Enum.TextXAlignment.Right)
 local phase = text(hud, "Phase", bold, 12, muted, Enum.TextXAlignment.Right)
 
-local health = Health.new(hud, "Kilnback", false, bold)
+local health = Health.new(hud, "Boss", false, bold)
+local defaultHealthTone = health.tone
+local healthRim = health.track:FindFirstChildOfClass("UIStroke")
+local healthGradient = health.fill:FindFirstChildOfClass("UIGradient")
+local white, black = Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0)
 local healthBox = health.track.Parent
 healthBox.Name = "BossHealth"
 healthBox.Size, healthBox.Position = UDim2.fromScale(1, 1), UDim2.fromScale(0, 0)
@@ -162,7 +178,7 @@ for _, control in actions do
     control.Selectable = false
 end
 
-local recap = panel("Result", 416, 180)
+local recap, _, recapRim = panel("Result", 416, 180)
 local resultTitle = text(recap, "Heading", bold, 23, gold)
 resultTitle.Position, resultTitle.Size = UDim2.fromOffset(15, 10), UDim2.new(1, -30, 0, 32)
 local resultDetail = text(recap, "Detail", regular, 13, paper)
@@ -187,14 +203,21 @@ local keys = {
 }
 local feedback = {
     strike = "Hit confirmed", blocked = "Guard held", parried = "Parry! Counter now",
-    hit = "Hit by Kilnback", revived = "Revived", reviveCancelled = "Revive interrupted",
-    needParry = "Parry to unlock Rising", core = "Core hit", down = "Knocked down",
+    revived = "Revived", reviveCancelled = "Revive interrupted",
+    needParry = "Parry to unlock Rising", down = "Knocked down",
     dodged = "Attack evaded", counter = "Counter hit confirmed",
 }
+local attackCues = {
+    pulse = {name = "Kiln Pulse", hint = "Clear the ring"},
+    sweep = {name = "Tile Sweep", hint = "Leave the marked lane", moving = "Tile wave moving", safe = "Stay out of the lane"},
+    undertow = {name = "Undertow", hint = "Inside or beyond the ring"},
+    cataclysm = {name = "Tentacle Cataclysm", hint = "Move between the arms", moving = "Tentacles striking",
+        safe = "Stay between the arms"},
+}
 
-local match, schedule, outcome, reward, earlyReward
-local lastMatchId, noticeUntil = 0, 0
-local wasNear, nextStatusAt = false, 0
+local match, matchRaid, outcome, outcomeRaid, reward, earlyReward
+local queuedRaid, nearbyRaid, displayedRaid, noticeRaid
+local noticeUntil = 0
 local leaving, detached = false, false
 
 local function gamepad()
@@ -231,10 +254,18 @@ local function nearGate()
     local root = character and character:FindFirstChild("HumanoidRootPart")
     local city = workspace:FindFirstChild("Grand Dojo City")
     local districts = city and city:FindFirstChild("Connected districts")
-    local cinder = districts and districts:FindFirstChild("Cinder Terraces")
-    local entry = cinder and cinder:FindFirstChild("Kilnback Raid Entry")
-    local gate = entry and entry:FindFirstChild("Kilnback Raid Queue")
-    return root and gate and (root.Position - gate.Position).Magnitude <= 13 or false
+    if not root or not districts then
+        return nil
+    end
+    for _, raid in raids do
+        local district = districts:FindFirstChild(raid.district)
+        local entry = district and district:FindFirstChild(raid.entry)
+        local gate = entry and entry:FindFirstChild(raid.gate)
+        if gate and (root.Position - gate.Position).Magnitude <= 13 then
+            return raid
+        end
+    end
+    return nil
 end
 
 local function clockText(seconds)
@@ -320,10 +351,11 @@ local function layout()
         local node = actions[action]
         node.Position = UDim2.new((offset % columns) / columns, 2, 0, math.floor(offset / columns) * (rowH + 4))
         node.Size = UDim2.new(1 / columns, -4, 0, rowH)
-        node.TextSize = if compact then 12 else 13
+        node.TextSize = if touch and not stacked then 10 elseif compact then 12 else 13
     end
     local dock = if touch then math.min(95, math.floor(height * .24)) else 22
     queue.Position, notice.Position = UDim2.new(.5, 0, 1, -dock), UDim2.new(.5, 0, 1, -dock)
+    resultTitle.TextSize = if width < 370 then 20 else 23
 end
 
 local function refreshParty()
@@ -340,7 +372,7 @@ local function refreshParty()
                 else tostring(math.round(slot.health))
             tile.state.TextColor3 = if down then coral else muted
             local revival = match.revive and match.revive.targetIndex or match.reviveTarget
-            tile.rim.Color = if not slot.left and down and revival == index then mint elseif down then coral else bronze
+            tile.rim.Color = if not slot.left and down and revival == index then mint elseif down then coral else matchRaid.rim
             tile.fill.Size = UDim2.fromScale(if slot.left or slot.maxHealth <= 0 then 0
                 else math.clamp(slot.health / slot.maxHealth, 0, 1), 1)
             Portraits.set(tile.portrait, if own then kitName(slot) else nil)
@@ -385,14 +417,18 @@ end
 
 local function refreshCue(own, now)
     local color = paper
-    local message = feedback[match.feedback] or ""
+    local message = if match.feedback == "hit" then "Hit by " .. matchRaid.short
+        elseif match.feedback == "core" then matchRaid.target .. " hit" else feedback[match.feedback] or ""
     local attack, revival = match.attack, match.revive
+    local copy = attack and attackCues[attack.id]
+    local attackName = attack and (attack.name or (copy and copy.name) or "Attack")
     local warning = attack and attack.impactAt and now >= (attack.windupAt or 0) and now < attack.impactAt
-    local waveMoving = attack and attack.id == "sweep" and attack.impactAt and attack.endAt
-        and now >= attack.impactAt and now < attack.endAt
+    local movementEnd = attack and (if attack.id == "cataclysm" then attack.lastImpactAt or attack.endAt else attack.endAt)
+    local moving = copy and copy.moving and attack.impactAt and movementEnd
+        and now >= attack.impactAt and now < movementEnd
     reviveMeter.Visible = false
     if match.resolvedAt then
-        message = if match.bossHealth <= 0 then "Kilnback shut down" else "Encounter over"
+        message = if match.bossHealth <= 0 then matchRaid.defeated else "Encounter over"
     elseif now < match.startsAt then
         CombatAudio.countdown(match.startsAt - now)
         message = "Raid starts in " .. math.ceil(match.startsAt - now)
@@ -401,22 +437,21 @@ local function refreshCue(own, now)
         color = coral
     elseif revival and revival.endsAt and revival.startedAt and revival.endsAt > revival.startedAt then
         local remaining = math.max(0, revival.endsAt - now)
-        message = if warning then string.format("%s in %.1fs · Reviving", attack.name or "Attack", attack.impactAt - now)
-            elseif waveMoving then "Tile wave moving · Reviving"
+        message = if warning then string.format("%s in %.1fs · Reviving", attackName, attack.impactAt - now)
+            elseif moving then copy.moving .. " · Reviving"
             else string.format("Reviving %s · %.1fs", participantName(match.slots[revival.targetIndex]), remaining)
         local progress = math.clamp((now - revival.startedAt) / (revival.endsAt - revival.startedAt), 0, 1)
         reviveMeter.Visible = true
         reviveFill.Size = UDim2.fromScale(progress, 1)
-        color = if warning or waveMoving then amber else mint
+        color = if warning or moving then amber else mint
     elseif warning then
-        local name = attack.name or (if attack.id == "pulse" then "Kiln Pulse" else "Tile Sweep")
-        local prompt = if name == "Kiln Pulse" or attack.id == "pulse" then "Clear the ring" else "Leave the marked lane"
-        message = string.format("%s · %.1fs · %s", name, attack.impactAt - now, prompt)
+        local hint = (copy and copy.hint) or attack.hint or "Move to safety"
+        message = string.format("%s · %.1fs · %s", attackName, attack.impactAt - now, hint)
         color = amber
-    elseif waveMoving then
-        message, color = "Tile wave moving · Stay out of the lane", amber
+    elseif moving then
+        message, color = copy.moving .. " · " .. copy.safe, amber
     elseif match.vulnerableUntil and now < match.vulnerableUntil then
-        message = string.format("Core exposed · %.1fs", match.vulnerableUntil - now)
+        message = string.format("%s exposed · %.1fs", matchRaid.target, match.vulnerableUntil - now)
         color = mint
     elseif match.reviveTarget then
         message = "Revive " .. participantName(match.slots[match.reviveTarget])
@@ -425,9 +460,9 @@ local function refreshCue(own, now)
     cue.Text, cue.TextColor3 = message, color
 end
 
-local function tell(message, now)
+local function tell(raid, message, now)
     if type(message) == "string" and message ~= "" then
-        noticeText.Text, noticeUntil = message, now + 5
+        noticeText.Text, noticeUntil, noticeRaid = message, now + 5, raid
     end
 end
 
@@ -438,28 +473,32 @@ local function refresh()
         or player:GetAttribute("TagTeamActive") or player:GetAttribute("SkywalkTrialMode")
         or player:GetAttribute("StarterSelectionRequired")
     local world = not current and not recap.Visible and not occupied and not menuOpen()
-    local near = world and nearGate()
-    if near and now >= nextStatusAt and (not wasNear or not schedule or not schedule.opensAt
-        or now >= schedule.opensAt) then
-        nextStatusAt = now + 5
-        remote:FireServer("status")
+    local near = world and nearGate() or nil
+    local gateSchedule = near and near.schedule
+    if near and now >= near.nextStatusAt and (near ~= nearbyRaid or not gateSchedule or not gateSchedule.opensAt
+        or now >= gateSchedule.opensAt) then
+        near.nextStatusAt = now + 5
+        near.remote:FireServer("status")
     end
-    wasNear = near
+    nearbyRaid = near
 
-    local queued = schedule ~= nil and schedule.queued == true
-    local canJoin = near and schedule ~= nil and schedule.canJoin == true and not queued and now < (schedule.closesAt or math.huge)
+    displayedRaid = world and (queuedRaid or near) or nil
+    local schedule = displayedRaid and displayedRaid.schedule
+    local queued = queuedRaid ~= nil and displayedRaid == queuedRaid
+    local canJoin = displayedRaid == near and schedule ~= nil and schedule.canJoin == true
+        and not queued and now < (schedule.closesAt or math.huge)
     local wasVisible, hadCancel, hadJoin = queue.Visible, cancel.Visible, join.Visible
-    local showNotice = world and now < noticeUntil
+    local showNotice = world and now < noticeUntil and (not near or near == noticeRaid)
     queue.Visible = world and schedule ~= nil and (queued or (near and not showNotice))
     notice.Visible = showNotice and not queue.Visible
     cancel.Visible, join.Visible = queued, canJoin
     if queue.Visible then
+        queue.BackgroundColor3, queueRim.Color, queueTitle.TextColor3 = displayedRaid.panel, displayedRaid.rim, displayedRaid.accent
         local open = schedule.opensAt or now
         local closes = schedule.closesAt or math.huge
         local count, required = schedule.count or 0, schedule.required or 4
-        queueTitle.Text = if queued then string.format("Raid queue · %d/%d", count, required)
-            elseif open <= now and now < closes then string.format("Kilnback Raid · %d/%d", count, required)
-            else "Kilnback Raid"
+        queueTitle.Text = if queued or (open <= now and now < closes) then string.format("%s · %d/%d", displayedRaid.label, count, required)
+            else displayedRaid.label
         queueDetail.Text = if schedule.message then schedule.message
             elseif now < open then "Opens in " .. clockText(open - now)
             elseif now >= closes then "Checking the next opening…"
@@ -490,9 +529,10 @@ local function closeRecap()
 end
 
 local function send(action)
-    if not match or detached or leaving then
+    if not match or not matchRaid or detached or leaving then
         return
     end
+    local remote = matchRaid.remote
     local now = workspace:GetServerTimeNow()
     if action == "leave" and not match.resolvedAt then
         leaving = true
@@ -522,10 +562,10 @@ local function send(action)
 end
 
 join.Activated:Connect(function()
-    if join.Visible and schedule and schedule.canJoin then remote:FireServer("join") end
+    if queue.Visible and join.Visible and displayedRaid then displayedRaid.remote:FireServer("join") end
 end)
 cancel.Activated:Connect(function()
-    if schedule and schedule.queued then remote:FireServer("cancel") end
+    if queue.Visible and cancel.Visible and queuedRaid then queuedRaid.remote:FireServer("cancel") end
 end)
 close.Activated:Connect(closeRecap)
 for action, control in actions do
@@ -539,20 +579,30 @@ UserInputService.InputBegan:Connect(function(input, consumed)
     elseif match then
         local action = keys[input.KeyCode]
         if action then send(action) end
-    elseif back and queue.Visible and cancel.Visible then
-        remote:FireServer("cancel")
+    elseif back and queue.Visible and cancel.Visible and queuedRaid then
+        queuedRaid.remote:FireServer("cancel")
     end
 end)
 
 local resultTitles = {
-    win = "Kilnback defeated", loss = "The party was defeated", timeout = "Time expired",
+    loss = "The party was defeated", timeout = "Time expired",
     left = "You left the raid", cancelled = "Raid cancelled",
 }
 local resultReasons = {
-    cleared = "The party shut down Kilnback Custodian.", wipe = "Every remaining fighter went down.",
-    timeout = "Kilnback was still standing when time ran out.", leave = "You returned to Cinder Terraces.",
-    earlyDeparture = "The raid ended before the first attack.",
+    wipe = "Every remaining fighter went down.", earlyDeparture = "The raid ended before the first attack.",
 }
+
+local function themeMatch(raid)
+    hud.BackgroundColor3, hudRim.Color, heading.Text = raid.panel, raid.rim, raid.name
+    timer.TextColor3 = raid.accent
+    for _, tile in slots do
+        tile.node.BackgroundColor3 = raid.panel
+    end
+    local tone = raid.health or defaultHealthTone
+    health.tone = tone
+    healthRim.Color = tone:Lerp(black, .6)
+    healthGradient.Color = ColorSequence.new(tone:Lerp(white, .40), tone:Lerp(black, .23))
+end
 
 local function showReward()
     trophyLine.Text = ""
@@ -580,62 +630,83 @@ local function showReward()
     rewardLine.TextColor3 = if reward and reward.status == "unavailable" then coral else mint
 end
 
-remote.OnClientEvent:Connect(function(kind, data)
-    if type(data) ~= "table" then return end
+local function receive(raid, kind, data)
+    if type(data) ~= "table" or (data.raidId or "kilnback") ~= raid.id then return end
+    local now = workspace:GetServerTimeNow()
     if kind == "schedule" or kind == "queue" then
-        schedule = data
-        if kind == "queue" and not data.queued then tell(data.message, workspace:GetServerTimeNow()) end
+        raid.schedule = data
+        local wasQueued = queuedRaid == raid
+        if not match and data.queued then
+            queuedRaid = raid
+        elseif wasQueued then
+            queuedRaid = nil
+        end
+        if kind == "queue" and not data.queued and (wasQueued or nearbyRaid == raid) then tell(raid, data.message, now) end
     elseif kind == "notice" then
-        tell(data.message, workspace:GetServerTimeNow())
+        if raid == queuedRaid or raid == nearbyRaid then tell(raid, data.message, now) end
     elseif kind == "begin" or kind == "update" then
         if type(data.slots) ~= "table" or not data.selfIndex or not data.slots[data.selfIndex]
-            or type(data.startsAt) ~= "number" or type(data.endsAt) ~= "number" then return end
+            or type(data.startsAt) ~= "number" or type(data.endsAt) ~= "number"
+            or type(data.bossHealth) ~= "number" or type(data.bossMaxHealth) ~= "number" then return end
         local beginning = kind == "begin"
         if beginning then
-            if type(data.matchId) ~= "number" or data.matchId <= lastMatchId then return end
-            lastMatchId = data.matchId
-            schedule, outcome, reward, earlyReward = nil, nil, nil, nil
+            if type(data.matchId) ~= "number" or data.matchId <= raid.lastMatchId
+                or (match and data.startsAt <= match.startsAt) then return end
+            raid.lastMatchId = data.matchId
+            if queuedRaid then queuedRaid.schedule = nil end
+            raid.schedule, queuedRaid, noticeUntil = nil, nil, 0
+            outcome, outcomeRaid, reward, earlyReward = nil, nil, nil, nil
             leaving, detached = false, false
-            closeRecap()
+            themeMatch(raid)
             CombatAudio.prepare()
             CombatAudio.resetCountdown()
-        elseif not match or match.matchId ~= data.matchId then
+        elseif not match or matchRaid ~= raid or match.matchId ~= data.matchId then
             return
         end
-        match = data
-        health:Set(data.bossHealth, data.bossMaxHealth, nil, beginning)
+        match, matchRaid = data, raid
+        health:Set(data.bossHealth, data.bossMaxHealth, raid.name, beginning)
         healthValue.Text = string.format("%d / %d HP", math.round(data.bossHealth), math.round(data.bossMaxHealth))
         refreshParty()
-        if beginning then layout() end
-    elseif kind == "result" and match and data.matchId == match.matchId then
-        match, schedule, leaving, detached = nil, nil, false, false
-        outcome, reward, earlyReward = data, earlyReward, nil
+        if beginning then
+            layout()
+            closeRecap()
+        end
+    elseif kind == "result" and match and matchRaid == raid and data.matchId == match.matchId then
+        match, matchRaid, raid.schedule, leaving, detached = nil, nil, nil, false, false
+        outcome, outcomeRaid, reward, earlyReward = data, raid, earlyReward, nil
         health:Snap()
         for _, tile in slots do Portraits.set(tile.portrait, nil) end
-        resultTitle.Text = if data.reason == "timeout" then resultTitles.timeout else resultTitles[data.result] or "Raid finished"
-        resultDetail.Text = data.message or resultReasons[data.reason] or (if data.result == "win"
-            then resultReasons.cleared else resultReasons.leave)
+        recap.BackgroundColor3, recapRim.Color, resultTitle.TextColor3 = raid.panel, raid.rim, raid.accent
+        resultTitle.Text = if data.reason == "timeout" then resultTitles.timeout elseif data.result == "win"
+            then raid.short .. " defeated" else resultTitles[data.result] or "Raid finished"
+        resultDetail.Text = data.message or resultReasons[data.reason] or (if data.result == "win" then raid.clear
+            elseif data.reason == "timeout" then raid.short .. " was still standing when time ran out."
+            else "You returned to " .. raid.district .. ".")
         showReward()
         recap.Visible = true
         player:SetAttribute("KilnbackRaidRecapOpen", true)
         focus()
     elseif kind == "reward" then
-        if outcome and data.matchId == outcome.matchId then
+        if outcome and outcomeRaid == raid and data.matchId == outcome.matchId then
             reward = data
             showReward()
             if not recap.Visible and data.status == "saved" then
-                tell(if data.newTrophy and type(data.trophy) == "string" then data.trophy .. " earned" else "Raid reward saved",
-                    workspace:GetServerTimeNow())
+                tell(raid, if data.newTrophy and type(data.trophy) == "string" then data.trophy .. " earned" else "Raid reward saved", now)
             end
-        elseif match and data.matchId == match.matchId then
+        elseif match and matchRaid == raid and data.matchId == match.matchId then
             earlyReward = data
         end
     end
     refresh()
-end)
+end
+
+for _, raid in raids do
+    raid.remote.OnClientEvent:Connect(function(kind, data) receive(raid, kind, data) end)
+end
 
 player.CharacterRemoving:Connect(function()
-    detached, schedule = true, nil
+    detached, queuedRaid = true, nil
+    for _, raid in raids do raid.schedule = nil end
     refresh()
 end)
 player:GetAttributeChangedSignal("KilnbackRaidActive"):Connect(function()

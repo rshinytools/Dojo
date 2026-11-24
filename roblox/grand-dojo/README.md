@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.282, use **Abyssal Raid** in Tideharbor Coast before the Galleon. Four players enter the Storm Basin. Step inside or outside the Undertow ring, dodge between the four tentacles, then attack the open mantle. The first eligible clear earns **Deepwater Team** in the Trophy Hall journal. The two raid gates are immediately available in Studio and configured to alternate in published play.
+
 In v0.281, use **Kilnback Raid** in Cinder Terraces. Four players share the kiln chamber. Step out of the pulse and rolling tile warnings, then hit the exposed core. Use **G**, D-pad Right or **Revive** near a downed teammate. Eligible clears save a token and shard grant. The first also earns **Kiln Keeper** in the Trophy Hall journal.
 
 In v0.280, use **2v2 Tag Team** by the Grand Dojo stairs. Pick one backup, then wait for three other players on the same server. Press **T**, D-pad Right or **Tag In** during combat. Your backup starts with a short assist strike and your benched fighter keeps their health. A knockout brings in a surviving backup. Check both teams’ reserve health under the clock.

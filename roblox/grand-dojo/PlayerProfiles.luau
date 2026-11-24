@@ -17,7 +17,9 @@ local STARTERS = {
 }
 local LANTERN_KEEPER = "world-04"
 local KILN_KEEPER = "world-01"
-local KILNBACK_TOKENS, KILNBACK_SHARDS = 20, 2
+local DEEPWATER_TEAM = "world-02"
+local RAID_TROPHIES = {kilnback = KILN_KEEPER, kraken = DEEPWATER_TEAM}
+local RAID_TOKENS, RAID_SHARDS = 20, 2
 local LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
 PlayerProfiles.FirstRelayXp = FIRST_RELAY_XP
 PlayerProfiles.FirstDojoPracticeXp = FIRST_DOJO_PRACTICE_XP
@@ -45,6 +47,20 @@ end
 local function validRewardReceipt(receipt, firstXp, repeatXp)
     return receipt == nil or (type(receipt) == "table" and validCompletionId(receipt.id)
         and isStarter(receipt.fighterId) and (receipt.xp == firstXp or receipt.xp == repeatXp))
+end
+
+local function validRaidReceipt(receipt)
+    return type(receipt) == "table" and whole(receipt.window, 0, 1e10)
+        and whole(receipt.tokens, 0, 1e12) and whole(receipt.shards, 0, 1e12)
+        and validCompletionId(receipt.id)
+        and (receipt.raidId == nil or RAID_TROPHIES[receipt.raidId] ~= nil)
+        and (receipt.grantedTokens == nil or whole(receipt.grantedTokens, 0, RAID_TOKENS))
+        and (receipt.grantedShards == nil or whole(receipt.grantedShards, 0, RAID_SHARDS))
+end
+
+local function validRaidTrophy(trophy)
+    return type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
+        and whole(trophy.criterionVersion, 1, 1e6) and validCompletionId(trophy.completionId)
 end
 
 local function newProfile()
@@ -86,7 +102,12 @@ local function valid(profile)
         end
     end
     local trophy = profile.trophies[LANTERN_KEEPER]
-    local kilnKeeper, kilnback = profile.trophies[KILN_KEEPER], profile.kilnback
+    for _, id in RAID_TROPHIES do
+        local award = profile.trophies[id]
+        if award ~= nil and not validRaidTrophy(award) then
+            return false
+        end
+    end
     local lease = profile.lease
     return (profile.dojoPracticeId == nil or validCompletionId(profile.dojoPracticeId))
         and (profile.firstSparWinId == nil or validCompletionId(profile.firstSparWinId))
@@ -97,13 +118,7 @@ local function valid(profile)
             or (isStarter(profile.activeStarterFighter) and profile.selectedStarterFighter ~= nil))
         and (trophy == nil or type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
             and whole(trophy.criterionVersion, 1, 1e6))
-        and (kilnKeeper == nil or type(kilnKeeper) == "table" and whole(kilnKeeper.earnedAt, 1, 1e12)
-            and whole(kilnKeeper.criterionVersion, 1, 1e6) and validCompletionId(kilnKeeper.completionId))
-        and (kilnback == nil or type(kilnback) == "table" and whole(kilnback.window, 0, 1e10)
-            and whole(kilnback.tokens, 0, 1e12) and whole(kilnback.shards, 0, 1e12)
-            and validCompletionId(kilnback.id)
-            and (kilnback.grantedTokens == nil or whole(kilnback.grantedTokens, 0, KILNBACK_TOKENS))
-            and (kilnback.grantedShards == nil or whole(kilnback.grantedShards, 0, KILNBACK_SHARDS)))
+        and (profile.kilnback == nil or validRaidReceipt(profile.kilnback))
         and (lease == nil or type(lease) == "table" and type(lease.token) == "string"
             and whole(lease.expiresAt, 1, 1e12))
 end
@@ -154,11 +169,13 @@ function PlayerProfiles.summary(profile, fighterId)
         highestXp = math.max(highestXp, ownedXp)
         fighterLevels[id] = PlayerProfiles.levelForXp(ownedXp)
     end
+    local raid = profile.kilnback
     return {
         lanternKeeper = profile.trophies[LANTERN_KEEPER] ~= nil,
         kilnKeeper = profile.trophies[KILN_KEEPER] ~= nil,
-        raidTokens = profile.kilnback and profile.kilnback.tokens or 0,
-        mythicShards = profile.kilnback and profile.kilnback.shards or 0,
+        deepwaterTeam = profile.trophies[DEEPWATER_TEAM] ~= nil,
+        raidTokens = raid and raid.tokens or 0,
+        mythicShards = raid and raid.shards or 0,
         dojoPracticeComplete = profile.dojoPracticeId ~= nil,
         firstSparWinComplete = profile.firstSparWinId ~= nil,
         relayBest = profile.relayBestTenths / 10,
@@ -257,35 +274,44 @@ function PlayerProfiles:commitFighterSwitch(userId, token, fighterId)
     end)
 end
 
-function PlayerProfiles:commitKilnbackRaid(userId, token, window, completionId)
-    if not whole(window, 0, 1e10) or not validCompletionId(completionId) then
+function PlayerProfiles:commitRaid(userId, token, raidId, window, completionId)
+    local trophyId = RAID_TROPHIES[raidId]
+    if not trophyId or not whole(window, 0, 1e10) or not validCompletionId(completionId) then
         return nil, "invalid result"
     end
     local saved, reason = self:_owned(userId, token, function(profile, now)
+        -- Keep the original storage key so a rollback still reads the shared balances.
         local previous = profile.kilnback
-        local trophy = profile.trophies[KILN_KEEPER]
-        if (previous and (window <= previous.window or completionId == previous.id))
-            or (trophy and completionId == trophy.completionId) then
+        local trophy = profile.trophies[trophyId]
+        if previous and (window <= previous.window or completionId == previous.id) then
             return
+        end
+        for _, awardId in RAID_TROPHIES do
+            local award = profile.trophies[awardId]
+            if award and award.completionId == completionId then
+                return
+            end
         end
         if not trophy then
             profile.trophies = table.clone(profile.trophies)
-            profile.trophies[KILN_KEEPER] = {earnedAt = now, criterionVersion = 1, completionId = completionId}
+            profile.trophies[trophyId] = {earnedAt = now, criterionVersion = 1, completionId = completionId}
         end
         local tokens, shards = previous and previous.tokens or 0, previous and previous.shards or 0
-        local grantTokens, grantShards = math.min(KILNBACK_TOKENS, 1e12 - tokens), math.min(KILNBACK_SHARDS, 1e12 - shards)
-        profile.kilnback = {window = window, id = completionId,
+        local grantTokens, grantShards = math.min(RAID_TOKENS, 1e12 - tokens), math.min(RAID_SHARDS, 1e12 - shards)
+        profile.kilnback = {raidId = raidId, window = window, id = completionId,
             tokens = tokens + grantTokens, shards = shards + grantShards, grantedTokens = grantTokens, grantedShards = grantShards}
     end)
     if not saved then
         return nil, reason
     end
     local receipt = saved.kilnback
-    local applied = receipt and receipt.window == window and receipt.id == completionId
+    local applied = receipt and (receipt.raidId or "kilnback") == raidId
+        and receipt.window == window and receipt.id == completionId
+    local trophy = saved.trophies[trophyId]
     return saved, nil, {status = if applied then "saved" else "already",
-        tokens = if applied then receipt.grantedTokens or KILNBACK_TOKENS else 0,
-        shards = if applied then receipt.grantedShards or KILNBACK_SHARDS else 0,
-        newTrophy = applied and saved.trophies[KILN_KEEPER].completionId == completionId or false}
+        tokens = if applied then receipt.grantedTokens or RAID_TOKENS else 0,
+        shards = if applied then receipt.grantedShards or RAID_SHARDS else 0,
+        newTrophy = applied and trophy and trophy.completionId == completionId or false}
 end
 
 function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId, fighterId)

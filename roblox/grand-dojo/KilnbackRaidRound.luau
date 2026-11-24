@@ -8,15 +8,34 @@ local Raid = {
     BOSS_HEALTH = 1260, REVIVE_TIME = 2, REVIVE_FRACTION = .35,
 }
 
-local attackOrder = {"pulse", "sweep", "cooldown"}
-local attackNames = {pulse = "Kiln Pulse", sweep = "Tile Sweep", cooldown = "Cool-down Window"}
+local bosses = {
+    kilnback = {
+        health = Raid.BOSS_HEALTH, duration = Raid.DURATION,
+        attacks = {
+            {id = "pulse", name = "Kiln Pulse", hint = "Clear the ring"},
+            {id = "sweep", name = "Tile Sweep", hint = "Leave the marked lane"},
+            {id = "cooldown", name = "Cool-down Window", hint = "Strike the exposed core"},
+        },
+    },
+    kraken = {
+        health = 1500, duration = 118,
+        attacks = {
+            {id = "undertow", name = "Undertow", hint = "Step inside or outside the ring"},
+            {id = "cataclysm", name = "Tentacle Cataclysm", hint = "Move into a diagonal gap"},
+            {id = "airPocket", name = "Air Pocket", hint = "Strike the exposed mantle"},
+        },
+    },
+}
+local cardinal = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
 local inputs = {strike = true, guard = true, heavy = true, uppercut = true, dodge = true, secondary = true, signature = true}
 local evades = {sidestep = true, floeTurn = true}
 
-function Raid.new(now, entrants)
-    assert(#entrants == Raid.SIZE, "Kilnback requires four fighters")
+function Raid.new(now, entrants, bossId)
+    bossId = bossId or "kilnback"
+    local boss = assert(bosses[bossId], "Unknown raid boss")
+    assert(#entrants == Raid.SIZE, "Raid requires four fighters")
     local sides = {}
-    local timing = {intro = Raid.INTRO, duration = Raid.DURATION}
+    local timing = {intro = Raid.INTRO, duration = boss.duration}
     for index, entrant in entrants do
         assert(type(entrant.fighter.health) == "number" and entrant.fighter.health > 0
             and entrant.fighter.health < math.huge and entrant.kitId, "Invalid raid fighter")
@@ -27,8 +46,8 @@ function Raid.new(now, entrants)
     end
     local startsAt = now + Raid.INTRO
     return {
-        introAt = now, startsAt = startsAt, endsAt = startsAt + Raid.DURATION, sides = sides,
-        bossHealth = Raid.BOSS_HEALTH, bossMaxHealth = Raid.BOSS_HEALTH, bossPhase = 1, coreExposed = false,
+        introAt = now, startsAt = startsAt, endsAt = startsAt + boss.duration, sides = sides,
+        bossId = bossId, bossHealth = boss.health, bossMaxHealth = boss.health, bossPhase = 1, coreExposed = false,
         nextAttackAt = startsAt + 1.35, attackIndex = 0, lastTarget = 0,
         revives = {}, notices = {}, steppedAt = now,
     }
@@ -163,10 +182,12 @@ local function nextTarget(round, at, chooseTarget)
 end
 
 local function beginAttack(round, at, chooseTarget)
-    round.attackIndex = round.attackIndex % #attackOrder + 1
-    local id, phase = attackOrder[round.attackIndex], round.bossPhase
+    local order = bosses[round.bossId].attacks
+    round.attackIndex = round.attackIndex % #order + 1
+    local move, phase = order[round.attackIndex], round.bossPhase
+    local id = move.id
     local faster = phase == 2
-    local attack = {id = id, name = attackNames[id], phase = phase, startedAt = at, warningAt = at,
+    local attack = {id = id, name = move.name, hint = move.hint, phase = phase, startedAt = at, warningAt = at,
         steps = {}, nextStep = 1, caught = {}}
     if id == "pulse" then
         attack.impactAt = at + (if faster then 1.15 else 1.40)
@@ -182,8 +203,22 @@ local function beginAttack(round, at, chooseTarget)
                 damage = if faster then 29 else 22}
         end
         attack.endsAt = attack.steps[3].at + (if faster then .65 else .90)
+    elseif id == "undertow" then
+        attack.impactAt = at + (if faster then 1.19 else 1.45)
+        attack.steps[1] = {index = 1, at = attack.impactAt, radius = if faster then 21 else 19,
+            innerRadius = if faster then 8.5 else 9, damage = if faster then 36 else 30}
+        attack.endsAt = attack.impactAt + (if faster then .66 else .82)
+    elseif id == "cataclysm" then
+        attack.impactAt = at + (if faster then 1.42 else 1.70)
+        for index, axis in cardinal do
+            attack.steps[index] = {index = index, at = attack.impactAt + (index - 1) * (if faster then .14 else .18),
+                axisX = axis[1], axisZ = axis[2], innerReach = 3.5, outerReach = if faster then 22 else 20.5,
+                halfWidth = if faster then 3.8 else 3.25, damage = if faster then 40 else 34}
+        end
+        attack.endsAt = attack.steps[4].at + (if faster then .66 else .90)
     else
-        attack.endsAt = at + (if faster then 4.5 else 5.2)
+        local duration = if faster then 4.5 elseif id == "airPocket" then 5.15 else 5.2
+        attack.endsAt = at + duration
         round.coreExposed, round.cooldownUntil = true, attack.endsAt
     end
     round.attack = attack
@@ -227,8 +262,8 @@ local function advanceBoss(round, at, chooseTarget, checkBoss, hits)
             seen[index] = true
             local kind = defense(side, at, contact.facing)
             if kind ~= "dodged" then
-                -- All three panels belong to one moving wave. A broad hurtbox
-                -- should never take three hits for straddling two panel edges.
+                -- Adjacent lanes belong to one cast. A broad hurtbox can
+                -- overlap multiple steps, but only one may deal damage.
                 attack.caught[index] = true
             end
             local damage = if kind == "hit" then strike.damage elseif kind == "blocked" then math.ceil(strike.damage * .28) else 0

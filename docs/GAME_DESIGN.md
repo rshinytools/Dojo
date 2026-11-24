@@ -398,7 +398,15 @@ Cool-down Window: steam vents open, exposing a glowing ceramic core for a short 
 
 The v0.281 Studio checkpoint implements the original native boss rig, chamber, attack animations and co-op encounter. The raid has a confirmed hit-and-revive reward loop in the Studio profile path. Final boss audio, published play and physical-device verification remain open.
 
-### 8.3 Production asset rules
+### 8.3 Abyssal Kraken
+
+The Abyssal Kraken rises from an old tide gauge in Tideharbor’s sunken Storm Basin. Its indigo mantle, pearl core and four articulated arms contrast with the pale stone hazard marks. Its silhouette and choreography are original to Beast Dojo.
+
+Undertow builds a raised ring of surf. The inner circle and the far perimeter provide two routes out. Tentacle Cataclysm slams four cardinal lanes inward in sequence, leaving diagonal gaps. In Air Pocket, the Kraken spreads its front mantle and exposes its pearl core. At half health the surf widens and the slams arrive closer together.
+
+An eligible first clear earns Deepwater Team. Final boss audio, published play and physical-device verification remain release work.
+
+### 8.4 Production asset rules
 
 Create independent silhouettes, costume details, lore, maps, UI art, voices, music, effects and choreography. Do not use ripped or near-recreated franchise assets. Changing only a name or color does not establish clearance.
 

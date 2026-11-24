@@ -10,8 +10,12 @@ local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
 local trainingCompleted = script.Parent:WaitForChild("RingTrainingCompleted")
-local raidCompleted = script.Parent:WaitForChild("KilnbackRaidCompleted")
-local raidRemote = ReplicatedStorage:WaitForChild("KilnbackRaid")
+local raidCompleted = script.Parent:WaitForChild("DojoRaidCompleted")
+local raidRemotes = {
+    kilnback = ReplicatedStorage:WaitForChild("KilnbackRaid"),
+    kraken = ReplicatedStorage:WaitForChild("AbyssalRaid"),
+}
+local raidTrophyNames = {kilnback = "Kiln Keeper", kraken = "Deepwater Team"}
 
 local studio = RunService:IsStudio()
 local store = if studio then PlayerProfiles.memoryStore() else DataStoreService:GetDataStore("BeastDojoPlayerProfiles")
@@ -247,6 +251,7 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("FirstSparWinComplete", progress.firstSparWinComplete)
     player:SetAttribute("LanternKeeper", progress.lanternKeeper)
     player:SetAttribute("KilnKeeper", progress.kilnKeeper)
+    player:SetAttribute("DeepwaterTeam", progress.deepwaterTeam)
     player:SetAttribute("RaidTokens", progress.raidTokens)
     player:SetAttribute("MythicShards", progress.mythicShards)
     player:SetAttribute("RelayBest", progress.relayBest)
@@ -260,7 +265,7 @@ local function projectProgress(player, data, profile)
 end
 
 local function pendingProgress(data)
-    return data.pendingStarterChoice or data.pendingRelay or data.pendingSparWin or data.pendingTraining or data.pendingRaid
+    return data.pendingStarterChoice or data.pendingRelay or data.pendingSparWin or data.pendingTraining or data.pendingRaids[1]
 end
 
 local function syncStarterAvatar(player, data, character)
@@ -374,18 +379,23 @@ local function saveTraining(player, data, token)
     return profile
 end
 
+local function sendRaidReward(player, pending, result)
+    result.matchId, result.raidId = pending.matchId, pending.raidId
+    raidRemotes[pending.raidId]:FireClient(player, "reward", result)
+end
+
 local function saveRaid(player, data, token)
-    local pending = data.pendingRaid
-    local profile, _, grant = profiles:commitKilnbackRaid(player.UserId, token, pending.window, pending.id)
+    local pending = data.pendingRaids[1]
+    local profile, _, grant = profiles:commitRaid(player.UserId, token, pending.raidId, pending.window, pending.id)
     if not profile then
         return nil
     end
-    data.pendingRaid = nil
+    table.remove(data.pendingRaids, 1)
     if not (data.departed or shuttingDown) then
         projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
-        grant.matchId, grant.trophy = pending.matchId, if grant.newTrophy then "Kiln Keeper" else nil
-        raidRemote:FireClient(player, "reward", grant)
+        grant.trophy = if grant.newTrophy then raidTrophyNames[pending.raidId] else nil
+        sendRaidReward(player, pending, grant)
     end
     return profile
 end
@@ -423,7 +433,7 @@ local function serveProgress(player, data)
                 data.profile = saveSparWin(player, data, token)
             elseif data.pendingTraining then
                 data.profile = saveTraining(player, data, token)
-            elseif data.pendingRaid then
+            elseif data.pendingRaids[1] then
                 data.profile = saveRaid(player, data, token)
             else
                 data.profile = profiles:renew(player.UserId, token)
@@ -440,8 +450,8 @@ local function serveProgress(player, data)
                     sparRemote:FireClient(player, "rewardPending", "Your spar XP is pending. We'll retry while you're here.")
                 elseif data.pendingTraining then
                     remote:FireClient(player, "notice", "Your training XP is pending. We'll retry while you're here.")
-                elseif data.pendingRaid then
-                    raidRemote:FireClient(player, "reward", {matchId = data.pendingRaid.matchId, status = "pending"})
+                elseif data.pendingRaids[1] then
+                    sendRaidReward(player, data.pendingRaids[1], {status = "pending"})
                 end
             end
         end
@@ -464,8 +474,10 @@ local function serveProgress(player, data)
         if data.pendingTraining then
             saveTraining(player, data, token)
         end
-        if data.pendingRaid then
-            saveRaid(player, data, token)
+        while data.pendingRaids[1] do
+            if not saveRaid(player, data, token) then
+                break
+            end
         end
     end
     if attempted then
@@ -474,14 +486,18 @@ local function serveProgress(player, data)
     profileWorkers -= 1
 end
 
-raidCompleted.Event:Connect(function(player, window, id, matchId)
+raidCompleted.Event:Connect(function(player, window, id, matchId, raidId)
     local data = state[player]
-    if data and not (data.departed or shuttingDown or data.pendingRaid) then
-        data.pendingRaid = {window = window, id = id, matchId = matchId}
-        player:SetAttribute("ProgressStatus", "saving")
-    elseif data and not data.departed then
-        raidRemote:FireClient(player, "reward", {matchId = matchId, status = "unavailable"})
+    if not data or data.departed or shuttingDown or not raidRemotes[raidId] then
+        return
     end
+    for _, pending in data.pendingRaids do
+        if pending.id == id then
+            return
+        end
+    end
+    table.insert(data.pendingRaids, {window = window, id = id, matchId = matchId, raidId = raidId})
+    player:SetAttribute("ProgressStatus", "saving")
 end)
 
 sparringWon.Event:Connect(function(player, fighterId)
@@ -580,7 +596,8 @@ local function addPlayer(player)
     if state[player] then
         return
     end
-    local data = {openUntil = 0, lastAction = 0, lastStrike = 0, targetStrikes = {}, nextChime = 1, lastChime = -math.huge}
+    local data = {openUntil = 0, lastAction = 0, lastStrike = 0, targetStrikes = {}, nextChime = 1, lastChime = -math.huge,
+        pendingRaids = {}}
     state[player] = data
     player:SetAttribute("LanternKeeper", false)
     player:SetAttribute("RelayBest", 0)

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.281 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.282 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -66,7 +66,7 @@ The Championship HUD shows both teams and their reserve health. The result retur
 
 ## Kilnback Custodian co-op raid
 
-Visit the **Kilnback Raid** sign in Cinder Terraces. The published schedule opens a two-minute enrollment window every twenty minutes. Four players in the same server start the match. Studio opens enrollment immediately for playtesting and saves to the isolated test store. The party descends into the kiln chamber for a ten-second opening and has 105 seconds to defeat the 1,260-HP boss.
+Visit the **Kilnback Raid** sign in Cinder Terraces. Four players in the same server start the match. The party descends into the kiln chamber for a ten-second opening and has 105 seconds to defeat the 1,260-HP boss.
 
 Watch the radial warning for **Kiln Pulse**. **Tile Sweep** locks its direction early, marks three rows, and rolls outward. Move out of the marked rows, dodge through the active timing, or face the boss and use a timed guard. At half health Kilnback speeds up. In the **Cool-down Window**, strike the exposed core from the front for extra damage.
 
@@ -74,7 +74,15 @@ A downed fighter falls to the floor. A teammate can hold position nearby for a t
 
 Desktop Studio played the exact encounter with one client and three fitted stand-ins. The revive test started Penguin at 24 HP so the real Kiln Pulse could knock him down. A sweep interrupted the first attempt. Drawing the warning elsewhere allowed the two-second revive to restore 34 HP. The party hit the real exposed core, reached Phase 2, finished the boss, returned to Cinder Terraces and opened Kiln Keeper in Trophy Hall. The idle stand-in stayed ineligible. Replaying the completion in the same event window left both balances unchanged. Galaxy A06 landscape Studio simulation repeated the knockout, touch revive, both boss phases and the reward recap with the fitted stand-ins. Exact profile tests exercised lease recovery and lost replies.
 
-The server awards 20 Raid Tokens and 2 Mythic Capsule shards on an eligible clear, once per event window. Dealing at least 48 boss damage or completing a revive qualifies for participation credit. The first qualifying clear also earns **Kiln Keeper** in the Trophy Hall journal. The profile stores the receipt and all three grants together. Token and shard redemption, published four-player play and the two remaining bosses are still open.
+The first qualifying clear earns **Kiln Keeper** in the Trophy Hall journal. Token and shard redemption and published four-player play remain open.
+
+## Abyssal Kraken co-op raid
+
+Use **Abyssal Raid** on the Tideharbor Coast approach to the Galleon. Four players enter the Storm Basin for a ten-second opening and have 118 seconds to defeat the 1,500-HP Kraken. **Undertow** hits the ring between two floor rims. Step inside the inner rim or beyond the outer one. **Tentacle Cataclysm** warns four lanes before the arms slam inward in sequence. The diagonal gaps are safe from the slams. **Air Pocket** opens the front mantle for stronger hits. At half health, the hazard areas widen and the warnings get shorter.
+
+The place is configured to alternate Kilnback and Abyssal Kraken on UTC-aligned 20-minute bells when published. Each bell opens the active boss’s entrance for two minutes. Both entrances open immediately in Studio. Every eligible clear saves 20 Raid Tokens and 2 Mythic Capsule shards, once per event window. A fighter qualifies with at least 48 boss damage or a completed revive. The first Kraken clear also earns **Deepwater Team**. Both trophies and the shared currency balance use the same profile write, including the legacy Kilnback balance. Studio assigns a distinct test receipt window to each new run.
+
+Desktop Studio used one client and three fitted stand-ins. The fixture set Penguin to 21 HP before the real Undertow hit. Positions inside and beyond the ring stayed safe. The third tentacle struck along its marked lane while Reedguard revived Penguin in a diagonal gap. The playtest confirmed mantle hits, Phase 2, defeat, the return to Tideharbor and Deepwater Team in the Trophy Hall journal. Galaxy A06 landscape Studio simulation repeated the clear with touch Strike and Revive. Exact-source checks covered both raid schedules, ambiguous save replies, duplicate receipts, lease recovery and compatibility with the v0.281 profile. Published play with four real clients, live data, actual devices and final boss audio remain open.
 
 ## Grand Dojo Brawl
 
@@ -156,7 +164,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Galleon custom kit and delayed tiles | [Fire Salamander poses](../roblox/grand-dojo/FireSalamanderCombatPoses.luau), [Granite poses](../roblox/grand-dojo/GraniteCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau) |
 | Grand Dojo Duel | [Queue and match lifecycle](../roblox/grand-dojo/GrandDojoDuel.server.luau), [series scoring and timing](../roblox/grand-dojo/DuelSeries.luau), [symmetric round state](../roblox/grand-dojo/DuelCombatRound.luau), [pose and fitted contact](../roblox/grand-dojo/DuelFightMotion.luau) |
 | Grand Dojo Tag Team | [Queue, fighter switching and return](../roblox/grand-dojo/GrandDojoTagTeam.server.luau), [team rules](../roblox/grand-dojo/TagCombatRound.luau), [HUD](../roblox/grand-dojo/GrandDojoTagTeam.client.luau), [court](../roblox/grand-dojo/dojo_tag_team.py) |
-| Kilnback Custodian raid | [Queue and chamber lifecycle](../roblox/grand-dojo/KilnbackRaid.server.luau), [raid rules](../roblox/grand-dojo/KilnbackRaidRound.luau), [boss animation](../roblox/grand-dojo/KilnbackRaidVisuals.luau), [raid HUD](../roblox/grand-dojo/KilnbackRaid.client.luau), [chamber and rig](../roblox/grand-dojo/kilnback_raid.py) |
+| Co-op raids | [Queues and arena lifecycle](../roblox/grand-dojo/DojoRaids.server.luau), [raid rules](../roblox/grand-dojo/KilnbackRaidRound.luau), [raid HUD](../roblox/grand-dojo/KilnbackRaid.client.luau), [Kilnback animation](../roblox/grand-dojo/KilnbackRaidVisuals.luau) and [chamber](../roblox/grand-dojo/kilnback_raid.py), [Kraken animation](../roblox/grand-dojo/AbyssalRaidVisuals.luau) and [Storm Basin](../roblox/grand-dojo/abyssal_raid.py) |
 | Grand Dojo Brawl | [Court geometry](../roblox/grand-dojo/dojo_brawl.py), [Queue and floor](../roblox/grand-dojo/GrandDojoBrawl.server.luau), [Eight-way combat and placements](../roblox/grand-dojo/BrawlCombatRound.luau), [HUD](../roblox/grand-dojo/GrandDojoBrawl.client.luau) |
 | Ranked Duel | [Competitive stats, Elo and divisions](../roblox/grand-dojo/DuelRankRules.luau), [Rating transactions](../roblox/grand-dojo/DuelRankLedger.luau), [Lost-response regression](../tools/verify_ranked_ledger.py) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |

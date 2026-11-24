@@ -49,15 +49,21 @@ local categories = {
     }},
 }
 
+local raidAwards = {
+    ["world-01"] = {attribute = "KilnKeeper", boss = "Kilnback Custodian"},
+    ["world-02"] = {attribute = "DeepwaterTeam", boss = "Abyssal Kraken"},
+}
+
 local function describe(player, id)
-    if id == "world-01" then
-        if player:GetAttribute("KilnKeeper") == true then
+    local award = raidAwards[id]
+    if award then
+        if player:GetAttribute(award.attribute) == true then
             return if player:GetAttribute("ProgressMode") == "studio" then "Studio award" else "Earned",
-                "Awarded for an eligible Kilnback Custodian clear."
+                "Awarded for an eligible " .. award.boss .. " clear."
         end
         local progress = player:GetAttribute("ProgressStatus")
         if progress == "ready" or progress == "saved" then
-            return "Locked", "Clear the Kilnback raid with damage or revive credit."
+            return "Locked", "Defeat " .. award.boss .. " with damage or revive credit."
         elseif progress == "saving" then
             return "Updating", "Waiting for the raid reward to save."
         end
