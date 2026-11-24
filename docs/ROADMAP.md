@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.277 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.279 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -89,7 +89,7 @@ Translate the UI direction to Roblox while the feature set is still small.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P4.1 | Native UI component library | Prototype ready | Verify controller focus, the board action’s activation, safe-area placement, touch and VR in Studio and on target devices before extending the component library to other activities. |
+| P4.1 | Native UI component library | Prototype ready | The shared Festival Championship HUD covers Bot Spar, Duel and Brawl. Confirm controller focus, notch clearance, VR and older-phone performance on hardware. |
 | P4.2 | Input and safe-area layouts | Planned | Core actions require neither hover nor an external website; controls do not collide. |
 | P4.3 | Onboarding and comfort | Prototype ready | Desktop and Galaxy A06 Studio Play covered the first-join fighter picker. Verify on hardware and continue the onboarding loop so first-time players navigate dojo, quest, activity, fight and reward; returning players restore a tracked goal. VR has no forced camera shake, snapping or hit-stop. |
 | P4.4 | Early physical-device checkpoint | Planned | Record the device, settings, frame-time and usability findings; resolve architectural issues before roster expansion. |
@@ -158,7 +158,7 @@ Validate fun, pacing and saving with a small complete game.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P6.1 | Four complete fighters | Prototype ready | All 16 starter Bot Spar pairings passed desktop technique checks. Galaxy landscape simulation completed a mixed bout with touch. All four starter kits are wired into casual Duel. Verify live two-client play, progression and published rejoin. |
-| P6.2 | Duel and brawl alpha | Prototype ready | Casual and Best of 3 use all four starter kits. Studio joined and cancelled both queues and completed a one-client 2–0 series against a fitted stand-in. Verify a live two-client Duel, then build Brawl. Full occupancy, disconnects and repeated matches must return correct results. |
+| P6.2 | Duel and brawl alpha | Prototype ready | V0.278 adds an eight-seat Grand Dojo Brawl with three timed floor drops, ring-outs, spectating and final placement. Verify live Duel and eight-player Brawl, disconnects, repeated matches, rewards and older-phone performance. |
 | P6.3 | Alpha playtests and measurement | Planned | Players find an activity, finish a quest, earn/display a trophy and return to an arena. Record findings; no invented retention data. |
 | P6.4 | Alpha exit review | Planned | No unresolved defect threatens data or makes the world/combat loop unusable. |
 

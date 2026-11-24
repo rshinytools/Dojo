@@ -940,8 +940,12 @@ function duelUi.hasRounds(format)
     return format == "series" or format == "ranked"
 end
 
+local function brawlUiVisible()
+    return player:GetAttribute("BrawlActive") or player:GetAttribute("BrawlRecapOpen")
+end
+
 local function restoreWorldPrompts()
-    ProximityPromptService.Enabled = not sparringActive and not panel.Visible
+    ProximityPromptService.Enabled = not sparringActive and not brawlUiVisible() and not panel.Visible
         and not (sparResult and sparResult.Visible) and not (sparPicker and sparPicker.Visible)
         and not (duelUi.picker and duelUi.picker.Visible)
 end
@@ -1097,12 +1101,14 @@ local function layout()
     scale.Scale = math.max(.1, math.min(1, (size.X - 26)/width, (size.Y - 54)/height))
     local showingResult = sparResult and sparResult.Visible
     local choosingFight = (sparPicker and sparPicker.Visible) or (duelUi.picker and duelUi.picker.Visible)
-    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not showingResult and not choosingFight
+    local inBrawl = brawlUiVisible()
+    cloudbreakStatus.Visible = cloudbreakTitle.Text ~= "" and not sparringActive and not inBrawl and not showingResult and not choosingFight
         and not race.Visible and not panel.Visible and not aerial
     if aerial then
         boardHint.Visible = false
     end
-    local showingWorldHud = not sparringActive and not showingResult and not choosingFight and not race.Visible and not aerial
+    local showingWorldHud = not sparringActive and not inBrawl and not showingResult and not choosingFight
+        and not race.Visible and not aerial
     badge.Visible = not compact and showingWorldHud and not (panel.Visible and narrow)
         and (not boardHint.Visible or parcelObjective.Visible)
     compactProgress.Visible = compact and showingWorldHud and not panel.Visible and not cloudbreakStatus.Visible
@@ -1536,7 +1542,10 @@ local sparBots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local ringProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local combatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
 local combatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
-local combatHealth = require(ReplicatedStorage:WaitForChild("CombatHealth"))
+local championshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud")).new(gui, titleFont)
+local championshipPortraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
+local playerPortrait = championshipPortraits.new(championshipHud.leftPortrait, false, 12)
+local opponentPortrait = championshipPortraits.new(championshipHud.rightPortrait, true, 12)
 local duelRound = false
 local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
 local matchPresentation = {showcase = false}
@@ -1642,64 +1651,16 @@ botStart.Activated:Connect(function()
     end
 end)
 
-local sparHud = make("Frame", gui, {
-    Name = "SparringHUD", AnchorPoint = Vector2.new(.5, 0), Position = UDim2.new(.5, 0, 0, 12),
-    Size = UDim2.new(.94, 0, 0, 100), BackgroundColor3 = palette.ink, BorderSizePixel = 0, Visible = false,
-})
-local sparHudLimit = make("UISizeConstraint", sparHud, {MaxSize = Vector2.new(500, 100)})
-style(sparHud, 12, palette.edge)
-local sparTitle = label(sparHud, "Title", 17, palette.gold, titleFont)
-sparTitle.Position = UDim2.fromOffset(14, 8)
-sparTitle.Size = UDim2.new(1, -90, 0, 23)
-sparTitle.Text = "BOT SPAR"
-sparTitle.TextTruncate = Enum.TextTruncate.AtEnd
-local sparClock = label(sparHud, "Clock", 17, palette.parchment, titleFont)
-sparClock.Position = UDim2.new(1, -77, 0, 8)
-sparClock.Size = UDim2.fromOffset(63, 23)
-sparClock.TextXAlignment = Enum.TextXAlignment.Right
-duelUi.score = label(sparHud, "RoundScore", 15, palette.parchment, titleFont)
-duelUi.score.AnchorPoint = Vector2.new(.5, 0)
-duelUi.score.TextXAlignment = Enum.TextXAlignment.Center
-duelUi.score.TextTruncate = Enum.TextTruncate.AtEnd
-duelUi.score.Visible = false
-
-local playerHealth = combatHealth.new(sparHud, "You", false, titleFont)
-local botHealth = combatHealth.new(sparHud, "Opponent", true, titleFont)
+local sparHud, sparTitle, sparClock = championshipHud.root, championshipHud.title, championshipHud.clock
+local playerHealth, botHealth, sparHint = championshipHud.left, championshipHud.right, championshipHud.hint
+sparHud.Name, sparHud.Visible = "SparringHUD", false
+duelUi.score = championshipHud.score
 local function settleCombatHealth()
     playerHealth:Snap()
     botHealth:Snap()
 end
 GuiService:GetPropertyChangedSignal("ReducedMotionEnabled"):Connect(settleCombatHealth)
 UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(settleCombatHealth)
-local sparHint = label(sparHud, "Round cue", 14, palette.parchment, titleFont)
-sparHint.TextWrapped = true
-sparHint.TextXAlignment = Enum.TextXAlignment.Center
-
-local function layoutCombatHud(compact)
-    local h = if compact then 74 else 100
-    sparHud.Size = UDim2.new(.94, 0, 0, h)
-    sparHudLimit.MaxSize = Vector2.new(if compact then 324 else 500, h)
-    sparHud.Position = UDim2.new(.5, 0, 0, if compact then 7 else 12)
-    local top = if compact then 4 else 8
-    local titleHeight = if compact then 18 else 23
-    sparTitle.Position = UDim2.fromOffset(14, top)
-    local series = duelUi.hasRounds(matchPresentation.format)
-    sparTitle.Size = if series then UDim2.new(.5, if compact then -64 else -83, 0, titleHeight)
-        else UDim2.new(1, -90, 0, titleHeight)
-    sparClock.Position = UDim2.new(1, -77, 0, top)
-    sparClock.Size = UDim2.fromOffset(63, titleHeight)
-    sparTitle.TextSize = if compact then 13 else 17
-    sparClock.TextSize = sparTitle.TextSize
-    duelUi.score.Position = UDim2.new(.5, 0, 0, top)
-    duelUi.score.Size = UDim2.fromOffset(if compact then 100 else 138, titleHeight)
-    duelUi.score.TextSize = if compact then 12 else 15
-    duelUi.score.Visible = series
-    sparHint.Position = UDim2.fromOffset(14, if compact then 51 else 72)
-    sparHint.Size = UDim2.new(1, -28, 0, if compact then 19 else 21)
-    sparHint.TextSize = if compact then 12 else 14
-    playerHealth:Layout(compact)
-    botHealth:Layout(compact)
-end
 
 local sparControls = make("Frame", gui, {
     Name = "SparringControls", AnchorPoint = Vector2.new(.5, 1), Position = UDim2.new(.5, 0, 1, -64),
@@ -1707,14 +1668,19 @@ local sparControls = make("Frame", gui, {
 })
 local controlSize = make("UISizeConstraint", sparControls, {MaxSize = Vector2.new(394, 48)})
 local strikeButton = button(sparControls, "Strike", true)
-local guardButton = button(sparControls, "Guard", false)
-local leaveButton = button(sparControls, "Leave", false)
+local function combatControl(parent, text)
+    local control = button(parent, text, false)
+    control.BackgroundColor3 = Color3.fromRGB(66, 38, 39)
+    return control
+end
+local guardButton = combatControl(sparControls, "Guard")
+local leaveButton = combatControl(sparControls, "Leave")
 local combatButtons = {
-    technique = button(sparControls, "Uppercut", false),
-    heavy = button(sparControls, "Heavy", false),
-    dodge = button(sparControls, "Dodge", false),
-    signature = button(sparControls, "Reedstep Rising", false),
-    exit = button(gui, "Leave spar", false),
+    technique = combatControl(sparControls, "Uppercut"),
+    heavy = combatControl(sparControls, "Heavy"),
+    dodge = combatControl(sparControls, "Dodge"),
+    signature = combatControl(sparControls, "Reedstep Rising"),
+    exit = combatControl(gui, "Leave spar"),
 }
 combatButtons.signature.Name = "ReedstepRising"
 combatButtons.exit.Name = "LeaveShowcaseSpar"
@@ -1835,15 +1801,20 @@ layoutMatchControls = function()
     local stacked = showcase and safe.X < 504
     local rows = if stacked then 2 else 1
     local height = rows * 48 + (rows - 1) * 6
+    championshipHud:Layout(safe.Y <= 430 or safe.X <= 570, duelUi.hasRounds(matchPresentation.format))
+    local exitTop = if safe.X < 1240 and not matchPresentation.inIntro
+        then sparHud.Position.Y.Offset + sparHud.Size.Y.Offset + 4 else 12
     controlSize.MaxSize = Vector2.new(if stacked then 328 elseif compact then 360 elseif showcase then 540 else 394, height)
     sparControls.Size = UDim2.new(if showcase then .94 else .82, 0, 0, height)
     -- On landscape phones the short bottom strip sits between the native thumb controls.
     local bottom = if compact and not stacked then 20 else 64
     if showcase and touch and (stacked or not compact) then
-        local thumbClearance = math.clamp(math.round(safe.Y * .30), 90, 130)
-        bottom = math.min(thumbClearance, math.max(0, safe.Y - height - 122))
+        bottom = math.clamp(math.round(safe.Y * .30), 90, 130)
     end
-    layoutCombatHud(touch and (safe.Y <= 430 or safe.X <= 430))
+    if showcase then
+        local reservedTop = math.max(122, exitTop + combatButtons.exit.Size.Y.Offset + 4)
+        bottom = math.min(bottom, math.max(0, safe.Y - height - reservedTop))
+    end
     sparControls.Position = UDim2.new(.5, 0, 1, -bottom)
     local controls = if showcase then {strikeButton, combatButtons.heavy, guardButton, combatButtons.dodge,
         combatButtons.signature} else {strikeButton, guardButton, leaveButton}
@@ -1861,9 +1832,7 @@ layoutMatchControls = function()
     combatButtons.heavy.Visible = showcase
     combatButtons.dodge.Visible = showcase
     combatButtons.signature.Visible = showcase
-    local camera = workspace.CurrentCamera
-    local narrow = camera and camera.ViewportSize.X < 660
-    combatButtons.exit.Position = UDim2.new(1, -10, 0, if narrow and not matchPresentation.inIntro then 132 else 12)
+    combatButtons.exit.Position = UDim2.new(1, -10, 0, exitTop)
     combatButtons.exit.Visible = showcase and sparringActive and matchPresentation.phase ~= "outro"
     sparHud.Visible = sparringActive and not matchPresentation.inIntro
 end
@@ -1958,6 +1927,7 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     sparringActive = true
     matchPresentation.startsAt = startsAt
     matchPresentation.phase = nil
+    matchPresentation.finishedAt = nil
     matchPresentation.showcase = type(introAt) == "number"
     matchPresentation.format = if isDuel and opponent then opponent.format else nil
     matchPresentation.matchId = if isDuel and opponent then opponent.matchId else nil
@@ -1980,6 +1950,8 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     closeResult()
     hide()
     sparTitle.Text = title
+    championshipPortraits.set(playerPortrait, kitId)
+    championshipPortraits.set(opponentPortrait, opponent and (if isDuel then opponent.opponentKitId else opponent.name))
     refreshSparControls()
     layoutMatchControls()
     if kit then
@@ -2020,10 +1992,13 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     layout()
 end
 
-local function matchClock(startsAt, endsAt)
+local function matchClock(startsAt, endsAt, phase)
     local now = workspace:GetServerTimeNow()
-    local seconds = math.max(0, math.ceil(endsAt - math.max(now, startsAt)))
-    sparClock.Text = string.format("%d:%02d", math.floor(seconds / 60), seconds % 60)
+    if phase == "outro" and not matchPresentation.finishedAt then
+        matchPresentation.finishedAt = now
+    end
+    local seconds = math.max(0, math.ceil(endsAt - math.max(matchPresentation.finishedAt or now, startsAt)))
+    sparClock.Text = tostring(seconds)
     return now
 end
 
@@ -2033,7 +2008,7 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
         matchPresentation.phase = phase
         layoutMatchControls()
     end
-    local now = matchClock(startsAt, endsAt)
+    local now = matchClock(startsAt, endsAt, phase)
     local kit = matchPresentation.kit
     if kit then
         combatAudio.countdown(startsAt - now)
@@ -2049,7 +2024,8 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
         elseif phase == "windup" or phase == "setup" then opponentTint or palette.gold else palette.parchment
     if phase == "outro" then
         local roundResult = matchPresentation.roundResult
-        sparHint.Text = if roundResult == "win" then "You won the round" elseif roundResult == "loss" then "Opponent won the round"
+        sparHint.Text = if playerHealth.ratio == 0 or botHealth.ratio == 0 then "Knockout"
+            elseif roundResult == "win" then "You won the round" elseif roundResult == "loss" then "Opponent won the round"
             elseif roundResult == "draw" then "Round drawn" else "Round ended"
     elseif now < startsAt then
         sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
@@ -2085,6 +2061,8 @@ end
 local function showMatchResult(result, opponent, detail, showRetry, ratingMatchId)
     fightIntro:Stop()
     settleCombatHealth()
+    championshipPortraits.set(playerPortrait, nil)
+    championshipPortraits.set(opponentPortrait, nil)
     matchPresentation.inIntro = false
     sparringActive = false
     layoutMatchControls()
@@ -2112,6 +2090,8 @@ local function clearInterruptedMatch()
     fightIntro:Stop()
     if sparringActive then
         settleCombatHealth()
+        championshipPortraits.set(playerPortrait, nil)
+        championshipPortraits.set(opponentPortrait, nil)
         matchPresentation.inIntro = false
         sparringActive = false
         restoreWorldPrompts()
@@ -2426,13 +2406,13 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         local kit = matchPresentation.kit
         local opponent = showcaseKits[info.opponentKitId]
         playerHealth:Set(info.playerHealth, info.playerMaxHealth, kit and kit.challengerShort, reset)
-        botHealth:Set(info.opponentHealth, info.opponentMaxHealth, info.opponentName, reset)
+        botHealth:Set(info.opponentHealth, info.opponentMaxHealth, opponent and opponent.challengerShort or info.opponentName, reset)
         if matchPresentation.showcase then
             updateMatchTimeline(info.startsAt, info.endsAt, info.phase, info.feedback, info.tell, info.attackAt,
                 info.parryOpensAt, info.nextSignature, info.nextSecondary, opponent and opponent.tint, nil,
                 if info.format == "ranked" then info.elementEffect else nil)
         else
-            local now = matchClock(info.startsAt, info.endsAt)
+            local now = matchClock(info.startsAt, info.endsAt, info.phase)
             sparHint.TextColor3 = if info.phase == "windup" then palette.gold else palette.parchment
             sparHint.Text = if now < info.startsAt then string.format("Starting in %d", math.ceil(info.startsAt - now))
                 elseif info.feedback then cues[info.feedback] or info.feedback
@@ -2440,4 +2420,19 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
                 else "Face your opponent and move within reach."
         end
     end
+end)
+
+player:GetAttributeChangedSignal("BrawlActive"):Connect(function()
+    if player:GetAttribute("BrawlActive") then
+        duelUi.close(false)
+        closePicker(false)
+        closeResult()
+        hide()
+    end
+    restoreWorldPrompts()
+    layout()
+end)
+player:GetAttributeChangedSignal("BrawlRecapOpen"):Connect(function()
+    restoreWorldPrompts()
+    layout()
 end)

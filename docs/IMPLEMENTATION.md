@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.277 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.279 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -39,14 +39,14 @@ All six districts remain connected and open for exploration. A ring's level gate
 
 | Ring | District | Unlock | Resident bot | Combat |
 | --- | --- | ---: | --- | --- |
-| Grand Dojo Ring | Grand Dojo City | Level 1 · 0 XP | Juniper Tortoise | Bot Spar and same-server Duel |
+| Grand Dojo Ring | Grand Dojo City | Level 1 · 0 XP | Juniper Tortoise | Bot Spar, same-server Duel and Brawl |
 | Cinder Terraces Ring | Cinder Terraces | Level 3 · 180 XP | Bracken Boar | Bot Spar |
 | Cloud-Top Temple | Skywalk Peaks | Level 5 · 460 XP | Sablecrest Lynx | Bot Spar |
 | Galleon Ring | Tideharbor Coast | Level 7 · 830 XP | Granite Rhino | Bot Spar |
 
 Earn 60 XP on the first Bot Spar win, 80 XP on the first official Lantern Relay and 40 XP for Lantern Timing. Later Bot Spar wins award 30 XP, official Relay repeats award 25 XP, and Lantern Timing, Kiln Rhythm and Wind Court Signals each award 40 XP per completed drill with a short cooldown. Official Relay times and Lantern Keeper remain account-wide. XP goes to the fighter active when the activity ends.
 
-The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers a same-server 1v1 Duel queue. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, ranked play, 2v2 Tag Team, and eight-player Brawl remain in development. Co-op raids are separate PvE encounters. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
+The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers same-server Duel and Brawl. The Duel sign offers Casual, Best of 3 and Ranked. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, 2v2 Tag Team and co-op raids are still in development. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
 
 ## Grand Dojo Duel formats
 
@@ -55,6 +55,12 @@ Two nearby players in the same server each use the 1v1 Duel sign at the Grand Do
 Each fighter brings the same named techniques, moves, health and cooldowns as in Bot Spar. The server resolves reach and facing at the authored contact frames. Late guard can parry and simultaneous hits can trade. The server ties series inputs to their match and round and clears old attack markers and movement state between rounds.
 
 V0.276 two-endpoint Luau simulations of the actual server exercised a casual knockout, a 2–0 series sweep, a three-round 1–1 draw on time, stale input rejection, leave and disconnect handling, and zero progression writes. Desktop Studio and Galaxy A06 landscape touch simulation joined and cancelled both v0.276 queues. A separate one-client series used a fitted Fire Salamander stand-in to verify Silverback’s palm, parry and slam in both rounds, the 3-second second-round reset, the 2–0 recap and camera return.
+
+## Grand Dojo Brawl
+
+Join at the **Dojo Brawl** sign by the Grand Dojo stairs. Eight players in one server start a 10-second introduction at the mountain court. The 60-second free-for-all uses each fighter’s authored moves and earned level. The server checks fitted hit volumes, facing, guards, parries and multi-target abilities. The 9 × 9 floor warns in amber for three seconds before its outer bands drop at 15, 30 and 45 seconds. The last band leaves a 3 × 3 mat. Ring-outs and knockouts move the contestant to the viewing deck. The last fighter standing wins. At the time limit, remaining fighters place by HP percentage and equal scores share a place. The recap shows placement and returns players to the city.
+
+Luau checks covered all four kits, eight-way targeting, simultaneous hits and ring-outs, parries, dropped-tile hazard cleanup and restoration of movement and collision. Desktop Studio tested one client against seven fitted stand-ins. The floor drops took the field from eight to five, three and then two fighters. Ridge Palm pushed the last opponent off the final mat. The match showed first place, reset all 81 tiles and returned the player to the city. Galaxy A06 landscape Studio joined and cancelled the native queue. A published eight-player match, rewards and physical-device performance remain open.
 
 ## Ranked Duel
 
@@ -68,9 +74,13 @@ Exact-source tests covered 16 ranked and 16 casual contact pairings, the element
 
 ## Combat presentation
 
-The v0.275 HUD mirrors warm player and cool opponent bars across the center. Each number reflects confirmed HP. The fill drains toward that value, with a short trail to show the size of the hit. Reduce Motion and VR snap to the new value. The intro wide shots and active fight camera fit both fighters to the current viewport. VR and Reduce Motion use the normal camera, and the city camera returns at the recap. Ground slams and planted tile bursts show a compact pulse at their resolved floor point. Guard and parry have separate contact effects.
+V0.279 applies the Festival Championship HUD to Bot Spar, all Duel formats and Brawl. Teal and red health bars drain toward server-confirmed damage. A gold trail briefly shows the size of each hit. Gold-framed 3D busts use the original fighter meshes and baked colors. The clock sits between the two fighters, with round scores for Best of 3 and Ranked. Brawl uses one health bar alongside the number of players still fighting and the floor-drop warning. Reduce Motion and VR snap the bar to the latest HP. Portraits use at most two static mesh groups per fighter and fall back to initials while loading or if the assets are unavailable.
 
-The Galaxy A06 landscape Studio run selected Reedguard, tapped Uppercut, verified that Juniper’s damage trail appeared and settled after a real hit, won and received 60 XP. The compact HUD measured 324 × 74 pixels. The six controls measured 56 × 48 pixels. A forced 359 × 718 portrait simulation repeated the match with scripted client inputs and checked that both fighters fit during the bout. Studio returned to the normal landscape orientation after the test. In desktop Studio, Silverback completed a separate single-client Duel test against a fitted Fire Salamander stand-in. It verified the damage trail, zero HP at knockout and camera return. In Luau, both Duel sides received independent health and control updates, and simulated VR and Reduce Motion passed camera restoration. Live two-client Duel and physical-device checks remain open.
+At zero HP, the defeated fighter tips back onto the canvas and stays down while the clock holds. Positive-health timeouts keep the fighter upright. A Brawl knockout on an active tile stays down briefly before the move to the viewing deck.
+
+The intro and active fight camera fit both fighters to the current viewport. VR and Reduce Motion use the normal camera, and the city camera returns at the recap. Ground slams and planted tile bursts show a compact pulse at the resolved floor point. Guard and parry have separate contact effects.
+
+Studio ran Reedguard against Juniper through a knockout and the 60 XP recap on desktop and in Galaxy A06 landscape and portrait simulation. All three runs watched the gold trail separate and settle after actual damage. Both portraits rendered and the top HUD cleared the action controls. Landscape used a real simulated tap on the 56 × 48 Uppercut button. Portrait used a scripted gameplay input. A desktop Ranked series replayed both round HUDs, with a fitted opponent stand-in, and displayed the 2–0 result. The Brawl test displayed the remaining fighter count, one portrait and the floor warning. Physical-device and live multiplayer verification remain open.
 
 `CombatAudio` routes server-confirmed strikes, guard, parry and floor impacts to a capped spatial mixer and gives the intro a local countdown cue. The six original sounds are ready for creator import. The checked-in asset map is empty pending Roblox upload, moderation, and experience access. The mixer remains silent for unavailable cues. [Source audio and import details](../roblox/grand-dojo/art/combat-audio/README.md)
 
@@ -125,11 +135,12 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Cloud-Top custom kit and contact | [Silverback poses](../roblox/grand-dojo/SilverbackCombatPoses.luau), [Sablecrest poses](../roblox/grand-dojo/SablecrestCombatPoses.luau), [contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Galleon custom kit and delayed tiles | [Fire Salamander poses](../roblox/grand-dojo/FireSalamanderCombatPoses.luau), [Granite poses](../roblox/grand-dojo/GraniteCombatPoses.luau), [round state](../roblox/grand-dojo/ReedguardRound.luau) |
 | Grand Dojo Duel | [Queue and match lifecycle](../roblox/grand-dojo/GrandDojoDuel.server.luau), [series scoring and timing](../roblox/grand-dojo/DuelSeries.luau), [symmetric round state](../roblox/grand-dojo/DuelCombatRound.luau), [pose and fitted contact](../roblox/grand-dojo/DuelFightMotion.luau) |
+| Grand Dojo Brawl | [Court geometry](../roblox/grand-dojo/dojo_brawl.py), [Queue and floor](../roblox/grand-dojo/GrandDojoBrawl.server.luau), [Eight-way combat and placements](../roblox/grand-dojo/BrawlCombatRound.luau), [HUD](../roblox/grand-dojo/GrandDojoBrawl.client.luau) |
 | Ranked Duel | [Competitive stats, Elo and divisions](../roblox/grand-dojo/DuelRankRules.luau), [Rating transactions](../roblox/grand-dojo/DuelRankLedger.luau), [Lost-response regression](../tools/verify_ranked_ledger.py) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |
-| Combat presentation | [Health bars](../roblox/grand-dojo/CombatHealth.luau), [Camera and intro](../roblox/grand-dojo/CombatIntro.luau), [Contact effects](../roblox/grand-dojo/CombatEffects.luau) |
+| Combat presentation | [Championship HUD](../roblox/grand-dojo/ChampionshipHud.luau), [original portraits](../roblox/grand-dojo/ChampionshipPortraits.luau), [Health bars](../roblox/grand-dojo/CombatHealth.luau), [Camera and intro](../roblox/grand-dojo/CombatIntro.luau), [Contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Original combat audio | [Sound sources and trigger plan](../roblox/grand-dojo/art/combat-audio/README.md), [Mixer](../roblox/grand-dojo/CombatAudio.luau). The Luau fixture verified routing and voice limits. Roblox asset upload and an audible mix check remain open. |
 | Browser rules, UI and art | [engine.js](../browser-game/engine.js), [game.js](../browser-game/game.js), [art.js](../browser-game/art.js) |
 | Original meshes, baked textures and art exporters | [Art directory](../roblox/grand-dojo/art/) and [Studio walkthrough](../roblox/grand-dojo/README.md) |

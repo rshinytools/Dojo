@@ -6,6 +6,10 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.279, start Bot Spar or Duel to see the Festival Championship HUD. The gold trail shows how much health the last hit removed. Best of 3 and Ranked show round wins below the timer. Brawl uses the same visual treatment with a single health bar and a count of fighters still on the floor.
+
+In v0.278, find **Dojo Brawl** beside the Grand Dojo stairs. The queue counts to eight. At the mountain court, listen for the start and look for the amber floor before each of the three drops. Move inward to keep your footing, or push an opponent over an edge. After elimination you can watch from the viewing deck until the result.
+
 In v0.277, choose **Ranked** at the **1v1 Duel** sign. Ranked uses Best of 3 with Level 15 combat, elemental advantages, and rating-based matchmaking. The first rating is Bronze at 1200 Rank Points. The recap displays the rating change after the result is confirmed. Studio playtests use session-only ratings.
 
 In v0.276, use the **1v1 Duel** sign at the Grand Dojo court. Two players in the same server choose **Casual** for a 60-second round or **Best of 3** for a first-to-two series with 45-second rounds. Watch the score above the health bars and the 3-second countdown before the next round. Both fighters return to their marks with full health and their moves ready.

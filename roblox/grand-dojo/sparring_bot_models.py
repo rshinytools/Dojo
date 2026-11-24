@@ -15,7 +15,7 @@ BOTS = {
 }
 
 
-def build_sparring_bot_models(parent, *, item, prop, part, asset, vector):
+def build_sparring_bot_models(parent, portrait_storage, *, item, prop, part, asset, vector):
     models = load_starter_fighter_assets(MANIFEST, art=ART, stems=BOTS)
     library = item(parent, "Folder", "Resident Dojo Bots")
     build_fighter_visual_models(library, models, item=item, prop=prop, part=part, asset=asset, vector=vector)
@@ -23,3 +23,7 @@ def build_sparring_bot_models(parent, *, item, prop, part, asset, vector):
         origin = part(model, "PoseOrigin", (0, 0, 0), (.2, .2, .2), "FFFFFF", collide=False, transparency=1)
         prop(origin, "bool", "CastShadow", False)
         prop(model, "Ref", "PrimaryPart", origin.get("referent"))
+
+    portraits = item(portrait_storage, "Folder", "ChampionshipBotPortraits")
+    busts = {name: {group: shell[group] for group in ("Head", "Torso")} for name, shell in models.items()}
+    build_fighter_visual_models(portraits, busts, item=item, prop=prop, part=part, asset=asset, vector=vector)

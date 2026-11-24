@@ -10,6 +10,7 @@ local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 local Granite = require(script.Parent.GraniteCombatPoses)
 local Motion = {}
 
+local fallSeconds = .57
 local tracked = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
 local slideClearance = 2.65
 local brackenDriveClearance = 2.05
@@ -110,6 +111,84 @@ local function clearMagmaMarks(state)
     table.clear(state.magmaMarks)
 end
 
+local function verticalHalfExtent(frame, size)
+    return (math.abs(frame.RightVector.Y) * size.X + math.abs(frame.UpVector.Y) * size.Y
+        + math.abs(frame.LookVector.Y) * size.Z) * .5
+end
+
+local function defeatSnapshot(base, parts, floor)
+    local bottom, top = math.huge, -math.huge
+    local pieces = {}
+    for _, part in parts do
+        local frame = part.CFrame
+        local extent = verticalHalfExtent(frame, part.Size)
+        bottom, top = math.min(bottom, frame.Y - extent), math.max(top, frame.Y + extent)
+        pieces[part] = base:ToObjectSpace(frame)
+    end
+    local empty = bottom == math.huge
+    local pivot = if empty then Vector3.zero else base:PointToObjectSpace(Vector3.new(base.X, (bottom + top) * .5, base.Z))
+    return {base = base, pieces = pieces, pivot = pivot, floor = floor, bottom = if empty then base.Y - 2.5 else bottom}
+end
+
+local function fallenFrame(defeat, age)
+    if defeat.settledFrame then
+        return defeat.settledFrame
+    end
+    local phase = math.clamp(age / fallSeconds, 0, 1)
+    local progress = phase * phase * (3 - 2 * phase)
+    local frame = defeat.base * CFrame.new(0, 0, .64 * progress) * CFrame.new(defeat.pivot)
+        * CFrame.Angles(math.rad(86) * progress, 0, math.rad(10) * progress) * CFrame.new(-defeat.pivot)
+    local bottom = math.huge
+    for part, relative in defeat.pieces do
+        local piece = frame * relative
+        bottom = math.min(bottom, piece.Y - verticalHalfExtent(piece, part.Size))
+    end
+    if bottom == math.huge then
+        bottom = frame.Y - 2.5 + 1.65 * progress
+    end
+    -- Land the shell on the canvas, including when the last hit caught a fighter in the air.
+    local target = defeat.bottom + (defeat.floor + .045 - defeat.bottom) * progress
+    local result = frame + Vector3.new(0, target - bottom, 0)
+    if phase == 1 then
+        defeat.settledFrame = result
+    end
+    return result
+end
+
+local function renderPlayerDefeat(state, root, floor, age)
+    local joint = state.motors.RootJoint
+    if not joint then
+        return
+    end
+    local defeat = state.defeat
+    if not defeat then
+        local character = root.Parent
+        local shell = character:FindFirstChild("Starter Fighter Shell")
+        defeat = defeatSnapshot(root.CFrame, if shell then shell:GetChildren() else {}, floor)
+        defeat.firstJoint = joint.motor.C0
+        defeat.collisions = {}
+        for _, part in character:GetDescendants() do
+            if part:IsA("BasePart") and part.CanCollide then
+                table.insert(defeat.collisions, part)
+                part.CanCollide = false
+            end
+        end
+        state.defeat = defeat
+    end
+    joint.motor.C0 = root.CFrame:ToObjectSpace(fallenFrame(defeat, age)) * defeat.firstJoint
+end
+
+local function restoreDefeat(state)
+    if state.defeat then
+        for _, part in state.defeat.collisions do
+            if part.Parent then
+                part.CanCollide = true
+            end
+        end
+        state.defeat = nil
+    end
+end
+
 function Motion.open(bout)
     local character = bout.player.Character
     local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -175,6 +254,7 @@ end
 
 function Motion.close(bout)
     local state = bout.motion
+    restoreDefeat(state)
     clearLane(state, "slideLane")
     clearLane(state, "rushLane")
     clearLane(state, "returnLane")
@@ -218,9 +298,7 @@ local function playerAction(bout, now)
     local round = bout.round
     if bout.outroAt then
         local age = now - bout.outroAt
-        return if round.result == "win" then "win"
-            elseif (penguin(bout) or silverback(bout) or salamander(bout)) and round.result == "loss"
-            then "knockout" else "stagger", age
+        return if round.result == "win" then "win" else "stance", age
     elseif now < round.startsAt then
         return "intro", now - round.introAt
     elseif round.clip then
@@ -905,7 +983,7 @@ end
 local function botAction(bout, now)
     local round = bout.round
     if bout.outroAt then
-        local action = if round.result == "win" then "knockout" elseif round.result == "loss" then "win" else "idle"
+        local action = if round.result == "loss" then "win" else "idle"
         return action, now - bout.outroAt
     elseif now < round.startsAt then
         return "intro", now - round.introAt
@@ -1403,10 +1481,30 @@ function Motion.render(bout, now)
     if command then
         command(bout, now)
     end
-    local action, age, direction = playerAction(bout, now)
-    local offsets = bout.motion.playerPoses.sample(action, age, direction)
-    for name, joint in bout.motion.motors do
-        joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest
+    local round, state = bout.round, bout.motion
+    if bout.outroAt and round.playerHealth <= 0 then
+        setTravelHold(bout, true)
+        renderPlayerDefeat(state, bout.root, bout.arena.floor, now - bout.outroAt)
+    else
+        local action, age, direction = playerAction(bout, now)
+        local offsets = state.playerPoses.sample(action, age, direction)
+        for name, joint in state.motors do
+            joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest
+        end
+    end
+    if bout.outroAt and round.botHealth <= 0 then
+        if not state.botDefeat then
+            local parts = {}
+            for _, joint in bout.joints do
+                table.insert(parts, joint.part)
+            end
+            state.botDefeat = defeatSnapshot(bout.bot.PrimaryPart.CFrame, parts, bout.arena.floor)
+        end
+        local frame = fallenFrame(state.botDefeat, now - bout.outroAt)
+        for part, relative in state.botDefeat.pieces do
+            part.CFrame = frame * relative
+        end
+        return
     end
     local frame, groups = botPose(bout, now)
     bout.bot.PrimaryPart.CFrame = botBase(bout)
@@ -1475,6 +1573,9 @@ Motion.geometry = table.freeze({
     positionAt = positionAt,
     rememberPosition = rememberPosition,
     groundContour = galleonContour,
+    renderPlayerDefeat = renderPlayerDefeat,
+    restoreDefeat = restoreDefeat,
+    defeatSeconds = fallSeconds + .35,
 })
 
 return Motion

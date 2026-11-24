@@ -56,6 +56,7 @@ from snowbell_hollow import build_snowbell_hollow
 from sparring_bot_models import build_sparring_bot_models
 from district_dojo_rings import build_district_dojo_rings
 from dojo_duel import build_dojo_duel
+from dojo_brawl import build_dojo_brawl
 from fighter_select_station import build_fighter_select_station
 from ring_training import build_ring_training
 from frostglass_reflectors import build_frostglass_reflectors
@@ -7720,6 +7721,8 @@ build_district_dojo_rings(ring, outer, roads, ring_floor=ring_floor, ring_offset
                           slate=SLATE, wood=WOOD_PLANK, fabric=FABRIC, metal=METAL, neon=NEON)
 build_dojo_duel(ring, ring_floor, ring_offset, item=item, part=part, prop=prop, sign=sign,
                 wood=WOOD_PLANK, metal=METAL)
+build_dojo_brawl(ring, item=item, part=part, prop=prop, sign=sign, showcase_tree=showcase_tree,
+                 garden_prop=garden_prop, wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
 build_ring_training(scene, {
     "lantern-timing": (8, .15, 36, 90),
     "kiln-rhythm": (150, 10.027, -182, 0),
@@ -7730,6 +7733,7 @@ storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","GrandDojoAction")
 item(storage,"RemoteEvent","GrandDojoSparring")
 item(storage,"RemoteEvent","GrandDojoDuel")
+item(storage,"RemoteEvent","GrandDojoBrawl")
 item(storage,"RemoteEvent","StarterFighterChoice")
 starter_roster = json.loads((ROOT / "design/fighters/starter-fighters/roster.json").read_text(encoding="utf-8"))
 starter_catalog = {"Order": [], "ById": {}}
@@ -7744,7 +7748,7 @@ prop(catalog_script,"ProtectedString","Source",
      f'return game:GetService("HttpService"):JSONDecode([==[{encoded_catalog}]==])')
 build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
-build_sparring_bot_models(server_storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
+build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
 city_route_data(storage,map_districts,map_paths)
 
@@ -7946,6 +7950,7 @@ item(server,"BindableEvent","RingTrainingCompleted")
 for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDojo.server.luau"),
                                     (server,"Script","GrandDojoSparring","GrandDojoSparring.server.luau"),
                                     (server,"Script","GrandDojoDuel","GrandDojoDuel.server.luau"),
+                                    (server,"Script","GrandDojoBrawl","GrandDojoBrawl.server.luau"),
                                     (server,"Script","GrandDojoRingTraining","GrandDojoRingTraining.server.luau"),
                                     (server,"Script","CloudbreakTrial","CloudbreakTrial.server.luau"),
                                     (server,"Script","FrostglassReflectorLogic","FrostglassReflectors.server.luau"),
@@ -7956,6 +7961,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","DuelRankLedger","DuelRankLedger.luau"),
                                     (server,"ModuleScript","DuelRankRules","DuelRankRules.luau"),
                                     (server,"ModuleScript","DuelFightMotion","DuelFightMotion.luau"),
+                                    (server,"ModuleScript","BrawlCombatRound","BrawlCombatRound.luau"),
+                                    (server,"ModuleScript","BrawlFightMotion","BrawlFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardFightMotion","ReedguardFightMotion.luau"),
                                     (server,"ModuleScript","ReedguardCombatPoses","ReedguardCombatPoses.luau"),
                                     (server,"ModuleScript","JuniperCombatPoses","JuniperCombatPoses.luau"),
@@ -7969,6 +7976,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","CombatEffects","CombatEffects.luau"),
                                     (storage,"ModuleScript","CombatAudio","CombatAudio.luau"),
                                     (storage,"ModuleScript","CombatHealth","CombatHealth.luau"),
+                                    (storage,"ModuleScript","ChampionshipHud","ChampionshipHud.luau"),
+                                    (storage,"ModuleScript","ChampionshipPortraits","ChampionshipPortraits.luau"),
                                     (server,"ModuleScript","DojoMatchSupport","DojoMatchSupport.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),
@@ -7979,6 +7988,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","EagleEye","EagleEye.luau"),
                                     (opening,"LocalScript","GrandDojoSplash","GrandDojoSplash.client.luau"),
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
+                                    (scripts,"LocalScript","GrandDojoBrawlClient","GrandDojoBrawl.client.luau"),
                                     (scripts,"LocalScript","StarterFighterSelect","StarterFighterSelect.client.luau"),
                                     (scripts,"LocalScript","GrandDojoMusic","GrandDojoMusic.client.luau"),
                                     (scripts,"LocalScript","FrostglassReflectorDisplay","FrostglassReflectors.client.luau"),

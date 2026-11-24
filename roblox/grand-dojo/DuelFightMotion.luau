@@ -1,4 +1,4 @@
--- Native character motion, fitted contact volumes, and bounded floor effects for two players.
+-- Native fighter motion, fitted contact volumes, and authored floor effects.
 local Match = require(script.Parent.DojoMatchSupport)
 local Geometry = require(script.Parent.ReedguardFightMotion).geometry
 local Penguin = require(script.Parent.PenguinCombatPoses)
@@ -6,6 +6,7 @@ local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
 
 local Motion = {}
+local defeatSeconds = Geometry.defeatSeconds
 local joints = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
 local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true}
@@ -58,7 +59,7 @@ local function remember(actor, at)
     end
 end
 
-local function beginActor(duel, actor, index)
+local function beginActor(duel, actor, index, brawl)
     local root = actor.root
     local character = root.Parent
     local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -68,11 +69,14 @@ local function beginActor(duel, actor, index)
     actor.wasAutoRotate, actor.wasAutoJump = humanoid.AutoRotate, humanoid.AutoJumpEnabled
     actor.wasAnimateDisabled = animate and animate.Disabled
     actor.wasAnchored = root.Anchored
+    actor.held, actor.network, actor.knock, actor.lift, actor.cast = nil, nil, nil, nil, nil
+    actor.aim, actor.facing, actor.defeat = nil, nil, nil
     actor.history = {{at = duel.round.introAt, position = root.CFrame}}
     actor.motors, actor.marks = {}, {}
     actor.fx = Instance.new("Folder")
-    actor.fx.Name = "Duel Fighter " .. index
+    actor.fx.Name = (if brawl then "Brawl Fighter " else "Duel Fighter ") .. index
     actor.fx.Parent = duel.telegraph
+    actor.motionActive = true
     if not root.Anchored and root:CanSetNetworkOwnership() then
         actor.network = {automatic = root:GetNetworkOwnershipAuto(), owner = root:GetNetworkOwner()}
     end
@@ -90,61 +94,88 @@ local function beginActor(duel, actor, index)
             track:Stop(0)
         end
     end
-    local aim = Instance.new("Attachment")
-    aim.Name = "Duel facing attachment"
-    aim.Parent = root
-    local facing = Instance.new("AlignOrientation")
-    facing.Name = "Duel opponent facing"
-    facing.Mode, facing.Attachment0 = Enum.OrientationAlignmentMode.OneAttachment, aim
-    facing.Responsiveness, facing.MaxTorque = 24, 45000
-    facing.CFrame = root.CFrame.Rotation
-    facing.Parent = root
-    actor.aim, actor.facing = aim, facing
+    if not brawl then
+        local aim = Instance.new("Attachment")
+        aim.Name = "Duel facing attachment"
+        aim.Parent = root
+        local facing = Instance.new("AlignOrientation")
+        facing.Name = "Duel opponent facing"
+        facing.Mode, facing.Attachment0 = Enum.OrientationAlignmentMode.OneAttachment, aim
+        facing.Responsiveness, facing.MaxTorque = 24, 45000
+        facing.CFrame = root.CFrame.Rotation
+        facing.Parent = root
+        actor.aim, actor.facing = aim, facing
+    end
     humanoid.AutoRotate, humanoid.AutoJumpEnabled = false, false
     setHeld(actor, true)
 end
 
-function Motion.open(duel)
+function Motion.open(duel, brawl)
+    local excluded = {duel.bounds}
     for index, actor in duel.actors do
-        beginActor(duel, actor, index)
+        beginActor(duel, actor, index, brawl)
+        table.insert(excluded, actor.character)
     end
-    duel.motion = {arena = duel, arenaCast = Geometry.castParameters({
-        duel.actors[1].character, duel.actors[2].character, duel.bounds,
-    })}
+    duel.motion = {arena = duel, arenaCast = Geometry.castParameters(excluded), brawl = brawl, at = duel.round.introAt}
+end
+
+function Motion.remove(duel, index)
+    local actor = duel.actors[index]
+    if not actor or not actor.motionActive then
+        return
+    end
+    actor.motionActive = false
+    for _, joint in actor.motors do
+        if joint.motor.Parent then
+            joint.motor.C0 = joint.rest
+        end
+    end
+    if actor.animate and actor.animate.Parent then
+        actor.animate.Disabled = actor.wasAnimateDisabled
+    end
+    if actor.humanoid.Parent then
+        actor.humanoid.AutoRotate = actor.wasAutoRotate
+        actor.humanoid.AutoJumpEnabled = actor.wasAutoJump
+    end
+    Geometry.restoreDefeat(actor)
+    if actor.facing then
+        actor.facing:Destroy()
+        actor.aim:Destroy()
+    end
+    actor.fx:Destroy()
+    if actor.root.Parent then
+        actor.root.Anchored = actor.wasAnchored
+        restoreOwnership(actor)
+    end
 end
 
 function Motion.close(duel)
     if not duel.motion then
         return
     end
-    for _, actor in duel.actors do
-        for _, joint in actor.motors do
-            if joint.motor.Parent then
-                joint.motor.C0 = joint.rest
-            end
-        end
-        if actor.animate and actor.animate.Parent then
-            actor.animate.Disabled = actor.wasAnimateDisabled
-        end
-        if actor.humanoid.Parent then
-            actor.humanoid.AutoRotate = actor.wasAutoRotate
-            actor.humanoid.AutoJumpEnabled = actor.wasAutoJump
-        end
-        actor.facing:Destroy()
-        actor.aim:Destroy()
-        actor.fx:Destroy()
-        if actor.root.Parent then
-            actor.root.Anchored = actor.wasAnchored
-            restoreOwnership(actor)
-        end
+    for index in duel.actors do
+        Motion.remove(duel, index)
     end
     duel.motion = nil
 end
 
-function Motion.canAct(duel, side, action)
+local function activeActor(duel, index)
+    local actor = duel.actors[index]
+    return actor and actor.motionActive and actor.root.Parent == actor.character
+        and not duel.round.sides[index].eliminated
+end
+
+local function floorActive(duel, point, at)
+    return not duel.floorActive or duel.floorActive(point, at)
+end
+
+function Motion.canAct(duel, side, action, now)
     local actor = duel.actors[side]
+    if not activeActor(duel, side) or not Match.inside(duel.bounds, actor.root.Position) then
+        return false
+    end
     local root = actor.root
-    if root.Parent ~= actor.character or not Match.inside(duel.bounds, root.Position) then
+    if duel.motion.brawl and not floorActive(duel, root.Position, now or duel.motion.at) then
         return false
     end
     if action == "dodge" or action == "signature" or action == "secondary" then
@@ -167,19 +198,41 @@ local function floorContour(duel, actor, name, center, radius, direction, halfAn
     return Geometry.groundContour({arena = duel, telegraph = actor.fx}, name, center, radius, direction, halfAngle, tint)
 end
 
+local function arenaTravel(duel, position, target, frame, box)
+    local motion = duel.motion
+    if motion.brawl then
+        local delta = target - position
+        if delta.Magnitude <= .005 then
+            return position
+        end
+        local hit = workspace:Blockcast(frame, box, delta, motion.arenaCast)
+        return if hit then position + delta.Unit * math.max(0, hit.Distance - .065) else target
+    end
+    return Geometry.safeTravel(motion, position, target, frame, box, motion.arenaCast)
+end
+
 local function intendedPosition(duel, actor, opponent, origin, target, lowered, gap)
     local current = actor.root.Position
-    local desired = Geometry.stopAtActor(current, target - current, opponent.root.Position, gap)
+    local desired = target - current
+    if duel.motion.brawl then
+        for index, other in duel.actors do
+            if other ~= actor and activeActor(duel, index)
+                and math.abs(current.Y - other.root.Position.Y) < 2.5 then
+                desired = Geometry.stopAtActor(current, desired, other.root.Position, gap)
+            end
+        end
+    else
+        desired = Geometry.stopAtActor(current, desired, opponent.root.Position, gap)
+    end
     local frame = CFrame.new(current - Vector3.new(0, lowered, 0)) * origin.Rotation
     local box = if lowered >= 1 then Vector3.new(1.12, 1.10, 1.12) else Vector3.new(1.52, 2.18, 1.38)
-    return Geometry.safeTravel(duel.motion, current, current + desired, frame, box, duel.motion.arenaCast)
+    return arenaTravel(duel, current, current + desired, frame, box)
 end
 
 local function slideGuide(duel, actor, origin, distance)
     local start = floorPoint(duel, origin.Position)
     local feet = CFrame.new(start + Vector3.new(0, .76, 0)) * origin.Rotation
-    local finish = Geometry.safeTravel(duel.motion, start, start + origin.LookVector * distance, feet,
-        Vector3.new(1.12, 1.08, .92), duel.motion.arenaCast)
+    local finish = arenaTravel(duel, start, start + origin.LookVector * distance, feet, Vector3.new(1.12, 1.08, .92))
     local vector = finish - start
     if vector.Magnitude < .12 then
         return nil
@@ -200,6 +253,29 @@ local function clearCast(actor)
         cast.warning:Destroy()
     end
     actor.cast = nil
+end
+
+local function clearMarks(actor)
+    for _, marks in actor.marks do
+        for _, mark in marks do
+            mark.warning:Destroy()
+        end
+    end
+    table.clear(actor.marks)
+end
+
+local function clearDroppedMarks(duel, actor, now)
+    for castStart, marks in actor.marks do
+        for number, mark in marks do
+            if not floorActive(duel, mark.center, now) then
+                mark.warning:Destroy()
+                marks[number] = nil
+            end
+        end
+        if not next(marks) then
+            actor.marks[castStart] = nil
+        end
+    end
 end
 
 local function updateWarning(duel, actor, cast, age)
@@ -248,11 +324,13 @@ local function pathOffset(cast, age, opponent)
     local path = (if action == "magmaTrail" then Salamander else Penguin).Travel[action]
     local offset = Geometry.pathOffset(path, age)
     if action == "magmaTrail" then
-        local other = cast.origin:PointToObjectSpace(opponent.root.Position)
-        local dx = offset.X - other.X
-        local skirt = 1.90
-        if other.Z < 0 and math.abs(dx) < skirt then
-            return Vector3.new(offset.X, 0, math.max(offset.Z, other.Z + math.sqrt(skirt * skirt - dx * dx)))
+        if opponent then
+            local other = cast.origin:PointToObjectSpace(opponent.root.Position)
+            local dx = offset.X - other.X
+            local skirt = 1.90
+            if other.Z < 0 and math.abs(dx) < skirt then
+                return Vector3.new(offset.X, 0, math.max(offset.Z, other.Z + math.sqrt(skirt * skirt - dx * dx)))
+            end
         end
         return offset
     elseif clip.direction == -1 then
@@ -315,16 +393,36 @@ local function moveKnock(duel, actor, other, now)
 end
 
 local function updateActor(duel, index, now)
-    local actor, other = duel.actors[index], duel.actors[3 - index]
+    local actor = duel.actors[index]
+    local brawl = duel.motion.brawl
+    local other = if brawl then nil else duel.actors[3 - index]
     local state = duel.round.sides[index]
     local root, clip = actor.root, state.clip
     local traveling = clip and travelActions[clip.action]
     local planting = clip and plantedActions[clip.action]
     local live = now >= duel.round.startsAt and not duel.round.resolvedAt
+    if brawl then
+        actor.humanoid.AutoRotate = live and not clip and not actor.knock and actor.wasAutoRotate
+        if live and not floorActive(duel, root.Position, now) then
+            -- Finish an active shove across the edge, then let gravity take over.
+            clearCast(actor)
+            if actor.knock then
+                setHeld(actor, true)
+                moveKnock(duel, actor, other, now)
+            end
+            if not actor.knock then
+                actor.lift = nil
+                setHeld(actor, false)
+            end
+            remember(actor, now)
+            return
+        end
+    end
     if live and (traveling or planting) then
         if not actor.cast or actor.cast.clip ~= clip then
             clearCast(actor)
-            local orientation = heading(root.Position, other.root.Position, root.CFrame.LookVector)
+            local orientation = if other then heading(root.Position, other.root.Position, root.CFrame.LookVector)
+                else root.CFrame.LookVector
             local origin = CFrame.lookAlong(root.Position, orientation)
             actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId}
             setHeld(actor, true)
@@ -339,16 +437,21 @@ local function updateActor(duel, index, now)
         setHeld(actor, not live or actor.knock ~= nil)
     end
     moveKnock(duel, actor, other, now)
-    local aim = heading(root.Position, other.root.Position, root.CFrame.LookVector)
-    if actor.facing.CFrame.LookVector:Dot(aim) < .999 then
-        actor.facing.CFrame = CFrame.lookAlong(Vector3.zero, aim)
+    if other then
+        local aim = heading(root.Position, other.root.Position, root.CFrame.LookVector)
+        if actor.facing.CFrame.LookVector:Dot(aim) < .999 then
+            actor.facing.CFrame = CFrame.lookAlong(Vector3.zero, aim)
+        end
     end
     remember(actor, now)
 end
 
 function Motion.move(duel, now)
+    duel.motion.at = now
     for index in duel.actors do
-        updateActor(duel, index, now)
+        if activeActor(duel, index) then
+            updateActor(duel, index, now)
+        end
     end
 end
 
@@ -357,15 +460,8 @@ local function poseAt(duel, index, now)
     local round = duel.round
     local action, age, direction
     if round.resolvedAt then
-        local result = round.result[index]
-        if result == "win" then
-            action = "win"
-        elseif result == "loss" then
-            action = if state.kitId == "reedguard" then "stagger" else "knockout"
-        else
-            action = "stance"
-        end
-        age = now - round.resolvedAt
+        local result = if duel.motion.brawl then round.result.outcomes[index] else round.result[index]
+        action, age = if result == "win" then "win" else "stance", now - round.resolvedAt
     elseif now < round.startsAt then
         action, age = "intro", now - round.introAt
     elseif state.clip then
@@ -389,18 +485,37 @@ end
 function Motion.render(duel, now)
     for index, actor in duel.actors do
         local state = duel.round.sides[index]
-        if actor.cast and actor.cast.clip ~= state.clip then
-            clearCast(actor)
-        end
-        if duel.round.resolvedAt then
-            clearCast(actor)
-            for _, marks in actor.marks do
-                for _, mark in marks do
-                    mark.warning:Destroy()
-                end
+        local defeatAt
+        if duel.motion.brawl then
+            if state.eliminationReason == "knockout" and now < state.eliminatedAt + defeatSeconds
+                and floorActive(duel, actor.root.Position, now) then
+                defeatAt = state.eliminatedAt
             end
-            table.clear(actor.marks)
+        elseif state.playerHealth <= 0 then
+            defeatAt = duel.round.resolvedAt
+        end
+        if defeatAt and actor.motionActive and actor.root.Parent == actor.character then
+            if not actor.defeat then
+                clearCast(actor)
+                clearMarks(actor)
+                actor.knock, actor.lift = nil, nil
+                setHeld(actor, true)
+            end
+            Geometry.renderPlayerDefeat(actor, actor.root, duel.floor, now - defeatAt)
+            continue
+        elseif not activeActor(duel, index) then
+            continue
+        elseif duel.round.resolvedAt then
+            clearCast(actor)
+            clearMarks(actor)
             setHeld(actor, true)
+        else
+            if actor.cast and actor.cast.clip ~= state.clip then
+                clearCast(actor)
+            end
+            if duel.motion.brawl and duel.floorActive then
+                clearDroppedMarks(duel, actor, now)
+            end
         end
         local offsets = poseAt(duel, index, now)
         for name, joint in actor.motors do
@@ -436,75 +551,45 @@ local function floorContact(duel, index, at, root, center, radius, direction, ha
     return nil, facing
 end
 
-local function magma(duel, attacker, defender, move, at, index, startedAt, target)
-    local actor = duel.actors[attacker]
+local function plantMagma(duel, actor, move, at, index, startedAt)
     local marks = actor.marks[startedAt]
-    if move.marker then
-        local cast = actor.cast
-        if not cast or cast.clip.startedAt ~= startedAt or cast.movedAt < at - .001 then
-            return false
-        end
-        local center = floorPoint(duel, clockFrame(actor, at).Position)
-        if not Match.inside(duel.bounds, center + Vector3.yAxis)
-            or Match.flat(center - cast.origin.Position).Magnitude < .30
-            or (marks and marks[1] and (center - marks[1].center).Magnitude < move.radius) then
-            return false
-        end
-        if not marks then
-            marks = {}
-            actor.marks[startedAt] = marks
-        end
-        local name = if index == 1 then "Magma Trail first mark" else "Magma Trail second mark"
-        marks[index] = {center = center,
-            warning = floorContour(duel, actor, name, center, move.radius, nil, nil, amber)}
-        return true, center
+    local cast = actor.cast
+    if not cast or cast.clip.startedAt ~= startedAt or cast.movedAt < at - .001 then
+        return false
     end
+    local center = floorPoint(duel, clockFrame(actor, at).Position)
+    if not Match.inside(duel.bounds, center + Vector3.yAxis) or not floorActive(duel, center, at)
+        or Match.flat(center - cast.origin.Position).Magnitude < .30
+        or (marks and marks[1] and (center - marks[1].center).Magnitude < move.radius) then
+        return false
+    end
+    if not marks then
+        marks = {}
+        actor.marks[startedAt] = marks
+    end
+    local name = if index == 1 then "Magma Trail first mark" else "Magma Trail second mark"
+    marks[index] = {center = center,
+        warning = floorContour(duel, actor, name, center, move.radius, nil, nil, amber)}
+    return true, center
+end
+
+local function takeMagma(duel, actor, at, index, startedAt)
+    local marks = actor.marks[startedAt]
     local mark = marks and marks[index]
     if not mark then
-        return false
+        return nil
     end
     mark.warning:Destroy()
     marks[index] = nil
     if not next(marks) then
         actor.marks[startedAt] = nil
     end
-    local hit, facing = floorContact(duel, defender, at, target, mark.center, move.radius)
-    return hit ~= nil, mark.center, "body", facing
+    return if floorActive(duel, mark.center, at) then mark.center else nil
 end
 
-function Motion.strike(duel, side, action, move, at, index, castStartedAt)
-    local other = 3 - side
-    local actor = duel.actors[side]
-    local root = clockFrame(actor, at)
-    local target = clockFrame(duel.actors[other], at)
-    if move.shape == "tile" then
-        return magma(duel, side, other, move, at, index, castStartedAt, target)
-    end
-    local facing = defenderFacing(target, root.Position)
-    if not Match.inside(duel.bounds, root.Position) or not Match.inside(duel.bounds, target.Position) then
-        return false, nil, nil, facing
-    end
-    local fan = move.shape == "fan"
-    if fan or move.shape == "radial" then
-        local center = floorPoint(duel, root:PointToWorldSpace(move.center))
-        local hit, guardFacing = floorContact(duel, other, at, target, center, move.radius, if fan then root.LookVector else nil,
-            move.halfAngle)
-        return hit ~= nil, if fan then hit or center else center, "body", guardFacing
-    end
-    local poses = duel.round.sides[side].kit.poses
-    local offset = poses.Impact[action][index]
-    local point = root:PointToWorldSpace(offset)
-    local delta = Match.flat(target.Position - root.Position)
-    if delta.Magnitude < .04 or delta.Unit:Dot(root.LookVector) < .41 then
-        return false, point, nil, facing
-    end
+local function directContact(duel, other, action, move, at, root, target, point, previous, facing)
     local volumes = defenderVolumes(duel, other, at, target, facing)
-    if action == "bellySlide" then
-        local cast = actor.cast
-        local previous = cast and cast.lastContact or point
-        if cast then
-            cast.lastContact = point
-        end
+    if previous then
         for _, volume in volumes do
             local frame, size = volume.frame, volume.size
             if volume.zone == "head" then
@@ -515,7 +600,7 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
             end
             local hit = Geometry.sweptContact(previous, point, frame, size, .43)
             if hit and not obstructed(duel, root.Position, hit) then
-                return true, hit, "body", facing
+                return hit, "body"
             end
         end
     else
@@ -531,13 +616,135 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
                 if (near - point).Magnitude <= radius then
                     local contact = point:Lerp(near, .5)
                     if not obstructed(duel, root.Position, contact) then
-                        return true, contact, volume.zone, facing
+                        return contact, volume.zone
                     end
                 end
             end
         end
     end
-    return false, point, nil, facing
+    return nil
+end
+
+local function slideSegment(actor, point)
+    local cast = actor.cast
+    local previous = cast and cast.lastContact or point
+    if cast then
+        cast.lastContact = point
+    end
+    return previous
+end
+
+local function inFront(root, target)
+    local delta = Match.flat(target.Position - root.Position)
+    return delta.Magnitude >= .04 and delta.Unit:Dot(root.LookVector) >= .41
+end
+
+function Motion.strike(duel, side, action, move, at, index, castStartedAt)
+    local other = 3 - side
+    local actor = duel.actors[side]
+    local root = clockFrame(actor, at)
+    local target = clockFrame(duel.actors[other], at)
+    if move.shape == "tile" then
+        if move.marker then
+            return plantMagma(duel, actor, move, at, index, castStartedAt)
+        end
+        local center = takeMagma(duel, actor, at, index, castStartedAt)
+        if not center then
+            return false
+        end
+        local hit, facing = floorContact(duel, other, at, target, center, move.radius)
+        return hit ~= nil, center, "body", facing
+    end
+    local facing = defenderFacing(target, root.Position)
+    if not Match.inside(duel.bounds, root.Position) or not Match.inside(duel.bounds, target.Position) then
+        return false, nil, nil, facing
+    end
+    local fan = move.shape == "fan"
+    if fan or move.shape == "radial" then
+        local center = floorPoint(duel, root:PointToWorldSpace(move.center))
+        local hit, guardFacing = floorContact(duel, other, at, target, center, move.radius, if fan then root.LookVector else nil,
+            move.halfAngle)
+        return hit ~= nil, if fan then hit or center else center, "body", guardFacing
+    end
+    local poses = duel.round.sides[side].kit.poses
+    local point = root:PointToWorldSpace(poses.Impact[action][index])
+    if not inFront(root, target) then
+        return false, point, nil, facing
+    end
+    local previous = if action == "bellySlide" then slideSegment(actor, point) else nil
+    local hit, zone = directContact(duel, other, action, move, at, root, target, point, previous, facing)
+    return hit ~= nil, hit or point, zone, facing
+end
+
+function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
+    if not activeActor(brawl, side) then
+        return if move.marker then false else {}
+    end
+    local actor = brawl.actors[side]
+    local root = clockFrame(actor, at)
+    local fan, tile = move.shape == "fan", move.shape == "tile"
+    if tile and move.marker then
+        return plantMagma(brawl, actor, move, at, index, castStartedAt)
+    end
+    local center, point, previous
+    if tile then
+        center = takeMagma(brawl, actor, at, index, castStartedAt)
+        if not center then
+            return {}
+        end
+    elseif not Match.inside(brawl.bounds, root.Position) or not floorActive(brawl, root.Position, at) then
+        return {}
+    elseif fan or move.shape == "radial" then
+        center = floorPoint(brawl, root:PointToWorldSpace(move.center))
+    else
+        local poses = brawl.round.sides[side].kit.poses
+        point = root:PointToWorldSpace(poses.Impact[action][index])
+        if action == "bellySlide" then
+            previous = slideSegment(actor, point)
+        end
+    end
+
+    local area = center ~= nil or previous ~= nil
+    local candidates, closest = {}, math.huge
+    for other, defender in brawl.actors do
+        if other == side or not activeActor(brawl, other) then
+            continue
+        end
+        local target = clockFrame(defender, at)
+        if not Match.inside(brawl.bounds, target.Position) or not floorActive(brawl, target.Position, at) then
+            continue
+        end
+        local hit, zone, facing
+        if center then
+            if Match.flat(target.Position - center).Magnitude <= move.radius + 3 then
+                hit, facing = floorContact(brawl, other, at, target, center, move.radius,
+                    if fan then root.LookVector else nil, move.halfAngle)
+                if hit and not fan then
+                    hit = center
+                end
+                zone = "body"
+            end
+        elseif previous or inFront(root, target) then
+            -- Sample the cast's single sweep segment for all targets before advancing it.
+            local reach = if previous then (point - previous).Magnitude + 3.5 else 3.5
+            if (target.Position - point).Magnitude <= reach then
+                facing = defenderFacing(target, root.Position)
+                hit, zone = directContact(brawl, other, action, move, at, root, target, point, previous, facing)
+            end
+        end
+        if hit then
+            local contact = {defender = other, point = hit, zone = zone, facing = facing}
+            if area then
+                table.insert(candidates, contact)
+            else
+                local distance = (target.Position - root.Position).Magnitude
+                if distance < closest then
+                    candidates[1], closest = contact, distance
+                end
+            end
+        end
+    end
+    return candidates, center
 end
 
 function Motion.impact(duel, event)
@@ -558,6 +765,10 @@ function Motion.impact(duel, event)
         offset, duration, height = outward * .38, .27, Silverback.Skill.seismicChestPound.popHeight
     elseif action == "magmaTrail" then
         offset, duration, height = Vector3.zero, .28, Salamander.Skill.magmaTrail.popHeight
+    elseif duel.motion.brawl then
+        local lift = action == "uppercut" or (action == "reedstep" and event.index == 3)
+        local distance = if action == "heavy" then 1.25 elseif lift then .70 else .35
+        offset, duration, height = direction * distance, if distance > 1 then .21 else .15, if lift then .46 else 0
     else
         return
     end
@@ -565,4 +776,5 @@ function Motion.impact(duel, event)
     target.knock = {at = event.at, offset = offset * scale, duration = duration, height = height * scale, moved = 0}
 end
 
+Motion.defeatSeconds = defeatSeconds
 return Motion
