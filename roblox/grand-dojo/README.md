@@ -44,6 +44,8 @@ In v0.270, choose Penguin Brawler, reach Level 3 and enter Bot Spar at Cinder Te
 
 In v0.269, choose Reedguard and enter Grand Dojo Bot Spar. Add **V** for Uppercut to the existing controls. On controller, use D-pad Up. On touch, tap **Uppercut**. Try it from too far away and then at close range to compare the recovery, damage and contact ring.
 
+In v0.290, **E** or **Strike** chains a jab, cross and right body kick. Move sideways to shuffle while facing Juniper. He circles between attacks and can step back after a block or parry. Bot Spar and Duel use a five-stud-per-second lock-on pace.
+
 In v0.268, choose Reedguard and go to Grand Dojo Bot Spar. The match begins with a 10-second intro. In the round, **E** chains strikes, **Q** guards and parries, **R** throws a heavy, **X** sidesteps and **F** uses the three-hit Rising after a parry. Watch for Juniper’s Shell Set and Stillwater Palm. Desktop Studio verified completion through the 60 XP first-win recap.
 
 In v0.267, start at Fighter Select on the east side of Festival Plaza. Preview and equip another free starter. Enter Bot Spar at Grand Dojo. Earn Level 3 with Juniper, the official Lantern Relay and Lantern Timing. Find Bracken by Glaze Terrace, Sablecrest via the Cloudbreak approach and Granite on the Galleon deck. Everyone can take the roads and look around. Check each ring's required level at the local sign. Two nearby players can opt in to the Grand Dojo Duel Court.

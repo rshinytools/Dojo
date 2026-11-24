@@ -61,7 +61,9 @@ V0.272 adds the Level 7 Fire Salamander–Granite round. Desktop and Galaxy A06 
 
 V0.275 adds a damage trail, mirrored health meters and viewport-aware camera framing. Galaxy A06 landscape Studio verified the changed HUD in Reedguard versus Juniper through knockout, XP and camera return. A separate desktop Studio test exercised the Duel HUD through a one-client bout against a fitted stand-in. Server contact cues and the audio mixer are wired. The original WAVs require Roblox audio asset IDs and an audible mix pass.
 
-V0.288 keeps zero-HP fighters on the mat until the final knockout outro ends in Tag Team and Brawl. Exact-source checks covered mat contact, simultaneous knockouts, timeouts with HP remaining, broken Brawl tiles, and restoration of movement after the outro. Live Tag Team and Brawl verification remains open. Desktop Studio v0.289 verified Reedguard’s grounded landing and city stance after a 25% tail reduction and reset both fighters through the actual Retry button. Ring footwork still needs distinct lateral steps and more lateral movement from Juniper.
+V0.288 keeps zero-HP fighters on the mat until the final knockout outro ends in Tag Team and Brawl. Exact-source checks covered mat contact, simultaneous knockouts, timeouts with HP remaining, broken Brawl tiles, and restoration of movement after the outro. Live Tag Team and Brawl verification remains open. Desktop Studio v0.289 verified Reedguard’s grounded landing and city stance after a 25% tail reduction and reset both fighters through the actual Retry button.
+
+V0.290 gives Reedguard planted shuffles and a right body kick at the end of the Strike chain. Juniper circles in both directions and steps back after defense. Desktop Studio checked native keyboard movement, fixed windups, whiffs, parry, all three combo contacts, first-win XP and restored city speed and camera. Galaxy A06 landscape simulation used the touch joystick, three native Strike taps and touch exit. Live multiplayer and physical-device input tests remain release gates.
 
 ## P3 Persistent player progression
 

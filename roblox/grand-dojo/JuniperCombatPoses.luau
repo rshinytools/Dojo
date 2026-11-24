@@ -43,6 +43,49 @@ local function step(lead, lift)
     })
 end
 
+-- One guarded, step-together cycle covers 1.152 studs at 2.4 studs/second.
+-- The fitted boot translations offset each hip swing to keep the planted sole in place.
+local footworkDuration = .48
+-- A lateral shuffle follows an arc at Juniper's 3.13-stud guard distance.
+local sideReach = {{.063, .010, -.065, 7}, {.123, -.008, -.153, 14}}
+local retreatReach = {
+    {.100, .077, -.107, -.002, 7},
+    {.195, .124, -.223, -.033, 14},
+}
+
+local function shuffleStep(side, width, leadLift, followLift, balance)
+    local x, y, z, roll = table.unpack(sideReach[width])
+    local weight = side * balance
+    local rightLift = if side > 0 then leadLift else followLift
+    local leftLift = if side < 0 then leadLift else followLift
+    return pose(nil, {
+        torso = offset(.095 * weight, -.065, .024, 3, 3 * weight, -4 * weight),
+        head = offset(.062 * weight, -.047, .025, -2, -3 * weight, 2 * weight),
+        rightArm = offset(-.048 + .035 * weight, -.052, .032, 4, 7, -3 * weight),
+        leftArm = offset(.048 + .035 * weight, -.052, .032, 4, -7, -3 * weight),
+        rightLeg = offset(x, y + rightLift, z, 0, 0, roll),
+        leftLeg = offset(-x, y + leftLift, z, 0, 0, -roll),
+    })
+end
+
+local function shuffleClip(side)
+    return {{0, ready}, {.12, shuffleStep(side, 1, .13, 0, -1)},
+        {.24, shuffleStep(side, 2, 0, 0, .4)}, {.36, shuffleStep(side, 1, 0, .12, 1)},
+        {footworkDuration, ready}}
+end
+
+local function retreatStep(width, backLift, frontLift, weight)
+    local backZ, backY, frontZ, frontY, pitch = table.unpack(retreatReach[width])
+    return pose(nil, {
+        torso = offset(.038 * weight, -.078, .025 + .065 * weight, 5, -3, -3 * weight),
+        head = offset(.02 * weight, -.060, .040 + .044 * weight, -4, 3, 2 * weight),
+        rightArm = offset(-.049, -.055, .031, 7, 7, -1),
+        leftArm = offset(.06, -.048, .052, 5, -7, 1),
+        rightLeg = offset(0, backY + backLift, backZ, -pitch, 0, 0),
+        leftLeg = offset(0, frontY + frontLift, frontZ, pitch, 0, 0),
+    })
+end
+
 local bow = pose(nil, {
     torso = offset(0, -.17, -.06, -11, 0, 0),
     head = offset(0, -.22, -.12, -20, 0, 0),
@@ -137,6 +180,11 @@ local clips = {
     idle = {{0, ready}, {1.35, breathe}, {2.7, ready}},
     step = {{0, ready}, {.18, step(true, .20)}, {.34, step(true, 0)},
         {.52, step(false, .20)}, {.70, step(false, 0)}, {.80, ready}},
+    strafeLeft = shuffleClip(-1),
+    strafeRight = shuffleClip(1),
+    retreat = {{0, ready}, {.12, retreatStep(1, .14, 0, 0)},
+        {.24, retreatStep(2, 0, 0, 1)}, {.36, retreatStep(1, 0, .12, .6)},
+        {footworkDuration, ready}},
     intro = {{0, ready}, {1.0, breathe}, {1.55, bow}, {1.95, bow}, {2.55, ready},
         {4.75, breathe}, {5.45, salute}, {6.05, salute}, {6.33, nod}, {6.65, salute},
         {7.6, ready}, {8.15, step(true, .08)}, {8.95, ready}, {10, ready}},
@@ -156,6 +204,8 @@ for action, clip in clips do
     Poses.Duration[action] = clip[#clip][1]
 end
 
+local looping = {idle = true, step = true, strafeLeft = true, strafeRight = true, retreat = true}
+
 -- Forward knuckle vertex measured on the authored Right_Arm_Shell mesh
 -- in its right ArtPivot frame. This is the visible contact at the end of palm.
 Poses.PalmContact = Vector3.new(.0763, -.1595, -1.4299)
@@ -168,7 +218,7 @@ function Poses.sample(action, age, duration)
     local length = Poses.Duration[action]
     local playbackDuration = math.max(duration or length, .001)
     local elapsed = math.max(age, 0)
-    if action == "idle" or action == "step" then
+    if looping[action] then
         elapsed %= playbackDuration
     end
     local time = length * math.clamp(elapsed / playbackDuration, 0, 1)

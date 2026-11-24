@@ -1,6 +1,7 @@
 -- Native fighter motion, fitted contact volumes, and authored floor effects.
 local Match = require(script.Parent.DojoMatchSupport)
-local Geometry = require(script.Parent.ReedguardFightMotion).geometry
+local FighterMotion = require(script.Parent.ReedguardFightMotion)
+local Geometry = FighterMotion.geometry
 local Penguin = require(script.Parent.PenguinCombatPoses)
 local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
@@ -84,10 +85,11 @@ local function beginActor(duel, actor, index, brawl)
     local animator = humanoid:FindFirstChildOfClass("Animator")
     actor.character, actor.humanoid, actor.animate = character, humanoid, animate
     actor.wasAutoRotate, actor.wasAutoJump = humanoid.AutoRotate, humanoid.AutoJumpEnabled
+    actor.wasWalkSpeed = humanoid.WalkSpeed
     actor.wasAnimateDisabled = animate and animate.Disabled
     actor.wasAnchored = root.Anchored
     actor.held, actor.network, actor.knock, actor.lift, actor.cast = nil, nil, nil, nil, nil
-    actor.aim, actor.facing, actor.defeat = nil, nil, nil
+    actor.aim, actor.facing, actor.defeat, actor.shuffle = nil, nil, nil, nil
     actor.history = {{at = duel.round.introAt, position = root.CFrame}}
     actor.motors, actor.marks = {}, {}
     actor.fx = Instance.new("Folder")
@@ -122,6 +124,7 @@ local function beginActor(duel, actor, index, brawl)
         facing.CFrame = root.CFrame.Rotation
         facing.Parent = root
         actor.aim, actor.facing = aim, facing
+        humanoid.WalkSpeed = math.min(humanoid.WalkSpeed, FighterMotion.lockedWalkSpeed)
     end
     humanoid.AutoRotate, humanoid.AutoJumpEnabled = false, false
     setHeld(actor, true)
@@ -158,6 +161,9 @@ function Motion.remove(duel, index)
     if actor.humanoid.Parent then
         actor.humanoid.AutoRotate = actor.wasAutoRotate
         actor.humanoid.AutoJumpEnabled = actor.wasAutoJump
+        if not duel.motion.brawl then
+            actor.humanoid.WalkSpeed = actor.wasWalkSpeed
+        end
     end
     Geometry.restoreDefeat(actor)
     if actor.facing then
@@ -491,7 +497,8 @@ local function updateActor(duel, index, now)
     local root, clip = actor.root, state.clip
     local travel = clip and state.kit.poses.Travel and state.kit.poses.Travel[clip.action]
     local traveling = clip and (travelActions[clip.action] or (travel and travel.axis))
-    local planting = clip and plantedActions[clip.action]
+    local planting = (clip and plantedActions[clip.action])
+        or FighterMotion.canPlantKick(state.kitId, clip, root, duel.floor)
     local live = now >= duel.round.startsAt and not duel.round.resolvedAt
     local rooted = now < (state.rootedUntil or 0)
     if brawl then
@@ -571,7 +578,7 @@ function Motion.move(duel, now)
     end
 end
 
-local function poseAt(duel, index, now)
+local function poseAt(duel, index, now, readOnly)
     local actor, state = duel.actors[index], duel.round.sides[index]
     local round = duel.round
     local action, age, direction
@@ -581,14 +588,10 @@ local function poseAt(duel, index, now)
     elseif now < round.startsAt then
         action, age = "intro", now - round.introAt
     elseif state.clip then
+        if not readOnly then actor.shuffle = nil end
         action, age, direction = state.clip.action, now - state.clip.startedAt, state.clip.direction
     else
-        local speed = actor.root.AssemblyLinearVelocity
-        local moving = Match.flat(speed)
-        action, age = "stance", now
-        if moving.Magnitude > 1.3 and math.abs(speed.Y) < 6 then
-            action = if moving:Dot(actor.root.CFrame.LookVector) >= 0 then "advance" else "retreat"
-        end
+        action, age = FighterMotion.locomotion(state.kit.poses, actor, actor.root, actor.root.CFrame.LookVector, now, readOnly)
     end
     local offsets = state.kit.poses.sample(action, age, direction)
     if action == "fortressRicochet" then
@@ -650,7 +653,7 @@ end
 local function defenderVolumes(duel, index, at, root, facing)
     local state, actor = duel.round.sides[index], duel.actors[index]
     local guard = facing and state.guardUntil >= at and at >= state.guardFrom + .055
-    return Geometry.fittedVolumes(actor.character, root, actor.motors, poseAt(duel, index, at), guard)
+    return Geometry.fittedVolumes(actor.character, root, actor.motors, poseAt(duel, index, at, true), guard)
 end
 
 local function floorContact(duel, index, at, root, center, radius, direction, halfAngle)

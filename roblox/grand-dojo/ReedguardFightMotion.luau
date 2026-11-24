@@ -18,7 +18,9 @@ local Heavy = require(script.Parent.HeavyFighterCombat)
 local Ricochet = require(script.Parent.RingRicochet)
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
+local RunService = game:GetService("RunService")
 local Motion = {}
+Motion.lockedWalkSpeed = 5
 
 local fallSeconds = .57
 local playerFall = Vector3.new(math.rad(4), math.rad(62), math.rad(88))
@@ -300,7 +302,8 @@ function Motion.open(bout)
     -- The invisible bot collider leaves room for the player's half-width at melee distance.
     local diameter = if originalPair then resident.diameter else math.min(resident.diameter, 2 * (spacing - .76))
     local state = {motors = {}, anchored = bout.root.Anchored, autoRotate = humanoid.AutoRotate,
-        autoJump = humanoid.AutoJumpEnabled, animate = animate, animateDisabled = animate and animate.Disabled,
+        autoJump = humanoid.AutoJumpEnabled, walkSpeed = humanoid.WalkSpeed,
+        animate = animate, animateDisabled = animate and animate.Disabled,
         humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
     if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit] or Heavy.kits[bout.kit] then
@@ -353,6 +356,7 @@ function Motion.open(bout)
     state.aim, state.facing = aim, facing
     humanoid.AutoRotate = false
     humanoid.AutoJumpEnabled = false
+    humanoid.WalkSpeed = math.min(humanoid.WalkSpeed, Motion.lockedWalkSpeed)
 
     bout.root.Anchored = true
     state.holding = true
@@ -395,9 +399,13 @@ function Motion.close(bout)
     if state.humanoid.Parent then
         state.humanoid.AutoRotate = state.autoRotate
         state.humanoid.AutoJumpEnabled = state.autoJump
+        state.humanoid.WalkSpeed = state.walkSpeed
     end
     if bout.root.Parent then
         bout.root.Anchored = state.anchored
+    end
+    if RunService:IsStudio() and bout.lastPlayerAction then
+        bout.player:SetAttribute("SparFootworkAction", nil)
     end
 end
 
@@ -413,7 +421,41 @@ function Motion.canAct(bout, action)
         and math.abs(root.AssemblyLinearVelocity.Y) <= 4
 end
 
-local function playerAction(bout, now)
+function Motion.locomotion(poses, state, root, forward, now, readOnly)
+    local velocity = root.AssemblyLinearVelocity
+    local speed = Match.flat(velocity)
+    if speed.Magnitude <= 1.3 or math.abs(velocity.Y) >= 6 then
+        if not readOnly then state.shuffle = nil end
+        return "stance", now
+    end
+    local along = speed:Dot(forward)
+    local across = speed:Dot(forward:Cross(Vector3.yAxis))
+    if poses.StrafeStepDistance and math.abs(across) > math.max(1.3, math.abs(along)) then
+        local action = if across > 0 then "strafeRight" else "strafeLeft"
+        local shuffle = state.shuffle
+        if readOnly then
+            return action, if shuffle and shuffle.action == action then shuffle.age else 0
+        end
+        if not shuffle or shuffle.action ~= action or now - shuffle.at > .10 then
+            shuffle = {action = action, at = now, age = 0}
+            state.shuffle = shuffle
+        end
+        local duration = poses.Duration[action]
+        local rate = math.clamp(math.abs(across) * duration / poses.StrafeStepDistance, .44, 1.8)
+        shuffle.age = (shuffle.age + math.clamp(now - shuffle.at, 0, .05) * rate) % duration
+        shuffle.at = now
+        return action, shuffle.age
+    end
+    if not readOnly then state.shuffle = nil end
+    return if along >= 0 then "advance" else "retreat", now
+end
+
+function Motion.canPlantKick(kit, clip, root, floor)
+    return kit == "reedguard" and clip and clip.action == "body"
+        and math.abs(root.Position.Y - (floor + 2.13)) < .38 and math.abs(root.AssemblyLinearVelocity.Y) < 4
+end
+
+local function playerAction(bout, now, readOnly)
     local round = bout.round
     if bout.outroAt then
         local age = now - bout.outroAt
@@ -421,14 +463,11 @@ local function playerAction(bout, now)
     elseif now < round.startsAt then
         return "intro", now - round.introAt
     elseif round.clip then
+        if not readOnly then bout.motion.shuffle = nil end
         return round.clip.action, now - round.clip.startedAt, round.clip.direction
     end
-    local speed = Match.flat(bout.root.AssemblyLinearVelocity)
-    if speed.Magnitude > 1.3 and math.abs(bout.root.AssemblyLinearVelocity.Y) < 6 then
-        local forward = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
-        return if speed:Dot(forward) >= 0 then "advance" else "retreat", now
-    end
-    return "stance", now
+    local forward = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
+    return Motion.locomotion(bout.motion.playerPoses, bout.motion, bout.root, forward, now, readOnly)
 end
 
 local function rememberPosition(samples, now, position)
@@ -991,7 +1030,16 @@ local function playerDodge(bout, now)
         end
         Fields.updateCast(bout.telegraph, fieldCast, age, now, EmberAqua, true)
     end
-    local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil or fieldAction == true or heavyActive
+    local kick = Motion.canPlantKick(bout.kit, clip, root, bout.arena.floor)
+    if kick and state.kickClip ~= clip then
+        state.kickClip = clip
+        local forward = directionTo(root.Position, bout.position, root.CFrame.LookVector)
+        Match.move(root, CFrame.lookAlong(root.Position, forward))
+    elseif not kick then
+        state.kickClip = nil
+    end
+    local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil or fieldAction == true
+        or heavyActive or kick == true
     if hold ~= state.holding then
         root.Anchored = hold or state.anchored
         state.holding = hold
@@ -1232,8 +1280,8 @@ local function granitePop(bout, now)
     end
 end
 
-local function juniperStep(bout, movement, orientation)
-    if bout.motion.originalPair then
+local function juniperStep(bout, movement, orientation, footwork)
+    if bout.motion.originalPair and not footwork then
         bout.position = Match.clampFloor(bout.arena.bounds, bout.position + movement, bout.arena.floor)
         return
     end
@@ -1241,6 +1289,48 @@ local function juniperStep(bout, movement, orientation)
     local center = bout.position + Vector3.new(0, 1.32, 0)
     bout.position = safeTravel(bout, bout.position, bout.position + allowed,
         CFrame.new(center) * orientation.Rotation, Vector3.new(2.15, 2.5, 1.9), bout.motion.arenaCast)
+end
+
+local function juniperFootwork(bout, distance, now, dt)
+    local state, round = bout.motion, bout.round
+    if (distance <= round.resident.startRange and now >= round.botAt - .055)
+        or (bout.reactionAt and now - bout.reactionAt < .20) then
+        return
+    end
+    local cycle = round.recoveryStartedAt or round.startsAt
+    if state.juniperCycle ~= cycle then
+        state.juniperCycle = cycle
+        state.juniperSide = if round.attackIndex == 1 then -1 else 1
+        state.juniperRetreatUntil = if round.recoveryKind == "parried" or round.recoveryKind == "blocked"
+            then now + .40 else now
+    end
+    local heading = bout.direction
+    local orientation = CFrame.lookAlong(Vector3.zero, heading)
+    local before, spacing = bout.position, state.spacing
+    local stepTime = math.clamp(dt, 0, .045)
+    local action
+    if distance < math.min(spacing + .25, round.resident.startRange - .22) and now < state.juniperRetreatUntil then
+        action = "retreat"
+        local travel = math.min(2.4 * stepTime, round.resident.startRange - .14 - distance)
+        juniperStep(bout, -heading * travel, orientation, true)
+    elseif distance > spacing + .30 then
+        action = "step"
+        local travel = math.min(distance - spacing, bout.profile.pace * stepTime)
+        juniperStep(bout, heading * travel, orientation, true)
+    else
+        local sideways = orientation.RightVector * (2.4 * stepTime)
+        local radial = heading * (math.clamp((distance - spacing) * 3, -.9, .9) * stepTime)
+        juniperStep(bout, sideways * state.juniperSide + radial, orientation, true)
+        if (bout.position - before).Magnitude < .005 then
+            state.juniperSide = -state.juniperSide
+            juniperStep(bout, sideways * state.juniperSide + radial, orientation, true)
+        end
+        action = if state.juniperSide > 0 then "strafeRight" else "strafeLeft"
+    end
+    if (bout.position - before).Magnitude > .005 then
+        return action
+    end
+    return nil
 end
 
 local residentStep = {juniper = juniperStep, bracken = brackenStep, sablecrest = sablecrestStep, granite = graniteStep}
@@ -1305,7 +1395,7 @@ local function botAction(bout, now)
     elseif bout.reactionAt and now - bout.reactionAt < .28 then
         return bout.reactionAction, now - bout.reactionAt
     end
-    return if bout.moving then "step" else "idle", now
+    return bout.footworkAction or "idle", if bout.footworkAction then now - bout.footworkAt else now
 end
 
 local function botBase(bout, time)
@@ -1686,7 +1776,7 @@ end
 
 local function actorVolumes(bout, time, guardFacing)
     local state = bout.motion
-    local action, age, direction = playerAction(bout, time)
+    local action, age, direction = playerAction(bout, time, true)
     local offsets = state.playerPoses.sample(action, age, direction)
     return fittedVolumes(bout.root.Parent, actorRootAt(bout, time), state.motors, offsets, guardFacing)
 end
@@ -1832,15 +1922,26 @@ function Motion.move(bout, now, dt)
         bout.direction = offset.Unit
     end
     local spacing = state.spacing
-    bout.moving = not bout.outroAt and not state.shove and not state.crossKnock and now >= round.startsAt
+    local readyToMove = not bout.outroAt and not state.shove and not state.crossKnock and now >= round.startsAt
         and now >= (round.botRootedUntil or 0)
-        and round.botPhase == "ready" and distance > spacing
-    if bout.moving then
+        and round.botPhase == "ready"
+    if bout.botId == "juniper" then
+        local action = if readyToMove and distance > .04 then juniperFootwork(bout, distance, now, dt) else nil
+        if action ~= bout.footworkAction then
+            bout.footworkAction, bout.footworkAt = action, now
+            if RunService:IsStudio() then
+                bout.bot:SetAttribute("FootworkAction", action or "idle")
+            end
+        end
+    elseif readyToMove and distance > spacing then
+        bout.moving = true
         local travel = bout.direction * math.min(distance - spacing, dt * bout.profile.pace)
         residentStep[bout.botId](bout, travel, CFrame.lookAlong(Vector3.zero, bout.direction))
         if command then
             keepClearance(bout)
         end
+    else
+        bout.moving = false
     end
     local gap = Match.flat(bout.root.Position - bout.position)
     if not bout.outroAt and now >= round.startsAt and gap.Magnitude > .05 then
@@ -1868,6 +1969,10 @@ function Motion.render(bout, now)
         renderPlayerDefeat(state, bout.root, bout.arena.floor, now - bout.outroAt)
     else
         local action, age, direction = playerAction(bout, now)
+        if RunService:IsStudio() and bout.lastPlayerAction ~= action then
+            bout.lastPlayerAction = action
+            bout.player:SetAttribute("SparFootworkAction", action)
+        end
         local offsets = state.playerPoses.sample(action, age, direction)
         if action == "fortressRicochet" then
             offsets = Ricochet.pose(offsets, age, Heavy.roll, Heavy.roll.shellCenter)

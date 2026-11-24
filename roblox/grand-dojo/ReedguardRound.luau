@@ -20,7 +20,7 @@ Round.GUARD_DURATION = .64
 Round.CLIPS = {
     jab = {{at = Reedguard.Contact.jab, damage = 13, zone = "head"}},
     cross = {{at = Reedguard.Contact.cross, damage = 14, zone = "body"}},
-    body = {{at = Reedguard.Contact.body, damage = 15, zone = "body"}},
+    body = {{at = Reedguard.Contact.body, damage = 15, zone = "body", foot = true, radius = .52}},
     uppercut = {{at = Reedguard.Contact.uppercut, damage = 16, zone = "head"}},
     heavy = {{at = Reedguard.Contact.heavy, damage = 22, zone = "body"}},
     reedstep = {
