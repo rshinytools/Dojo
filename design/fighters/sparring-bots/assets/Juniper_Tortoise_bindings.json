@@ -1,0 +1,156 @@
+{
+  "art_height": 4.6,
+  "triangles": 7826,
+  "blender_axes": "Z up, forward -Y.",
+  "gltf_axes": "Y up, forward -Z.",
+  "atlas": "Embedded 1024 \u00d7 1024 PNG with color and cavity shading.",
+  "groups": {
+    "Torso": {
+      "node": "Torso_Shell",
+      "triangles": 1746,
+      "blender_pivot_xyz": [
+        0,
+        0.06,
+        2.55
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        2.55,
+        0.06
+      ],
+      "blender_bounds_min_xyz": [
+        -1.2718,
+        -0.6123,
+        1.2139
+      ],
+      "blender_bounds_max_xyz": [
+        1.2718,
+        1.78,
+        4.0061
+      ]
+    },
+    "Head": {
+      "node": "Head_Shell",
+      "triangles": 3948,
+      "blender_pivot_xyz": [
+        0,
+        -0.12,
+        3.43
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        3.43,
+        -0.12
+      ],
+      "blender_bounds_min_xyz": [
+        -0.7636,
+        -1.09,
+        3.23
+      ],
+      "blender_bounds_max_xyz": [
+        0.7636,
+        0.2635,
+        4.6
+      ]
+    },
+    "Right Arm": {
+      "node": "Right_Arm_Shell",
+      "triangles": 482,
+      "blender_pivot_xyz": [
+        0.89,
+        0.09,
+        2.98
+      ],
+      "gltf_pivot_xyz": [
+        0.89,
+        2.98,
+        0.09
+      ],
+      "blender_bounds_min_xyz": [
+        0.5427,
+        -1.3468,
+        2.2746
+      ],
+      "blender_bounds_max_xyz": [
+        1.5729,
+        0.3824,
+        3.3368
+      ]
+    },
+    "Right Leg": {
+      "node": "Right_Leg_Shell",
+      "triangles": 584,
+      "blender_pivot_xyz": [
+        0.47,
+        0.05,
+        1.53
+      ],
+      "gltf_pivot_xyz": [
+        0.47,
+        1.53,
+        0.05
+      ],
+      "blender_bounds_min_xyz": [
+        0.0641,
+        -0.818,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        0.95,
+        0.4183,
+        1.62
+      ]
+    },
+    "Left Arm": {
+      "node": "Left_Arm_Shell",
+      "triangles": 482,
+      "blender_pivot_xyz": [
+        -0.89,
+        0.09,
+        2.98
+      ],
+      "gltf_pivot_xyz": [
+        -0.89,
+        2.98,
+        0.09
+      ],
+      "blender_bounds_min_xyz": [
+        -1.5729,
+        -1.1968,
+        2.2827
+      ],
+      "blender_bounds_max_xyz": [
+        -0.5427,
+        0.3824,
+        3.3368
+      ]
+    },
+    "Left Leg": {
+      "node": "Left_Leg_Shell",
+      "triangles": 584,
+      "blender_pivot_xyz": [
+        -0.47,
+        0.05,
+        1.53
+      ],
+      "gltf_pivot_xyz": [
+        -0.47,
+        1.53,
+        0.05
+      ],
+      "blender_bounds_min_xyz": [
+        -0.95,
+        -0.818,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        -0.0641,
+        0.4183,
+        1.62
+      ]
+    }
+  },
+  "display_name": "Juniper Tortoise",
+  "asset": "Juniper_Tortoise.glb",
+  "unit": "1 Blender unit per intended Roblox stud"
+}

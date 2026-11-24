@@ -1,0 +1,180 @@
+{
+  "art_height": 5.3814,
+  "triangles": 7966,
+  "blender_axes": "Z up, forward -Y.",
+  "gltf_axes": "Y up, forward -Z.",
+  "atlas": "Embedded 1024 \u00d7 1024 PNG with color and cavity shading.",
+  "groups": {
+    "Torso": {
+      "node": "Torso_Shell",
+      "triangles": 1312,
+      "blender_pivot_xyz": [
+        0,
+        0,
+        1.78
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        1.78,
+        0
+      ],
+      "blender_bounds_min_xyz": [
+        -0.665,
+        -0.447,
+        1.0297
+      ],
+      "blender_bounds_max_xyz": [
+        0.702,
+        1.0661,
+        3.31
+      ]
+    },
+    "Head": {
+      "node": "Head_Shell",
+      "triangles": 4232,
+      "blender_pivot_xyz": [
+        0,
+        0.03,
+        3.23
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        3.23,
+        0.03
+      ],
+      "blender_bounds_min_xyz": [
+        -0.7448,
+        -0.6722,
+        3.1876
+      ],
+      "blender_bounds_max_xyz": [
+        0.7455,
+        0.5182,
+        5.3814
+      ]
+    },
+    "Tail": {
+      "node": "Tail_Shell",
+      "triangles": 118,
+      "blender_pivot_xyz": [
+        0,
+        0.39,
+        1.55
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        1.55,
+        0.39
+      ],
+      "blender_bounds_min_xyz": [
+        -0.1303,
+        0.3196,
+        1.3827
+      ],
+      "blender_bounds_max_xyz": [
+        0.2551,
+        0.9688,
+        1.9082
+      ]
+    },
+    "Left Arm": {
+      "node": "Left_Arm_Shell",
+      "triangles": 772,
+      "blender_pivot_xyz": [
+        -0.647,
+        0.04,
+        2.96
+      ],
+      "gltf_pivot_xyz": [
+        -0.647,
+        2.96,
+        0.04
+      ],
+      "blender_bounds_min_xyz": [
+        -1.2699,
+        -1.1834,
+        2.2673
+      ],
+      "blender_bounds_max_xyz": [
+        -0.4545,
+        0.3395,
+        3.2827
+      ]
+    },
+    "Left Leg": {
+      "node": "Left_Leg_Shell",
+      "triangles": 552,
+      "blender_pivot_xyz": [
+        -0.335,
+        0.14,
+        1.57
+      ],
+      "gltf_pivot_xyz": [
+        -0.335,
+        1.57,
+        0.14
+      ],
+      "blender_bounds_min_xyz": [
+        -0.838,
+        -0.343,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        -0.0532,
+        0.6144,
+        1.59
+      ]
+    },
+    "Right Arm": {
+      "node": "Right_Arm_Shell",
+      "triangles": 432,
+      "blender_pivot_xyz": [
+        0.647,
+        0.04,
+        2.96
+      ],
+      "gltf_pivot_xyz": [
+        0.647,
+        2.96,
+        0.04
+      ],
+      "blender_bounds_min_xyz": [
+        0.4545,
+        -1.3434,
+        2.2673
+      ],
+      "blender_bounds_max_xyz": [
+        1.2699,
+        0.3395,
+        3.2827
+      ]
+    },
+    "Right Leg": {
+      "node": "Right_Leg_Shell",
+      "triangles": 548,
+      "blender_pivot_xyz": [
+        0.335,
+        0.14,
+        1.57
+      ],
+      "gltf_pivot_xyz": [
+        0.335,
+        1.57,
+        0.14
+      ],
+      "blender_bounds_min_xyz": [
+        0.0532,
+        -0.693,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        0.838,
+        0.3812,
+        1.59
+      ]
+    }
+  },
+  "display_name": "Sablecrest Lynx",
+  "asset": "Sablecrest_Lynx.glb",
+  "unit": "1 Blender unit per intended Roblox stud"
+}

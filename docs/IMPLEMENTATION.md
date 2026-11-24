@@ -29,6 +29,8 @@ The public Trophy Hall is a city landmark and the planned entrance to each playe
 
 ## Source map
 
+The [standalone sparring bot art package](../design/fighters/sparring-bots/README.md) contains four editable Blender models, textured GLBs and body-part pivots. Blender reimport verified the exports. Studio rigging, animation and gameplay integration remain open.
+
 | Work area | First files to inspect |
 | --- | --- |
 | Place generation and map links | [build_place.py](../roblox/grand-dojo/build_place.py), the corresponding geometry module, and the generated `CityRoutes` ModuleScript |

@@ -1,0 +1,180 @@
+{
+  "art_height": 5.1957,
+  "triangles": 10828,
+  "blender_axes": "Z up, forward -Y.",
+  "gltf_axes": "Y up, forward -Z.",
+  "atlas": "Embedded 1024 \u00d7 1024 PNG with color and cavity shading.",
+  "groups": {
+    "Torso": {
+      "node": "Torso_Shell",
+      "triangles": 2244,
+      "blender_pivot_xyz": [
+        0,
+        0.055,
+        2.36
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        2.36,
+        0.055
+      ],
+      "blender_bounds_min_xyz": [
+        -1.0574,
+        -0.8072,
+        1.1467
+      ],
+      "blender_bounds_max_xyz": [
+        1.0574,
+        0.67,
+        3.66
+      ]
+    },
+    "Head": {
+      "node": "Head_Shell",
+      "triangles": 4510,
+      "blender_pivot_xyz": [
+        0,
+        0.021,
+        3.52
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        3.52,
+        0.021
+      ],
+      "blender_bounds_min_xyz": [
+        -1.022,
+        -1.2834,
+        3.44
+      ],
+      "blender_bounds_max_xyz": [
+        1.022,
+        0.7927,
+        5.1957
+      ]
+    },
+    "Right Arm": {
+      "node": "Right_Arm_Shell",
+      "triangles": 1182,
+      "blender_pivot_xyz": [
+        1.05,
+        0.075,
+        3.21
+      ],
+      "gltf_pivot_xyz": [
+        1.05,
+        3.21,
+        0.075
+      ],
+      "blender_bounds_min_xyz": [
+        0.7095,
+        -1.4904,
+        2.3483
+      ],
+      "blender_bounds_max_xyz": [
+        1.7642,
+        0.463,
+        3.52
+      ]
+    },
+    "Left Arm": {
+      "node": "Left_Arm_Shell",
+      "triangles": 1178,
+      "blender_pivot_xyz": [
+        -1.05,
+        0.075,
+        3.21
+      ],
+      "gltf_pivot_xyz": [
+        -1.05,
+        3.21,
+        0.075
+      ],
+      "blender_bounds_min_xyz": [
+        -1.7645,
+        -1.4004,
+        2.2678
+      ],
+      "blender_bounds_max_xyz": [
+        -0.7095,
+        0.463,
+        3.52
+      ]
+    },
+    "Right Leg": {
+      "node": "Right_Leg_Shell",
+      "triangles": 792,
+      "blender_pivot_xyz": [
+        0.51,
+        0.07,
+        1.83
+      ],
+      "gltf_pivot_xyz": [
+        0.51,
+        1.83,
+        0.07
+      ],
+      "blender_bounds_min_xyz": [
+        0.1296,
+        -0.8084,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        1.0132,
+        0.5028,
+        1.98
+      ]
+    },
+    "Left Leg": {
+      "node": "Left_Leg_Shell",
+      "triangles": 792,
+      "blender_pivot_xyz": [
+        -0.51,
+        0.12,
+        1.83
+      ],
+      "gltf_pivot_xyz": [
+        -0.51,
+        1.83,
+        0.12
+      ],
+      "blender_bounds_min_xyz": [
+        -1.0132,
+        -0.5184,
+        0.0
+      ],
+      "blender_bounds_max_xyz": [
+        -0.1296,
+        0.5669,
+        1.98
+      ]
+    },
+    "Tail": {
+      "node": "Tail_Shell",
+      "triangles": 130,
+      "blender_pivot_xyz": [
+        0,
+        0.451,
+        1.83
+      ],
+      "gltf_pivot_xyz": [
+        0,
+        1.83,
+        0.451
+      ],
+      "blender_bounds_min_xyz": [
+        -0.1018,
+        0.4036,
+        1.72
+      ],
+      "blender_bounds_max_xyz": [
+        0.3466,
+        1.178,
+        2.2339
+      ]
+    }
+  },
+  "display_name": "Bracken Boar",
+  "asset": "Bracken_Boar.glb",
+  "unit": "1 Blender unit per intended Roblox stud"
+}
