@@ -264,6 +264,37 @@ local xpFill = make("Frame", xpTrack, {
 })
 style(xpFill, 2)
 
+local compactProgress = make("Frame", gui, {
+    Name = "CompactProgress", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -8, 0, 6),
+    Size = UDim2.fromOffset(124, 32), BackgroundColor3 = palette.ink, BackgroundTransparency = .12,
+    BorderSizePixel = 0, Visible = false,
+})
+style(compactProgress, 8, palette.edge)
+local compactText = label(compactProgress, "Progress", 12, palette.parchment, titleFont)
+compactText.Position = UDim2.fromOffset(8, 2)
+compactText.Size = UDim2.new(1, -16, 0, 21)
+compactText.TextXAlignment = Enum.TextXAlignment.Center
+local compactTrack = make("Frame", compactProgress, {
+    Name = "XP track", Position = UDim2.fromOffset(9, 24), Size = UDim2.new(1, -18, 0, 3),
+    BackgroundColor3 = palette.raised, BorderSizePixel = 0,
+})
+style(compactTrack, 2)
+local compactFill = make("Frame", compactTrack, {
+    Name = "XP fill", Size = UDim2.fromScale(0, 1), BackgroundColor3 = palette.gold, BorderSizePixel = 0,
+})
+style(compactFill, 2)
+local compactParcel = label(gui, "CompactParcel", 12, palette.parchment, titleFont)
+compactParcel.Position = UDim2.fromOffset(8, 6)
+compactParcel.Size = UDim2.new(1, -148, 0, 32)
+make("UISizeConstraint", compactParcel, {MaxSize = Vector2.new(210, 32)})
+compactParcel.BackgroundColor3 = palette.ink
+compactParcel.BackgroundTransparency = .12
+compactParcel.BorderSizePixel = 0
+compactParcel.TextWrapped = true
+compactParcel.TextXAlignment = Enum.TextXAlignment.Center
+compactParcel.Visible = false
+style(compactParcel, 8)
+
 local function updateFighterProgress()
     local status = player:GetAttribute("ProgressStatus")
     local snapshot = player:GetAttribute("FighterHudProgress")
@@ -276,17 +307,21 @@ local function updateFighterProgress()
     fighterLevel.Text = if ready and level then string.format("LEVEL %d", level) else ""
     if not ready or not level or not earned or not goal then
         fighterXp.Text = if status == "unavailable" then "Progress unavailable" else "Loading progress…"
-        xpTrack.Visible = false
+        compactText.Text = if status == "unavailable" then "XP unavailable" else "Loading XP…"
+        xpTrack.Visible, compactTrack.Visible = false, false
         return
     end
-    xpTrack.Visible = true
+    xpTrack.Visible, compactTrack.Visible = true, true
     if goal > 0 then
         fighterXp.Text = string.format("%d / %d XP", earned, goal)
-        xpFill.Size = UDim2.fromScale(earned / goal, 1)
+        compactText.Text = string.format("LV %d  ·  %d/%d XP", level, earned, goal)
+        xpFill.Size = UDim2.fromScale(math.clamp(earned / goal, 0, 1), 1)
     else
         fighterXp.Text = "Max level"
+        compactText.Text = string.format("LV %d  ·  Max", level)
         xpFill.Size = UDim2.fromScale(1, 1)
     end
+    compactFill.Size = xpFill.Size
 end
 for _, attribute in {"ProgressStatus", "FighterHudProgress"} do
     player:GetAttributeChangedSignal(attribute):Connect(updateFighterProgress)
@@ -313,6 +348,7 @@ end
 local function updateParcelObjective()
     local objective = parcelObjectives[player:GetAttribute("ParcelStage")]
     parcelObjective.Text = objective or ""
+    compactParcel.Text = parcelObjective.Text
     parcelObjective.Visible = objective ~= nil
     local fighterTop = if objective then 70 else 49
     fighterStrip.Position = UDim2.fromOffset(11, fighterTop)
@@ -928,7 +964,20 @@ local function updateBoardHint()
 end
 
 local openPanel, offered = "", false
-local restorePlayerList = false
+local restorePlayerList
+local function updatePlayerList(hidden)
+    if hidden and restorePlayerList == nil then
+        restorePlayerList = StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.PlayerList)
+        if restorePlayerList then
+            StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+        end
+    elseif not hidden and restorePlayerList ~= nil then
+        if restorePlayerList then
+            StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, true)
+        end
+        restorePlayerList = nil
+    end
+end
 local journal
 local eagleEye
 local isPractice = false
@@ -1007,6 +1056,9 @@ local function layout()
         return
     end
     local size = camera.ViewportSize
+    local compact = UserInputService.TouchEnabled and not UserInputService.VREnabled
+        and (size.X < 780 or size.Y < 520)
+    updatePlayerList(compact or panel.Visible)
     local map = openPanel == "map"
     local journalView = openPanel == "journal"
     local aerial = eagleEye and eagleEye:IsActive()
@@ -1028,8 +1080,11 @@ local function layout()
     if aerial then
         boardHint.Visible = false
     end
-    badge.Visible = not sparringActive and not showingResult and not race.Visible and not aerial and not (panel.Visible and narrow)
-        and (not boardHint.Visible or parcelObjectives[player:GetAttribute("ParcelStage")] ~= nil)
+    local showingWorldHud = not sparringActive and not showingResult and not race.Visible and not aerial
+    badge.Visible = not compact and showingWorldHud and not (panel.Visible and narrow)
+        and (not boardHint.Visible or parcelObjective.Visible)
+    compactProgress.Visible = compact and showingWorldHud and not panel.Visible and not cloudbreakStatus.Visible
+    compactParcel.Visible = compactProgress.Visible and parcelObjective.Visible
 end
 
 for _, attribute in {"SkywalkTrialMode", "SkywalkTrialNext", "SkywalkTrialStartedAt", "SkywalkTrialRecoveries"} do
@@ -1075,10 +1130,6 @@ local function hide()
     end
     openPanel = ""
     panel.Visible = false
-    if restorePlayerList then
-        StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, true)
-        restorePlayerList = false
-    end
     if journal then
         journal:Hide()
     end
@@ -1129,11 +1180,6 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     offered = kind == "relay"
     local map = kind == "map"
     local journalView = kind == "journal"
-    if not panel.Visible and StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.PlayerList) then
-        -- The platform player list can cover the panel's upper-right close button.
-        StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
-        restorePlayerList = true
-    end
     panel.Visible = true
     ProximityPromptService.Enabled = false
     mapCanvas.Visible = map

@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.264, the compact mobile HUD shows level and XP in a small upper-right badge. The Roblox player list is hidden on compact phones. Desktop keeps the full area and XP card. Galaxy A06 Studio Play covered both orientations and the first practice XP update.
+
 In v0.263, face **Trophy Hall** from the central plaza or the east walk. The title has more space at its ends, and the full cup rises above it. The east plaza pine has more layered foliage.
 
 In v0.262, follow **Dojo Ring** and its **Combat to Earn Rewards** subtitle to the entrance. City, district and ring playlists play automatically. From Snowbell Ridge, look down for the new slate and snow shelves in **Snowbell Hollow**.
