@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.257, follow the coastal road from **Tideharbor Coast** towards **Cinder Terraces**. The **Clay Lantern** signs mark a short ramp detour on the sea side of the road. Walk over the covered lookout for a view of the coast, then descend to the same road.
+
 In v0.256, follow the sandstone ramp to the **Fighting Ring** and walk the twelve treads onto the stage. The **Practice Target** stands ahead and the **Bot Spar** sign marks the left side. The stairs lead back to the plaza.
 
 In v0.255, head left from **Festival Plaza** to the red bridge and cross toward **Lantern Relay**. The richer red rails and visible arch mark the route. The swim steps are on the plaza side just south of the bridge.

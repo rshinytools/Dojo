@@ -15,6 +15,8 @@ from art.promenade_layout import (ARRIVAL_LAMPS, INLET_EDGE, INLET_NORTH, INLET_
                                    ring_forecourt_pigment, stone_pigment, tint_stone)
 from art.garden_tree_layout import garden_knuckles, garden_tree, rotate_garden_point
 from art.north_ridge_relief import north_ridge_facets
+from clay_lantern_walk import (build_clay_lantern_walk,
+                               road_coordinates as clay_lantern_road_coordinates)
 from art.valley_ridge_layout import VALLEY_RIDGES
 from art.cinder_hillside_layout import OUTLINE as CINDER_OUTLINE, hillside_faces, hillside_rings
 from arrival_bank_planting import build_arrival_bank_planting
@@ -7403,7 +7405,17 @@ for name,points,tone,leaving,returning,paint in crossroads:
             beam(roads,"Elevated route rail",harbor_rail_point(start,-1),
                  harbor_rail_point(end,-1),.20,DARK,collide=True)
         beam(roads,"Elevated route rail",harbor_rail_point(0,1),harbor_rail_point(1,1),.20,DARK,collide=True)
-        route(roads,name,points[1:-1],12,tone)
+        route(roads,name,points[1:-1],12,tone,railings=False)
+        span,_,middle_grade,middle_point=clay_lantern_road_coordinates(*points[1:3])
+        beam(roads,"Elevated route rail",middle_point(0,-6,middle_grade(0)+1.05),
+             middle_point(span,-6,middle_grade(span)+1.05),.20,DARK,collide=True)
+        build_clay_lantern_walk(roads,*points[1:3],item=item,prop=prop,part=part,beam=beam,
+                                 triangle=triangle,path_edge=path_edge,sign=sign,swept_roof=swept_roof,
+                                 festival_lantern=festival_lantern,garden_prop=garden_prop,
+                                 vector=vector,asset=asset,
+                                 cedar=WOOD_PLANK,slate=SLATE,limestone=LIMESTONE,brass=METAL,
+                                 cedar_variant=LANDMARK_CEDAR,stone_variant=PROMENADE_STONE,
+                                 variant_field=MATERIAL_VARIANT_FIELD)
         route(roads,name,points[-2:],12,tone,railings=False)
         glaze_terrace(roads,*points[-2:])
         build_cinder_harbor_road_relief(roads,points[2],points[1],item=item,prop=prop,

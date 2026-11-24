@@ -2,11 +2,11 @@
 
 Beast Dojo is a Roblox martial-arts adventure centered on the Grand Dojo Fighting Ring. Players travel between six districts, train with animal fighters, and earn trophies through matches, exploration, and festival activities.
 
-**Current Roblox checkpoint** v0.256. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
+**Current Roblox checkpoint** v0.257. See [what is playable and what remains](docs/IMPLEMENTATION.md), the [game design](docs/GAME_DESIGN.md), and the [16-phase roadmap](docs/ROADMAP.md). Read [AGENTS.md](AGENTS.md) before handing the project to an AI coding agent.
 
 ## Play the Roblox checkpoint
 
-Download [Beast_Dojo_Grand_Dojo_v0.256.zip](releases/Beast_Dojo_Grand_Dojo_v0.256.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**. Start at the festival plaza and follow the signs for the Fighting Ring, Lantern Relay, or Trophy Hall. Take Cedar Foothill Walk off the Skywalk approach, or climb Lantern Tower from Garden Lookout. The City Map on the east-side walk can plot a route to another district. Choose **Eagle Eye** on any district’s map to see the whole valley from above.
+Download [Beast_Dojo_Grand_Dojo_v0.257.zip](releases/Beast_Dojo_Grand_Dojo_v0.257.zip), extract it and open `Beast_Dojo_Grand_Dojo.rbxlx` in Roblox Studio. Use **Play**. Start at the festival plaza and follow the signs for the Fighting Ring, Lantern Relay, or Trophy Hall. Take Cedar Foothill Walk off the Skywalk approach, or climb Lantern Tower from Garden Lookout. The City Map on the east-side walk can plot a route to another district. Choose **Eagle Eye** on any district’s map to see the whole valley from above.
 
 The ZIP is the verified desktop Studio checkpoint. The place refers to Roblox-hosted meshes, textures, and audio. Some need account or experience permissions. See [asset access](docs/IMPLEMENTATION.md#asset-access). Studio uses session data. Published data, purchases and physical devices have separate release tests.
 
