@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.250, look for the amber pools beneath the **Festival Plaza** lanterns and the two trainees visible through the **Fighting Ring** opening. Follow the road from **Lantern Circuit** toward **Frostglass Gardens** to see the new snowy shoulders and larger pines. Desktop Studio walked each of the five Grand Dojo roads and the decorated Frostglass approach both ways.
+
 In v0.249, follow **Lantern Skyline Walk** and look west from the descent. The ridge has three planted benches, wider cedar crowns, and fitted stone aprons below the hillside lodges. Desktop Studio walked Skyline Walk and the connecting road in both directions.
 
 In v0.248, look toward the **Lantern foothill gardens** from the descent of **Lantern Skyline Walk**. Two planted benches and a small irrigation channel link the guild bluff to the western range. Desktop Studio verified both directions of Skyline Walk and the original Lantern Circuit road. Galaxy A06 landscape Studio simulation verified the walk from the market to Overlook Lane.

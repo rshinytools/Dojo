@@ -209,7 +209,7 @@ INDIGO_TILE = "Glazed indigo clay tile"
 ARENA_WEAVE = "Fighting Ring canvas weave"
 ARENA_CEDAR = "Fighting Ring cedar grain"
 LANDMARK_CEDAR = "Lacquered landmark cedar"
-LEAFY_GRASS = 1284
+LEAFY_GRASS, SNOW = 1284, 1328
 # Studio serializes the public BasePart.MaterialVariant string under this XML field.
 MATERIAL_VARIANT_FIELD = "MaterialVariantSerialized"
 
@@ -7318,7 +7318,11 @@ for name,points,tone,leaving,returning,paint in crossroads:
         meltwater_junction_guard(guards,*points[:2],(-53.68,-47.92))
         meltwater_junction_guard(guards,*points[-2:],(-116.79,-110.91))
         lower_meltwater_walk(roads)
-        build_frostglass_approach_planting(roads,item=item,prop=prop,part=part,vector=vector,asset=asset)
+        build_frostglass_approach_planting(
+            roads,item=item,prop=prop,part=part,vector=vector,asset=asset,triangle=triangle,
+            garden_prop=garden_prop,rock=ROCK,snow=SNOW,rock_variant=VALLEY_ROCK,
+            variant_field=MATERIAL_VARIANT_FIELD,
+        )
     elif name=="Harbor to Cinder road":
         route(roads,name,points[:2],12,tone,railings=False)
         a,b=points[:2]
@@ -7595,8 +7599,8 @@ roaming_townsperson("Mistline Messenger",mistline_deck[-2:0:-1],"D2AF8D","526C8A
 roaming_townsperson("Market Porter",[(68,.15,-12),(67,.15,-24),(70,.15,-39),(71.4,.15,-28),(70.2,.15,-17)],
                    "933F37","69967C",.55,"red panda",5.2,5,1.02)
 for name,x,z,yaw,fur,coat,gloves,ears,species,scale,phase in (
-    ("Copper Court Trainee",43.09,11.20,-65.87,"DC935D","C26943","E37A39",.52,"red panda",1.26,0),
-    ("Jade Court Trainee",47.69,9.14,114.13,"BFC8C9","377D7D","63BBB0",.48,"bear",1.30,3.4),
+    ("Copper Court Trainee",36.60,14.45,-66.32,"DC935D","C26943","E37A39",.52,"red panda",1.26,0),
+    ("Jade Court Trainee",41.30,12.39,113.68,"BFC8C9","377D7D","63BBB0",.48,"bear",1.30,3.4),
 ):
     trainee=townsperson(townsfolk,name,x+ring_offset,ring_floor,z,fur,coat,ears,yaw,
                         species=species,scale=scale,guard=True,training_gloves=gloves)

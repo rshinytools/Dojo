@@ -9,8 +9,12 @@ INLET_EDGE, INLET_NORTH, INLET_SOUTH = -4, 48, 60
 # Preserve the established hand-cut pattern when the shoreline moves.
 FLAGSTONE_PATTERN_EDGE = -8
 ARRIVAL_LAMPS=((-10.57,71.16),(14.63,71.84))
-LANTERN_SPILL=((-8,42,7.9,10.7),(11,37,8.5,11.1),(-8.9,33.7,5.4,8.6),(9.6,61.8,7.4,9.5),
-               *((x,z,7.8,10.0) for x,z in ARRIVAL_LAMPS))
+LANTERN_SPILL=(
+    (-6.9,42.6,7.6,10.7,.82), (9.7,37.6,8.5,10.8,.86), (-7.8,33.9,5.4,8.0,.70),
+    (9.85,63.15,6.5,8.6,.96),
+    (ARRIVAL_LAMPS[0][0]+2.2,ARRIVAL_LAMPS[0][1],7.10,8.8,1.0),
+    (ARRIVAL_LAMPS[1][0]-2.1,ARRIVAL_LAMPS[1][1],7.25,9.0,.89),
+)
 DAMP_POOLS = ((-1.7, 52.7, 7.3, 5.5), (9.4, 58.9, 7.2, 6.0), (8.1, 42.5, 5.3, 8.5))
 
 
@@ -67,10 +71,16 @@ def tint_stone(pigment, shifts):
                    for base, shift in zip(channels, shifts))
 
 
+def lantern_spill(x, z, center_x, center_z, width, depth):
+    """Give the pool a readable warm core and a soft edge on the stone."""
+    radial = hypot((x-center_x)/width, (z-center_z)/depth)
+    return smooth_falloff(1-radial**1.40)
+
+
 def stone_pigment(pigment, point):
     x,z=point
-    amber=max(smooth_falloff(1-hypot((x-lx)/reach_x,(z-lz)/reach_z))
-              for lx,lz,reach_x,reach_z in LANTERN_SPILL)
+    amber=max(strength*lantern_spill(x,z,lx,lz,reach_x,reach_z)
+              for lx,lz,reach_x,reach_z,strength in LANTERN_SPILL)
     sunset=smooth_falloff((x+4+(z-48)*.09)/17)
     inlet=smooth_falloff((z-INLET_NORTH+2)/4)*smooth_falloff((INLET_SOUTH+2-z)/4)
     bank=-12+(INLET_EDGE+12)*inlet
@@ -78,24 +88,24 @@ def stone_pigment(pigment, point):
     # Broad light between the buildings and softer contact color by the garden edges.
     arrival=smooth_falloff((z-27)/17)
     golden_lane=arrival*smooth_falloff(1-abs(x-3.2+(z-52)*.15)/9.5)
-    garden_shadow=arrival*max(smooth_falloff((x-9.0)/6.6),
-                              smooth_falloff((bank+3.3-x)/3.6))
+    garden_shadow=arrival*(1-.66*amber)*max(smooth_falloff((x-9.0)/6.6),
+                                            smooth_falloff((bank+3.3-x)/3.6))
     damp = promenade_dampness(point)
-    glint = damp * smooth_falloff(1 - abs(x - 8.9 - (z - 53) * .12) / 3.8)
+    glint = damp * (.57*amber + .43*smooth_falloff(1 - abs(x - 8.9 - (z - 53) * .12) / 3.8))
     drift = sin(x * .65 + z * .28) * cos(z * .52 - x * .19)
     veins = .65 * drift + .35 * sin(x * 1.08 - z * .47)
     shifts = (rose + sunset*sun + amber*warm + canal*cool + golden_lane*glow
               - garden_shadow*shade - damp*wet + glint*gleam + veins*weather
               for rose,sun,warm,cool,glow,shade,wet,gleam,weather in zip(
-                  (-5,-11,2),(18,10,0),(76,44,2),(-13,-7,16),(8,6,3),(23,18,10),
-                  (29,29,23),(44,28,8),(9,8,9)))
+                  (-8,-12,1),(16,9,1),(69,55,3),(-19,-10,15),(8,6,3),(25,20,9),
+                  (28,29,23),(49,36,7),(8,7,8)))
     return tint_stone(pigment, shifts)
 
 
 def ring_forecourt_pigment(pigment, across, z):
     """Paint the step lanterns' warm spill over the raised entry slabs."""
-    spill = smooth_falloff(1 - hypot((abs(across) - 9.73) / 7.4, (z - 29.93) / 8.6))
-    return tint_stone(pigment, (-9 + 55*spill, -10 + 34*spill, 2 + 6*spill))
+    spill = lantern_spill(abs(across),z,7.55,30.65,8.2,8.7)
+    return tint_stone(pigment, (-9 + 62*spill, -12 + 45*spill, 1 + 6*spill))
 
 
 def polygon_area(region):
