@@ -1,0 +1,64 @@
+{
+  "creator": "Beast Dojo",
+  "origin": "Original procedural synthesis in render_combat_audio.py",
+  "sample_rate_hz": 44100,
+  "channels": 1,
+  "sample_format": "PCM signed 16-bit little-endian",
+  "peak_dbfs": -3,
+  "clips": [
+    {
+      "file": "light-thup.wav",
+      "duration_ms": 160,
+      "frames": 7056,
+      "rms_dbfs": -15.76,
+      "suggested_trigger": "Confirmed light strike or quick counter.",
+      "starting_volume": 0.33,
+      "sha256": "c346c2cfc0d616af6468b98ca0cb3c8cf5c591ab655475bcfe9f09e7a4b32a4a"
+    },
+    {
+      "file": "planted-impact.wav",
+      "duration_ms": 250,
+      "frames": 11025,
+      "rms_dbfs": -16.05,
+      "suggested_trigger": "Confirmed heavy strike, strong shove or committed resident attack.",
+      "starting_volume": 0.4,
+      "sha256": "1a94ee5f54b2fee6f40e05b5ca9661d14d2eba1132d0714880ff0c68f0cdf36a"
+    },
+    {
+      "file": "guard-clack.wav",
+      "duration_ms": 205,
+      "frames": 9040,
+      "rms_dbfs": -17.61,
+      "suggested_trigger": "Confirmed block.",
+      "starting_volume": 0.34,
+      "sha256": "5dbb24d201a33872c1960ff58a45df237d7677ccdbbcd0d1ecf2c69249102c92"
+    },
+    {
+      "file": "parry-chime.wav",
+      "duration_ms": 370,
+      "frames": 16317,
+      "rms_dbfs": -15.85,
+      "suggested_trigger": "Confirmed timed parry.",
+      "starting_volume": 0.36,
+      "sha256": "06dd78430a6c7ecb9b4fa28c360efeac5fc1027bc5be20006f4a9d37ea4e2797"
+    },
+    {
+      "file": "ground-pulse.wav",
+      "duration_ms": 350,
+      "frames": 15435,
+      "rms_dbfs": -15.21,
+      "suggested_trigger": "Resolved floor impact from a slam, stamp or trail burst.",
+      "starting_volume": 0.34,
+      "sha256": "7bed67f19d2aadbdfc4667646abb9d7eabcf52e59486a4481343eb66505ab2ae"
+    },
+    {
+      "file": "countdown-bell.wav",
+      "duration_ms": 410,
+      "frames": 18081,
+      "rms_dbfs": -15.94,
+      "suggested_trigger": "Local countdown step or round start.",
+      "starting_volume": 0.24,
+      "sha256": "2b95e40430f938adfdc4a037d6a8e1846d533071ac4c702222bf3abb12d56b5c"
+    }
+  ]
+}
