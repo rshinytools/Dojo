@@ -28,7 +28,8 @@ def digest(stream):
 def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SparringBots",
-                "CombatIntro", "CombatEffects", "ReedguardRound", "ReedguardFightMotion", "ReedguardCombatPoses", "JuniperCombatPoses",
+                "CombatIntro", "CombatEffects", "CombatAudio", "CombatHealth", "ReedguardRound", "ReedguardFightMotion",
+                "ReedguardCombatPoses", "JuniperCombatPoses",
                 "PenguinCombatPoses", "BrackenCombatPoses", "SilverbackCombatPoses", "SablecrestCombatPoses",
                 "FireSalamanderCombatPoses", "GraniteCombatPoses",
                 "Juniper Tortoise", "Bracken Boar", "Sablecrest Lynx", "Granite Rhino", "SplashArtwork",

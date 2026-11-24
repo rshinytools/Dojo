@@ -1286,7 +1286,7 @@ local function graniteStrike(bout, time)
     graniteCommand(bout, time)
     local command = bout.motion.graniteAction
     if not command then
-        return false, false, "body", bout.position
+        return false, false, "body"
     end
     local root, round = bout.root, bout.round
     local facing = directionTo(root.Position, bout.position, root.CFrame.LookVector):Dot(root.CFrame.LookVector) >= .38

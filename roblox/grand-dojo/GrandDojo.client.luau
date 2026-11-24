@@ -1521,6 +1521,8 @@ print("[Grand Dojo] Event board and personal trophy display ready.")
 local sparBots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local ringProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local combatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
+local combatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
+local combatHealth = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local duelRound = false
 local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
 local matchPresentation = {showcase = false}
@@ -1628,91 +1630,36 @@ end)
 
 local sparHud = make("Frame", gui, {
     Name = "SparringHUD", AnchorPoint = Vector2.new(.5, 0), Position = UDim2.new(.5, 0, 0, 12),
-    Size = UDim2.new(.94, 0, 0, 116), BackgroundColor3 = palette.ink, BorderSizePixel = 0, Visible = false,
+    Size = UDim2.new(.94, 0, 0, 100), BackgroundColor3 = palette.ink, BorderSizePixel = 0, Visible = false,
 })
-local sparHudLimit = make("UISizeConstraint", sparHud, { MaxSize = Vector2.new(450, 116) })
+local sparHudLimit = make("UISizeConstraint", sparHud, {MaxSize = Vector2.new(500, 100)})
 style(sparHud, 12, palette.edge)
 local sparTitle = label(sparHud, "Title", 17, palette.gold, titleFont)
 sparTitle.Position = UDim2.fromOffset(14, 8)
 sparTitle.Size = UDim2.new(1, -90, 0, 23)
 sparTitle.Text = "BOT SPAR"
+sparTitle.TextTruncate = Enum.TextTruncate.AtEnd
 local sparClock = label(sparHud, "Clock", 17, palette.parchment, titleFont)
 sparClock.Position = UDim2.new(1, -77, 0, 8)
 sparClock.Size = UDim2.fromOffset(63, 23)
 sparClock.TextXAlignment = Enum.TextXAlignment.Right
 
-local function healthBar(name, side, tint)
-    local caption = label(sparHud, name, 13, palette.parchment, titleFont)
-    caption.Position = UDim2.new(side, if side == 0 then 14 else 4, 0, 35)
-    caption.Size = UDim2.new(.5, -18, 0, 18)
-    local track = make("Frame", sparHud, {
-        Name = name .. " track", Position = UDim2.new(side, if side == 0 then 14 else 4, 0, 56),
-        Size = UDim2.new(.5, -18, 0, 10), BackgroundColor3 = palette.raised, BorderSizePixel = 0,
-    })
-    style(track, 5)
-    local damage = make("Frame", track, {
-        Name = "Recent damage", Size = UDim2.fromScale(1, 1), BackgroundColor3 = tint:Lerp(palette.parchment, .58),
-        BorderSizePixel = 0, Visible = false,
-    })
-    style(damage, 5)
-    local fill = make("Frame", track, {Size = UDim2.fromScale(1, 1), BackgroundColor3 = tint, BorderSizePixel = 0})
-    style(fill, 5)
-    caption.TextTruncate = Enum.TextTruncate.AtEnd
-    local lastRatio, tween, damageTween
-    return function(health, maxHealth, displayName, reset, showcase, fightTint)
-        if reset then
-            local color = fightTint or tint
-            fill.BackgroundColor3 = color
-            damage.BackgroundColor3 = color:Lerp(palette.parchment, .58)
-        end
-        local ratio = math.clamp(health / maxHealth, 0, 1)
-        if ratio ~= lastRatio or reset then
-            if tween then
-                tween:Cancel()
-            end
-            if damageTween then
-                damageTween:Cancel()
-                damageTween = nil
-            end
-            local target = UDim2.fromScale(ratio, 1)
-            local chip = showcase and not reset and lastRatio and not GuiService.ReducedMotionEnabled and ratio < lastRatio
-            damage.Visible = chip == true
-            damage.Size = if chip then UDim2.fromScale(lastRatio, 1) else target
-            if chip then
-                damageTween = TweenService:Create(damage,
-                    TweenInfo.new(.34, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, .18), {Size = target})
-                damageTween:Play()
-            end
-            if reset or GuiService.ReducedMotionEnabled then
-                fill.Size = target
-            else
-                tween = TweenService:Create(fill, TweenInfo.new(if showcase then .09 else .18, Enum.EasingStyle.Quad), {Size = target})
-                tween:Play()
-            end
-            lastRatio = ratio
-        end
-        caption.Text = string.format("%d  %s", health, displayName or name)
-    end, function(compact)
-        local left = if side == 0 then 14 else 4
-        caption.Position = UDim2.new(side, left, 0, if compact then 23 else 35)
-        caption.Size = UDim2.new(.5, -18, 0, if compact then 16 else 18)
-        caption.TextSize = if compact then 12 else 13
-        track.Position = UDim2.new(side, left, 0, if compact then 40 else 56)
-        track.Size = UDim2.new(.5, -18, 0, if compact then 7 else 10)
-    end
+local playerHealth = combatHealth.new(sparHud, "You", false, titleFont)
+local botHealth = combatHealth.new(sparHud, "Opponent", true, titleFont)
+local function settleCombatHealth()
+    playerHealth:Snap()
+    botHealth:Snap()
 end
-local playerHealth, layoutPlayerHealth = healthBar("You", 0, Color3.fromRGB(234, 153, 100))
-local botHealth, layoutBotHealth = healthBar("Opponent", .5, Color3.fromRGB(129, 226, 188))
+GuiService:GetPropertyChangedSignal("ReducedMotionEnabled"):Connect(settleCombatHealth)
+UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(settleCombatHealth)
 local sparHint = label(sparHud, "Round cue", 14, palette.parchment, titleFont)
-sparHint.Position = UDim2.fromOffset(14, 76)
-sparHint.Size = UDim2.new(1, -28, 0, 32)
 sparHint.TextWrapped = true
 sparHint.TextXAlignment = Enum.TextXAlignment.Center
 
 local function layoutCombatHud(compact)
-    local h = if compact then 74 else 116
+    local h = if compact then 74 else 100
     sparHud.Size = UDim2.new(.94, 0, 0, h)
-    sparHudLimit.MaxSize = Vector2.new(if compact then 324 else 450, h)
+    sparHudLimit.MaxSize = Vector2.new(if compact then 324 else 500, h)
     sparHud.Position = UDim2.new(.5, 0, 0, if compact then 7 else 12)
     local top = if compact then 4 else 8
     local titleHeight = if compact then 18 else 23
@@ -1722,11 +1669,11 @@ local function layoutCombatHud(compact)
     sparClock.Size = UDim2.fromOffset(63, titleHeight)
     sparTitle.TextSize = if compact then 13 else 17
     sparClock.TextSize = sparTitle.TextSize
-    sparHint.Position = UDim2.fromOffset(14, if compact then 49 else 76)
-    sparHint.Size = UDim2.new(1, -28, 0, if compact then 20 else 32)
+    sparHint.Position = UDim2.fromOffset(14, if compact then 51 else 72)
+    sparHint.Size = UDim2.new(1, -28, 0, if compact then 19 else 21)
     sparHint.TextSize = if compact then 12 else 14
-    layoutPlayerHealth(compact)
-    layoutBotHealth(compact)
+    playerHealth:Layout(compact)
+    botHealth:Layout(compact)
 end
 
 local sparControls = make("Frame", gui, {
@@ -1865,7 +1812,7 @@ layoutMatchControls = function()
         local thumbClearance = math.clamp(math.round(safe.Y * .30), 90, 130)
         bottom = math.min(thumbClearance, math.max(0, safe.Y - height - 122))
     end
-    layoutCombatHud(compact)
+    layoutCombatHud(touch and (safe.Y <= 430 or safe.X <= 430))
     sparControls.Position = UDim2.new(.5, 0, 1, -bottom)
     local controls = if showcase then {strikeButton, combatButtons.heavy, guardButton, combatButtons.dodge,
         combatButtons.signature} else {strikeButton, guardButton, leaveButton}
@@ -1972,6 +1919,8 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     combatButtons.signature.Name = kit and kit.signatureName or "ReedstepRising"
     if kit then
         combatEffects.prepare()
+        combatAudio.prepare()
+        combatAudio.resetCountdown()
     end
     matchPresentation.inIntro = matchPresentation.showcase and workspace:GetServerTimeNow() < startsAt
     closePicker(false)
@@ -2027,6 +1976,9 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     end
     local now = matchClock(startsAt, endsAt)
     local kit = matchPresentation.kit
+    if kit then
+        combatAudio.countdown(startsAt - now)
+    end
     if kit and kit.signatureCooldown then
         matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
         matchPresentation.nextSecondary = if type(nextSecondary) == "number" then nextSecondary else nil
@@ -2069,6 +2021,7 @@ end
 
 local function showMatchResult(result, opponent, detail, showRetry)
     fightIntro:Stop()
+    settleCombatHealth()
     matchPresentation.inIntro = false
     sparringActive = false
     layoutMatchControls()
@@ -2089,6 +2042,7 @@ end
 local function clearInterruptedMatch()
     fightIntro:Stop()
     if sparringActive then
+        settleCombatHealth()
         matchPresentation.inIntro = false
         sparringActive = false
         ProximityPromptService.Enabled = not panel.Visible and not sparResult.Visible and not sparPicker.Visible
@@ -2107,6 +2061,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary)
     if kind == "impact" then
         combatEffects.play(a, b, startsAt)
+        combatAudio.impact(a, b, startsAt)
         return
     elseif kind == "offer" then
         local ring = ringProgression.ById[a]
@@ -2178,8 +2133,8 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     local kit = matchPresentation.kit
     local resident = residentLabel(opponent)
     local shortName = if showcase then resident else opponent.name
-    playerHealth(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin", showcase)
-    botHealth(b, opponent.health, shortName, kind == "begin", showcase, if showcase then opponent.tint else nil)
+    playerHealth:Set(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin")
+    botHealth:Set(b, opponent.health, shortName, kind == "begin")
     updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, botAt, parryOpensAt,
         nextSignature, nextSecondary, opponent.tint, resident)
 end)
@@ -2211,8 +2166,8 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         local kit = matchPresentation.kit
         local opponent = showcaseKits[info.opponentKitId]
         local reset, showcase = kind == "begin", matchPresentation.showcase
-        playerHealth(info.playerHealth, info.playerMaxHealth, kit and kit.challengerShort, reset, showcase)
-        botHealth(info.opponentHealth, info.opponentMaxHealth, info.opponentName, reset, showcase, opponent and opponent.tint)
+        playerHealth:Set(info.playerHealth, info.playerMaxHealth, kit and kit.challengerShort, reset)
+        botHealth:Set(info.opponentHealth, info.opponentMaxHealth, info.opponentName, reset)
         if showcase then
             updateMatchTimeline(info.startsAt, info.endsAt, info.phase, info.feedback, info.tell, info.attackAt,
                 info.parryOpensAt, info.nextSignature, info.nextSecondary, opponent and opponent.tint)

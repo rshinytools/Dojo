@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.275, start **Bot Spar** at Grand Dojo. Watch Juniper’s health bar on the first confirmed strike. The number updates immediately and the trail briefly shows the size of the hit. On a phone-sized viewport the camera adjusts to keep both fighters in view. Check the switch back to the city camera after the result.
+
 In v0.274, both players in the same server use the **Duel Queue** sign at Grand Dojo for a casual 1v1. Each keeps the same signature moves and cooldowns as in Bot Spar. After the 10-second introduction, a single 60-second round ends in a knockout or a result at the bell. Each player returns to the city after the recap. Use Bot Spar for solo progression.
 
 In v0.273, switch to any starter at the Festival Plaza Fighter Select station and take that fighter to any previously unlocked Bot Spar ring. Try Ember Sweep against Juniper at Grand Dojo or Belly-Slide Blitz against Sablecrest at Cloud-Top. The selected fighter supplies the controls and the ring supplies the resident’s attacks.

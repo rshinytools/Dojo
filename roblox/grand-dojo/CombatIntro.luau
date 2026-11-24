@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local movementAction = "GrandDojoRoundIntro"
+local up = Vector3.yAxis
 local gold = Color3.fromRGB(247, 197, 100)
 local jade = Color3.fromRGB(148, 234, 195)
 local parchment = Color3.fromRGB(255, 244, 217)
@@ -181,8 +182,7 @@ function Intro:_restoreCamera()
     camera.CameraType = saved.kind
 end
 
-function Intro:_release()
-    self:_restoreCamera()
+function Intro:_dismissCard()
     if self.locked then
         self.locked = false
         ContextActionService:UnbindAction(movementAction)
@@ -203,14 +203,47 @@ function Intro:Stop()
         self.liveRender:Disconnect()
         self.liveRender = nil
     end
-    self:_release()
+    self:_restoreCamera()
+    self:_dismissCard()
     self:_hideCount()
 end
 
-local function lens(camera, focus, eye, width, narrow)
+local function lens(camera, focus, eye, fieldOfView)
     camera.CFrame = CFrame.lookAt(eye, focus)
     camera.Focus = CFrame.new(focus)
-    camera.FieldOfView = width + (if narrow then 10 else 0)
+    camera.FieldOfView = fieldOfView
+end
+
+local function viewportFit(camera, fieldOfView)
+    local viewport = camera.ViewportSize
+    local aspect = if viewport.Y > 1 and viewport.X > 1 then math.max(.25, viewport.X / viewport.Y) else 1.6
+    local narrow = math.clamp((1.2 - aspect) / .65, 0, 1)
+    local fov = fieldOfView + 14 * narrow
+    local vertical = math.tan(math.rad(fov) * .5)
+    -- Leave the health and action rows outside the fighter silhouettes.
+    return fov, vertical * aspect * .84, vertical * .70, narrow
+end
+
+local function pairDistance(focus, direction, first, second, horizontal, vertical, wide)
+    local frame = CFrame.lookAt(direction, Vector3.zero)
+    -- Include the ears, gloves, tails, and the near face of each fitted shell.
+    local shoulder, halfHeight = if wide then 2.32 else 1.95, if wide then 2.74 else 2.55
+    local a, b = first - focus, second - focus
+    local aDistance = a:Dot(direction) + math.max(
+        (math.abs(a:Dot(frame.RightVector)) + shoulder) / horizontal,
+        (math.abs(a:Dot(frame.UpVector)) + halfHeight) / vertical)
+    local bDistance = b:Dot(direction) + math.max(
+        (math.abs(b:Dot(frame.RightVector)) + shoulder) / horizontal,
+        (math.abs(b:Dot(frame.UpVector)) + halfHeight) / vertical)
+    return math.max(aDistance, bDistance) + 1.2
+end
+
+local function fittedPair(camera, first, second, offset, fieldOfView, wide)
+    local fov, horizontal, vertical = viewportFit(camera, fieldOfView)
+    local focus = first:Lerp(second, .5) + up * .14
+    local direction = offset.Unit
+    local distance = math.max(offset.Magnitude, pairDistance(focus, direction, first, second, horizontal, vertical, wide))
+    lens(camera, focus, focus + direction * distance, fov)
 end
 
 function Intro:_shot(court, stage, age, presentation)
@@ -230,7 +263,6 @@ function Intro:_shot(court, stage, age, presentation)
     end
     local camera = saved.camera
     local forward, right = playerSpawn.CFrame.LookVector, playerSpawn.CFrame.RightVector
-    local up = Vector3.yAxis
     local wideFighters = presentation.wideFighters
     local deckLift = if presentation.deckView then .85 else 0
     local headroom = if wideFighters then .34 else 0
@@ -238,21 +270,28 @@ function Intro:_shot(court, stage, age, presentation)
     local challenger = playerSpawn.Position + up * (.28 + headroom)
     local opponentHeight = if presentation.duel then .28 else 2.26
     local resident = opponentSpawn.Position + up * (opponentHeight + headroom)
-    local middle = challenger:Lerp(resident, .54)
-    local narrow = camera.ViewportSize.X < camera.ViewportSize.Y
+    local _, _, _, narrow = viewportFit(camera, 58)
     if stage == 1 then
-        lens(camera, middle, middle + right * (13.5 - math.clamp(age, 0, 2.3) * .65)
-            - forward * 5.0 + up * (4.3 + deckLift), if wideFighters then 61 else 58, narrow)
+        fittedPair(camera, challenger, resident, right * (13.5 - math.clamp(age, 0, 2.3) * .65)
+            - forward * (4.2 + 3.6 * narrow) + up * (4.3 + deckLift), if wideFighters then 61 else 58, wideFighters)
     elseif stage == 2 then
-        lens(camera, challenger, challenger + right * (4.5 - (age - 2.3) * .33)
-            + forward * closeDistance + up * 1.5, 46, narrow)
+        local offset = right * (4.5 - (age - 2.3) * .33) + forward * closeDistance + up * 1.5
+        if narrow > 0 then
+            fittedPair(camera, challenger, challenger, offset, 46, wideFighters)
+        else
+            lens(camera, challenger, challenger + offset, 46)
+        end
     elseif stage == 3 then
-        lens(camera, resident, resident + right * (4.8 - (age - 4.8) * .35)
-            - forward * closeDistance + up * 1.6, 46, narrow)
+        local offset = right * (4.8 - (age - 4.8) * .35) - forward * closeDistance + up * 1.6
+        if narrow > 0 then
+            fittedPair(camera, resident, resident, offset, 46, wideFighters)
+        else
+            lens(camera, resident, resident + offset, 46)
+        end
     else
         local mix = math.clamp((age - 7) / 3, 0, 1)
-        lens(camera, middle:Lerp(challenger, mix * .67),
-            middle + right * (10.7 - mix * 7.7) - forward * (6.6 + mix * 9.3) + up * (3.7 + deckLift), 62, narrow)
+        fittedPair(camera, challenger, resident, right * (12.2 - mix * 2.2)
+            - forward * (3.4 + 4 * narrow) + up * (3.5 + deckLift), 60 - mix * 3, wideFighters)
     end
 end
 
@@ -261,22 +300,30 @@ function Intro:_startLive(court, presentation)
     local opponent = opponentModel(court, presentation)
     local follow = if opponent and presentation.duel then opponent:FindFirstChild("HumanoidRootPart") else opponent
     if not spawn or not follow then
+        self:_restoreCamera()
         return
     end
-    local saved = takeCamera(self.player)
-    if not saved then
+    local introCamera = self.camera
+    local saved = introCamera or takeCamera(self.player)
+    local challenger = rootOf(self.player)
+    if not saved or not challenger then
+        self:_restoreCamera()
         return
     end
     self.camera = saved
     local right, forward = spawn.CFrame.RightVector, spawn.CFrame.LookVector
-    local headroom = if presentation.wideFighters then .31 else 0
-    local depthBias = if presentation.wideFighters then .95 else 0
-    local height = if presentation.deckView then 4.05 else 2.7
+    local wide = presentation.wideFighters
+    local pitch = if presentation.deckView then .35 else .29
     local fieldOfView = if presentation.deckView then 57 else 54
-    local currentFocus, currentEye
+    local currentFocus, currentDirection, currentDistance
+    if introCamera then
+        currentFocus = saved.camera.Focus.Position
+        local offset = saved.camera.CFrame.Position - currentFocus
+        currentDirection, currentDistance = offset.Unit, offset.Magnitude
+    end
     self.liveRender = RunService.RenderStepped:Connect(function(dt)
         local root, camera = rootOf(self.player), saved.camera
-        if not root or not follow.Parent or not opponent.Parent or workspace.CurrentCamera ~= camera
+        if root ~= challenger or not follow.Parent or not opponent.Parent or workspace.CurrentCamera ~= camera
             or camera.CameraType ~= Enum.CameraType.Scriptable
             or UserInputService.VREnabled or GuiService.ReducedMotionEnabled then
             self.liveRender:Disconnect()
@@ -284,16 +331,24 @@ function Intro:_startLive(court, presentation)
             self:_restoreCamera()
             return
         end
-        local target = if presentation.duel then follow.Position else follow:GetPivot().Position
-        local focus = if presentation.duel then target else target + Vector3.new(0, 2.1, 0)
-        local center = root.Position:Lerp(focus, .5) + Vector3.yAxis * headroom
-        local separation = math.min((root.Position - target).Magnitude, 13)
-        local depth = 8.3 + .34 * separation + depthBias
-        local eye = center + right * depth - forward * 1.8 + Vector3.yAxis * height
+        local first = root.Position + up * .43
+        local second = if presentation.duel then follow.Position + up * .43 else follow:GetPivot().Position + up * 2.48
+        local center = first:Lerp(second, .5) + up * .14
+        local fov, horizontal, vertical, narrow = viewportFit(camera, fieldOfView)
+        local side = (right - forward * (.24 + narrow * .16)).Unit
+        local gap = first - second
+        -- Raise the sightline a little when one fighter crosses behind the other.
+        -- Keeping the same side prevents the movement controls from reversing.
+        local lift = math.clamp((math.abs(gap:Dot(side)) - gap.Magnitude * .55) * .075, 0, .28)
+        local direction = (side + up * (pitch + lift + narrow * .14)).Unit
         local alpha = 1 - math.exp(-dt * 10)
         currentFocus = if currentFocus then currentFocus:Lerp(center, alpha) else center
-        currentEye = if currentEye then currentEye:Lerp(eye, alpha) else eye
-        lens(camera, currentFocus, currentEye, fieldOfView, camera.ViewportSize.X < camera.ViewportSize.Y)
+        currentDirection = if currentDirection then currentDirection:Lerp(direction, alpha).Unit else direction
+        local required = math.max(if wide then 9.4 else 8.6,
+            pairDistance(currentFocus, currentDirection, first, second, horizontal, vertical, wide))
+        local easedDistance = if currentDistance then currentDistance + (required - currentDistance) * alpha else required
+        currentDistance = math.max(required, easedDistance)
+        lens(camera, currentFocus, currentFocus + currentDirection * currentDistance, fov)
     end)
 end
 
@@ -320,7 +375,7 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
         if remaining <= 0 then
             if not finished then
                 finished = true
-                self:_release()
+                self:_dismissCard()
                 self:_startLive(court, presentation)
                 self.count.Text = "FIGHT"
                 self.count.Visible = true

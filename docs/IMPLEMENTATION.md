@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.274 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.275 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -56,6 +56,14 @@ Six Luau simulations of the actual server script exercised two player endpoints,
 
 The same v0.274 desktop Studio copy also completed Reedguard versus Juniper through knockout and awarded 60 first-win XP in the local test profile.
 
+## Combat presentation
+
+The v0.275 HUD mirrors warm player and cool opponent bars across the center. Each number reflects confirmed HP. The fill drains toward that value, with a short trail to show the size of the hit. Reduce Motion and VR snap to the new value. The intro wide shots and active fight camera fit both fighters to the current viewport. VR and Reduce Motion use the normal camera, and the city camera returns at the recap. Ground slams and planted tile bursts show a compact pulse at their resolved floor point. Guard and parry have separate contact effects.
+
+The Galaxy A06 landscape Studio run selected Reedguard, tapped Uppercut, verified that Juniper’s damage trail appeared and settled after a real hit, won and received 60 XP. The compact HUD measured 324 × 74 pixels. The six controls measured 56 × 48 pixels. A forced 359 × 718 portrait simulation repeated the match with scripted client inputs and checked that both fighters fit during the bout. Studio returned to the normal landscape orientation after the test. In desktop Studio, Silverback completed a separate single-client Duel test against a fitted Fire Salamander stand-in. It verified the damage trail, zero HP at knockout and camera return. In Luau, both Duel sides received independent health and control updates, and simulated VR and Reduce Motion passed camera restoration. Live two-client Duel and physical-device checks remain open.
+
+`CombatAudio` routes server-confirmed strikes, guard, parry and floor impacts to a capped spatial mixer and gives the intro a local countdown cue. The six original sounds are ready for creator import. The checked-in asset map is empty pending Roblox upload, moderation, and experience access. The mixer remains silent for unavailable cues. [Source audio and import details](../roblox/grand-dojo/art/combat-audio/README.md)
+
 ## Starter kits across all four rings
 
 Each unlocked ring supports any of the four starter fighters. Reedguard keeps Uppercut and Reedstep Rising, Penguin keeps Floe Turn and Belly-Slide Blitz, Silverback keeps Ridge Palm and Seismic Chest-Pound, and Fire Salamander keeps Ember Sweep and Magma Trail. The resident keeps their own attacks and warns with their own cues. Account ring access survives a fighter change, and each fighter keeps a separate XP track.
@@ -110,7 +118,8 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |
-| Original combat audio | [Sound sources and trigger plan](../roblox/grand-dojo/art/combat-audio/README.md). Regeneration and waveform checks passed. Roblox asset upload and in-game mixing remain in development. |
+| Combat presentation | [Health bars](../roblox/grand-dojo/CombatHealth.luau), [Camera and intro](../roblox/grand-dojo/CombatIntro.luau), [Contact effects](../roblox/grand-dojo/CombatEffects.luau) |
+| Original combat audio | [Sound sources and trigger plan](../roblox/grand-dojo/art/combat-audio/README.md), [Mixer](../roblox/grand-dojo/CombatAudio.luau). The Luau fixture verified routing and voice limits. Roblox asset upload and an audible mix check remain open. |
 | Browser rules, UI and art | [engine.js](../browser-game/engine.js), [game.js](../browser-game/game.js), [art.js](../browser-game/art.js) |
 | Original meshes, baked textures and art exporters | [Art directory](../roblox/grand-dojo/art/) and [Studio walkthrough](../roblox/grand-dojo/README.md) |
 

@@ -334,12 +334,9 @@ local function tickShowcase(bout, now, dt)
     local hadImpact = #round.notices > 0
     for _, event in round.notices do
         Motion.impact(bout, event)
-        if event.point then
-            if (event.damage or 0) > 0 or event.kind == "parried" or event.kind == "blocked" then
-                remote:FireAllClients("impact", event.kind, event.point, event.attack)
-            elseif event.attack == "magmaTrail" then
-                remote:FireAllClients("impact", "burst", event.point, event.attack)
-            end
+        local cue = Match.contactCue(event)
+        if cue then
+            remote:FireAllClients("impact", cue, event.point, event.attack)
         end
         if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
             bout.message, bout.messageUntil = event.kind, now + .86

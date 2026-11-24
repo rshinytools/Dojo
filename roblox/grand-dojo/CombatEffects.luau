@@ -22,6 +22,8 @@ local groundPulses = {
     seismicChestPound = {name = "Seismic contact pulse", color = Color3.fromRGB(255, 183, 104), initial = 1.4,
         width = 8.5, compact = 5.9, life = .26},
     magmaTrail = {name = "Magma tile burst", color = tint.burst, initial = .65, width = 2.36, compact = 2.15, life = .30},
+    ["Breakwater Stamp"] = {name = "Breakwater contact pulse", color = Color3.fromRGB(135, 202, 236),
+        initial = 1.2, width = 8.5, compact = 5.9, life = .28},
 }
 
 local folder
@@ -85,7 +87,7 @@ function CombatEffects.play(kind, point, attack)
     local mobile = UserInputService.TouchEnabled
     local compact = reduced or mobile or distance > 32
     local pulse = groundPulses[attack]
-    if pulse then
+    if pulse and not parry and kind ~= "blocked" then
         groundPulse(point, pulse, compact, reduced)
         return
     end

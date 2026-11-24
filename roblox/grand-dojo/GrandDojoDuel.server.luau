@@ -163,10 +163,9 @@ local function resolve(duel, now)
         elseif event.attack ~= "magmaTrail" then
             setFeedback(a, kind, now)
         end
-        if event.point and (kind == "parried" or kind == "blocked" or (event.damage or 0) > 0) then
-            effects:FireAllClients("impact", kind, event.point, event.attack)
-        elseif event.point and event.attack == "magmaTrail" then
-            effects:FireAllClients("impact", "burst", event.point, event.attack)
+        local cue = Match.contactCue(event)
+        if cue then
+            effects:FireAllClients("impact", cue, event.point, event.attack)
         end
     end
     local changed = #round.notices > 0

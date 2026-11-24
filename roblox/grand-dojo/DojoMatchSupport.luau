@@ -8,6 +8,22 @@ Match.FighterKits = table.freeze({
     ["fire-salamander"] = "salamander",
 })
 
+local floorAttacks = {seismicChestPound = true, magmaTrail = true, ["Breakwater Stamp"] = true}
+
+function Match.contactCue(event)
+    if not event.point then
+        return nil
+    end
+    local kind = event.kind
+    if kind == "parried" or kind == "blocked" or (event.damage or 0) > 0 then
+        return kind
+    end
+    if floorAttacks[event.attack] then
+        return "burst"
+    end
+    return nil
+end
+
 function Match.flat(vector)
     return Vector3.new(vector.X, 0, vector.Z)
 end

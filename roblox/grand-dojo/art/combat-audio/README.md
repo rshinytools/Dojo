@@ -13,7 +13,9 @@ Six original, unlooped cues synthesized for the Dojo Ring. The Python source use
 
 Each confirmed contact should select one cue. Give a block or parry its own cue, even when it intercepts a heavy attack. Play a ground pulse at the authored strike time and keep it spatial. A separate countdown bell can follow the local HUD without panning.
 
-The cues use mono 44.1 kHz signed 16-bit PCM with a peak of −3 dBFS. The WAVs occupy about 151 KiB combined. The [manifest](manifest.json) records durations, hashes and initial volume suggestions. These sources are ready for an in-game mix pass once the corresponding Roblox audio assets are available.
+The cues use mono 44.1 kHz signed 16-bit PCM with a peak of −3 dBFS. The WAVs occupy about 151 KiB combined. The [manifest](manifest.json) records durations, hashes and initial volume suggestions.
+
+[CombatAudio](../../CombatAudio.luau) receives the same server-confirmed contacts as the ring effects. It uses at most four spatial voices on touch and six on other inputs, with one separate local countdown voice. Import the original WAVs under the experience’s creator and add their verified Roblox IDs to the module’s `assets` table. In order above, the keys are `light`, `heavy`, `guard`, `parry`, `ground` and `countdown`. The asset table is empty until Roblox upload and access are verified. Studio MCP requires the `roblox/grand-dojo/art/combat-audio` source directory in **Assistant Settings → MCP Permissions → Approved upload directories**. After approval, check moderation and experience access, then audition these cues over the existing ring playlist. [Roblox’s audio import documentation](https://create.roblox.com/docs/audio/assets)
 
 From the repository root, use Python 3.10 or newer to reproduce and check the outputs.
 

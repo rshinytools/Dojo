@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.274 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.275 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -47,7 +47,7 @@ Make Reedguard Kangaroo enjoyable and controllable before producing the roster.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P2.1 | Inspection rig and design v2 | Prototype ready | Geometry checks passed for the inspection geometry and playable outfit welds. Test the current costume for movement, jumps, stairs, motion clipping and supported-device camera views in Studio. |
-| P2.2 | Movement and camera | Planned | Ring edges, respawns, slopes and input changes do not break movement. |
+| P2.2 | Movement and camera | Prototype ready | V0.275 fits both fighters to the viewport and restores the city camera. Galaxy A06 landscape and forced portrait simulations completed a match. Verify movement, camera clearance and comfort on physical devices and VR. |
 | P2.3 | Original combat kit | In progress | Clients cannot invent damage or bypass cooldowns. Review actual impacts, audio, finishers and camera against current rating definitions; no copied choreography. |
 | P2.4 | One arena and end-to-end loop | Prototype ready | Verify final Reedguard shoulder poses and late guard cue in a fresh Studio Play session. Confirm the same complete loop using touch, gamepad and VR. Add remaining skills, animation polish and full combat feedback in the original combat kit. |
 
@@ -56,6 +56,8 @@ Desktop Studio verified the Reedguard–Juniper intro, Uppercut whiff and recove
 V0.271 adds the Level 5 Silverback–Sablecrest round. Desktop and Galaxy A06 landscape Studio verified the introduction, 20-damage palm, one 34-damage ground slam, both bot parries and 60 XP. Phone simulation also observed both cooldown rejections. The Level 5 gate used temporary Studio XP.
 
 V0.272 adds the Level 7 Fire Salamander–Granite round. Desktop and Galaxy A06 landscape Studio verified Ember Sweep, both delayed Magma contacts, both Granite parries, both cooldowns and 60 XP. The Level 7 gate used temporary Studio XP. Shared fighter kits for other matchups, original in-game combat audio and player-versus-player presentation remain open.
+
+V0.275 adds a damage trail, mirrored health meters and viewport-aware camera framing. Galaxy A06 landscape Studio verified the changed HUD in Reedguard versus Juniper through knockout, XP and camera return. A separate desktop Studio test exercised the Duel HUD through a one-client bout against a fitted stand-in. Server contact cues and the audio mixer are wired. The original WAVs require Roblox audio asset IDs and an audible mix pass.
 
 ## P3 Persistent player progression
 
