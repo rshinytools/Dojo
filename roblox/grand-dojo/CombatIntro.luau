@@ -1,4 +1,5 @@
 local ContextActionService = game:GetService("ContextActionService")
+local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -91,6 +92,33 @@ end
 local function rootOf(player)
     local character = player.Character
     return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function warmActor(model, art)
+    if not model or art.queued then
+        return
+    end
+    local meshes = {}
+    for _, part in model:GetChildren() do
+        if part:IsA("MeshPart") then
+            table.insert(meshes, part)
+        end
+    end
+    -- Each equipped shell has six main groups. Wait for replication only
+    -- within the intro's existing server-clock window.
+    if #meshes < 6 then
+        return
+    end
+    art.queued = true
+    task.spawn(function()
+        local assetsReady = true
+        local ok = pcall(ContentProvider.PreloadAsync, ContentProvider, meshes, function(_, status)
+            if status ~= Enum.AssetFetchStatus.Success then
+                assetsReady = false
+            end
+        end)
+        art.ready = ok and assetsReady
+    end)
 end
 
 local function takeCamera(player)
@@ -257,9 +285,12 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
     ContextActionService:BindActionAtPriority(movementAction, function()
         return Enum.ContextActionResult.Sink
     end, false, Enum.ContextActionPriority.High.Value, table.unpack(Enum.PlayerActions:GetEnumItems()))
+    local challengerArt, residentArt = {}, {}
+    local nextWarmAt = now
     local previousStage, finished = nil, false
     local function render()
-        local remaining = startsAt - workspace:GetServerTimeNow()
+        local serverNow = workspace:GetServerTimeNow()
+        local remaining = startsAt - serverNow
         if remaining <= 0 then
             if not finished then
                 finished = true
@@ -273,6 +304,12 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
                 self:_hideCount()
             end
             return
+        end
+        if self.camera and serverNow >= nextWarmAt and (not challengerArt.queued or not residentArt.queued) then
+            nextWarmAt = serverNow + .25
+            local character = self.player.Character
+            warmActor(character and character:FindFirstChild("Starter Fighter Shell"), challengerArt)
+            warmActor(court and court:FindFirstChild(presentation.resident), residentArt)
         end
         local age = math.max(0, startsAt - introAt - remaining)
         local stage = if age < 2.3 then 1 elseif age < 4.8 then 2 elseif remaining > 3 then 3 else 4
@@ -292,7 +329,8 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
         if self.count.Visible then
             self.count.Text = tostring(math.ceil(remaining))
         end
-        self:_shot(court, stage, age, presentation)
+        local closeupPending = (stage == 2 and not challengerArt.ready) or (stage == 3 and not residentArt.ready)
+        self:_shot(court, if closeupPending then 1 else stage, age, presentation)
     end
     render()
     self.render = RunService.RenderStepped:Connect(render)

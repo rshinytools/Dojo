@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.272 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.273 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -155,7 +155,7 @@ Validate fun, pacing and saving with a small complete game.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P6.1 | Four complete fighters | Prototype ready | Studio verified all four starters and their authored Bot Spar rounds. Use their kits across the full matchup set and in eligible multiplayer modes. Verify fighter progression and published rejoin. |
+| P6.1 | Four complete fighters | Prototype ready | Desktop Studio verified entry, controls, technique contact, resident action and camera cleanup in all 16 starter Bot Spar pairings. Galaxy landscape simulation completed a mixed bout with touch. Bring the kits into eligible multiplayer modes, then verify progression and published rejoin. |
 | P6.2 | Duel and brawl alpha | Planned | Queues and matches run through the Grand Dojo Ring. Full occupancy, disconnects and repeated matches produce correct results and rewards. |
 | P6.3 | Alpha playtests and measurement | Planned | Players find an activity, finish a quest, earn/display a trophy and return to an arena. Record findings; no invented retention data. |
 | P6.4 | Alpha exit review | Planned | No unresolved defect threatens data or makes the world/combat loop unusable. |
@@ -183,7 +183,7 @@ Frostglass Gardens and Lantern Circuit remain activity districts. The four theme
 | --- | --- | --- | --- |
 | P7.1 | Remaining twenty fighters | Planned | Counts and unlock data match approved rules; every fighter completes a match. |
 | P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | Separate starter XP tracks and the Level 3 route passed Studio play. Verify published persistence, repeat pacing, evolutions, breeds and mutations. |
-| P7.3 | Four combat rings and original bosses | In progress | Each ring has an authored Bot Spar matchup verified in Studio. Verify published access and devices, and build the three co-op bosses. |
+| P7.3 | Four combat rings and original bosses | In progress | All four rings support the four authored starter kits in Studio. Verify published access and devices, and build the three co-op bosses. |
 | P7.4 | Content balance and regression | Planned | Fix outliers and ensure content additions do not regress the alpha save/input contract. |
 | P7.5 | Six connected world districts | Planned | All six three-step chapters, twelve activity variants and eighteen secrets have original content, valid earning paths, usable routes and persistent progress. |
 | P7.6 | Complete trophies and world events | Planned | Every trophy has valid/invalid path evidence; events scale within measured occupancy, return regularly and preserve existing earned records. |

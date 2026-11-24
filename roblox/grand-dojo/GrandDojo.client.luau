@@ -1526,21 +1526,21 @@ local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gu
 local matchPresentation = {showcase = false}
 local showcaseKits = {
     reedguard = {challenger = "Reedguard Kangaroo", challengerShort = "Reedguard",
-        residentShort = "Juniper", techniqueAction = "uppercut", techniqueName = "Uppercut", techniqueLabel = "Uppercut",
+        techniqueAction = "uppercut", techniqueName = "Uppercut", techniqueLabel = "Uppercut",
         dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "ReedstepRising", signatureLabel = "Rising"},
-    penguin = {challenger = "Penguin Brawler", challengerShort = "Penguin", residentShort = "Bracken",
+    penguin = {challenger = "Penguin Brawler", challengerShort = "Penguin",
         dodgeName = "FloeTurn", dodgeLabel = "Floe Turn", signatureName = "BellySlide", signatureLabel = "Belly Slide",
         signatureCooldown = "Slide %ds", tint = Color3.fromRGB(163, 216, 251)},
-    silverback = {challenger = "Silverback Gorilla", challengerShort = "Silverback", residentShort = "Sablecrest",
+    silverback = {challenger = "Silverback Gorilla", challengerShort = "Silverback",
         techniqueAction = "secondary", techniqueName = "RidgePalm", techniqueLabel = "Ridge Palm",
         techniqueCooldown = "Ridge Palm\n%ds",
         dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "SeismicChestPound", signatureLabel = "Seismic",
         signatureCooldown = "Seismic\n%ds", wideFighters = true, tint = Color3.fromRGB(230, 194, 138)},
-    salamander = {challenger = "Fire Salamander", challengerShort = "Salamander", residentShort = "Granite",
+    salamander = {challenger = "Fire Salamander", challengerShort = "Salamander",
         techniqueAction = "secondary", techniqueName = "EmberSweep", techniqueLabel = "Ember Sweep",
         techniqueCooldown = "Ember Sweep\n%ds",
         dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "MagmaTrail", signatureLabel = "Magma Trail",
-        signatureCooldown = "Magma Trail\n%ds", wideFighters = true, deckView = true, tint = Color3.fromRGB(255, 174, 109)},
+        signatureCooldown = "Magma Trail\n%ds", wideFighters = true, tint = Color3.fromRGB(255, 174, 109)},
 }
 
 local showcaseCourts = {
@@ -1562,6 +1562,10 @@ local function showcaseCourt(ringId)
         end
     end
     return ring:FindFirstChild("Bot Spar Corner")
+end
+
+local function residentLabel(opponent)
+    return opponent.name:match("^%S+") or opponent.name
 end
 
 sparPicker = make("Frame", gui, {
@@ -1655,7 +1659,12 @@ local function healthBar(name, side, tint)
     style(fill, 5)
     caption.TextTruncate = Enum.TextTruncate.AtEnd
     local lastRatio, tween, damageTween
-    return function(health, maxHealth, displayName, reset, showcase)
+    return function(health, maxHealth, displayName, reset, showcase, fightTint)
+        if reset then
+            local color = fightTint or tint
+            fill.BackgroundColor3 = color
+            damage.BackgroundColor3 = color:Lerp(palette.parchment, .58)
+        end
         local ratio = math.clamp(health / maxHealth, 0, 1)
         if ratio ~= lastRatio or reset then
             if tween then
@@ -1770,7 +1779,7 @@ local cues = {
     blocked = "Blocked. Counter now!", parried = "Parried! Counter now!", hit = "You took a hit.",
     guard = "Guard up",
     counter = "Counter landed!", strike = "Strike landed.", miss = "Face your opponent and step closer.",
-    dodged = "You evaded the strike.", braced = "You struck into Juniper’s brace.",
+    dodged = "You evaded the strike.",
     stunned = "Your opponent parried. Reset your guard.",
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike", uppercut = "Uppercut",
     reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
@@ -1778,6 +1787,12 @@ local cues = {
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
     needParry = "Parry a strike to unlock Rising.",
+    ["Shell Set"] = "Shell Set · Wait out the brace",
+    ["Kiln Rush"] = "Kiln Rush · Leave the lane",
+    ["Wind Court Return"] = "Wind Court Return · Leave the line",
+    ["Chime Crossstep"] = "Chime Crossstep · Track the fighter",
+    ["Harbor Sweep"] = "Harbor Sweep · Leave the arc",
+    ["Breakwater Stamp"] = "Breakwater Stamp · Leave the circle",
 }
 local cooldownCues = {
     slideCooling = {label = "Belly Slide", field = "nextSignature"},
@@ -1964,11 +1979,12 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     refreshSparControls()
     layoutMatchControls()
     if kit then
+        local deckView = ringId == "galleon"
         local intro = {
             ring = title, challenger = kit.challenger, challengerShort = kit.challengerShort,
-            resident = opponent.name, residentShort = kit.residentShort,
-            challengerTint = kit.tint, residentTint = if kit.tint then opponent.tint else nil,
-            wideFighters = kit.wideFighters, deckView = kit.deckView,
+            resident = opponent.name, residentShort = residentLabel(opponent),
+            challengerTint = kit.tint, residentTint = opponent.tint,
+            wideFighters = kit.wideFighters or deckView or ringId == "cloud-top", deckView = deckView,
         }
         fightIntro:Start(introAt, startsAt, showcaseCourt(ringId), intro, function()
             matchPresentation.inIntro = false
@@ -2099,8 +2115,9 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     end
     local showcase = matchPresentation.showcase
     local kit = matchPresentation.kit
+    local shortName = if showcase then residentLabel(opponent) else opponent.name
     playerHealth(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin", showcase)
-    botHealth(b, opponent.health, if kit then kit.residentShort else opponent.name, kind == "begin", showcase)
+    botHealth(b, opponent.health, shortName, kind == "begin", showcase, if showcase then opponent.tint else nil)
     local now = matchClock(startsAt, endsAt)
     if kit and kit.signatureCooldown then
         matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
@@ -2127,10 +2144,11 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     elseif phase == "windup" then
         sparHint.Text = if feedback == "guard" then "Guard up"
             elseif parryCue then "Guard now to parry!"
-            elseif tell == "Breakwater Stamp" and kit == showcaseKits.salamander then "Breakwater Stamp · Leave the circle"
-            else (tell or "Incoming strike") .. " · Watch the mat"
+            else cues[tell] or ((tell or "Incoming strike") .. " · Watch the mat")
     elseif phase == "setup" and not feedback then
-        sparHint.Text = tell or "Watch your opponent’s stance"
+        sparHint.Text = cues[tell] or tell or "Watch your opponent’s stance"
+    elseif feedback == "braced" then
+        sparHint.Text = "You struck into " .. residentLabel(opponent) .. "’s brace."
     elseif feedback and cues[feedback] then
         sparHint.Text = cues[feedback]
     elseif phase == "recovery" then

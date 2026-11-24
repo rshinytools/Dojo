@@ -81,36 +81,56 @@ end)
 
 local kits = {
     reedguard = {
-        poses = Reedguard, clips = Round.CLIPS, botStartRange = 3.65, botAttackLabel = "palm",
+        poses = Reedguard, clips = Round.CLIPS,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .85, signature = "reedstep",
     },
     penguin = {
-        poses = Penguin, clips = penguinClips, botStartRange = 3.35,
+        poses = Penguin, clips = penguinClips,
         dodge = "floeTurn", dodgeCue = "floeTurn", dodgeCooldown = 1.05,
         signature = "bellySlide", signatureCooldown = 7, signatureCooling = "slideCooling",
     },
     silverback = {
-        poses = Silverback, clips = silverbackClips, botStartRange = 4.05,
+        poses = Silverback, clips = silverbackClips,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .98,
         signature = "seismicChestPound", signatureCooldown = 7.8, signatureCooling = "seismicCooling",
         secondary = "ridgePalm", secondaryCooldown = 3.4, secondaryCooling = "ridgeCooling",
     },
     salamander = {
-        poses = Salamander, clips = salamanderClips, botStartRange = 3.80,
+        poses = Salamander, clips = salamanderClips,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .78,
         signature = "magmaTrail", signatureCooldown = 7.4, signatureCooling = "magmaCooling",
         secondary = "emberSweep", secondaryCooldown = 3.2, secondaryCooling = "emberCooling",
     },
 }
+
+local residents = {
+    juniper = {startRange = 3.65, attackLabel = "palm"},
+    bracken = {startRange = 3.35},
+    sablecrest = {startRange = 4.05},
+    granite = {startRange = 3.80},
+}
+local residentByOpener = {
+    ["Stillwater Palm"] = "juniper",
+    ["Kiln Rush"] = "bracken",
+    ["Wind Court Return"] = "sablecrest",
+    ["Harbor Sweep"] = "granite",
+}
 local combo = {jab = "cross", cross = "body"}
 local PARRY_COUNTER_TIME = 2.4
 
-function Round.new(now, bot, fighter, kitId)
+function Round.new(now, bot, fighter, kitId, botId)
     local kit = kits[kitId or "reedguard"]
     assert(kit, "Unknown combat kit")
+    if not botId then
+        -- Earlier callers supplied the resident's attack profile without its ID.
+        local opener = bot.attacks and bot.attacks[1]
+        botId = (opener and residentByOpener[opener.name]) or "juniper"
+    end
+    local resident = residents[botId]
+    assert(resident, "Unknown sparring resident")
     local startsAt = now + Round.INTRO
     return {
-        kit = kit,
+        kit = kit, resident = resident,
         introAt = now, startsAt = startsAt, endsAt = startsAt + Round.DURATION,
         playerHealth = fighter.health, playerMaxHealth = fighter.health,
         botHealth = bot.health, botMaxHealth = bot.health,
@@ -278,7 +298,7 @@ end
 
 local function advanceBot(round, at, distance, check)
     if round.botPhase == "ready" then
-        if distance > round.kit.botStartRange then
+        if distance > round.resident.startRange then
             round.botAt = at + .12
             return
         end
@@ -316,7 +336,7 @@ local function advanceBot(round, at, distance, check)
                 round.result = "loss"
             end
         end
-        report(round, result, at, {source = "bot", attack = round.kit.botAttackLabel or round.attack.name, zone = zone, point = point,
+        report(round, result, at, {source = "bot", attack = round.resident.attackLabel or round.attack.name, zone = zone, point = point,
             damage = if result == "hit" then round.attack.damage else 0})
     else
         round.botPhase, round.botAt = "ready", at + .48
@@ -328,7 +348,7 @@ function Round.step(round, now, distance, checkPlayer, checkBot)
         return
     end
     local limit = math.min(now, round.endsAt)
-    if round.botPhase == "ready" and round.botAt < now - .2 and distance > round.kit.botStartRange then
+    if round.botPhase == "ready" and round.botAt < now - .2 and distance > round.resident.startRange then
         round.botAt = now + .1
     end
     while not round.result do

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.272 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.273 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -13,7 +13,7 @@ The v0.272 Studio checkpoint is the starting point for new work. This repository
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to switch among the four free starters. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains its ring unlocks. Shared Strike and Guard use the active fighter’s HP and base damage in standard matches. The authored matches are Reedguard against Juniper, Penguin against Bracken, Silverback against Sablecrest and Fire Salamander against Granite.
+Choose an original starter on first join. Use the Fighter Select station between activities to switch among the four free starters. Browse freely before confirming, use the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio verified that Fire Salamander remains active after respawn. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains its ring unlocks. In Bot Spar, the starter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place. The current Grand Dojo Duel uses shared Strike and Guard.
 
 ## Roblox listing artwork
 
@@ -47,6 +47,14 @@ All six districts remain connected and open for exploration. A ring's level gate
 Earn 60 XP on the first Bot Spar win, 80 XP on the first official Lantern Relay and 40 XP for Lantern Timing. Later Bot Spar wins award 30 XP, official Relay repeats award 25 XP, and Lantern Timing, Kiln Rhythm and Wind Court Signals each award 40 XP per completed drill with a short cooldown. Official Relay times and Lantern Keeper remain account-wide. XP goes to the fighter active when the activity ends.
 
 The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers a same-server 1v1 Duel queue. Studio verified consent and cancellation for one player. A two-player Luau simulation covered pairing and combat. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues, ranked play, 2v2 Tag Team, and eight-player Brawl remain in development. Co-op raids are separate PvE encounters. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
+
+## Starter kits across all four rings
+
+Each unlocked ring supports any of the four starter fighters. Reedguard keeps Uppercut and Reedstep Rising, Penguin keeps Floe Turn and Belly-Slide Blitz, Silverback keeps Ridge Palm and Seismic Chest-Pound, and Fire Salamander keeps Ember Sweep and Magma Trail. The resident keeps their own attacks and warns with their own cues. Account ring access survives a fighter change, and each fighter keeps a separate XP track.
+
+The intro names the actual fighters and warms their mesh textures while it plays. It holds the wide shot when a close-up is waiting on a model. The timed bell starts the fight regardless of mesh loading. VR and Reduce Motion continue to use the normal player camera.
+
+Desktop Studio entered all 16 pairings through the native ring prompts, checked each resident intro and each starter's signature control, landed a starter technique, and observed a resident attack. All 16 ended with the normal player camera and movement restored. Fire Salamander defeated Juniper for 60 XP. The other 15 rounds ended after contact without a reward. Galaxy A06 landscape Studio separately completed Penguin versus Sablecrest for 60 XP after activating Belly-Slide Blitz with touch. Both test profiles used temporary activity XP to open the higher rings. Physical devices and published play remain open.
 
 ## Reedguard and Juniper combat
 
