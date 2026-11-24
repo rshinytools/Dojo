@@ -7,6 +7,7 @@ An original Blender fighter model based on Beast Dojo’s Festival Championship 
 | [Reedguard_Festival_Shell.glb](Reedguard_Festival_Shell.glb) | Neutral export with seven rigid visual groups and one embedded 512 × 512 color texture |
 | [Reedguard_Festival_Preview.blend](Reedguard_Festival_Preview.blend) | Editable guard pose, authored materials, camera and lighting |
 | [Reedguard_Guard_Offline_Blender.jpg](Reedguard_Guard_Offline_Blender.jpg) | Offline Blender render of the guard pose with preview lighting and shader detail |
+| [Reedguard_Studio_Ring_Test_Fit.jpg](Reedguard_Studio_Ring_Test_Fit.jpg) | Temporary desktop Roblox Studio Play test with the model posed on the main Fighting Ring canvas |
 | [rig-bindings.json](rig-bindings.json) | Group names, pivots, bounds and triangle counts |
 | [build_reedguard.py](build_reedguard.py) | Rebuilds the visual groups, their texture, the export and the preview |
 
@@ -23,3 +24,5 @@ Use --skip-render to export the neutral shell and handoff data only. The output 
 ## Roblox handoff
 
 The export is rigid visual geometry prepared for the existing Torso, Head, arms, legs and tail joints. The JSON gives each group's pivot in both Blender and glTF coordinates. Confirm transform and scale after importing, then attach the visuals to a disposable copy of the existing character with its original collision and server rules intact. The guard render uses an art pose. Skin weights, rig binding, Studio animation and clipping checks, mobile performance and release asset permissions remain open.
+
+The first Studio Play proof recreated all seven GLB groups and their 512 × 512 atlas in the client, placed them at the existing avatar’s footing in the main Fighting Ring, and photographed a staged guard. The art measured about five studs tall in the pose. The session was discarded after capture. Bind the visual groups to the actual joints and verify motion, clipping, and texture permissions before using the shell as the playable rig.

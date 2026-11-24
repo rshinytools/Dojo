@@ -2965,7 +2965,7 @@ build_south_valley_backdrop(landscape, item=item, prop=prop, part=part, triangle
                             variant_field=MATERIAL_VARIANT_FIELD)
 build_west_valley_backdrop(landscape,item=item,prop=prop,part=part,triangle=triangle,
                            beam=beam,slate=SLATE,rock=ROCK,smooth=SMOOTH,neon=NEON,
-                           cedar=WOOD_PLANK,grass=GRASS_MAT,rock_variant=VALLEY_ROCK,
+                           cedar=WOOD_PLANK,grass=LEAFY_GRASS,garden_prop=garden_prop,rock_variant=VALLEY_ROCK,
                            variant_field=MATERIAL_VARIANT_FIELD)
 build_meltwater_valley_art(landscape,item=item,prop=prop,part=part,triangle=triangle,
                            slate=SLATE,smooth=SMOOTH)

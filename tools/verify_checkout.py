@@ -30,6 +30,7 @@ def verify_place():
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SplashArtwork",
                 "Lantern Circuit arched gateway", "Lantern orchard road terraces", "Lantern Court shopfronts",
                 "Lantern Guild Beacon", "Terraced guild bluff", "Lantern foothill gardens", "Foothill irrigation pools",
+                "West Valley planted ridge bench", "Lodge stone apron cap",
                 "Relay garden Sakura tree", "Trophy Hall upper timber bays",
                 "Fighting Ring canvas tailoring", "Recessed cedar ceiling panels",
                 "Reedfall switchback wayfinding", "Reedfall upper lip foam",

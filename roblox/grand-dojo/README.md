@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.249, follow **Lantern Skyline Walk** and look west from the descent. The ridge has three planted benches, wider cedar crowns, and fitted stone aprons below the hillside lodges. Desktop Studio walked Skyline Walk and the connecting road in both directions.
+
 In v0.248, look toward the **Lantern foothill gardens** from the descent of **Lantern Skyline Walk**. Two planted benches and a small irrigation channel link the guild bluff to the western range. Desktop Studio verified both directions of Skyline Walk and the original Lantern Circuit road. Galaxy A06 landscape Studio simulation verified the walk from the market to Overlook Lane.
 
 In v0.247, start at the upper market in **Lantern Circuit** and follow **Lantern Skyline Walk** to Overlook Lane. Look west as the path descends to see the **Lantern Guild Beacon** above two planted slate shelves. Desktop Studio covered the full loop both ways. The Galaxy A06 landscape simulator covered the descent with its touch HUD enabled. The exterior landmark is across the guardrail.
