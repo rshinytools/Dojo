@@ -6,6 +6,8 @@ The playable Reedguard uses the original ears and shoulder guard on a 4.93-stud 
 
 ## What to try
 
+In v0.247, start at the upper market in **Lantern Circuit** and follow **Lantern Skyline Walk** to Overlook Lane. Look west as the path descends to see the **Lantern Guild Beacon** above two planted slate shelves. Desktop Studio covered the full loop both ways. The Galaxy A06 landscape simulator covered the descent with its touch HUD enabled. The exterior landmark is across the guardrail.
+
 In v0.246, follow the **Lantern Relay** banner. The small **Relay Start** desk is on the canal side of the approach. Run all seven gates and look for Lantern Keeper on your Trophy Hall pedestal.
 
 In v0.244, follow the **Skywalk ascent** north from Grand Dojo City. Two planted slate shoulders frame the east side between Cedar Foothill Walk and the Wind Rest turnoff. Eight cedars and four screened stone accents rise off the valley floor, with the Skywalk gate visible ahead. The existing road, crossings and detour are walkable on the same surfaces.

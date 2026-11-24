@@ -65,6 +65,7 @@ from kiln_ridge_walk import PATH as KILN_RIDGE_PATH, build_kiln_ridge_walk
 from lantern_arrival_relief import build_lantern_arrival_relief
 from lantern_court_shopfronts import build_lantern_court_shopfronts
 from lantern_garden_walk import GARDENER, build_lantern_garden_walk
+from lantern_guild_beacon import build_lantern_guild_beacon
 from lantern_market_crossing import build_lantern_market_crossing
 from lantern_market_frontage import build_lantern_market_frontage
 from lantern_market_goods import build_lantern_market_goods
@@ -6481,6 +6482,12 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
             swept_roof=swept_roof, festival_lantern=festival_lantern, garden_shelf=garden_shelf,
             garden_prop=garden_prop, slate=SLATE, limestone=LIMESTONE, cedar=WOOD_PLANK,
             grass=GRASS_MAT, metal=METAL,
+        )
+        build_lantern_guild_beacon(
+            town, item=item, prop=prop, part=part, beam=beam, triangle=triangle, swept_roof=swept_roof,
+            festival_lantern=festival_lantern, garden_prop=garden_prop, showcase_tree=showcase_tree,
+            slate=SLATE, grass=GRASS_MAT, cedar=WOOD_PLANK, metal=METAL, neon=NEON,
+            stone_variant=BANK_STONE, variant_field=MATERIAL_VARIANT_FIELD,
         )
 
 def meltwater_abutment(parent,point,length,yaw,road_t,outward):
