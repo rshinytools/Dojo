@@ -317,6 +317,16 @@ local function mount(encounter)
         return nil
     end
 
+    local function hazardSoundPoint(strike, direction)
+        if strike.centerX then
+            return origin + Vector3.new(strike.centerX, 0, strike.centerZ)
+        elseif strike.axisX then
+            local axis = Vector3.new(strike.axisX, 0, strike.axisZ)
+            return origin + axis * ((strike.innerReach + strike.outerReach) / 2)
+        end
+        return origin + direction * (strike.offset or 0)
+    end
+
     local function advance(match, now)
         local round = match.round
         Motion.move(match, now)
@@ -325,6 +335,8 @@ local function mount(encounter)
                 return Motion.strikeRaid(match, index, action, move, at, contactIndex, castAt)
             end,
             function(attack, strike, at)
+                local sound = if attack.id == "sunDive" then "hit" else "burst"
+                effects:FireAllClients("combatAudio", sound, hazardSoundPoint(strike, match.direction), attack.id)
                 return Motion.raidThreatHits(match, attack, strike, at, origin, match.direction)
             end,
             function(_, at) return chooseTarget(match, at) end,
@@ -336,7 +348,9 @@ local function mount(encounter)
         local changed = #round.notices > 0
         for _, event in round.notices do
             local code = Match.contactCue(event)
-            if event.source == "boss" then
+            if event.source == "arena" and event.kind == "landing" then
+                effects:FireAllClients("combatAudio", "burst", origin, event.attack)
+            elseif event.source == "boss" then
                 cue(match.actors[event.defender], event.kind, now)
                 if (event.damage or 0) > 0 then
                     Motion.raidImpact(match, event.defender, origin, event.at, 1.15)
@@ -349,7 +363,8 @@ local function mount(encounter)
                 cue(match.actors[event.defender], event.kind, now)
             end
             if code then
-                effects:FireAllClients("impact", code, event.point, event.attack)
+                local playedAtHazard = event.source == "boss" and event.kind == "hit"
+                effects:FireAllClients("impact", code, event.point, event.attack, playedAtHazard)
             end
         end
         table.clear(round.notices)

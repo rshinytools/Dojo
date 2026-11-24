@@ -8005,6 +8005,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","GraniteCombatPoses","GraniteCombatPoses.luau"),
                                     (storage,"ModuleScript","CombatIntro","CombatIntro.luau"),
                                     (storage,"ModuleScript","CombatEffects","CombatEffects.luau"),
+                                    (storage,"ModuleScript","CombatCueAssets","CombatCueAssets.luau"),
                                     (storage,"ModuleScript","CombatAudio","CombatAudio.luau"),
                                     (storage,"ModuleScript","CombatHealth","CombatHealth.luau"),
                                     (storage,"ModuleScript","ChampionshipHud","ChampionshipHud.luau"),

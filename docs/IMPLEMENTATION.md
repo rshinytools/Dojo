@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.283 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.284 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -120,7 +120,7 @@ The intro and active fight camera fit both fighters to the current viewport. VR 
 
 Studio ran Reedguard against Juniper through a knockout and the 60 XP recap on desktop and in Galaxy A06 landscape and portrait simulation. All three runs watched the gold trail separate and settle after actual damage. Both portraits rendered and the top HUD cleared the action controls. Landscape used a real simulated tap on the 56 × 48 Uppercut button. Portrait used a scripted gameplay input. A desktop Ranked series replayed both round HUDs, with a fitted opponent stand-in, and displayed the 2–0 result. The Brawl test displayed the remaining fighter count, one portrait and the floor warning. Physical-device and live multiplayer verification remain open.
 
-`CombatAudio` routes server-confirmed strikes, guard, parry and floor impacts to a capped spatial mixer and gives the intro a local countdown cue. The six original sounds are ready for creator import. The checked-in asset map is empty pending Roblox upload, moderation, and experience access. The mixer remains silent for unavailable cues. [Source audio and import details](../roblox/grand-dojo/art/combat-audio/README.md)
+V0.284 routes server-confirmed light and heavy strikes, guard and parry to a distance-limited spatial mixer. Boss hazard steps emit once at their authored position, including a room-wide dodge and Phoenix touchdown. Hit visuals stay separate from the hazard sound. Guards and parries keep their own cues. All four modes and Bot Spar route the local three-count and lower start bell. Nearby playback briefly dips the existing music by up to 17% and the playlist keeps playing. The six original WAVs are ready in the repository. Their Roblox upload, moderation, and experience access remain open. The Studio release map keeps a cue silent until it has a usable ID. A desktop Studio Reedguard–Juniper win used temporary sounds bundled with Studio to verify one start bell, two parries, two guard-family cues and confirmed strikes. The music dipped from 0.55 to 0.4565 and returned to its normal level. A separate direct playback probe measured positive engine output for all six cue families. Galaxy A06 landscape simulation measured the four-spatial-voice limit during a six-impact burst. [Source audio and import details](../roblox/grand-dojo/art/combat-audio/README.md)
 
 ## Starter kits across all four rings
 
@@ -181,7 +181,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |
 | Combat presentation | [Championship HUD](../roblox/grand-dojo/ChampionshipHud.luau), [original portraits](../roblox/grand-dojo/ChampionshipPortraits.luau), [Health bars](../roblox/grand-dojo/CombatHealth.luau), [Camera and intro](../roblox/grand-dojo/CombatIntro.luau), [Contact effects](../roblox/grand-dojo/CombatEffects.luau) |
-| Original combat audio | [Sound sources and trigger plan](../roblox/grand-dojo/art/combat-audio/README.md), [Mixer](../roblox/grand-dojo/CombatAudio.luau). The Luau fixture verified routing and voice limits. Roblox asset upload and an audible mix check remain open. |
+| Original combat audio | [Sound sources and trigger plan](../roblox/grand-dojo/art/combat-audio/README.md), [Mixer](../roblox/grand-dojo/CombatAudio.luau), [creator asset map](../roblox/grand-dojo/CombatCueAssets.luau). The Luau fixtures verified the routing, timing and voice limits. Studio measured playback in every cue family using temporary bundled test sounds. The original uploads and published experience mix remain open. |
 | Browser rules, UI and art | [engine.js](../browser-game/engine.js), [game.js](../browser-game/game.js), [art.js](../browser-game/art.js) |
 | Original meshes, baked textures and art exporters | [Art directory](../roblox/grand-dojo/art/) and [Studio walkthrough](../roblox/grand-dojo/README.md) |
 

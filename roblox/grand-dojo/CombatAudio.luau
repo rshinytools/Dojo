@@ -1,12 +1,11 @@
 local ContentProvider = game:GetService("ContentProvider")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local UserInputService = game:GetService("UserInputService")
 
 local CombatAudio = {}
 
--- Original WAV sources and their import names live in art/combat-audio.
--- Only released Roblox audio IDs for those recordings belong in this table.
-local assets = {}
+local assets = require(ReplicatedStorage:WaitForChild("CombatCueAssets"))
 local cues = {
     light = {file = "Light thup", volume = .33},
     heavy = {file = "Planted impact", volume = .40},
@@ -15,18 +14,29 @@ local cues = {
     ground = {file = "Ground pulse", volume = .34},
     countdown = {file = "Countdown bell", volume = .24},
 }
-local groundAttacks = {seismicChestPound = true, magmaTrail = true, ["Breakwater Stamp"] = true}
-local heavyAttacks = {
-    heavy = true, ridgePalm = true, bellySlide = true, palm = true,
-    ["Kiln Rush"] = true, ["Wind Court Return"] = true, ["Harbor Sweep"] = true,
+local groundPitch = {
+    seismicChestPound = .86, magmaTrail = 1.08, ["Breakwater Stamp"] = .93,
+    pulse = .87, sweep = .98, undertow = .90, cataclysm = .82, solarFlare = 1.13,
 }
-local lightPitch = {jab = 1.06, cross = .98, body = .94, uppercut = 1.02}
+local heavyPitch = {
+    heavy = 1, ridgePalm = .96, bellySlide = 1.04, palm = .94, sunDive = .88,
+    ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
+}
+local lightPitch = {
+    jab = 1.06, cross = .98, body = .94, uppercut = 1.02, reedstep = .92, emberSweep = 1.12,
+    ["Kiln Jab"] = .96, ["Wind Jab"] = 1.10,
+}
 local countdownPitch = {1.10, 1.02, .96}
 local hearDistance = 50
+local duckDistance = 25
+local duckDepth, duckHold, duckRelease = .17, .15, .34
 
 local prepared = false
 local voices = {}
+local duckUntil = -math.huge
 local lastBeat = 4
+local recentCountdownAt
+local countdownEnded = false
 
 function CombatAudio.prepare()
     if prepared then
@@ -34,8 +44,11 @@ function CombatAudio.prepare()
     end
     prepared = true
     local sounds, worldFolder = {}, nil
-    for cue, asset in assets do
-        local style = cues[cue]
+    for cue, style in cues do
+        local asset = assets[cue]
+        if type(asset) ~= "string" or not string.match(asset, "^rbxassetid://[1-9]%d*$") then
+            continue
+        end
         local spatial = cue ~= "countdown"
         local slots = {}
         voices[cue] = slots
@@ -61,7 +74,13 @@ function CombatAudio.prepare()
                 sound.RollOffMinDistance, sound.RollOffMaxDistance = 11, hearDistance
             end
             sound.Parent = parent
-            table.insert(slots, {sound = sound, readyAt = 0})
+            local slot = {sound = sound, readyAt = 0}
+            table.insert(slots, slot)
+            sound.Played:Connect(function()
+                if slot.duck then
+                    duckUntil = os.clock() + duckHold
+                end
+            end)
             table.insert(sounds, sound)
         end
     end
@@ -78,7 +97,7 @@ local function playing(slot, now)
     return now < slot.readyAt or slot.sound.IsPlaying
 end
 
-local function play(cue, point, pitch)
+local function play(cue, point, pitch, duck, restart)
     CombatAudio.prepare()
     local slots = voices[cue]
     if not slots then
@@ -102,12 +121,15 @@ local function play(cue, point, pitch)
     end
     for _, slot in slots do
         local sound = slot.sound
-        if sound.IsLoaded and not playing(slot, now) then
-            if point then
+        if sound.IsLoaded and (restart or not playing(slot, now)) then
+            if restart and sound.IsPlaying then
+                sound:Stop()
+            elseif point then
                 sound.Parent.Position = point
             end
             -- Reserve the slot through the next render if Play has not reached the mixer yet.
             slot.readyAt = now + .05
+            slot.duck = duck
             sound.PlaybackSpeed = pitch
             sound.TimePosition = 0
             sound:Play()
@@ -116,40 +138,66 @@ local function play(cue, point, pitch)
     end
 end
 
+function CombatAudio.musicGain()
+    local released = math.clamp((os.clock() - duckUntil) / duckRelease, 0, 1)
+    return 1 - duckDepth * (1 - released)
+end
+
 function CombatAudio.impact(kind, point, attack)
     local camera = workspace.CurrentCamera
-    if not camera or typeof(point) ~= "Vector3" or (point - camera.CFrame.Position).Magnitude >= hearDistance then
+    if not camera or typeof(point) ~= "Vector3" then
         return
     end
+    local distance = (point - camera.CFrame.Position).Magnitude
+    if distance >= hearDistance then
+        return
+    end
+    local duck = distance <= duckDistance
     if kind == "parried" then
-        play("parry", point, 1)
+        play("parry", point, 1, duck)
     elseif kind == "blocked" or kind == "braced" then
-        play("guard", point, if kind == "braced" then .92 else 1)
+        play("guard", point, if kind == "braced" then .92 else 1, duck)
     elseif kind == "burst" then
-        play("ground", point, 1)
+        play("ground", point, groundPitch[attack] or 1, duck)
     elseif kind == "strike" or kind == "counter" or kind == "hit" then
-        if groundAttacks[attack] then
-            play("ground", point, 1)
-        elseif heavyAttacks[attack] then
-            play("heavy", point, 1)
+        if groundPitch[attack] then
+            play("ground", point, groundPitch[attack], duck)
+        elseif heavyPitch[attack] then
+            play("heavy", point, heavyPitch[attack], duck)
         else
-            play("light", point, lightPitch[attack] or 1)
+            play("light", point, lightPitch[attack] or 1, duck)
         end
     end
 end
 
 function CombatAudio.resetCountdown()
     lastBeat = 4
+    recentCountdownAt = nil
+    countdownEnded = false
 end
 
 function CombatAudio.countdown(remaining)
-    if not (remaining > 0 and remaining <= 3) then
+    if countdownEnded or type(remaining) ~= "number" or remaining ~= remaining then
         return
+    end
+    local now = os.clock()
+    if remaining <= 0 then
+        countdownEnded = true
+        -- The start belongs to a countdown we actually observed just before zero.
+        if remaining >= -.40 and recentCountdownAt and now - recentCountdownAt <= .75 then
+            play("countdown", nil, .80, true, true)
+        end
+        return
+    elseif remaining > 3 then
+        return
+    end
+    if remaining <= .75 then
+        recentCountdownAt = now
     end
     local beat = math.ceil(remaining)
     if beat < lastBeat then
         lastBeat = beat
-        play("countdown", nil, countdownPitch[beat])
+        play("countdown", nil, countdownPitch[beat], true)
     end
 end
 

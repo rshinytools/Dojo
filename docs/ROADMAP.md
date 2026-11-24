@@ -1,6 +1,6 @@
 # Beast Dojo Release Roadmap
 
-Portable production roadmap aligned with Studio checkpoint v0.283 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
+Portable production roadmap aligned with Studio checkpoint v0.284 and the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
 ## P0 Identity remediation and release boundaries
 
@@ -54,6 +54,8 @@ Make Reedguard Kangaroo enjoyable and controllable before producing the roster.
 Desktop Studio verified the Reedguard–Juniper intro, Uppercut whiff and recovery, landed Uppercut, contact effects, parry counter, knockout and first-win reward in v0.269. Galaxy A06 landscape simulation repeated the full round through an emulated tap on Uppercut and the XP recap. The phone fight stayed on the mat. Controller and VR verification remain open. Physical-device and published play are release gates. Additional fighter kits, match modes and combat audio remain in development.
 
 V0.271 adds the Level 5 Silverback–Sablecrest round. Desktop and Galaxy A06 landscape Studio verified the introduction, 20-damage palm, one 34-damage ground slam, both bot parries and 60 XP. Phone simulation also observed both cooldown rejections. The Level 5 gate used temporary Studio XP.
+
+V0.284 adds the shared round-start bell and spatial audio routing for starter and resident hits, blocks, parries and each boss hazard step. Exact fixtures cover starts across modes and duplicate boss impacts. Original Roblox audio assets, published playback and physical-device listening remain open.
 
 V0.272 adds the Level 7 Fire Salamander–Granite round. Desktop and Galaxy A06 landscape Studio verified Ember Sweep, both delayed Magma contacts, both Granite parries, both cooldowns and 60 XP. The Level 7 gate used temporary Studio XP. Shared fighter kits for other matchups, original in-game combat audio and player-versus-player presentation remain open.
 

@@ -287,6 +287,7 @@ local function advanceBoss(round, at, chooseTarget, checkBoss, hits)
     attack.nextStep += 1
     if strike.kind == "land" then
         round.bossAirborne, round.coreExposed, round.cooldownUntil = false, true, attack.endsAt
+        report(round, {source = "arena", kind = "landing", attack = attack.id, at = at})
         return
     end
     local seen = {}

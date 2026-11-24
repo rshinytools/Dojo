@@ -242,6 +242,9 @@ local function refresh()
     end
     local kit = kits[match.kitId] or kits.reedguard
     local seconds = match.startsAt - now
+    if not match.eliminated and not match.resolvedAt and not sendingLeave and now < match.endsAt then
+        CombatAudio.countdown(seconds)
+    end
     local nextShrinkAt, warningAt = match.nextShrinkAt, match.warningAt
     heading.Text = if match.eliminated then "WATCHING BRAWL" else "GRAND DOJO BRAWL"
     alive.Text = string.format("%d / %d left", match.alive, match.total)
@@ -251,7 +254,6 @@ local function refresh()
         cue.Text = if match.placement then string.format("Placed %d · Watch or leave", match.placement) else "Watch or leave"
     elseif seconds > 0 then
         cue.Text, cue.TextColor3 = string.format("Starts in %d", math.ceil(seconds)), gold
-        CombatAudio.countdown(seconds)
     elseif type(nextShrinkAt) == "number" and type(warningAt) == "number" and now >= warningAt and now < nextShrinkAt then
         cue.Text, cue.TextColor3 = string.format("Floor drops in %ds · Move inward", math.ceil(nextShrinkAt - now)), gold
     elseif now < stageCueUntil then
@@ -362,8 +364,10 @@ remote.OnClientEvent:Connect(function(kind, data)
                 closeRecap()
             end
             sendingLeave, stageCueUntil = false, 0
-            CombatAudio.prepare()
-            CombatAudio.resetCountdown()
+            if not match or match.matchId ~= data.matchId then
+                CombatAudio.prepare()
+                CombatAudio.resetCountdown()
+            end
         elseif not match or match.matchId ~= data.matchId then
             return
         elseif data.stage and match.stage and data.stage > match.stage then

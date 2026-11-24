@@ -440,7 +440,6 @@ local function refreshCue(own, now)
     if match.resolvedAt then
         message = if match.bossHealth <= 0 then matchRaid.defeated else "Encounter over"
     elseif now < match.startsAt then
-        CombatAudio.countdown(match.startsAt - now)
         message = "Raid starts in " .. math.ceil(match.startsAt - now)
     elseif own.left or own.down or own.health <= 0 then
         message = if own.reviveUsed or own.left then "Out · Watch your party" else "Down · An ally can revive you"
@@ -528,6 +527,9 @@ local function refresh()
         return
     end
     local own = localSlot()
+    if not match.resolvedAt and not own.left and not own.down and own.health > 0 and not leaving and now < match.endsAt then
+        CombatAudio.countdown(match.startsAt - now)
+    end
     timer.Text = clockText(match.endsAt - math.max(match.resolvedAt or now, match.startsAt))
     phase.Text = if match.phase == 2 then "PHASE 2" else "PHASE 1"
     phase.TextColor3 = if match.phase == 2 then amber else muted

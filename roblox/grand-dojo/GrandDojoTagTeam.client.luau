@@ -453,13 +453,15 @@ local function refresh()
     end
     local own = match.slots[match.selfIndex]
     local kit = byKit[own.kitId] or roster[1]
+    if not match.resolvedAt and not own.eliminated and own.health > 0 and not leaving and now < match.endsAt then
+        CombatAudio.countdown(match.startsAt - now)
+    end
     championship.clock.Text = tostring(math.max(0, math.ceil(match.endsAt - math.max(match.resolvedAt or now, match.startsAt))))
     championship.hint.TextColor3 = paper
     if match.resolvedAt then
         championship.hint.Text = "Match finished"
     elseif now < match.startsAt then
         championship.hint.Text = string.format("Starts in %d", seconds(match.startsAt, now))
-        CombatAudio.countdown(match.startsAt - now)
     elseif own.eliminated then
         championship.hint.Text = "Watch your teammate"
     elseif own.health == 0 then

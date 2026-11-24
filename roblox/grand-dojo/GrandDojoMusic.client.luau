@@ -16,6 +16,7 @@ local SPLASH_LIMIT_SECONDS = 18.5
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local playlists = require(ReplicatedStorage:WaitForChild("MusicPlaylist"))
+local combatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
 
 local music = Instance.new("SoundGroup")
 music.Name = "Beast Dojo Music"
@@ -188,7 +189,7 @@ local heartbeat = RunService.Heartbeat:Connect(function(dt)
         end
     end
 
-    local volumeTarget = if started then DEFAULT_VOLUME else 0
+    local volumeTarget = if started then DEFAULT_VOLUME * combatAudio.musicGain() else 0
     local step = dt / VOLUME_RAMP_SECONDS
     music.Volume += math.clamp(volumeTarget - music.Volume, -step, step)
     if fade then

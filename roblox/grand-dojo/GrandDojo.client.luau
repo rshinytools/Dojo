@@ -2113,6 +2113,11 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary)
     if kind == "impact" then
         combatEffects.play(a, b, startsAt)
+        if endsAt ~= true then
+            combatAudio.impact(a, b, startsAt)
+        end
+        return
+    elseif kind == "combatAudio" then
         combatAudio.impact(a, b, startsAt)
         return
     elseif kind == "offer" then
