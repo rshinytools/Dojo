@@ -103,10 +103,14 @@ end
 
 local residents = {
     juniper = {poses = Juniper, spacing = 3.13, diameter = 4.15, originalKit = "reedguard"},
-    bracken = {poses = Bracken, spacing = 3.02, diameter = 3.15, originalKit = "penguin"},
-    sablecrest = {poses = Sablecrest, spacing = 3.22, diameter = 2.90, originalKit = "silverback"},
-    granite = {poses = Granite, spacing = 2.70, diameter = 3.18, originalKit = "salamander"},
+    bracken = {poses = Bracken, spacing = 3.02, diameter = 3.15, originalKit = "penguin",
+        footwork = {crowded = .41, sideways = 2.13, back = 1.95, sideReach = .72, firstSide = -1}},
+    sablecrest = {poses = Sablecrest, spacing = 3.22, diameter = 2.90, originalKit = "silverback",
+        footwork = {crowded = .28, sideways = 2.95, back = 2.45, sideReach = 1.12, firstSide = 1}},
+    granite = {poses = Granite, spacing = 2.70, diameter = 3.18, originalKit = "salamander",
+        footwork = {crowded = .22, sideways = 1.38, back = 1.30, sideReach = .42, firstSide = -1}},
 }
+local residentPlantTime = .075
 
 local function penguin(bout)
     return bout.kit == "penguin"
@@ -1670,6 +1674,91 @@ local residentStep = {juniper = juniperStep, bracken = brackenStep, sablecrest =
 local residentCommand = {bracken = brackenCommand, sablecrest = sablecrestCommand, granite = graniteCommand}
 local residentReaction = {bracken = brackenShove, sablecrest = sablecrestShove, granite = granitePop}
 
+local function residentFootwork(bout, distance, now, dt)
+    local state, round = bout.motion, bout.round
+    local profile = residents[bout.botId].footwork
+    local guard = math.min(state.spacing, round.resident.startRange - .14)
+    if (distance <= round.resident.startRange and now >= round.botAt - residentPlantTime)
+        or (bout.reactionAt and now - bout.reactionAt < .28) then
+        return nil, 0
+    end
+    local exchange = round.recoveryStartedAt or round.startsAt
+    local circle = state.residentCircle
+    if not circle or circle.exchange ~= exchange then
+        local preferred = if circle then -circle.preferred else profile.firstSide
+        circle = {exchange = exchange, preferred = preferred, direction = preferred, used = 0}
+        state.residentCircle = circle
+    end
+    if distance < guard - profile.crowded then
+        circle.backing = true
+    elseif distance >= guard - .10 then
+        circle.backing = nil
+    end
+
+    local heading, before = bout.direction, bout.position
+    local facing = CFrame.lookAlong(Vector3.zero, heading)
+    local step = residentStep[bout.botId]
+    local tick = math.clamp(dt, 0, .045)
+    local action
+    if distance > math.min(guard + .22, round.resident.startRange - .035) then
+        action = "step"
+        step(bout, heading * math.min(distance - guard, bout.profile.pace * tick), facing)
+    elseif circle.backing then
+        action = "retreat"
+        step(bout, -heading * math.min(guard - distance, profile.back * tick), facing)
+    end
+    local moved = (bout.position - before).Magnitude
+    if action and moved > .003 then
+        return action, moved
+    end
+    if action == "step" or circle.used >= profile.sideReach - .006 then
+        return nil, 0
+    end
+
+    local travel = math.min(profile.sideways * tick, profile.sideReach - circle.used)
+    local angle = math.min(travel / distance, .17)
+    -- Arc around the opponent at the current gap. When backed into a wall,
+    -- a tangent step can also make room without cutting across the opponent.
+    local toward = if action == "retreat" then Vector3.zero else heading * (distance * (1 - math.cos(angle)))
+    local lateral = facing.RightVector * (distance * math.sin(angle))
+    step(bout, toward + lateral * circle.direction, facing)
+    moved = (bout.position - before).Magnitude
+    if moved <= .003 then
+        local alternate = -circle.direction
+        step(bout, toward + lateral * alternate, facing)
+        moved = (bout.position - before).Magnitude
+        if moved > .003 then
+            circle.direction = alternate
+        end
+    end
+    if moved <= .003 then
+        return nil, 0
+    end
+    circle.used += moved
+    return if circle.direction > 0 then "strafeRight" else "strafeLeft", moved
+end
+
+local function updateFootworkPose(bout, action, moved, now)
+    local previous = bout.footworkAction
+    local poses = bout.motion.botPoses
+    local distances = poses.StepDistance
+    if action ~= previous then
+        bout.footworkSettle = if not action and previous and distances and distances[previous]
+            and bout.round.botPhase == "ready"
+            then {action = previous, age = bout.footworkAge, at = now}
+            else nil
+        bout.footworkAction, bout.footworkAt, bout.footworkAge = action, now, 0
+        if RunService:IsStudio() then
+            bout.bot:SetAttribute("FootworkAction", action or "idle")
+        end
+    end
+    local distance = action and distances and distances[action]
+    if distance then
+        local duration = poses.Duration[action]
+        bout.footworkAge = (bout.footworkAge + moved * duration / distance) % duration
+    end
+end
+
 local function moveCrossKnock(bout, now)
     local state, knock = bout.motion, bout.motion.crossKnock
     if not knock then
@@ -1716,7 +1805,11 @@ local function botAction(bout, now)
         if bout.reactionAt and now - bout.reactionAt < .28 then
             return bout.reactionAction, now - bout.reactionAt
         end
-        return if bout.moving then "step" else "idle", now
+        local action = bout.footworkAction
+        if action and now >= bout.footworkAt then
+            return action, if bout.motion.botPoses.StepDistance[action] then bout.footworkAge else now
+        end
+        return "idle", now
     elseif round.botPhase == "windup" then
         return "palm", now - round.botStartedAt, round.attack.windup
     elseif round.botPhase == "setup" then
@@ -1757,7 +1850,21 @@ end
 
 local function botPose(bout, now)
     local action, age, duration = botAction(bout, now)
-    local pose = bout.motion.botPoses.sample(action, age, duration)
+    local poses = bout.motion.botPoses
+    local pose = poses.sample(action, age, duration)
+    local settle = bout.footworkSettle
+    if action == "idle" and settle and now >= settle.at and bout.round.botPhase == "ready" and not bout.outroAt then
+        local progress = math.clamp((now - settle.at) / residentPlantTime, 0, 1)
+        if progress < 1 then
+            local from = poses.sample(settle.action, settle.age)
+            local weight = progress * progress * (3 - 2 * progress)
+            local groups = {}
+            for name, frame in pose.groups do
+                groups[name] = (from.groups[name] or frame):Lerp(frame, weight)
+            end
+            pose = {root = from.root:Lerp(pose.root, weight), groups = groups}
+        end
+    end
     return botBase(bout, now) * pose.root, pose.groups
 end
 
@@ -2396,28 +2503,19 @@ function Motion.move(bout, now, dt)
     if not bout.outroAt and (round.botPhase == "ready" or round.botPhase == "setup") and distance > .04 then
         bout.direction = offset.Unit
     end
-    local spacing = state.spacing
     local readyToMove = not bout.outroAt and not state.shove and not state.crossKnock and now >= round.startsAt
         and now >= (round.botRootedUntil or 0)
-        and round.botPhase == "ready"
-    if bout.botId == "juniper" then
-        local action = if readyToMove and distance > .04 then juniperFootwork(bout, distance, now, dt) else nil
-        if action ~= bout.footworkAction then
-            bout.footworkAction, bout.footworkAt = action, now
-            if RunService:IsStudio() then
-                bout.bot:SetAttribute("FootworkAction", action or "idle")
-            end
-        end
-    elseif readyToMove and distance > spacing then
-        bout.moving = true
-        local travel = bout.direction * math.min(distance - spacing, dt * bout.profile.pace)
-        residentStep[bout.botId](bout, travel, CFrame.lookAlong(Vector3.zero, bout.direction))
-        if command then
+        and round.botPhase == "ready" and distance > .04
+    local action, moved
+    if readyToMove then
+        if bout.botId == "juniper" then
+            action = juniperFootwork(bout, distance, now, dt)
+        else
+            action, moved = residentFootwork(bout, distance, now, dt)
             keepClearance(bout)
         end
-    else
-        bout.moving = false
     end
+    updateFootworkPose(bout, action, moved, now)
     local gap = Match.flat(bout.root.Position - bout.position)
     if not bout.outroAt and now >= round.startsAt and gap.Magnitude > .05 and not (round.clip and Storm.isCast(round.clip.action)) then
         local target = -gap.Unit

@@ -1,5 +1,6 @@
 -- Original movement for Bracken's rigid Blender shell. The root is a visual
 -- offset from the server-owned floor frame. Body groups use their ArtPivots.
+local Footwork = require(script.Parent.ResidentFootwork)
 local Poses = {}
 local identity = CFrame.identity
 local groupNames = {
@@ -275,5 +276,30 @@ function Poses.sample(action, age, duration)
     end
     return clip[#clip][2]
 end
+
+local function footworkGuard(side, shift, amount)
+    local sway = .14 * side * shift
+    local back = if side == 0 then amount else 0
+    return pose(nil, {
+        torso = offset(sway, -.108 * amount, -.055 * amount + .11 * back,
+            9 * amount - 12 * back, 5 * side * amount, -32 * sway),
+        head = offset(.65 * sway, -.072 * amount, -.065 * amount + .09 * back,
+            -4 * amount + 6 * back, -5 * side * amount, 21 * sway),
+        rightArm = offset(-.06 * amount + .4 * sway, .012 * amount, -.028 * amount, 7 * amount, 8 * amount, -3 * amount),
+        leftArm = offset(.06 * amount + .4 * sway, .032 * amount, -.064 * amount, 9 * amount, -8 * amount, 3 * amount),
+        tail = offset(0, -.025 * amount, .015 * amount, 6 * amount, -10 * side * amount, 0),
+    })
+end
+
+Footwork.add(Poses, {
+    orbitRadius = 3.02,
+    side = {duration = .52, distance = 1.14, transfer = .49, leadLift = .168, trailLift = .118, toeTurn = 9},
+    retreat = {duration = .60, distance = 1.02, transfer = .51, leadLift = .132, trailLift = .106, toeTurn = 6},
+    -- Sole centers measured over the lower 0.035 studs of the original GLB boot meshes.
+    boots = {
+        ["Right Leg"] = {pivot = Vector3.new(.51, 1.83, .07), center = Vector3.new(.587, 0, -.27323)},
+        ["Left Leg"] = {pivot = Vector3.new(-.51, 1.83, .12), center = Vector3.new(-.587, 0, .01677)},
+    },
+}, footworkGuard)
 
 return Poses

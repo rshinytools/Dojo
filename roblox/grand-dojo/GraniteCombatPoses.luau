@@ -1,5 +1,6 @@
 -- Original movement for Granite's Blender shell. Body offsets are relative
 -- to its exported ArtPivots. The match controller owns the arena floor frame.
+local Footwork = require(script.Parent.ResidentFootwork)
 local Poses = {}
 local identity = CFrame.identity
 local groupNames = {
@@ -266,5 +267,30 @@ function Poses.sample(action, age, duration)
     end
     return clip[#clip][2]
 end
+
+local function footworkGuard(side, shift, amount)
+    local sway = .20 * side * shift
+    local back = if side == 0 then amount else 0
+    return pose(nil, {
+        torso = offset(sway, -.128 * amount, .032 * amount + .085 * back,
+            3 * amount - 9 * back, 5 * side * amount, -30 * sway),
+        head = offset(.72 * sway, -.102 * amount, -.023 * amount + .08 * back,
+            -5 * amount + 5 * back, -5 * side * amount, 23 * sway),
+        rightArm = offset(-.06 * amount + .54 * sway, .054 * amount, -.02 * amount, 8 * amount, 6 * amount, -3 * amount),
+        leftArm = offset(.066 * amount + .54 * sway, .083 * amount, -.037 * amount, 11 * amount, -7 * amount, 3 * amount),
+        tail = offset(-.26 * sway, -.033 * amount, .022 * amount, 5 * amount, -7 * side * amount, 0),
+    })
+end
+
+Footwork.add(Poses, {
+    orbitRadius = 2.70,
+    side = {duration = .68, distance = 1.09, transfer = .55, leadLift = .103, trailLift = .079, toeTurn = 5},
+    retreat = {duration = .72, distance = .93, transfer = .57, leadLift = .113, trailLift = .087, toeTurn = 4},
+    -- Sole centers measured over the lower 0.035 studs of the original GLB boot meshes.
+    boots = {
+        ["Right Leg"] = {pivot = Vector3.new(.55, 1.86, .063), center = Vector3.new(.690, 0, -.265)},
+        ["Left Leg"] = {pivot = Vector3.new(-.55, 1.86, .063), center = Vector3.new(-.690, 0, .055)},
+    },
+}, footworkGuard)
 
 return Poses

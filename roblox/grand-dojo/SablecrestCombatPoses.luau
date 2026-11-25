@@ -1,5 +1,6 @@
 -- Original poses for the Wind Court courier. The body groups pivot at the
 -- shipped GLB's ArtPivots. The motion controller owns all floor travel.
+local Footwork = require(script.Parent.ResidentFootwork)
 local Poses = {}
 local identity = CFrame.identity
 local groupNames = {
@@ -303,5 +304,30 @@ function Poses.sample(action, age, duration)
     end
     return clip[#clip][2]
 end
+
+local function footworkGuard(side, shift, amount)
+    local sway = .26 * side * shift
+    local back = if side == 0 then amount else 0
+    return pose(nil, {
+        torso = offset(sway, -.072 * amount, -.075 * amount + .15 * back,
+            7 * amount - 13 * back, 11 * side * amount + 5 * back, -43 * sway),
+        head = offset(.78 * sway, -.049 * amount, -.080 * amount + .107 * back,
+            -6 * amount + 8 * back, -11 * side * amount - 5 * back, 32 * sway),
+        rightArm = offset(-.09 * amount + .55 * sway, .10 * amount, -.07 * amount, 14 * amount, 12 * amount, -4 * amount),
+        leftArm = offset(.052 * amount + .55 * sway, .066 * amount, .025 * amount, 6 * amount, -9 * amount, 5 * amount),
+        tail = offset(-.75 * sway, .068 * amount, .042 * amount, -5 * amount, -21 * side * amount, -36 * sway),
+    })
+end
+
+Footwork.add(Poses, {
+    orbitRadius = 3.22,
+    side = {duration = .44, distance = 1.23, transfer = .43, leadLift = .205, trailLift = .156, toeTurn = 13},
+    retreat = {duration = .51, distance = 1.16, transfer = .45, leadLift = .184, trailLift = .134, toeTurn = 8},
+    -- Sole centers measured over the lower 0.035 studs of the original GLB boot meshes.
+    boots = {
+        ["Right Leg"] = {pivot = Vector3.new(.335, 1.57, .14), center = Vector3.new(.520, 0, -.246)},
+        ["Left Leg"] = {pivot = Vector3.new(-.335, 1.57, .14), center = Vector3.new(-.520, 0, .104)},
+    },
+}, footworkGuard)
 
 return Poses

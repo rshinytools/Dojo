@@ -8052,6 +8052,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","ReedguardCombatPoses","ReedguardCombatPoses.luau"),
                                     (server,"ModuleScript","ReedguardDefeatSupport","ReedguardDefeatSupport.luau"),
                                     (server,"ModuleScript","JuniperCombatPoses","JuniperCombatPoses.luau"),
+                                    (server,"ModuleScript","ResidentFootwork","ResidentFootwork.luau"),
                                     (server,"ModuleScript","PenguinCombatPoses","PenguinCombatPoses.luau"),
                                     (server,"ModuleScript","BrackenCombatPoses","BrackenCombatPoses.luau"),
                                     (server,"ModuleScript","SilverbackCombatPoses","SilverbackCombatPoses.luau"),
