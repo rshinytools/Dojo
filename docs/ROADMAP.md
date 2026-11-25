@@ -278,8 +278,8 @@ Review the actual release, not only its concept names.
 | --- | --- | --- | --- |
 | P12.1 | Title and brand clearance | Planned | Record evidence and review outcome before public branding or creator promotion; the current web screen is not a legal clearance. |
 | P12.2 | Complete asset and dependency audit | Planned | Record original assets and rights, purchased pack licenses, and human and AI contributions in the ownership ledger. Retain required licenses and attributions. Unresolved material risk is replaced or resolved. |
-| P12.3 | Final expression and marketing review | In progress | No retired names or identifiable franchise expression; assess any material patent issue with qualified advice if needed. Prepare a real gameplay thumbnail and 20–25 second preview for the approved build. The design and draft description are in the implementation notes. |
-| P12.4 | Roblox publishing and launch approval | In progress | Release to the public as Beast Dojo. Creator Hub showed identity and 2-Step Verification complete on November 25, 2026. The content rating, publishing requirement and standard review are open, with 0 of 100 qualifying players. Confirm Mild and access for Kids and Select before the all-ages launch announcement. Preserve the private documentation audience. |
+| P12.3 | Final expression and marketing review | In progress | No retired names or identifiable franchise expression; assess any material patent issue with qualified advice if needed. Prepare a real gameplay thumbnail and 20–25 second preview for the approved build. The exploration-first description and Open World Action genre are saved in Creator Hub. Final storefront media review remains open. |
+| P12.4 | Roblox publishing and launch approval | In progress | Creator Hub saved the game details and assigned v0.362 a global Mild rating for repeated mild fantasy violence. Identity, 2-Step Verification and the 1,000 Robux fee are complete. The standard evaluation showed 0 of 100 qualifying players. Verify Kids and Select access and the regional rating rollout before the all-ages announcement. |
 
 ## P13 Controlled production and maintenance
 
