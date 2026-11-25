@@ -280,11 +280,7 @@ local function setFeedback(actor, notice, now)
     actor.feedback, actor.feedbackUntil = notice, now + .75
 end
 
-local function advance(match, now, beforeBoundary)
-    -- Preparing an outgoing cast at the cutoff still uses the physical deck that exists at that moment.
-    match.outgoingFloorAt = if beforeBoundary then now else nil
-    Motion.move(match, now)
-    match.outgoingFloorAt = nil
+local function resolveContacts(match, now, beforeBoundary)
     Round.step(match.round, now, function(attacker, action, move, at, index, castAt)
         return Motion.strike(match, attacker, action, move, at, index, castAt)
     end, nil, nil, beforeBoundary)
@@ -343,7 +339,7 @@ local function advance(match, now, beforeBoundary)
     return changed
 end
 
-local function processExits(match, now, previousStage)
+local function collectExits(match, now, previousStage)
     local exits = {}
     local round = match.round
     for index, actor in match.actors do
@@ -371,10 +367,7 @@ local function processExits(match, now, previousStage)
             end
         end
     end
-    if #exits > 0 then
-        Round.eliminateMany(round, exits, now)
-    end
-    return #exits > 0
+    return exits
 end
 
 local function advanceTimeline(match, now)
@@ -383,7 +376,10 @@ local function advanceTimeline(match, now)
     local dropAt = nextDropAt(round, match.stage)
     while not round.result and dropAt and dropAt <= now do
         -- Resolve committed contacts on the outgoing deck. The new floor owns the exact boundary.
-        if advance(match, dropAt, true) then
+        match.outgoingFloorAt = dropAt
+        Motion.move(match, dropAt)
+        match.outgoingFloorAt = nil
+        if resolveContacts(match, dropAt, true) then
             Motion.render(match, dropAt, true)
             publish(match, "update", dropAt)
         end
@@ -392,16 +388,29 @@ local function advanceTimeline(match, now)
         end
         local previousStage = match.stage
         syncDeck(match, dropAt)
-        processExits(match, dropAt, previousStage)
+        Round.eliminateMany(round, collectExits(match, dropAt, previousStage), dropAt)
         deckChanged = true
         dropAt = nextDropAt(round, match.stage)
     end
     if not round.result and syncDeck(match, now) then
         deckChanged = true
     end
-    local exits = processExits(match, now)
-    local hits = advance(match, now)
-    return deckChanged or exits or hits, hits
+    local exits = collectExits(match, now)
+    local deferredCasts = {}
+    Motion.move(match, now, deferredCasts)
+    local earlierHit = false
+    local eliminated = false
+    if #exits > 0 or next(deferredCasts) then
+        -- Preserve contacts strictly before the first observed exit. At the tie, the exit wins.
+        earlierHit = resolveContacts(match, now, true)
+        if earlierHit and #exits > 0 and not round.result then
+            publish(match, "update", now)
+        end
+        Motion.clearCasts(deferredCasts)
+        eliminated = Round.eliminateMany(round, exits, now)
+    end
+    local hits = resolveContacts(match, now) or earlierHit
+    return deckChanged or eliminated or hits, hits
 end
 
 local function leave(player, departing)

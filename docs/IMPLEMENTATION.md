@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.309 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.310 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -231,6 +231,10 @@ Desktop Studio used one client and three fitted stand-ins. The fixture set Pengu
 When published, the place is configured to rotate Kilnback Custodian, Abyssal Kraken and Solar Phoenix on UTC-aligned 20-minute bells. Each bell opens one entrance for two minutes. All three entrances open immediately in Studio. Every eligible clear saves 20 Raid Tokens and 2 Mythic Capsule shards, once per event window. A fighter qualifies with at least 48 boss damage or a completed revive. The boss’s first-clear trophy and shared currency balance use the same profile write. Studio assigns a distinct receipt window to each test run. Exact-source checks verified that the previous checkpoint can reopen a profile after a Phoenix grant and preserve its balances and awards.
 
 ## Grand Dojo Brawl
+
+V0.310 resolves scheduled contacts before a later observed live-floor exit. At an exact tie, the exit removes the fighter before contact. Geometry from an off-floor cast survives only through the earlier contacts. An earlier knockout can decide the round, and an exit observed after the bell cannot replace the timeout result.
+
+Galaxy A06 landscape Studio used one player and seven fitted stand-ins. The player tapped Technique. A test fixture paused Brawl updates and staged a ring-out on the intact deck 107 ms after Ridge Palm was due. V0.309 dropped the hit. V0.310 delivered one 25-damage contact and effect with the original timestamp before the eighth-place update. Desktop Studio repeated the edge crossing with a Kraken stand-in. Tentacle Cataclysm’s first pulse reduced Silverback from 135 to 128 HP. The three later pulses stopped after the ring-out. Both test matches restored all 81 tiles. A separate eight-client Studio regression on v0.310 confirmed the shared jab and parry, all three floor drops, spectator recovery after respawn, and a 22-damage heavy that pushed the final opponent off the mat. Every client received its placement and returned to the city. Exact-source checks covered late input, a tied attacker or defender exit, an off-deck high caster, earlier lethal hits, a late exit after the bell, and all three scheduled floor drops.
 
 V0.308 restores the spectator HUD after a respawn. The server identifies the new character it placed on the viewing deck. That client can resume watching with combat controls hidden and keeps its placement. The result still closes the match and restores city movement.
 

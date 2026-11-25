@@ -633,7 +633,7 @@ local function talonFrames(duel, attacker, defender, cast, at)
     return nil
 end
 
-local function updateActor(duel, index, now)
+local function updateActor(duel, index, now, deferredCasts)
     local actor = duel.actors[index]
     local brawl = duel.motion.brawl
     local other = if brawl then nil else duel.actors[3 - index]
@@ -663,7 +663,13 @@ local function updateActor(duel, index, now)
         actor.humanoid.AutoRotate = live and not clip and not actor.knock and actor.wasAutoRotate
         if live and not floorActive(duel, root.Position, now) then
             -- Finish an active shove across the edge, then let gravity take over.
-            clearCast(actor)
+            if deferredCasts and actor.cast then
+                -- Keep the old geometry for scheduled contacts, but stop moving it with the actor.
+                deferredCasts[actor] = actor.cast
+                actor.cast = nil
+            else
+                clearCast(actor)
+            end
             if actor.knock then
                 setHeld(actor, true)
                 moveKnock(duel, actor, other, now)
@@ -777,11 +783,11 @@ local function updateActor(duel, index, now)
     remember(actor, now)
 end
 
-function Motion.move(duel, now)
+function Motion.move(duel, now, deferredCasts)
     duel.motion.at = now
     for index in duel.actors do
         if activeActor(duel, index) then
-            updateActor(duel, index, now)
+            updateActor(duel, index, now, deferredCasts)
         end
     end
     -- Move both roots after normal updates so roster iteration cannot overwrite
@@ -802,6 +808,17 @@ function Motion.move(duel, now)
                 end
             end
         end
+    end
+    if deferredCasts then
+        for actor, cast in deferredCasts do
+            actor.cast = cast
+        end
+    end
+end
+
+function Motion.clearCasts(actors)
+    for actor in actors do
+        clearCast(actor)
     end
 end
 

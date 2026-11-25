@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.310, a Brawl hit that connects before a ring-out still counts if the server processes both together. At the same time, the ring-out takes priority.
+
 In v0.309, stand on the red bridge facing uphill, then turn downhill. Reedguard’s boots follow the slope when he settles. The shared tail is now 1.04 studs long.
 
 In v0.308, an eliminated Brawl player can reset and resume watching from the deck with their placement intact. The match returns them to the city with everyone else at the result.

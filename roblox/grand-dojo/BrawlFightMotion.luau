@@ -6,6 +6,7 @@ return table.freeze({
         FighterMotion.open(brawl, true)
     end,
     move = FighterMotion.move,
+    clearCasts = FighterMotion.clearCasts,
     render = FighterMotion.render,
     canAct = FighterMotion.canAct,
     strike = FighterMotion.strikeGroup,
