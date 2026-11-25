@@ -13,6 +13,7 @@ local ChampionshipPortraits = require(ReplicatedStorage:WaitForChild("Championsh
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
 local CombatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
 local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
+local CombatWindup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
 local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(19, 37, 40)
@@ -324,6 +325,7 @@ local function send(action, direction)
         return
     end
     if action == "leave" then
+        CombatWindup.clear()
         sendingLeave = true
         remote:FireServer(action, nil, match.matchId)
         refresh()
@@ -345,7 +347,7 @@ local function send(action, direction)
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         direction = if root and humanoid and humanoid.MoveDirection:Dot(root.CFrame.RightVector) < -.2 then -1 else 1
     end
-    remote:FireServer(action, direction, match.matchId)
+    remote:FireServer(action, direction, match.matchId, CombatWindup.begin(action))
 end
 
 for action, object in actions do
@@ -426,6 +428,10 @@ remote.OnClientEvent:Connect(function(kind, data)
         end
         match = data
         match.detached = detached
+        if kind == "begin" or match.eliminated or match.detached or match.resolvedAt
+            or (health.displayedHealth and match.playerHealth < health.displayedHealth) then
+            CombatWindup.clear()
+        end
         local kit = kits[match.kitId] or kits.reedguard
         health:Set(match.playerHealth, match.maxHealth or match.playerMaxHealth, kit.fighter, kind == "begin")
         if kind == "begin" then
@@ -437,6 +443,7 @@ remote.OnClientEvent:Connect(function(kind, data)
         if not CombatPresentation.accept(presentationState, kind, data) then
             return
         end
+        CombatWindup.clear()
         match, waiting = nil, nil
         sendingLeave = false
         health:Snap()

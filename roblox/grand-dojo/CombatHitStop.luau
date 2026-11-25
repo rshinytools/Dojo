@@ -18,6 +18,10 @@ local seamSample = Vector3.new(.23, 0, .17)
 local latestAt = -math.huge
 local active
 
+function HitStop.isActive()
+    return active ~= nil
+end
+
 local function reducedMotion()
     return GuiService.ReducedMotionEnabled or UserInputService.VREnabled
 end
@@ -99,7 +103,7 @@ local function step()
     end
 end
 
-function HitStop.play(packet, now)
+function HitStop.play(packet, now, clearWindup)
     if not player or type(packet) ~= "table" or type(packet.at) ~= "number"
         or not (packet.at > latestAt and now - packet.at <= maximumAge and packet.at - now <= .1)
         or not (packet.duration == .04 or packet.duration == .08) or reducedMotion()
@@ -121,6 +125,7 @@ function HitStop.play(packet, now)
         duration = packet.duration, expiresAt = os.clock() + maximumAge, bindings = {}}
     if not supported(hold) then return end
 
+    if clearWindup then clearWindup() end
     clear()
     for joint, target in packet.pose do
         local mesh = meshFor[joint] and shell:FindFirstChild(meshFor[joint])

@@ -11,6 +11,7 @@ local Health = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
 local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
+local CombatWindup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
 local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(33, 23, 27)
@@ -585,6 +586,7 @@ local function send(action, direction)
     local remote = matchRaid.remote
     local now = workspace:GetServerTimeNow()
     if action == "leave" and not match.resolvedAt then
+        CombatWindup.clear()
         leaving = true
         remote:FireServer("leave", nil, match.matchId)
         refresh()
@@ -594,6 +596,7 @@ local function send(action, direction)
     if not active(now) or not canFight(own) then return end
     if action == "revive" then
         if match.reviveTarget and not match.revive then
+            CombatWindup.clear()
             remote:FireServer("revive", match.reviveTarget, match.matchId)
         end
         return
@@ -607,7 +610,7 @@ local function send(action, direction)
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         direction = if root and humanoid and humanoid.MoveDirection:Dot(root.CFrame.RightVector) < -.2 then -1 else 1
     end
-    remote:FireServer(action, direction, match.matchId)
+    remote:FireServer(action, direction, match.matchId, CombatWindup.begin(action))
 end
 
 join.Activated:Connect(function()
@@ -712,7 +715,13 @@ local function receive(raid, kind, data)
         elseif not match or matchRaid ~= raid or match.matchId ~= data.matchId then
             return
         end
+        local previousSlot = localSlot()
+        local currentSlot = data.slots[data.selfIndex]
         match, matchRaid = data, raid
+        if beginning or data.resolvedAt or not canFight(currentSlot)
+            or (previousSlot and currentSlot.health < previousSlot.health) then
+            CombatWindup.clear()
+        end
         health:Set(data.bossHealth, data.bossMaxHealth, raid.name, beginning)
         CombatPresentation.playLocalContact(data.hitStop, now)
         healthValue.Text = string.format("%d / %d HP", math.round(data.bossHealth), math.round(data.bossMaxHealth))
@@ -722,6 +731,7 @@ local function receive(raid, kind, data)
             closeRecap()
         end
     elseif kind == "result" and match and matchRaid == raid and data.matchId == match.matchId then
+        CombatWindup.clear()
         match, matchRaid, raid.schedule, leaving, detached = nil, nil, nil, false, false
         outcome, outcomeRaid, reward, earlyReward = data, raid, earlyReward, nil
         health:Snap()

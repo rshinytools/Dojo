@@ -7778,6 +7778,7 @@ item(storage,"RemoteEvent","GrandDojoSparring")
 item(storage,"RemoteEvent","GrandDojoDuel")
 item(storage,"RemoteEvent","GrandDojoBrawl")
 item(storage,"RemoteEvent","GrandDojoTagTeam")
+item(storage,"RemoteEvent","CombatWindupRemote")
 item(storage,"RemoteEvent","KilnbackRaid")
 item(storage,"RemoteEvent","AbyssalRaid")
 item(storage,"RemoteEvent","SolarRaid")
@@ -8101,12 +8102,14 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","CombatPresentation","CombatPresentation.luau"),
                                     (storage,"ModuleScript","CombatHitStop","CombatHitStop.luau"),
                                     (storage,"ModuleScript","CombatCameraImpact","CombatCameraImpact.luau"),
+                                    (storage,"ModuleScript","CombatWindup","CombatWindup.luau"),
                                     (storage,"ModuleScript","StormSteering","StormSteering.luau"),
                                     (storage,"ModuleScript","CombatHealth","CombatHealth.luau"),
                                     (storage,"ModuleScript","ChampionshipHud","ChampionshipHud.luau"),
                                     (storage,"ModuleScript","ChampionshipPortraits","ChampionshipPortraits.luau"),
                                     (storage,"ModuleScript","FighterForms","FighterForms.luau"),
                                     (server,"ModuleScript","DojoMatchSupport","DojoMatchSupport.luau"),
+                                    (server,"ModuleScript","CombatWindupSupport","CombatWindupSupport.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),
                                     (storage,"ModuleScript","SparringBots","SparringBots.luau"),

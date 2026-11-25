@@ -6,6 +6,7 @@ local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Round = require(script.Parent:WaitForChild("SparringRound"))
 local FeaturedRound = require(script.Parent:WaitForChild("ReedguardRound"))
 local Motion = require(script.Parent:WaitForChild("ReedguardFightMotion"))
+local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
 local progression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local bots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
@@ -37,6 +38,9 @@ local function publish(bout, kind, now)
         (if bout.featured then FeaturedRound else Round).parryOpensAt(round), bout.arena.config.botId,
         round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature, round.nextSecondary,
         Match.takeHitStop(bout))
+    if bout.motion and not round.result then
+        Windup.profile(bout, round, bout.motion.motors, round.startsAt, round.endsAt)
+    end
 end
 
 local function finish(bout, result, now, disconnected)
@@ -266,7 +270,7 @@ for _, id in progression.Order do
     end)
 end
 
-remote.OnServerEvent:Connect(function(player, action, direction)
+remote.OnServerEvent:Connect(function(player, action, direction, windupToken)
     if type(action) ~= "string" then
         return
     end
@@ -309,7 +313,12 @@ remote.OnServerEvent:Connect(function(player, action, direction)
             or (action == "stormSteer" and not Match.takeCombatInput(bout, action, direction, now, .095)) then
             return
         end
-        local feedback = FeaturedRound.act(bout.round, action, now, direction)
+        local round = bout.round
+        local previousClip = round.clip
+        local feedback = FeaturedRound.act(round, action, now, direction)
+        if action == "heavy" then
+            Windup.decide(bout, round, round.startsAt, windupToken, previousClip, now)
+        end
         if feedback then
             bout.message, bout.messageUntil = feedback, now + .74
             publish(bout, "state", now)

@@ -7,6 +7,7 @@ local TweenService = game:GetService("TweenService")
 
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
+local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
 local Round = require(script.Parent:WaitForChild("TagCombatRound"))
 local Equip = require(script.Parent:WaitForChild("StarterFighters"))
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
@@ -149,6 +150,9 @@ local function publish(match, event, now)
                 canTag = Round.planTag(round, index, now) ~= nil and not seat.entryAt,
                 tagReadyAt = seat.nextTagAt, nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                 feedback = if now < actor.feedbackUntil then actor.feedback else nil})
+            if not round.result and not seat.out and not seat.entryAt then
+                Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
+            end
             table.insert(recipients, player.UserId)
         end
     end
@@ -468,7 +472,7 @@ prompt.Triggered:Connect(function(player)
     remote:FireClient(player, "offer", {primaryId = offer.primaryId, expiresAt = offer.expiresAt, backupIds = backupIds})
 end)
 
-remote.OnServerEvent:Connect(function(player, action, value, id)
+remote.OnServerEvent:Connect(function(player, action, value, id, windupToken)
     local now = workspace:GetServerTimeNow()
     if action == "cancel" then
         clearQueue(player, "You left the Tag Team queue.")
@@ -524,7 +528,12 @@ remote.OnServerEvent:Connect(function(player, action, value, id)
             changed = true
         end
     else
+        local side = round.sides[index]
+        local previousClip = side.clip
         local cue = Round.act(round, index, action, now, Match.combatDirection(action, value))
+        if action == "heavy" then
+            Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now)
+        end
         if cue then
             feedback(actor, cue, now)
             changed = true

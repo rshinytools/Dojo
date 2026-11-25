@@ -5,6 +5,7 @@ local HttpService = game:GetService("HttpService")
 
 local Match = require(script.Parent.DojoMatchSupport)
 local Motion = require(script.Parent.DuelFightMotion)
+local Windup = require(script.Parent.CombatWindupSupport)
 local Round = require(script.Parent.KilnbackRaidRound)
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
@@ -183,6 +184,9 @@ local function mount(encounter)
                     feedback = if now < actor.feedbackUntil then actor.feedback else nil,
                     revive = revive and {targetIndex = revive.target, startedAt = revive.startedAt, endsAt = revive.endsAt},
                     reviveTarget = if not round.result and now >= round.startsAt then nearestRevive(match, index, now) else nil})
+                if not round.result and not side.downed and not side.left then
+                    Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
+                end
             end
         end
     end
@@ -432,7 +436,7 @@ local function mount(encounter)
         end
     end)
 
-    remote.OnServerEvent:Connect(function(player, action, value, id)
+    remote.OnServerEvent:Connect(function(player, action, value, id, windupToken)
         local now = workspace:GetServerTimeNow()
         if action == "status" then
             if now >= (statusAt[player] or 0) and (queue[player] or Match.near(Match.root(player), gate, 13)) then
@@ -471,7 +475,12 @@ local function mount(encounter)
                 changed = true
             end
         else
+            local side = round.sides[index]
+            local previousClip = side.clip
             local result = Round.act(round, index, action, now, Match.combatDirection(action, value))
+            if action == "heavy" then
+                Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now)
+            end
             if result then
                 cue(actor, result, now)
                 changed = true

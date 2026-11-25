@@ -1,0 +1,247 @@
+-- Preview the authored Heavy preparation on the local shell while the server decides the action.
+local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local HitStop = require(ReplicatedStorage:WaitForChild("CombatHitStop"))
+local Jump = require(ReplicatedStorage:WaitForChild("ArenaJumpMotion"))
+local remote = ReplicatedStorage:WaitForChild("CombatWindupRemote")
+
+local Windup = {}
+local player = Players.LocalPlayer
+local studio = RunService:IsStudio()
+local shoulderMeshes = {["Left Shoulder"] = "Left Arm", ["Right Shoulder"] = "Right Arm"}
+local ray = RaycastParams.new()
+ray.RespectCanCollide = true
+local seamSample = Vector3.new(.23, 0, .17)
+local previewTime = .30
+local handoffTime = .055
+local contactLead = .012
+local token = 0
+local profile
+local active
+
+local function finite(value)
+    return type(value) == "number" and math.abs(value) < math.huge
+end
+
+local function reducedMotion()
+    return GuiService.ReducedMotionEnabled or UserInputService.VREnabled
+end
+
+local function ease(t)
+    local bounded = math.clamp(t, 0, 1)
+    return bounded * bounded * (3 - 2 * bounded)
+end
+
+function Windup.clear()
+    local preview = active
+    if not preview then return end
+    active = nil
+    preview.simulation:Disconnect()
+    for _, binding in preview.bindings do
+        local weld = binding.weld
+        if binding.written and weld.Parent and weld.C0 == binding.written then
+            weld.C0 = binding.rest
+        end
+    end
+    if studio then
+        player:SetAttribute("CombatWindupToken", nil)
+        player:SetAttribute("CombatWindupPhase", nil)
+    end
+end
+
+local function hasFloor(point, floor)
+    local surface = workspace:Raycast(point, -Vector3.yAxis * 2.62, ray)
+    return surface ~= nil and math.abs(surface.Position.Y - floor) <= .17 and surface.Normal.Y >= .8
+end
+
+local function supported(character, root)
+    local floor = character:GetAttribute("ArenaJumpFloor")
+    if not finite(floor) or math.abs(root.Position.Y - floor - Jump.standingHeight) >= .26
+        or math.abs(root.AssemblyLinearVelocity.Y) >= 2.5 then
+        return false
+    end
+    local position = root.Position
+    return hasFloor(position, floor) or hasFloor(position + seamSample, floor) or hasFloor(position - seamSample, floor)
+end
+
+local function ownsBindings(preview)
+    for _, binding in preview.bindings do
+        local weld, motor = binding.weld, binding.motor
+        if not weld.Parent or not motor.Parent or motor.Part1 ~= weld.Part0
+            or weld.C0 ~= (binding.written or binding.rest) then
+            return false
+        end
+    end
+    return true
+end
+
+local function startHandoff(preview, now, serverNow)
+    local span = math.min(handoffTime, preview.expiresAt - now, preview.cutoff - serverNow)
+    if span <= 0 then
+        Windup.clear()
+        return
+    end
+    preview.releaseAt = now
+    preview.releaseSpan = span
+    preview.releaseWeight = preview.weight
+    if studio then player:SetAttribute("CombatWindupPhase", "handoff") end
+end
+
+local function step()
+    local preview = active
+    if not preview then return end
+    local now, serverNow = os.clock(), workspace:GetServerTimeNow()
+    if now >= preview.expiresAt or serverNow >= preview.cutoff or profile ~= preview.profile
+        or player.Character ~= preview.character or preview.shell.Parent ~= preview.character
+        or preview.root.Parent ~= preview.character or preview.humanoid.Health <= 0
+        or not preview.animate.Parent or not preview.animate.Disabled or not player:GetAttribute("SparringActive")
+        or reducedMotion() or HitStop.isActive() or not ownsBindings(preview)
+        or not supported(preview.character, preview.root) then
+        Windup.clear()
+        return
+    end
+    if not preview.releaseAt and now >= preview.expiresAt - handoffTime then
+        startHandoff(preview, now, serverNow)
+    end
+    if preview.releaseAt then
+        local release = (now - preview.releaseAt) / preview.releaseSpan
+        if release >= 1 then
+            Windup.clear()
+            return
+        end
+        preview.weight = preview.releaseWeight * (1 - ease(release))
+    else
+        preview.weight = ease((now - preview.started + .016) / .115)
+    end
+    for _, binding in preview.bindings do
+        local motor, weld = binding.motor, binding.weld
+        local carrier = motor.C0 * motor.Transform * motor.C1:Inverse()
+        weld.C0 = binding.rest:Lerp(carrier:ToObjectSpace(binding.target) * weld.C1, preview.weight)
+        binding.written = weld.C0
+    end
+end
+
+function Windup.begin(action)
+    if action ~= "heavy" or active or not profile or not player:GetAttribute("SparringActive")
+        or reducedMotion() or HitStop.isActive() then
+        return nil
+    end
+    local serverNow = workspace:GetServerTimeNow()
+    if serverNow < profile.startsAt or serverNow >= profile.endsAt or serverNow < profile.busyUntil then
+        return nil
+    end
+    local character = player.Character
+    local shell = character and character:FindFirstChild("Starter Fighter Shell")
+    local torso = character and character:FindFirstChild("Torso")
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local root = humanoid and humanoid.RootPart
+    local animate = character and character:FindFirstChild("Animate")
+    if not (shell and shell == profile.shell and torso and root and humanoid.Health > 0
+        and animate and animate.Disabled) then
+        return nil
+    end
+    local bindings = {}
+    for joint, meshName in shoulderMeshes do
+        local mesh = shell:FindFirstChild(meshName)
+        local weld = mesh and mesh:FindFirstChildOfClass("Weld")
+        local motor = torso:FindFirstChild(joint)
+        if not (weld and motor and motor:IsA("Motor6D") and motor.Part0 == torso and motor.Part1 == weld.Part0) then
+            return nil
+        end
+        local rest = weld.C0
+        table.insert(bindings, {motor = motor, weld = weld, rest = rest,
+            target = profile.pose[joint] * motor.C1:Inverse() * rest * weld.C1:Inverse()})
+    end
+    ray.FilterDescendantsInstances = {character}
+    local now = os.clock()
+    token = token % 2147483647 + 1
+    active = {token = token, character = character, shell = shell, root = root, humanoid = humanoid,
+        animate = animate, profile = profile, bindings = bindings, started = now, requestedAt = serverNow,
+        expiresAt = now + previewTime, cutoff = math.min(serverNow + profile.contact - contactLead, profile.endsAt),
+        simulation = RunService.PreSimulation:Connect(step)}
+    step()
+    if not active then return nil end
+    if studio then
+        player:SetAttribute("CombatWindupToken", token)
+        player:SetAttribute("CombatWindupPhase", "preview")
+    end
+    return token
+end
+
+local function receiveProfile(packet, serverNow)
+    local character = player.Character
+    if not (packet.shell and character and packet.shell == character:FindFirstChild("Starter Fighter Shell"))
+        or not (finite(packet.startsAt) and finite(packet.endsAt) and finite(packet.contact))
+        or packet.endsAt <= serverNow or packet.contact <= contactLead or packet.contact >= packet.endsAt - packet.startsAt
+        or type(packet.pose) ~= "table" or typeof(packet.pose["Left Shoulder"]) ~= "CFrame"
+        or typeof(packet.pose["Right Shoulder"]) ~= "CFrame" then
+        return
+    end
+    if profile and (packet.startsAt < profile.startsAt
+        or packet.startsAt == profile.startsAt and packet.shell == profile.shell) then
+        return
+    end
+    Windup.clear()
+    profile = {shell = packet.shell, startsAt = packet.startsAt, endsAt = packet.endsAt, contact = packet.contact,
+        pose = packet.pose, busyUntil = -math.huge}
+end
+
+local function receiveDecision(packet, serverNow)
+    local preview = active
+    local now = os.clock()
+    if not preview or preview.decided or packet.token ~= preview.token or packet.shell ~= preview.shell
+        or packet.startsAt ~= preview.profile.startsAt or now >= preview.expiresAt
+        or serverNow >= preview.cutoff then
+        return
+    end
+    local acceptedAt = packet.acceptedAt
+    local busyUntil = if finite(packet.busyUntil) then packet.busyUntil else -math.huge
+    if acceptedAt ~= nil then
+        if not finite(acceptedAt) or acceptedAt < preview.profile.startsAt or acceptedAt < preview.requestedAt - .10
+            or acceptedAt > serverNow + .10 or acceptedAt >= preview.profile.endsAt then
+            return
+        end
+        local contactAt = acceptedAt + preview.profile.contact
+        preview.cutoff = math.min(preview.cutoff, contactAt - contactLead)
+        busyUntil = math.max(contactAt, busyUntil)
+        if studio then
+            player:SetAttribute("CombatWindupAcceptedAt", acceptedAt)
+            player:SetAttribute("CombatWindupAcceptedToken", preview.token)
+        end
+    end
+    preview.decided = true
+    preview.profile.busyUntil = math.max(preview.profile.busyUntil, busyUntil)
+    if serverNow >= preview.cutoff then
+        Windup.clear()
+    elseif preview.releaseAt then
+        preview.releaseSpan = math.min(preview.releaseSpan, now - preview.releaseAt + preview.cutoff - serverNow)
+    else
+        startHandoff(preview, now, serverNow)
+    end
+end
+
+remote.OnClientEvent:Connect(function(kind, packet)
+    if type(packet) ~= "table" then return end
+    if kind == "profile" then
+        receiveProfile(packet, workspace:GetServerTimeNow())
+    elseif kind == "decision" then
+        receiveDecision(packet, workspace:GetServerTimeNow())
+    end
+end)
+
+local function clearRound()
+    Windup.clear()
+    profile = nil
+end
+
+player.CharacterRemoving:Connect(clearRound)
+player:GetAttributeChangedSignal("SparringActive"):Connect(function()
+    if not player:GetAttribute("SparringActive") then clearRound() end
+end)
+GuiService:GetPropertyChangedSignal("ReducedMotionEnabled"):Connect(Windup.clear)
+UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(Windup.clear)
+
+return table.freeze(Windup)

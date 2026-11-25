@@ -63,7 +63,8 @@ function Presentation.playLocalContact(packet, now)
     if not packet then return end
     local storage = game:GetService("ReplicatedStorage")
     if packet.pose then
-        require(storage:WaitForChild("CombatHitStop")).play(packet, now)
+        local windup = require(storage:WaitForChild("CombatWindup"))
+        require(storage:WaitForChild("CombatHitStop")).play(packet, now, windup.clear)
     end
     if packet.pulse then
         require(storage:WaitForChild("CombatCameraImpact")).play(packet, now)

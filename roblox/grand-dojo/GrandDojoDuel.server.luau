@@ -8,6 +8,7 @@ local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Round = require(script.Parent:WaitForChild("DuelCombatRound"))
 local Series = require(script.Parent:WaitForChild("DuelSeries"))
 local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
+local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
 local RankRules = require(script.Parent:WaitForChild("DuelRankRules"))
 local RankLedger = require(script.Parent:WaitForChild("DuelRankLedger"))
 local Presentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
@@ -168,6 +169,9 @@ local function publish(duel, kind, now)
             feedback = if now < challenger.feedbackUntil then challenger.feedback else nil,
             elementEffect = if now < challenger.feedbackUntil then challenger.elementEffect else nil,
         }))
+        if not round.result then
+            Windup.profile(challenger, side, challenger.motors, round.startsAt, round.endsAt)
+        end
     end
     Presentation.broadcast(effects, snapshot, recipients)
 end
@@ -530,7 +534,7 @@ local function joinQueue(player, format)
     end)
 end
 
-remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundIndex)
+remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundIndex, windupToken)
     if type(action) ~= "string" then
         return
     end
@@ -571,8 +575,14 @@ remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundI
     if changed then
         Motion.render(duel, now)
     end
-    local feedback = if not duel.round.result
-        then Round.act(duel.round, index, action, now, Match.combatDirection(action, direction)) else nil
+    local round = duel.round
+    local combatant = round.sides[index]
+    local previousClip = combatant.clip
+    local feedback = if not round.result
+        then Round.act(round, index, action, now, Match.combatDirection(action, direction)) else nil
+    if action == "heavy" then
+        Windup.decide(side, combatant, round.startsAt, windupToken, previousClip, now)
+    end
     if feedback then
         setFeedback(side, feedback, now)
     end

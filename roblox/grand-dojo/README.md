@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.325, press **R** in a bout to start your fighter’s Heavy preparation. Time Guard and press Heavy during the opponent’s recovery to see the windup, contact, and follow-through.
+
 In v0.324, try the third basic strike with any fighter, then use a signature when it’s ready. As Silverback, press **F** close to Juniper to test the Seismic Chest-Pound impact. The pulse is reduced on touch and skipped with Reduce Motion or VR.
 
 In v0.323, open Juniper Bot Spar as Reedguard. Press **E** three times to land the combo kick and press **F** when Reedstep Rising is ready. On confirmed hits, the combo kick and the final Rising strike briefly hold their contact pose.

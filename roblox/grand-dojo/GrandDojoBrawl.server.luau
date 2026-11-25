@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Motion = require(script.Parent:WaitForChild("BrawlFightMotion"))
+local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
 local Round = require(script.Parent:WaitForChild("BrawlCombatRound"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
@@ -176,6 +177,9 @@ local function publish(match, kind, now)
             placement = side.placement, feedback = if now < actor.feedbackUntil then actor.feedback else nil,
             nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
             presentationSequence = snapshot.sequence, impacts = snapshot.impacts, hitStop = Match.takeHitStop(actor)})
+        if not round.result and not side.eliminated then
+            Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
+        end
         table.insert(recipients, actor.player.UserId)
     end
     CombatPresentation.broadcast(effects, snapshot, recipients)
@@ -480,7 +484,7 @@ prompt.Triggered:Connect(function(player)
     end
 end)
 
-remote.OnServerEvent:Connect(function(player, action, direction, id)
+remote.OnServerEvent:Connect(function(player, action, direction, id, windupToken)
     if action == "cancel" then
         unqueue(player, "You left the Brawl queue.")
         return
@@ -506,8 +510,13 @@ remote.OnServerEvent:Connect(function(player, action, direction, id)
     if changed then
         Motion.render(match, now)
     end
+    local side = round.sides[index]
+    local previousClip = side.clip
     local feedback = if not round.result and Motion.canAct(match, index, action, now)
         then Round.act(round, index, action, now, Match.combatDirection(action, direction)) else nil
+    if action == "heavy" then
+        Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now)
+    end
     if feedback then
         setFeedback(actor, feedback, now)
     end

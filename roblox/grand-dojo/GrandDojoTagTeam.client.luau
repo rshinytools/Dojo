@@ -13,6 +13,7 @@ local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
 local CombatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
 local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
+local CombatWindup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
 local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(32, 23, 27)
@@ -553,6 +554,7 @@ local function send(action, direction)
     end
     if action == "leave" then
         if not match.resolvedAt then
+            CombatWindup.clear()
             leaving = true
             remote:FireServer("leave", nil, match.matchId)
             refresh()
@@ -565,6 +567,7 @@ local function send(action, direction)
     end
     if action == "tag" then
         if match.canTag then
+            CombatWindup.clear()
             remote:FireServer("tag", nil, match.matchId)
         end
         return
@@ -585,7 +588,7 @@ local function send(action, direction)
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         direction = if root and humanoid and humanoid.MoveDirection:Dot(root.CFrame.RightVector) < -.2 then -1 else 1
     end
-    remote:FireServer(action, direction, match.matchId)
+    remote:FireServer(action, direction, match.matchId, CombatWindup.begin(action))
 end
 
 for action, buttonNode in actions do
@@ -682,7 +685,9 @@ remote.OnClientEvent:Connect(function(kind, data)
         match = data
         rivalIndex = pickRival(data)
         local own, other = data.slots[data.selfIndex], data.slots[rivalIndex]
-        local ownChanged = not old or old.slots[old.selfIndex].kitId ~= own.kitId
+        local prior = old and old.slots[old.selfIndex]
+        local ownChanged = not prior or prior.kitId ~= own.kitId
+        if ownChanged or own.eliminated or data.resolvedAt or own.health < prior.health then CombatWindup.clear() end
         local rivalChanged = not old or previousRival ~= rivalIndex or old.slots[rivalIndex].kitId ~= other.kitId
         championship.left:Set(own.health, own.maxHealth, fighterName(own.kitId), ownChanged)
         championship.right:Set(other.health, other.maxHealth, fighterName(other.kitId), rivalChanged)
@@ -695,6 +700,7 @@ remote.OnClientEvent:Connect(function(kind, data)
         if not CombatPresentation.accept(presentationState, kind, data) then
             return
         end
+        CombatWindup.clear()
         match, waiting = nil, nil
         leaving = false
         championship.left:Snap()

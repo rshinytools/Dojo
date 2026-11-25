@@ -1555,6 +1555,7 @@ local duelRound = false
 local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
 local matchPresentation = {showcase = false, steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)}
 matchPresentation.contacts = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
+matchPresentation.windup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
 function matchPresentation.playImpact(cue, point, attack)
     combatEffects.play(cue, point, attack)
     combatAudio.impact(cue, point, attack)
@@ -1926,8 +1927,12 @@ local function sendSparAction(action, direction)
         direction = if left then -1 else 1
     end
     local actionRemote = if duelRound then duelRemote else sparRemote
-    if duelRound and (duelUi.hasRounds(matchPresentation.format) or action == "stormSteer") then
-        duelRemote:FireServer(action, direction, matchPresentation.matchId, matchPresentation.roundIndex)
+    if action == "leave" then matchPresentation.windup.clear() end
+    local token = matchPresentation.windup.begin(action)
+    if duelRound and (duelUi.hasRounds(matchPresentation.format) or action == "stormSteer" or token) then
+        duelRemote:FireServer(action, direction, matchPresentation.matchId, matchPresentation.roundIndex, token)
+    elseif token then
+        sparRemote:FireServer(action, direction, token)
     elseif direction then
         actionRemote:FireServer(action, direction)
     else
@@ -1990,6 +1995,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, kitId, nextSignature, nextSecondary)
+    matchPresentation.windup.clear()
     duelRound = isDuel
     sparringActive = true
     matchPresentation.startsAt = startsAt
@@ -2062,6 +2068,7 @@ end
 local function matchClock(startsAt, endsAt, phase)
     local now = workspace:GetServerTimeNow()
     if phase == "outro" and not matchPresentation.finishedAt then
+        matchPresentation.windup.clear()
         matchPresentation.finishedAt = now
     end
     local seconds = math.max(0, math.ceil(endsAt - math.max(matchPresentation.finishedAt or now, startsAt)))
@@ -2130,6 +2137,7 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
 end
 
 local function showMatchResult(result, opponent, detail, showRetry, ratingMatchId)
+    matchPresentation.windup.clear()
     fightIntro:Stop()
     settleCombatHealth()
     championshipPortraits.set(playerPortrait, nil)
@@ -2160,6 +2168,7 @@ end
 local function clearInterruptedMatch()
     fightIntro:Stop()
     if sparringActive then
+        matchPresentation.windup.clear()
         settleCombatHealth()
         championshipPortraits.set(playerPortrait, nil)
         championshipPortraits.set(opponentPortrait, nil)
@@ -2266,6 +2275,9 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     local kit = matchPresentation.kit
     local resident = residentLabel(opponent)
     local shortName = if showcase then resident else opponent.name
+    if a <= 0 or (kind == "state" and playerHealth.displayedHealth and a < playerHealth.displayedHealth) then
+        matchPresentation.windup.clear()
+    end
     playerHealth:Set(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin")
     botHealth:Set(b, opponent.health, shortName, kind == "begin")
     if hitStop then
@@ -2502,6 +2514,10 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         end
         local kit = matchPresentation.kit
         local opponent = showcaseKits[info.opponentKitId]
+        if info.playerHealth <= 0 or (not reset and playerHealth.displayedHealth
+            and info.playerHealth < playerHealth.displayedHealth) then
+            matchPresentation.windup.clear()
+        end
         playerHealth:Set(info.playerHealth, info.playerMaxHealth, kit and kit.challengerShort, reset)
         botHealth:Set(info.opponentHealth, info.opponentMaxHealth, opponent and opponent.challengerShort or info.opponentName, reset)
         matchPresentation.contacts.play(info, workspace:GetServerTimeNow(), matchPresentation.playImpact)
