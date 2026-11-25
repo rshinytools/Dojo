@@ -1,5 +1,4 @@
 local TweenService = game:GetService("TweenService")
-local ReedguardPoses = require(script.Parent.ReedguardCombatPoses)
 local Match = {}
 
 Match.FighterKits = table.freeze({
@@ -113,35 +112,44 @@ function Match.contactCue(event)
     return nil
 end
 
-local hitStopMoves = {
-    body = {index = 1, time = ReedguardPoses.Contact.body, duration = .04,
-        limbs = {"Left Shoulder", "Right Shoulder", "Right Hip"}},
-    reedstep = {index = 3, time = ReedguardPoses.Contact.reedstep[3], duration = .08,
-        limbs = {"Left Shoulder", "Right Shoulder"}},
-}
+local shoulders = {"Left Shoulder", "Right Shoulder"}
+local kickingLimbs = {"Left Shoulder", "Right Shoulder", "Right Hip"}
 
-function Match.queueHitStop(actor, kitId, event, motors)
-    if not actor or kitId ~= "reedguard" or (event.kind ~= "strike" and event.kind ~= "counter")
+local function contactPose(kit, event, motors)
+    local pose = {}
+    local offsets = kit.poses.sample(event.attack, event.poseAt, event.poseDirection)
+    for _, name in if event.holdKick then kickingLimbs else shoulders do
+        local joint = motors[name]
+        if not joint or not offsets[name] then return nil end
+        pose[name] = offsets[name] * joint.rest
+    end
+    return pose
+end
+
+function Match.queueHitStop(actor, kitId, kit, event, motors)
+    if not actor or (event.kind ~= "strike" and event.kind ~= "counter")
         or (event.damage or 0) <= 0 or not event.point then
         return
     end
-    local move = hitStopMoves[event.attack]
+    local pulse = event.signatureCast ~= nil and event.signatureCast > (actor.lastSignatureImpactCast or -math.huge)
+    local hold = event.poseHold == .04 or (event.poseHold == .08 and pulse)
+    if not (pulse or hold) then return end
     local last = actor.pendingHitStop
-    if not move or event.index ~= move.index or (last and last.at >= event.at) then
+    if last and (last.at >= event.at or (last.pulse and not pulse)) then
         return
     end
     local character = actor.root.Parent
     local shell = character and character:FindFirstChild("Starter Fighter Shell")
-    if not shell or shell:GetAttribute("FighterId") ~= "reedguard-kangaroo" then return end
+    if not shell or not kitId or Match.FighterKits[shell:GetAttribute("FighterId")] ~= kitId then return end
 
-    local pose = {}
-    local offsets = ReedguardPoses.sample(event.attack, move.time)
-    for _, name in move.limbs do
-        local joint = motors[name]
-        if not joint then return end
-        pose[name] = offsets[name] * joint.rest
+    local pose = if hold and motors then contactPose(kit, event, motors) else nil
+    if pulse then
+        actor.lastSignatureImpactCast = event.signatureCast
+    elseif not pose then
+        return
     end
-    actor.pendingHitStop = {shell = shell, at = event.at, duration = move.duration, pose = pose}
+    actor.pendingHitStop = {shell = shell, at = event.at, duration = if pose then event.poseHold else nil,
+        pose = pose, pulse = if pulse then true else nil}
 end
 
 function Match.takeHitStop(actor)

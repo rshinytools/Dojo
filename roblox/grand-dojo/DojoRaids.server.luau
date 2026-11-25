@@ -365,7 +365,7 @@ local function mount(encounter)
             elseif event.source == "player" then
                 local actor, side = match.actors[event.attacker], round.sides[event.attacker]
                 if actor and side.playerHealth > 0 and not side.downed then
-                    Match.queueHitStop(actor, side.kitId, event, actor.motors)
+                    Match.queueHitStop(actor, side.kitId, side.kit, event, actor.motors)
                 end
                 cue(match.actors[event.attacker], Match.stormFeedback(event)
                     or (if event.shockDuration then "shockLanded" elseif event.core then "core" else event.kind), now)

@@ -314,8 +314,9 @@ local function resolve(duel, now)
     for _, event in round.notices do
         Motion.impact(duel, event)
         local a, b = duel.actors[event.attacker], duel.actors[event.defender]
-        if a and round.sides[event.attacker].playerHealth > 0 then
-            Match.queueHitStop(a, a.kit, event, a.motors)
+        local side = round.sides[event.attacker]
+        if a and side.playerHealth > 0 then
+            Match.queueHitStop(a, a.kit, side.kit, event, a.motors)
         end
         local kind = event.kind
         local stormCue = Match.stormFeedback(event)

@@ -2269,7 +2269,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     playerHealth:Set(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin")
     botHealth:Set(b, opponent.health, shortName, kind == "begin")
     if hitStop then
-        matchPresentation.contacts.play({hitStop = hitStop}, workspace:GetServerTimeNow(), matchPresentation.playImpact)
+        matchPresentation.contacts.playLocalContact(hitStop, workspace:GetServerTimeNow())
     end
     updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, botAt, parryOpensAt,
         nextSignature, nextSecondary, opponent.tint, resident)

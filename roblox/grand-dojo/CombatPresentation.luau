@@ -59,11 +59,19 @@ function Presentation.accept(state, kind, data)
     return true
 end
 
-function Presentation.play(data, now, play)
-    if data.hitStop then
-        local storage = game:GetService("ReplicatedStorage")
-        require(storage:WaitForChild("CombatHitStop")).play(data.hitStop, now)
+function Presentation.playLocalContact(packet, now)
+    if not packet then return end
+    local storage = game:GetService("ReplicatedStorage")
+    if packet.pose then
+        require(storage:WaitForChild("CombatHitStop")).play(packet, now)
     end
+    if packet.pulse then
+        require(storage:WaitForChild("CombatCameraImpact")).play(packet, now)
+    end
+end
+
+function Presentation.play(data, now, play)
+    Presentation.playLocalContact(data.hitStop, now)
     if type(data.impacts) ~= "table" then
         return
     end

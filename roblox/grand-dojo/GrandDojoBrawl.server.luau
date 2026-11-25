@@ -316,7 +316,7 @@ local function resolveContacts(match, now, beforeBoundary)
         local attacker = match.actors[event.attacker]
         local side = match.round.sides[event.attacker]
         if attacker and side.playerHealth > 0 and not side.eliminated then
-            Match.queueHitStop(attacker, attacker.kit, event, attacker.motors)
+            Match.queueHitStop(attacker, attacker.kit, side.kit, event, attacker.motors)
         end
         local stormCue = Match.stormFeedback(event)
         if stormCue then

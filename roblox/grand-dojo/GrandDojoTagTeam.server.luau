@@ -346,7 +346,7 @@ local function advance(match, now)
         local attacker = match.actors[event.attacker]
         local side = match.round.sides[event.attacker]
         if attacker and side.playerHealth > 0 and not side.eliminated then
-            Match.queueHitStop(attacker, side.kitId, event, attacker.motors)
+            Match.queueHitStop(attacker, side.kitId, side.kit, event, attacker.motors)
         end
         if event.defender and event.kind ~= "miss" and event.kind ~= "burn" then
             attacker.lastTarget = event.defender

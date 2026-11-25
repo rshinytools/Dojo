@@ -10,7 +10,7 @@ local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCat
 local Health = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
-local CombatHitStop = require(ReplicatedStorage:WaitForChild("CombatHitStop"))
+local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(33, 23, 27)
@@ -714,7 +714,7 @@ local function receive(raid, kind, data)
         end
         match, matchRaid = data, raid
         health:Set(data.bossHealth, data.bossMaxHealth, raid.name, beginning)
-        if data.hitStop then CombatHitStop.play(data.hitStop, now) end
+        CombatPresentation.playLocalContact(data.hitStop, now)
         healthValue.Text = string.format("%d / %d HP", math.round(data.bossHealth), math.round(data.bossMaxHealth))
         refreshParty()
         if beginning then

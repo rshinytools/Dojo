@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.323 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.324 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -263,6 +263,8 @@ The separate ranked store claims each player’s rating before the match. It rec
 Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
+
+V0.324 adds an authored 40 ms pose hold to the confirmed third combo strike for all 24 fighters. It adds one local camera pulse per damaging signature cast, keyed to the move’s meaningful hit. Nine grounded signatures also hold their contact pose for 80 ms. Desktop Studio Bot Spar verified the camera returns cleanly after Reedstep Rising and Silverback’s Seismic Chest-Pound. The observed peak shifts were 0.13 and 0.08 studs. The kick dealt 15 damage, Rising dealt 9, 9 and 14, and Seismic dealt 34. Exact-source checks covered every kit, per-cast deduplication, defense exclusions, stock camera, smaller touch motion, Reduced Motion and VR. Live checks in the other modes, published Roblox playback and physical devices remain open.
 
 V0.323 briefly holds Reedguard’s authored contact pose for 40 ms on the clean combo kick and 80 ms on the final clean Reedstep Rising hit. The attacker’s shoulders and the combo kick’s boot use the local hold, followed by a short blend back to the fight. Desktop Studio against Juniper verified both holds and their releases at roughly 15 frames per second. The kick still dealt 15 and Rising dealt 9, 9 and 14. Exact-source checks covered guarded contacts, Reduced Motion, VR, airborne cancellation and the unchanged root and health. Studio also loaded and played all six creator-owned combat sounds. Published play, physical devices and live checks of the other match modes remain open.
 

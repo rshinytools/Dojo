@@ -4,8 +4,10 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local CameraImpact = require(script.Parent.CombatCameraImpact)
 
 local movementAction = "GrandDojoRoundIntro"
+local liveCameraStep = "GrandDojoLiveFightCamera"
 local up = Vector3.yAxis
 local gold = Color3.fromRGB(247, 197, 100)
 local jade = Color3.fromRGB(148, 234, 195)
@@ -198,11 +200,15 @@ function Intro:_hideCount()
     self.count.Visible = false
 end
 
-function Intro:Stop(preserveCamera)
+function Intro:_stopLive()
     if self.liveRender then
-        self.liveRender:Disconnect()
         self.liveRender = nil
+        RunService:UnbindFromRenderStep(liveCameraStep)
     end
+end
+
+function Intro:Stop(preserveCamera)
+    self:_stopLive()
     if not preserveCamera then
         self:_restoreCamera()
     end
@@ -323,13 +329,13 @@ function Intro:_startLive(court, presentation)
         local offset = saved.camera.CFrame.Position - currentFocus
         currentDirection, currentDistance = offset.Unit, offset.Magnitude
     end
-    self.liveRender = RunService.RenderStepped:Connect(function(dt)
+    self.liveRender = true
+    RunService:BindToRenderStep(liveCameraStep, Enum.RenderPriority.Camera.Value + 10, function(dt)
         local root, camera = rootOf(self.player), saved.camera
         if root ~= challenger or not follow.Parent or not opponent.Parent or workspace.CurrentCamera ~= camera
             or camera.CameraType ~= Enum.CameraType.Scriptable
             or UserInputService.VREnabled or GuiService.ReducedMotionEnabled then
-            self.liveRender:Disconnect()
-            self.liveRender = nil
+            self:_stopLive()
             self:_restoreCamera()
             return
         end
@@ -350,7 +356,10 @@ function Intro:_startLive(court, presentation)
             pairDistance(currentFocus, currentDirection, first, second, horizontal, vertical, wide))
         local easedDistance = if currentDistance then currentDistance + (required - currentDistance) * alpha else required
         currentDistance = math.max(required, easedDistance)
-        lens(camera, currentFocus, currentFocus + currentDirection * currentDistance, fov)
+        local framing = CFrame.lookAt(currentFocus + currentDirection * currentDistance, currentFocus)
+        camera.CFrame = CameraImpact.frame(camera, framing)
+        camera.Focus = CFrame.new(currentFocus)
+        camera.FieldOfView = fov
     end)
 end
 

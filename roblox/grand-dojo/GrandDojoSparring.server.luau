@@ -341,7 +341,7 @@ local function tickShowcase(bout, now, dt)
     for _, event in round.notices do
         Motion.impact(bout, event)
         if event.source ~= "bot" and round.playerHealth > 0 then
-            Match.queueHitStop(bout, bout.kit, event, bout.motion.motors)
+            Match.queueHitStop(bout, bout.kit, round.kit, event, bout.motion.motors)
         end
         local cue = Match.contactCue(event)
         if cue then

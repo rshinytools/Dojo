@@ -434,6 +434,29 @@ local function resolveBotContact(round, at, fields, hit, _, move)
     return damage
 end
 
+local signatureBeat = {reedstep = 3, featherFlurry = 3, gustVortex = 2, unstoppableFrenzy = 4}
+local groundedSignature = {
+    reedstep = true, seismicChestPound = true, tadpoleTornado = true, gustVortex = true,
+    tidalBellyFlop = true, staticCharge = true, apexPounce = true, jawsOfTheDeep = true,
+    unstoppableFrenzy = true,
+}
+
+local function contactPresentation(kit, clip, move, index, fields)
+    local attack = clip.action
+    if attack == "body" and not clip.tagEntry then
+        fields.poseHold = .04
+        fields.holdKick = move.foot or kit == kits.rooster
+    elseif attack == kit.signature and not move.controlOnly
+        and (not signatureBeat[attack] or signatureBeat[attack] == index)
+        and (attack ~= "tempestRoar" or move.shape == "stormThunder") then
+        fields.signatureCast = clip.startedAt
+        if groundedSignature[attack] then fields.poseHold = .08 end
+    end
+    if fields.poseHold then
+        fields.poseAt, fields.poseDirection = move.at, clip.direction
+    end
+end
+
 local function contact(round, at, check, resolve, publishCast, multipleDefenders)
     local clip = round.clip
     local attacks = round.kit.clips[clip.action]
@@ -488,6 +511,7 @@ local function contact(round, at, check, resolve, publishCast, multipleDefenders
             then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
+        contactPresentation(round.kit, clip, move, index, fields)
     end
     resolve(round, at, fields, hit, facing, move)
 end
@@ -530,6 +554,7 @@ local function advanceTrail(round, at, check, resolve)
     local fields = {attack = "magmaTrail", index = index, point = point, castStartedAt = trail.startedAt}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, math.min(move.damage, trail.remainingDamage)
+        fields.signatureCast = trail.startedAt
     end
     trail.remainingDamage -= resolve(round, at, fields, hit, facing, move)
 end

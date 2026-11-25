@@ -14,6 +14,7 @@ local releaseTime = .035
 local meshFor = {["Left Shoulder"] = "Left Arm", ["Right Shoulder"] = "Right Arm", ["Right Hip"] = "Right Leg"}
 local ray = RaycastParams.new()
 ray.RespectCanCollide = true
+local seamSample = Vector3.new(.23, 0, .17)
 local latestAt = -math.huge
 local active
 
@@ -37,6 +38,11 @@ local function clear()
     active = nil
 end
 
+local function hasFloor(point, floor)
+    local surface = workspace:Raycast(point, -Vector3.yAxis * 2.62, ray)
+    return surface ~= nil and math.abs(surface.Position.Y - floor) <= .17 and surface.Normal.Y >= .8
+end
+
 local function supported(hold)
     local root, character = hold.root, hold.character
     local floor = character:GetAttribute("ArenaJumpFloor")
@@ -44,8 +50,8 @@ local function supported(hold)
         or math.abs(root.AssemblyLinearVelocity.Y) >= 2.5 then
         return false
     end
-    local surface = workspace:Raycast(root.Position, -Vector3.yAxis * 2.62, ray)
-    return surface ~= nil and math.abs(surface.Position.Y - floor) <= .17 and surface.Normal.Y >= .8
+    local position = root.Position
+    return hasFloor(position, floor) or hasFloor(position + seamSample, floor) or hasFloor(position - seamSample, floor)
 end
 
 local function noteRender()
