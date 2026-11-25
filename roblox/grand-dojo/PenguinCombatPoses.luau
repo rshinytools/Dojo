@@ -125,6 +125,19 @@ local hookCut = pose({-.065, -.235, -.20, -13, -40, 4}, {17, 43, 31, .09, .045},
 local hookFold = pose({-.04, -.19, -.11, -10, -30, 3}, {14, 44, 27, .07, .025}, {3, -41, -25, -.015, .035},
 	tacticalFeet, {9, 24, -2}, {5, -14})
 
+local pressCrouch = pose({0, -.19, .045, -12, -5, 0}, {-3, 22, 40, .06, .14}, {8, 24, -37, .07, .14},
+	tacticalFeet, {9, 5}, {-9, -5})
+local pressLoad = pose({0, -.36, .09, -18, -4, 0}, {-8, 18, 54, .03, .16}, {2, 27, -51, .05, .21},
+	tacticalFeet, {15, 4}, {-12, -5})
+local pressDrive = pose({0, -.27, -.055, -15, -2, 0}, {12, 67, 26, .09, -.03}, {16, -22, -29, .11, .045},
+	tacticalFeet, {12, 2}, {-7, -3})
+local pressContact = pose({0, -.18, -.52, -15, 2, 0}, {14, 129, 5, .03, -.44}, {11, -67, -11, .11, -.54},
+	tacticalFeet, {10, -2}, {7, 2})
+local pressRelease = pose({0, -.19, -.19, -11, 1, 0}, {18, 105, 12, .04, -.19}, {11, -47, -17, .045, -.135},
+	tacticalFeet, {6, -1}, {4, -1})
+local pressFold = pose({0, -.11, -.055, -7, -3, 0}, {15, 65, 22, .07, -.035}, {4, -16, -24, .055, .065},
+	tacticalFeet, {5, 4}, {1, -3})
+
 local parryCatch = pose({-.055, -.11, .04, -7, -5, 3}, {18, 47, 27, .07}, {3, 23, -28, .08, .06},
 	{3, -4, 0, 0, 10, -6}, {4, 4, -3}, {1, -8})
 local parrySweep = pose({-.115, -.095, .09, -5, 17, 8}, {10, 43, 30, .055}, {9, -34, -33, .045, -.055},
@@ -188,6 +201,7 @@ local contact = table.freeze({
 	heavy = .43,
 	icecrestPalm = .34,
 	floeHook = .23,
+	glacierPress = .50,
 	bellySlide = table.freeze({.38, .49, .60, .68}),
 })
 local slideContacts = contact.bellySlide
@@ -203,6 +217,8 @@ local clips = {
 	icecrestPalm = {{0, ready}, {.13, palmGather}, {.23, palmFrame}, {contact.icecrestPalm, palmPush},
 		{.47, palmRelease}, {.72, ready}},
 	floeHook = {{0, ready}, {.10, hookLoad}, {contact.floeHook, hookCut}, {.34, hookFold}, {.58, ready}},
+	glacierPress = {{0, ready}, {.155, pressCrouch}, {.255, pressLoad}, {.32, pressLoad}, {.405, pressDrive},
+		{contact.glacierPress, pressContact}, {.63, pressRelease}, {.78, pressFold}, {.94, ready}},
 	guard = {{0, cover}},
 	block = {{0, guardRecoil}, {.09, guardRecoil}, {.29, cover}},
 	parry = {{0, parryCatch}, {.09, parrySweep}, {.20, parryCatch}, {.36, ready}},
@@ -233,6 +249,8 @@ Poses.Contact = contact
 -- Forward surface samples from the Blender pads and torso, measured at each
 -- authored contact relative to an unmoved HumanoidRootPart.
 local slidingChest = Vector3.new(-.054, -1.717, -1.083)
+-- The right flipper's GLB vertex in the mounted rest frame.
+local pressPad = Vector3.new(1.789506197, 2.649204015 - 2.132, .308000468)
 Poses.Impact = table.freeze({
 	jab = table.freeze({Vector3.new(-.409, .028, -1.819)}),
 	cross = table.freeze({Vector3.new(.546, .481, -2.058)}),
@@ -240,6 +258,7 @@ Poses.Impact = table.freeze({
 	heavy = table.freeze({Vector3.new(.510, .165, -2.224)}),
 	icecrestPalm = table.freeze({Vector3.new(0.432425851, 0.427610454, -2.052795646)}),
 	floeHook = table.freeze({Vector3.new(-0.183524557, -0.136406898, -1.601527903)}),
+	glacierPress = table.freeze({(pressContact.RootJoint * pressContact["Right Shoulder"]):PointToWorldSpace(pressPad)}),
 	bellySlide = table.freeze({slidingChest, slidingChest, slidingChest, Vector3.new(-.044, -1.296, -1.157)}),
 })
 
@@ -282,7 +301,7 @@ function Poses.sample(action, age, direction)
 			for name, previous in before[2] do
 				result[name] = previous:Lerp(after[2][name], weight)
 			end
-			if action == "icecrestPalm" or action == "floeHook" then
+			if action == "icecrestPalm" or action == "floeHook" or action == "glacierPress" then
 				local root = result.RootJoint
 				result["Right Hip"] = root:ToObjectSpace(plantedRight)
 				result["Left Hip"] = root:ToObjectSpace(plantedLeft)

@@ -12,6 +12,7 @@ local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
 local RankRules = require(script.Parent:WaitForChild("DuelRankRules"))
 local RankLedger = require(script.Parent:WaitForChild("DuelRankLedger"))
 local Presentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
+local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local studio = RunService:IsStudio()
 local rankStore = if studio then RankLedger.memoryStore()
     else DataStoreService:GetDataStore("BeastDojoDuelRatingsV1")
@@ -35,13 +36,14 @@ local actions = {strike = true, guard = true, heavy = true, uppercut = true, sec
     dodge = true, signature = true}
 local tells = {
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike",
-    uppercut = "Uppercut", reedSweep = "Reed Sweep", reedstep = "Reedstep Rising", bellySlide = "Belly-Slide Blitz",
-    icecrestPalm = "Icecrest Palm", floeHook = "Floe Hook",
-    ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
-    emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
-    canopyKnuckle = "Canopy Knuckle", ironbarkHammer = "Ironbark Hammer",
-    coalstepKick = "Coalstep Kick", furnaceBacklash = "Furnace Backlash",
+    reedstep = "Reedstep Rising", bellySlide = "Belly-Slide Blitz",
+    seismicChestPound = "Seismic Chest-Pound", magmaTrail = "Magma Trail",
 }
+for _, group in FighterTactics.ByKit do
+    for _, option in group.options do
+        tells[option.id] = option.name
+    end
+end
 local resultMessages = {
     win = "You won the duel.",
     loss = "Your opponent won the duel.",

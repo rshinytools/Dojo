@@ -39,8 +39,10 @@ local groundPulses = {
 }
 local moveContactTint = {
     reedSweep = Color3.fromRGB(187, 230, 143),
+    reedstoneHeel = Color3.fromRGB(237, 199, 111),
     icecrestPalm = Color3.fromRGB(166, 221, 253),
     floeHook = Color3.fromRGB(140, 239, 230),
+    glacierPress = Color3.fromRGB(136, 218, 255),
     canopyKnuckle = Color3.fromRGB(186, 227, 135),
     ironbarkHammer = Color3.fromRGB(246, 198, 114),
     coalstepKick = Color3.fromRGB(255, 171, 114),

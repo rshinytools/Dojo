@@ -122,6 +122,23 @@ local sweepWithdraw = groundedPose({.10, -.20, -.095, 6, 7, -5}, {57, 14, -17}, 
 local sweepSettle = groundedPose({.068, -.12, -.025, 6, 6, -4}, {50, 14, -17}, {57, -16, 17},
 	rearBoot, {3, 5, 0, -.012, 0, -.025, .025}, {-4, -5, 1}, {-13, -8})
 
+-- Reedstone Heel loads on the left boot. The right boot rises with the toe
+-- above its heel, then drives through the torso line before folding back.
+local heelLoad = groundedPose({-.115, -.18, .075, 6, 6, 9}, {50, 18, -21}, {67, -19, 23},
+	{19, -5, 7, .065, .035, .09, .16}, leadBoot, {-6, -5, -4}, {-13, 14})
+local heelLift = groundedPose({-.18, -.13, .055, 0, -8, 13}, {42, 12, -28}, {68, -22, 22},
+	{51, -16, 13, .13, .06, .08, .54}, leadBoot, {-3, 7, -7}, {-14, 25})
+local heelChamber = groundedPose({-.19, -.10, .085, -5, -11, 15}, {30, 8, -28}, {71, -20, 21},
+	{81, -19, 6, .10, .065, .09, .94}, leadBoot, {0, 9, -8}, {-15, 27})
+local heelStrike = groundedPose({-.155, -.02, -.43, -10, 6, 10}, {34, 9, -36}, {62, -21, 24},
+	{134, -6, -9, -.025, .06, -.34, 1.93}, leadBoot, {5, -5, -6}, {-12, -14})
+local heelFollow = groundedPose({-.145, -.07, -.14, -8, 9, 10}, {39, 10, -33}, {63, -20, 25},
+	{125, -5, -6, -.035, .04, -.12, 1.66}, leadBoot, {2, -7, -6}, {-14, -12})
+local heelRetract = groundedPose({-.16, -.17, .02, 3, -1, 11}, {48, 12, -22}, {62, -18, 21},
+	{58, -11, 6, .095, .07, .08, .58}, leadBoot, {-4, 1, -6}, {-13, 14})
+local heelSettle = groundedPose({-.065, -.10, .012, 5, 5, 5}, {47, 12, -18}, {61, -16, 18},
+	{9, -5, 0, 0, 0, 0, .025}, leadBoot, {-5, -4, -2}, {-8, -9})
+
 local uppercutLoad = pose({0.06, -0.18, 0.055, 9, -13, -4}, {27, 7, -11, 0, 0.07}, {65, -20, 22}, {10, -7}, {-7, 12, 3}, {-7, 12})
 local uppercutDrive = pose({0.07, -0.10, -0.10, 7, 8, -3}, {68, 13, -17, 0.015, -0.14}, {64, -20, 22}, {10, -7}, {-5, -7, 2}, {-3, -9})
 local uppercutContact = pose({0.035, 0.01, -0.34, -4, 20, -3}, {119, 14, -21, 0.12, -0.29}, {65, -22, 22}, {11, -5}, {1, -17, 3}, {3, -17})
@@ -174,6 +191,7 @@ local winHold = pose({0.035, 0.045, 0.025, -4, 9, -2}, {108, 10, -15, 0.025}, {5
 local uppercutContactAt = 0.285
 local kickContactAt = .30
 local sweepContactAt = .35
+local heelContactAt = .48
 local shuffleDuration = .50
 local shuffleStride = 1.40
 local groundedClips = {
@@ -206,6 +224,8 @@ end
 local sweepReady = plantStandingBoots(table.clone(ready))
 groundedClips.reedSweep = {{0, sweepReady}, {.120, sweepLoad}, {.225, sweepChamber}, {sweepContactAt, sweepContact},
 	{.455, sweepWithdraw}, {.600, sweepSettle}, {.740, sweepReady}}
+groundedClips.reedstoneHeel = {{0, sweepReady}, {.125, heelLoad}, {.265, heelLift}, {.365, heelChamber},
+	{heelContactAt, heelStrike}, {.55, heelFollow}, {.675, heelRetract}, {.825, heelSettle}, {.96, sweepReady}}
 local floorClips = groundedRig.finish(groundedClips, {}, {}, {}, {}, {"shuffle"})
 
 local function placeBoot(offsets, joint, position)
@@ -271,6 +291,7 @@ local planted = {
 	salute = true, intro = true, win = true,
 }
 local durations = {body = floorClips.Duration.body, reedSweep = floorClips.Duration.reedSweep,
+	reedstoneHeel = floorClips.Duration.reedstoneHeel,
 	strafeLeft = shuffleDuration, strafeRight = shuffleDuration}
 for action, frames in pairs(clips) do
 	durations[action] = frames[#frames][1]
@@ -283,6 +304,7 @@ Poses.Contact = table.freeze({
 	cross = 0.23,
 	body = kickContactAt,
 	reedSweep = sweepContactAt,
+	reedstoneHeel = heelContactAt,
 	uppercut = uppercutContactAt,
 	heavy = 0.42,
 	reedstep = table.freeze({0.23, 0.42, 0.67}),
@@ -296,11 +318,16 @@ local bootContact = rightHipPivot + artOrigin - mountedOrigin + Poses.BodyKickBo
 -- Outer toe vertex on the fitted left boot, relative to its hip pivot.
 local sweepBootPad = Vector3.new(-.2036, -1.373, -.719)
 local sweepPoint = leftHipPivot + artOrigin - mountedOrigin + sweepBootPad
+-- Rear outsole vertex on the fitted right boot, relative to its hip pivot.
+local heelBootPad = Vector3.new(.181279540, -1.394000053, .308999985)
+local heelPoint = rightHipPivot + artOrigin - mountedOrigin + heelBootPad
+local heelSupport = sweepReady.RootJoint * sweepReady[joints.leftLeg]
 local sweepSupport = sweepReady.RootJoint * sweepReady[joints.rightLeg]
 Poses.Impact = table.freeze({
 	jab = table.freeze({Vector3.new(0.264, 0.595, -1.828)}),
 	cross = table.freeze({Vector3.new(-0.196, 0.361, -1.925)}),
 	body = table.freeze({(kickContact.RootJoint * kickContact[joints.rightLeg]):PointToWorldSpace(bootContact)}),
+	reedstoneHeel = table.freeze({(heelStrike.RootJoint * heelStrike[joints.rightLeg]):PointToWorldSpace(heelPoint)}),
 	reedSweep = table.freeze({(sweepContact.RootJoint * sweepContact[joints.leftLeg]):PointToWorldSpace(sweepPoint)}),
 	uppercut = table.freeze({Vector3.new(0.432, 0.861, -1.896)}),
 	heavy = table.freeze({Vector3.new(-0.081, 0.323, -2.064)}),
@@ -316,6 +343,10 @@ function Poses.sample(action, ageSeconds)
 		local offsets = floorClips.sample(action, ageSeconds)
 		-- Hold the full support leg frame while the torso turns over it.
 		offsets[joints.rightLeg] = offsets.RootJoint:ToObjectSpace(sweepSupport)
+		return offsets
+	elseif action == "reedstoneHeel" then
+		local offsets = floorClips.sample(action, ageSeconds)
+		offsets[joints.leftLeg] = offsets.RootJoint:ToObjectSpace(heelSupport)
 		return offsets
 	elseif action == "strafeLeft" or action == "strafeRight" then
 		return sampleShuffle(ageSeconds, if action == "strafeLeft" then -1 else 1)

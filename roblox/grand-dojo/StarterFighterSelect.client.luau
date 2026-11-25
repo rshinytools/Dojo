@@ -217,9 +217,21 @@ local story = detail("Story", 14, colors.text)
 local techniques = detail("TechniquesHeading", 14, colors.gold, Enum.Font.GothamBold)
 techniques.Text = "Technique preview"
 local moves = {}
+local tacticalPowerIndexes = {}
 local maxTechniques = 0
 for _, id in roster.Order do
-    maxTechniques = math.max(maxTechniques, #roster.ById[id].powers)
+    local powers = roster.ById[id].powers
+    local group = fighterTactics.ByFighter[id]
+    local default = group and fighterTactics.get(id, group.default)
+    if default then
+        for index, move in powers do
+            if move.name == default.name then
+                tacticalPowerIndexes[id] = index
+                break
+            end
+        end
+    end
+    maxTechniques = math.max(maxTechniques, #powers + (if group and not tacticalPowerIndexes[id] then 1 else 0))
 end
 for index = 1, maxTechniques do
     moves[index] = {
@@ -536,16 +548,18 @@ end
 local function updateMoveDescriptions(info)
     local group = fighterTactics.ByFighter[selectedId]
     local current = group and fighterTactics.get(selectedId, requestedTactical or savedTactical())
-    local default = group and fighterTactics.get(selectedId, group.default)
+    local hasDescription = current and type(current.description) == "string" and current.description ~= ""
+    local catalogIndex = tacticalPowerIndexes[selectedId]
+    local extraRow = hasDescription and not catalogIndex
     for index, row in moves do
-        local move = info.powers[index]
-        row.name.Visible, row.effect.Visible = move ~= nil, move ~= nil
-        if move then
-            if current and current.description and move.name == default.name then
-                row.name.Text, row.effect.Text = current.name, current.description
-            else
-                row.name.Text, row.effect.Text = move.name, move.effect
-            end
+        local selectedTechnique = hasDescription and index == (catalogIndex or 1)
+        local move = info.powers[if extraRow then index - 1 else index]
+        local visible = selectedTechnique or move ~= nil
+        row.name.Visible, row.effect.Visible = visible, visible
+        if selectedTechnique then
+            row.name.Text, row.effect.Text = current.name, current.description
+        elseif move then
+            row.name.Text, row.effect.Text = move.name, move.effect
         end
     end
 end
@@ -619,19 +633,27 @@ local function revealSelection()
         return
     end
     local card = cardById[selectedId]
-    local height = rosterBar.Size.Y.Offset
-    if not card or height <= 0 then
+    local horizontal = rosterBar.ScrollingDirection == Enum.ScrollingDirection.X
+    local window = if horizontal then rosterBar.Size.X.Offset else rosterBar.Size.Y.Offset
+    if not card or window <= 0 then
         return
     end
-    local first = card.control.Position.Y.Offset
-    local last = first + card.control.Size.Y.Offset
-    local range = math.max(0, rosterBar.CanvasSize.Y.Offset - height)
-    local offset = math.clamp(rosterBar.CanvasPosition.Y, last - height, first)
-    rosterBar.CanvasPosition = Vector2.new(0, math.clamp(offset, 0, range))
+    local control = card.control
+    local first = if horizontal then control.Position.X.Offset else control.Position.Y.Offset
+    local last = first + (if horizontal then control.Size.X.Offset else control.Size.Y.Offset)
+    local canvas = if horizontal then rosterBar.CanvasSize.X.Offset else rosterBar.CanvasSize.Y.Offset
+    local current = if horizontal then rosterBar.CanvasPosition.X else rosterBar.CanvasPosition.Y
+    local offset = math.clamp(current, math.min(first, last - window), first)
+    local nextPosition = math.clamp(offset, 0, math.max(0, canvas - window))
+    rosterBar.CanvasPosition = if horizontal then Vector2.new(nextPosition, 0) else Vector2.new(0, nextPosition)
 end
 
 local function showFighter(id)
-    if id == selectedId or (selectedId and (inFlight or player:GetAttribute("StarterSelectionPending") == true)) then
+    if id == selectedId then
+        revealSelection()
+        return
+    end
+    if selectedId and (inFlight or player:GetAttribute("StarterSelectionPending") == true) then
         return
     end
     local info = roster.ById[id]
@@ -766,8 +788,11 @@ layout = function()
     local order = selectionOrder()
     local cardHeight = if compact then 44 else 49
     local cardGap = gap
+    local horizontal = compact and switching and not tall
     local columns = if tall then 2 else 4
-    if switching then
+    if horizontal then
+        columns, cardGap = #order, 6
+    elseif switching then
         local count = #order
         local denseGap = if compact then 4 else 6
         local fullGap = if compact then 2 else 6
@@ -790,14 +815,16 @@ layout = function()
     local rosterRoom = footerY - rosterY - reserve - minimumBody - gap * 2
     local fittedRows = math.max(1, math.floor((rosterRoom + cardGap) / (cardHeight + cardGap)))
     local rows = math.ceil(#order / columns)
-    local maximumRosterRows = if compact and switching and not tall then 1 elseif tall and not compact then 3 else 2
+    local maximumRosterRows = if tall and not compact then 3 else 2
     local visibleRows = math.min(rows, fittedRows, maximumRosterRows)
-    local rosterHeight = visibleRows * (cardHeight + cardGap) - cardGap
-    local scrollRoster = rows > visibleRows
-    local scrollbarWidth = if scrollRoster then 7 else 0
-    local slot = (contentWidth - scrollbarWidth - (columns - 1) * cardGap) / columns
+    local rosterHeight = if horizontal then cardHeight + 4 else visibleRows * (cardHeight + cardGap) - cardGap
+    local scrollRoster = horizontal or rows > visibleRows
+    local scrollbarWidth = if scrollRoster and not horizontal then 7 else 0
+    local slot = if horizontal then 96 else (contentWidth - scrollbarWidth - (columns - 1) * cardGap) / columns
     rosterBar.Position, rosterBar.Size = UDim2.fromOffset(pad, rosterY), UDim2.fromOffset(contentWidth, rosterHeight)
-    rosterBar.CanvasSize = UDim2.fromOffset(0, rows * (cardHeight + cardGap) - cardGap)
+    rosterBar.ScrollingDirection = if horizontal then Enum.ScrollingDirection.X else Enum.ScrollingDirection.Y
+    rosterBar.CanvasSize = if horizontal then UDim2.fromOffset(#order * (slot + cardGap) - cardGap, cardHeight)
+        else UDim2.fromOffset(0, rows * (cardHeight + cardGap) - cardGap)
     rosterBar.ScrollingEnabled = scrollRoster
     rosterBar.ScrollBarThickness = if scrollRoster then 4 else 0
     if not scrollRoster then
@@ -810,9 +837,9 @@ layout = function()
         control.Position = UDim2.fromOffset(column * (slot + cardGap), row * (cardHeight + cardGap))
         control.Size = UDim2.fromOffset(slot, cardHeight)
         local nameLabel = card.name or control
-        nameLabel.TextSize = if slot < 60 then 10 elseif slot < 75 then 11 elseif slot < 84 then 12
+        nameLabel.TextSize = if horizontal then 13 elseif slot < 60 then 10 elseif slot < 75 then 11 elseif slot < 84 then 12
             elseif slot < 108 then 14 else 16
-        nameLabel.TextWrapped = slot < 84
+        nameLabel.TextWrapped = not horizontal and slot < 84
         control.NextSelectionLeft = if column > 0 then cardById[order[index - 1]].control else control
         control.NextSelectionRight = if column < columns - 1 and order[index + 1]
             then cardById[order[index + 1]].control else control

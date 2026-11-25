@@ -32,6 +32,8 @@ Round.CLIPS = {
     body = {{at = Reedguard.Contact.body, damage = 15, zone = "body", foot = true, radius = .52}},
     uppercut = {{at = Reedguard.Contact.uppercut, damage = 16, zone = "head"}},
     reedSweep = {{at = Reedguard.Contact.reedSweep, damage = 13, zone = "body", foot = true, radius = .50}},
+    reedstoneHeel = {{at = Reedguard.Contact.reedstoneHeel, damage = 20, zone = "body", foot = true, radius = .48,
+        poseHold = .04}},
     heavy = {{at = Reedguard.Contact.heavy, damage = 22, zone = "body"}},
     reedstep = {
         {at = Reedguard.Contact.reedstep[1], damage = 9, zone = "body"},
@@ -47,6 +49,7 @@ local penguinClips = {
     heavy = {{at = Penguin.Contact.heavy, damage = 20, zone = "body"}},
     icecrestPalm = {{at = Penguin.Contact.icecrestPalm, damage = 17, zone = "body", radius = .47}},
     floeHook = {{at = Penguin.Contact.floeHook, damage = 13, zone = "body", radius = .47}},
+    glacierPress = {{at = Penguin.Contact.glacierPress, damage = 21, zone = "body", radius = .60, poseHold = .04}},
     bellySlide = {},
 }
 for _, time in Penguin.Contact.bellySlide do
@@ -224,6 +227,7 @@ local function newCombatant(now, fighter, kitId, timing, tactical)
     return {
         kit = kit,
         tactical = option and option.id,
+        tacticalAction = option and option.action,
         introAt = now, startsAt = startsAt, endsAt = startsAt + (timing and timing.duration or Round.DURATION),
         playerHealth = fighter.health, playerMaxHealth = fighter.health,
         playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
@@ -338,8 +342,7 @@ function Round.act(round, action, now, direction)
         return
     end
     local kit = round.kit
-    local secondary = kit.secondaryCooldown and (round.tactical or kit.secondary)
-    local reedSweep = action == "secondary" and round.tactical == "reedSweep"
+    local secondary = if round.tacticalAction == "secondary" then round.tactical else kit.secondary
     if now < (round.rootedUntil or 0) then
         local attempted = if action == "secondary" then secondary
             elseif action == "signature" then kit.signature elseif action == "dodge" then kit.dodge else nil
@@ -365,21 +368,21 @@ function Round.act(round, action, now, direction)
         round.guardFrom, round.guardUntil = now, now + Round.GUARD_DURATION
         play(round, "guard", now)
         return "guard"
-    elseif action == "heavy" or reedSweep or (action == "uppercut" and round.tactical == "uppercut") then
-        local move = if reedSweep then "reedSweep" else action
+    elseif action == "heavy" or (action == "uppercut" and round.tacticalAction == "uppercut") then
         round.guardUntil = 0
-        play(round, move, now)
-        return move
+        play(round, action, now)
+        return action
     elseif action == "dodge" and now >= round.nextDodge then
         round.nextDodge, round.guardUntil = now + kit.dodgeCooldown, 0
         play(round, kit.dodge, now)
         round.clip.direction = if direction == -1 then -1 else 1
         return kit.dodgeCue
     elseif action == "secondary" and secondary then
-        if now < round.nextSecondary then
+        if kit.secondaryCooldown and now < round.nextSecondary then
             return kit.secondaryCooling
         end
-        round.nextSecondary, round.guardUntil = now + kit.secondaryCooldown, 0
+        round.nextSecondary = if kit.secondaryCooldown then now + kit.secondaryCooldown else nil
+        round.guardUntil = 0
         play(round, secondary, now)
         round.clip.direction = if direction == -1 then -1 else 1
         return secondary
@@ -467,8 +470,8 @@ local groundedSignature = {
 
 local function contactPresentation(kit, clip, move, index, fields)
     local attack = clip.action
-    if attack == "body" and not clip.tagEntry then
-        fields.poseHold = .04
+    if (attack == "body" or move.poseHold) and not clip.tagEntry then
+        fields.poseHold = move.poseHold or .04
         fields.holdKick = move.foot or kit == kits.rooster
     elseif attack == kit.signature and not move.controlOnly
         and (not signatureBeat[attack] or signatureBeat[attack] == index)

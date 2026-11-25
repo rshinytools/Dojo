@@ -3,15 +3,23 @@ local byFighter = {
     ["reedguard-kangaroo"] = {
         kit = "reedguard", attribute = "ReedguardTactical", default = "uppercut",
         options = {
-            {id = "uppercut", name = "Uppercut", compact = "Uppercut", level = 1, action = "uppercut"},
-            {id = "reedSweep", name = "Reed Sweep", compact = "Sweep", level = 5, action = "secondary", planted = true},
+            {id = "uppercut", name = "Uppercut", compact = "Uppercut", level = 1, action = "uppercut",
+                description = "A quick rising punch that targets the head."},
+            {id = "reedSweep", name = "Reed Sweep", compact = "Sweep", level = 5, action = "secondary", planted = true,
+                description = "A low sweeping kick with extra reach."},
+            {id = "reedstoneHeel", name = "Reedstone Heel", compact = "Heel", level = 10, action = "secondary", planted = true,
+                description = "A slower, close-range heel strike with a high windup."},
         },
     },
     ["penguin-brawler"] = {
         kit = "penguin", attribute = "PenguinTactical", default = "icecrestPalm",
         options = {
-            {id = "icecrestPalm", name = "Icecrest Palm", compact = "Palm", level = 1, action = "secondary", planted = true},
-            {id = "floeHook", name = "Floe Hook", compact = "Hook", level = 5, action = "secondary", planted = true},
+            {id = "icecrestPalm", name = "Icecrest Palm", compact = "Palm", level = 1, action = "secondary", planted = true,
+                description = "A mid-range palm strike from a steady stance."},
+            {id = "floeHook", name = "Floe Hook", compact = "Hook", level = 5, action = "secondary", planted = true,
+                description = "A quick flipper hook for close openings."},
+            {id = "glacierPress", name = "Glacier Press", compact = "Press", level = 10, action = "secondary", planted = true,
+                description = "A slower two-flipper strike with a deep windup."},
         },
     },
     ["silverback-gorilla"] = {
