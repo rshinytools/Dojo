@@ -157,13 +157,13 @@ local function pruneQueue(now)
     end
 end
 
-local function publish(match, kind, now)
+local function publish(match, kind, now, departing)
     local round = match.round
     local nextShrink = nextDropAt(round, match.stage)
     local snapshot = CombatPresentation.snapshot(match)
     local recipients = {}
     for index, actor in match.actors do
-        if actor.returned or actor.player.Parent ~= Players then
+        if actor.returned or actor.player == departing or actor.player.Parent ~= Players then
             continue
         end
         local side = round.sides[index]
@@ -375,9 +375,9 @@ local function resolveContacts(match, now, beforeBoundary)
     return changed
 end
 
-local function collectExits(match, now, previousStage)
-    local exits = {}
+local function collectExits(match, now, previousStage, leaving)
     local round = match.round
+    local exits = if leaving and not round.result then {{index = leaving, reason = "left"}} else {}
     for index, actor in match.actors do
         if actor.returned then
             continue
@@ -406,7 +406,7 @@ local function collectExits(match, now, previousStage)
     return exits
 end
 
-local function advanceTimeline(match, now)
+local function advanceTimeline(match, now, leaving, departing)
     local round = match.round
     local deckChanged = false
     local dropAt = nextDropAt(round, match.stage)
@@ -417,21 +417,27 @@ local function advanceTimeline(match, now)
         match.outgoingFloorAt = nil
         if resolveContacts(match, dropAt, true) then
             Motion.render(match, dropAt, true)
-            publish(match, "update", dropAt)
+            publish(match, "update", dropAt, departing)
         end
         if round.result then
             break
         end
         local previousStage = match.stage
         syncDeck(match, dropAt)
-        Round.eliminateMany(round, collectExits(match, dropAt, previousStage), dropAt)
+        if leaving and dropAt == now then
+            -- An explicit exit and a deck loss observed at this instant share placements.
+            Round.eliminateMany(round, collectExits(match, now, nil, leaving), now)
+            leaving = nil
+        else
+            Round.eliminateMany(round, collectExits(match, dropAt, previousStage), dropAt)
+        end
         deckChanged = true
         dropAt = nextDropAt(round, match.stage)
     end
     if not round.result and syncDeck(match, now) then
         deckChanged = true
     end
-    local exits = collectExits(match, now)
+    local exits = collectExits(match, now, nil, leaving)
     local deferredCasts = {}
     Motion.move(match, now, deferredCasts)
     local earlierHit = false
@@ -440,7 +446,7 @@ local function advanceTimeline(match, now)
         -- Preserve contacts strictly before the first observed exit. At the tie, the exit wins.
         earlierHit = resolveContacts(match, now, true)
         if earlierHit and #exits > 0 and not round.result then
-            publish(match, "update", now)
+            publish(match, "update", now, departing)
         end
         Motion.clearCasts(deferredCasts)
         eliminated = Round.eliminateMany(round, exits, now)
@@ -453,16 +459,16 @@ local function leave(player, departing)
     unqueue(player, "You left the Brawl queue.")
     local match = active
     local index = match and match.sideFor[player]
-    if index then
+    if index and not match.actors[index].returned then
         local now = workspace:GetServerTimeNow()
-        if advanceTimeline(match, now) then
+        local before = match.round.result
+        local disconnected = if departing then player else nil
+        if advanceTimeline(match, now, index, disconnected) then
             Motion.render(match, now)
-            publish(match, "update", now)
+            publish(match, "update", now, disconnected)
         end
-        local result = match.round.result
-        if not result then
-            Round.eliminate(match.round, index, "left", now)
-        end
+        local round = match.round
+        local result = before or (round.resolvedAt and round.resolvedAt < now and round.result)
         sendResult(match, index, if result then result.outcomes[index] else "left", departing)
     end
 end

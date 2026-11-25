@@ -459,6 +459,9 @@ local function mount(encounter)
         if not index or id ~= match.id or match.actors[index].returned then
             return
         elseif action == "leave" then
+            if not match.round.result and Match.root(player) == match.actors[index].root then
+                advance(match, now)
+            end
             leave(player, now)
             return
         end

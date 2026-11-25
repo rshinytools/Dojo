@@ -175,13 +175,13 @@ local function score(duel, side, payload)
     return payload
 end
 
-local function publish(duel, kind, now)
+local function publish(duel, kind, now, departing)
     local round = duel.round
     local snapshot = Presentation.snapshot(duel)
     local recipients = {}
     for i, side in round.sides do
         local challenger, opponent = duel.actors[i], duel.actors[3 - i]
-        if challenger.player.Parent ~= Players then
+        if challenger.player == departing or challenger.player.Parent ~= Players then
             continue
         end
         table.insert(recipients, challenger.player.UserId)
@@ -409,7 +409,10 @@ local function forfeit(duel, index, reason, departing)
     local first, second = duel.actors[1], duel.actors[2]
     if not duel.round.result and Match.root(first.player) == first.root and Match.root(second.player) == second.root then
         -- Resolve earlier contacts from recorded positions before settling the exit.
-        resolve(duel, workspace:GetServerTimeNow(), true)
+        local now = workspace:GetServerTimeNow()
+        if resolve(duel, now, true) then
+            publish(duel, "update", now, departing)
+        end
     end
     if duel.series.result then
         stop(duel, duel.series.result, departing)

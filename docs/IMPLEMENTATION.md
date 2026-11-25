@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.348 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.349 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -192,6 +192,8 @@ The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite
 
 ## Grand Dojo Duel formats
 
+V0.349 sends a confirmed Duel hit to the fighters and nearby spectators before the recap when resolving a pending hit during an exit. The existing result or walkover still settles once.
+
 V0.345 passed a full two-client Studio Ranked Duel at about 233 ms round trip. Both fighters began each round at 156 HP. Both clients saw two knockouts and rendered the fallen fighter within 0.09 studs of the canvas. Jab landed for 20 at 180 ms and Heavy for 34 at 420 ms in both rounds. The 2–0 match awarded one +16 and −16 rating change. Reopening Ranked showed 1216 and 1184, and both players returned to the city. This used temporary Studio rating data. V0.345 passed a two-client unranked Best of 3. After the first grounded knockout, both fighters received a fresh combat profile, a three-second countdown and 100 HP. The second knockout settled the 2–0 result, and both players closed their recaps and regained city controls.
 
 V0.345 completed an exact two-client Studio Casual Duel between Reedguard and Level 5 Grizzly. Both saw Cinder Tap deal 13 at 166 ms and Furnace Gate deal 35 at 660 ms, with sampled motion from both views. The match also verified the ten-second intro, a block, a parry, the early Ultimate retry, and the grounded knockout and return for both players. Fighter XP was accelerated in Studio to equip Grizzly. Casual granted no XP or rank change. Published multiplayer remains open.
@@ -217,7 +219,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v348-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v349-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -229,6 +231,8 @@ Run `python3 -B tools/verify_cross_server_duel.py luau` from the repository root
 The exact v0.346 Tag run verified four player entries, the Grizzly reserve and its 41-damage Heavy. Cinder Tap was attempted after knockback pushed the defender outside its reach. An updated test approaches again before attempting the move. The v0.346 eight-client Brawl test lost its local connection before recording match evidence. Staggered startup is prepared for the rerun. Latest-build full Tag and Brawl replays remain open.
 
 ## Grand Dojo Tag Team
+
+V0.349 resolves Tag Team contacts and the regulation bell strictly before an observed exit when the relevant fighter roots are available. Exits take priority at exact contact ties. A Leave and an opposing character reset observed together are settled as one batch.
 
 V0.348 keeps recorded Tag Team win, loss and draw results if a player chooses Leave or resets their character during the knockout outro. Standalone Luau checked the archived server rules. Native replay remains open.
 
@@ -243,6 +247,8 @@ Four desktop Studio clients in the exact v0.327 build chose Penguin backups thro
 V0.330 binds Tag Team combat input to the current fighter entry. An action sent before a swap can no longer execute on the incoming fighter or spend their input allowance. Each entry gets a new identifier, including when the prior fighter returns. Exact Luau covered old techniques, the return to the original fighter, a transition during the server update, valid attacks, aim steering, leave and queue cancellation. Four desktop Studio clients verified a Reedguard-to-Penguin swap. The fixture delayed one outgoing Heavy until after the swap and confirmed that the server received it. All four clients recorded eight further updates with the defender still at 136 HP and no Heavy feedback or contact. Actual Penguin Heavy input then dealt 25 damage at 430 ms. The test staged the fighters near the queue and on the mat.
 
 ## Kilnback Custodian co-op raid
+
+V0.349 settles due raid strikes before an in-game Leave while the fighter root is still current. A qualifying clear triggers one completion event per eligible player. Roblox disconnect and published profile recovery remain separate checks.
 
 V0.345 cleared Kilnback in about 43 seconds with four local Studio players. All four used the normal Cinder Terraces gate and saw the 1,260-HP boss, Kiln Pulse warning and Phase 2. The party landed an exposed-core hit. Boss damage knocked down one fighter, and a teammate used the two-second revive to restore 35% HP. The teammate’s rendered view showed the fallen fighter at the floor, intermediate rise poses and an upright recovery. Each player received a single saved grant of 20 Raid Tokens, 2 Mythic Shards and Kiln Keeper. All four closed their recaps and regained the city camera. This used isolated Studio profiles.
 
@@ -275,6 +281,8 @@ Desktop Studio used one client and three fitted stand-ins. The fixture set Pengu
 When published, the place is configured to rotate Kilnback Custodian, Abyssal Kraken and Solar Phoenix on UTC-aligned 20-minute bells. Each bell opens one entrance for two minutes. All three entrances open immediately in Studio. Every eligible clear saves 20 Raid Tokens and 2 Mythic Capsule shards, once per event window. A fighter qualifies with at least 48 boss damage or a completed revive. The boss’s first-clear trophy and shared currency balance use the same profile write. Studio assigns a distinct receipt window to each test run. Exact-source checks verified that the previous checkpoint can reopen a profile after a Phoenix grant and preserve its balances and awards.
 
 ## Grand Dojo Brawl
+
+V0.349 applies the same contact timing to Brawl Leave and character reset. A Leave observed with the same deck loss shares the placement batch. Earlier confirmed contacts and placements remain authoritative.
 
 V0.311 grounds surviving Brawl fighters for the outro. A fighter off the edge or carrying a lift is set at the fitted standing height within the remaining deck. The two-stud inset for repositioned fighters covers the fitted sole reach measured across all 24 fighters’ standing and win poses. Grounded fighters keep their positions. The outro clears any previous knockback and lift. The knockout pose remains on the defeated fighter. In desktop Studio, a staged Ridge Palm decided the match 107 ms before the champion was observed off the mat. V0.310 awarded the win and held the fighter outside the deck. V0.311 displayed the victory pose on the canvas, with the earlier hit and first-place recap intact. Exact checks exercised the placement rule at all four deck sizes.
 
@@ -387,6 +395,8 @@ Studio ran Reedguard against Juniper through a knockout and the 60 XP recap on d
 V0.284 routes server-confirmed light and heavy strikes, guard and parry to a distance-limited spatial mixer. Boss hazard steps emit once at their authored position, including a room-wide dodge and Phoenix touchdown. Hit visuals stay separate from the hazard sound. Guards and parries keep their own cues. All four modes and Bot Spar route the local three-count and lower start bell. Nearby playback briefly dips the existing music by up to 17% and the playlist keeps playing. The six original WAVs are ready in the repository. Their Roblox upload, moderation, and experience access remain open. The Studio release map keeps a cue silent until it has a usable ID. A desktop Studio Reedguard–Juniper win used temporary sounds bundled with Studio to verify one start bell, two parries, two guard-family cues and confirmed strikes. The music dipped from 0.55 to 0.4565 and returned to its normal level. A separate direct playback probe measured positive engine output for all six cue families. Galaxy A06 landscape simulation measured the four-spatial-voice limit during a six-impact burst. [Source audio and import details](../roblox/grand-dojo/art/combat-audio/README.md)
 
 ## Starter kits across all four rings
+
+V0.349 restores controller focus to Start or Retry when switching from touch or keyboard while a Bot Spar panel is open. Close remains available while XP is saving and after an offer expires. Standalone Luau exercised these input transitions. Physical controller play remains open.
 
 Each unlocked ring supports any of the four starter fighters. Reedguard keeps Uppercut and Reedstep Rising, Penguin keeps Floe Turn and Belly-Slide Blitz, Silverback keeps Ridge Palm and Seismic Chest-Pound, and Fire Salamander keeps Ember Sweep and Magma Trail. The resident keeps their own attacks and warns with their own cues. Account ring access survives a fighter change, and each fighter keeps a separate XP track.
 

@@ -1725,6 +1725,7 @@ local resultActions = make("Frame", sparResult, {
 local retryButton = button(resultActions, "Retry", true)
 local exitButton = button(resultActions, "Close", false)
 exitButton.Position = UDim2.new(.5, 4, 0, 0)
+retryButton.NextSelectionRight, exitButton.NextSelectionLeft = exitButton, retryButton
 
 local outcomes = {
     win = "You won", draw = "Draw", left = "Spar ended", outside = "You stepped off the mat",
@@ -2191,6 +2192,25 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     end
 end
 
+function duelUi.focusSparModal()
+    if UserInputService.PreferredInput ~= Enum.PreferredInput.Gamepad then
+        return
+    end
+    local selected = GuiService.SelectedObject
+    if sparPicker.Visible then
+        local canStart = botStart.Visible and botStart.Active
+        if selected ~= pickerClose and (selected ~= botStart or not canStart) then
+            GuiService.SelectedObject = if canStart then botStart else pickerClose
+        end
+    elseif sparResult.Visible and not duelUi.crossResult then
+        local canRetry = retryButton.Visible and retryButton.Active
+        if selected ~= exitButton and (selected ~= retryButton or not canRetry) then
+            GuiService.SelectedObject = if canRetry then retryButton else exitButton
+        end
+    end
+end
+UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(duelUi.focusSparModal)
+
 local function showMatchResult(result, opponent, detail, showRetry, ratingMatchId)
     matchPresentation.windup.clear()
     fightIntro:Stop()
@@ -2211,12 +2231,15 @@ local function showMatchResult(result, opponent, detail, showRetry, ratingMatchI
     duelUi.resultLimit.MaxSize = Vector2.new(416, resultHeight)
     retryButton.Visible = showRetry
     retryButton.Active = showRetry and not resultAwaitingReward
+    retryButton.Selectable = duelUi.crossResult or retryButton.Active
     retryButton.Text = if resultAwaitingReward then "Saving XP…" else "Retry"
     sparResult.Visible = true
     ProximityPromptService.Enabled = false
     layout()
-    if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
+    if duelUi.crossResult and UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
         GuiService.SelectedObject = if showRetry then retryButton else exitButton
+    else
+        duelUi.focusSparModal()
     end
 end
 
@@ -2278,14 +2301,13 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
         sparPicker.Visible = true
         ProximityPromptService.Enabled = false
         layout()
-        if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
-            GuiService.SelectedObject = if startsAt then botStart else pickerClose
-        end
+        duelUi.focusSparModal()
         task.delay(math.max(0, b - workspace:GetServerTimeNow()), function()
             if offerEndsAt == b and sparPicker.Visible then
                 offerEndsAt = nil
                 botStart.Visible = false
                 pickerStatus.Text = "Use the local Bot Spar sign to reopen."
+                duelUi.focusSparModal()
             end
         end)
         return
@@ -2303,7 +2325,9 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
             if kind == "reward" then
                 resultAwaitingReward = false
                 retryButton.Active = retryButton.Visible
+                retryButton.Selectable = retryButton.Active
                 retryButton.Text = "Retry"
+                duelUi.focusSparModal()
             end
         else
             flash(message)

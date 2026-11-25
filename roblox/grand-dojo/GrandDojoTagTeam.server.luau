@@ -124,7 +124,7 @@ local function pruneQueue(now)
     end
 end
 
-local function publish(match, event, now)
+local function publish(match, event, now, departing)
     local round = match.round
     local snapshot = CombatPresentation.snapshot(match)
     local recipients = {}
@@ -143,7 +143,7 @@ local function publish(match, event, now)
     end
     for index, actor in match.actors do
         local player = actor.player
-        if not actor.returned and player.Parent == Players then
+        if not actor.returned and player ~= departing and player.Parent == Players then
             local seat, side = round.lineup[index], round.sides[index]
             Match.syncStormAim(player, if not round.result and not side.eliminated then side else nil)
             remote:FireClient(player, event, {matchId = match.id, introAt = round.introAt, startsAt = round.startsAt,
@@ -345,11 +345,10 @@ local function stop(match)
     active = nil
 end
 
-local function advance(match, now)
-    Motion.move(match, now)
+local function resolveContacts(match, now, beforeExit)
     Round.step(match.round, now, function(attacker, action, move, at, index, castAt)
         return Motion.strikeGroup(match, attacker, action, move, at, index, castAt)
-    end)
+    end, beforeExit)
     local changed = #match.round.notices > 0
     local floorCueAt = {}
     for _, event in match.round.notices do
@@ -408,14 +407,46 @@ local function advance(match, now)
     return changed
 end
 
+local function advance(match, now, beforeExit)
+    Motion.move(match, now)
+    return resolveContacts(match, now, beforeExit)
+end
+
+local function combatRootChanged(match, index, actor)
+    return not actor.returned and not match.round.lineup[index].out and Match.root(actor.player) ~= actor.root
+end
+
+local function hasCombatRoots(match)
+    for index, actor in match.actors do
+        if combatRootChanged(match, index, actor) then
+            return false
+        end
+    end
+    return true
+end
+
 local function leave(player, departing)
     clearQueue(player, "You left the Tag Team queue.")
     local match = active
     local index = match and match.sideFor[player]
     if index and not match.actors[index].returned then
+        local now = workspace:GetServerTimeNow()
+        local exits = {{index = index, reason = "left"}}
+        for other, actor in match.actors do
+            if other ~= index and combatRootChanged(match, other, actor) then
+                table.insert(exits, {index = other, reason = "left"})
+            end
+        end
+        if not match.round.result and #exits == 1 and not combatRootChanged(match, index, match.actors[index])
+            and resolveContacts(match, now, true) then
+            publish(match, "update", now, if departing then player else nil)
+        end
         local outcome = match.round.result
-        Round.eliminateMany(match.round, {{index = index, reason = "left"}}, workspace:GetServerTimeNow())
-        finishPlayer(match, index, if outcome then outcome.outcomes[index] else "left", departing)
+        Round.eliminateMany(match.round, exits, now)
+        for _, exit in exits do
+            finishPlayer(match, exit.index, if outcome then outcome.outcomes[exit.index] else "left",
+                departing and exit.index == index)
+        end
     end
 end
 
@@ -580,12 +611,16 @@ RunService.Heartbeat:Connect(function()
     if not match then
         return
     end
-    if advance(match, now) then
+    local beforeExit = not match.round.result and not hasCombatRoots(match)
+    if advance(match, now, beforeExit) then
         -- A late frame can resolve a hit and cross the forced entry or outro time.
         Motion.render(match, now)
         publish(match, "update", now)
     end
     local transitioned = settleSeats(match, now)
+    if beforeExit and resolveContacts(match, now) then
+        transitioned = true
+    end
     if match.round.result and now >= match.round.outroAt then
         stop(match)
         return

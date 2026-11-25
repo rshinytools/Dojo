@@ -168,8 +168,8 @@ local function timeout(round)
     finish(round, round.endsAt, winner, "timeout")
 end
 
-function Tag.step(round, now, check)
-    Group.step(round, now, check, Tag.eliminateMany, timeout)
+function Tag.step(round, now, check, beforeExit)
+    Group.step(round, now, check, Tag.eliminateMany, timeout, beforeExit)
 end
 
 Tag.act, Tag.threat = Group.act, Group.threat
