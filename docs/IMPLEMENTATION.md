@@ -207,7 +207,7 @@ The Reedguard face icon and existing cover art are in `roblox/grand-dojo/art/exp
 
 ### Experience detail page photos
 
-Gallery exports are stored in `roblox/grand-dojo/art/experience-media/gallery/`. The public carousel showed the new Roblox screenshots on November 25, 2026. Creator Hub has the original cover, seven distinct gameplay stills and two duplicate rows from delayed upload responses. Keep one Tideharbor and one Cloudbreak photo. Roblox requires confirmation before permanently deleting the extra rows. The 1920×1080 lineup of all four playable starters is ready to upload after the two copies are cleared. The target is nine images and the 55-second trailer, within Roblox’s ten-item limit. [Roblox thumbnail guidance](https://create.roblox.com/docs/production/publishing/thumbnails)
+Gallery exports are stored in `roblox/grand-dojo/art/experience-media/gallery/`. On November 25, 2026, Creator Hub showed nine distinct images after the extra Tideharbor upload was removed and the starter lineup was uploaded. The gallery includes the original illustrated cover, seven gameplay captures, and a labeled 1920×1080 render of Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The refreshed public experience page displayed the lineup. The 55-second trailer remains under Roblox review and has one of the ten media slots reserved. [Roblox thumbnail guidance](https://create.roblox.com/docs/production/publishing/thumbnails)
 
 ### Game description verified on the public listing
 
