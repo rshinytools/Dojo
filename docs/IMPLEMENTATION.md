@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.304 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.305 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -10,6 +10,8 @@ The v0.304 Studio checkpoint is the starting point for new work. This repository
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
 
 ## Reedguard footing
+
+V0.305 levels local Reedguard’s boots after he stands still on flat city surfaces. His torso keeps the idle motion. The foot adjustment releases for walking, jumping and combat, and the two contact shadows sit above the plaza sandstone. The shared tail is 1.12 studs long, about 9% shorter, with the same joint and thickness in all three forms. Desktop Studio and Galaxy A06 landscape simulation checked toe, center and heel separately at the spawn. The same desktop check followed a keyboard walk and stop on the promenade. Sloped footing and physical hardware remain open.
 
 V0.302 shortens the tail from 1.38 to 1.24 studs and preserves its thickness and attachment. The change carries through Rookie, Warrior and Grandmaster. The two contact shadows are easier to read when Reedguard stands in the plaza or holds his pose at a match intro. Duel, Tag Team and Brawl now place fighters at the same fitted standing height used for Bot Spar. Desktop Studio sampled the boots at Festival Plaza spawn and on the promenade. A two-client Casual Duel measured the soles within 0.04 studs of the canvas during the intro and registered two jabs and a parry. Studio checked all fourteen multiplayer entry markers and Reedguard’s Bot Spar intro, idle and guard. Live Roblox and physical-device checks remain open.
 
@@ -42,6 +44,8 @@ Brawl displays Element edge and Element resisted. The v0.301 Galaxy A06 Studio t
 ### Confirmed multiplayer combat feedback
 
 In v0.303, Duel, Tag Team and Brawl now package server-confirmed HP and impacts together. Clients apply health first and reject stale, duplicate or closed match updates. Spectators receive a separate relay. Match clients keep receiving nearby impacts after their local HUD closes, including after respawn. Tag Team publishes the outgoing fighter’s hit before the backup takes over. Two local Studio clients joined Casual Duel through the normal prompt. Two jabs dealt 13 damage at 180 ms from cast, and a heavy was parried for zero at 420 ms. Effect instances were created 5–36 ms after server contact. The sampled health text and impact differed by 1–34 ms on the jabs. The nearest defender pose match was 67–110 ms after contact. This sample tracks a later reference pose. Flinch onset still needs its own timing measurement. Four managed Studio clients joined Tag Team through the normal sign, selected Penguin as backup, and saw the same 20-damage jab and updated health. A manual tag replaced Reedguard with Penguin and updated all four roster HUDs. Two voluntary exits ended the match and all four clients displayed a recap and returned to the city. A Galaxy A06 Brawl simulation used one player and seven stand-ins. Three Ridge Palm contacts each delivered one packet and one visible contact effect. The HUD retained the advantage, resistance and floor-drop warnings, then displayed the result. Original audio asset playback, network delay and real hardware remain open.
+
+A second four-client Tag Team test in v0.304 ran through the full 90-second clock. All four Studio players joined through the normal sign, selected Penguin as their backup, saw the same 20-damage jab and observed the manual swap. The bell awarded the result on remaining fighter health. Both teammates saw the same result and all four returned to the city. Published play and real-device inputs remain open.
 
 ### Brawl floor transitions
 
