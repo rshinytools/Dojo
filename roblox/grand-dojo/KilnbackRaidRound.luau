@@ -1,5 +1,5 @@
 -- The encounter clock shares the fighters' authored contact frames. The
--- caller provides historical hit geometry and live revive eligibility.
+-- caller provides historical hit geometry and revive eligibility at each timestamp.
 local Spar = require(script.Parent.ReedguardRound)
 local Magma = require(script.Parent.MagmaFighterCombat)
 local Storm = require(script.Parent.StormFighterCombat)
@@ -7,7 +7,7 @@ local Fighter = Spar.Combatant
 
 local Raid = {
     SIZE = 4, INTRO = Spar.INTRO, DURATION = 105, OUTRO = Spar.OUTRO,
-    BOSS_HEALTH = 1260, REVIVE_TIME = 2, REVIVE_FRACTION = .35,
+    BOSS_HEALTH = 1260, REVIVE_TIME = 2, REVIVE_FRACTION = .35, REVIVE_RECOVERY = .30,
 }
 
 local bosses = {
@@ -440,7 +440,7 @@ local function completeRevives(round, at)
             round.revives[reviver] = nil
             target.playerHealth = math.max(1, math.round(target.playerMaxHealth * Raid.REVIVE_FRACTION))
             target.downed, target.eliminated, target.eliminationReason, target.eliminatedAt = false, false, nil, nil
-            target.reviveUsed, target.playerStunUntil = true, at + .30
+            target.reviveUsed, target.playerStunUntil = true, at + Raid.REVIVE_RECOVERY
             round.sides[reviver].contribution.revives += 1
             report(round, {source = "team", kind = "revived", attacker = reviver, defender = channel.target,
                 at = at, health = target.playerHealth})
@@ -453,8 +453,6 @@ function Raid.step(round, now, checkPlayer, checkBoss, chooseTarget, checkRevive
         return
     end
     local limit = math.min(now, round.endsAt)
-    -- Continuity is checked on every live tick, including ticks without impacts.
-    validateRevives(round, limit, checkRevive)
     while not round.result do
         local bossAt = attackEventAt(round)
         local at = math.min(bossAt, Magma.nextBurn(round))
@@ -494,6 +492,8 @@ function Raid.step(round, now, checkPlayer, checkBoss, chooseTarget, checkRevive
             completeRevives(round, at)
         end
     end
+    -- Check current continuity after consuming earlier scheduled completions and hits.
+    validateRevives(round, limit, checkRevive)
     round.steppedAt = limit
     if not round.result and now >= round.endsAt then
         finish(round, round.endsAt, "loss", "timeout")

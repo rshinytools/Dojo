@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.314 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.315 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -259,6 +259,10 @@ The separate ranked store claims each player’s rating before the match. It rec
 Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
+
+V0.315 gives revived raid fighters a grounded rise during the existing 0.30-second recovery. The fitted shell moves from the fallen pose to stance while the root stays in place. Studio Kilnback, Solar, and Abyssal raids with one player and three fitted stand-ins checked Penguin's actual knockout, 34 HP after revival, one revive credit and a successful guard after he stood up. The scheduled revive uses the reviver’s sampled position at the deadline. Exact Luau checks confirmed a revive due before a late update and preserved interruption for movement or damage at the deadline.
+
+Juniper shows a brief head recoil when a damaging hit lands during Stillwater Palm’s windup. In native Bot Spar, Reedguard’s Heavy reduced Juniper from 90 to 68 HP and produced one 12.0-degree recoil. Stillwater Palm hit Reedguard for 22 HP on the original beat. The sampled glove path and parry cue matched the authored windup.
 
 V0.314 keeps Brawl’s final knockout pose over the active mat. The visible body turns or shifts slightly toward usable floor when settling at an edge. The character’s gameplay position stays fixed. Desktop Studio staged a deciding Ridge Palm near the boundaries of the 81-tile and nine-tile mats, using one player and fitted stand-ins. In both replays, the visible shell ended 0.068 studs inside the physical edge and 0.045 studs above a live tile, followed by the champion recap and arena reset.
 

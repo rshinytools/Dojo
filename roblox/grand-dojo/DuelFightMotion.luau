@@ -111,7 +111,7 @@ local function beginActor(duel, actor, index, brawl)
     actor.wasAnimateDisabled = animate and animate.Disabled
     actor.wasAnchored = root.Anchored
     actor.held, actor.network, actor.knock, actor.lift, actor.cast = nil, nil, nil, nil, nil
-    actor.aim, actor.facing, actor.defeat, actor.shuffle = nil, nil, nil, nil
+    actor.aim, actor.facing, actor.defeat, actor.shuffle, actor.rise = nil, nil, nil, nil, nil
     actor.lastReaction, actor.reactionAt = nil, nil
     actor.history = {{at = duel.round.introAt, position = root.CFrame}}
     actor.motors, actor.marks = {}, {}
@@ -189,6 +189,7 @@ function Motion.remove(duel, index)
         end
     end
     Geometry.restoreDefeat(actor)
+    actor.rise = nil
     if actor.facing then
         actor.facing:Destroy()
         actor.aim:Destroy()
@@ -214,6 +215,17 @@ function Motion.reopenActor(duel, index, now)
     local actor = duel.actors[index]
     beginActor(duel, actor, index, duel.motion.brawl)
     actor.history[1].at = now
+end
+
+function Motion.revive(raid, index, at, duration, now)
+    local actor = raid.actors[index]
+    local shape = if now < at + duration then Geometry.capturePlayerRise(actor, actor.root) else nil
+    if not shape then
+        Motion.remove(raid, index)
+        Motion.reopenActor(raid, index, now)
+        return
+    end
+    actor.rise = {shape = shape, startedAt = at, endsAt = at + duration}
 end
 
 local function activeActor(duel, index)
@@ -640,6 +652,11 @@ local function updateActor(duel, index, now, deferredCasts)
     local other = if brawl then nil else duel.actors[3 - index]
     local state = duel.round.sides[index]
     local root, clip = actor.root, state.clip
+    if actor.rise and now < actor.rise.endsAt and not actor.knock and not duel.round.resolvedAt then
+        setHeld(actor, true)
+        remember(actor, now)
+        return
+    end
     actor.frenzyGlow = Apex.frenzyVisual(actor.frenzyGlow and actor.frenzyGlow.Parent and actor.frenzyGlow,
         state, actor.character, actor.fx, now)
     if actor.knock and (Apex.unstoppable(state, now) or Abyss.submerged(state, now)) then
@@ -827,6 +844,13 @@ local function poseAt(duel, index, now, readOnly)
     local actor, state = duel.actors[index], duel.round.sides[index]
     local round = duel.round
     local action, age, direction
+    local rise = actor.rise
+    if rise and not actor.knock and not round.resolvedAt and now >= rise.startedAt and now < rise.endsAt then
+        local root = if readOnly then clockFrame(actor, now) else actor.root.CFrame
+        local stance = state.kit.poses.sample("stance", now)
+        local phase = (now - rise.startedAt) / (rise.endsAt - rise.startedAt)
+        return Geometry.playerRiseOffsets(rise.shape, root, stance, actor.motors, phase), "raidRise"
+    end
     if round.resolvedAt then
         local result = if duel.motion.brawl then round.result.outcomes[index] else round.result[index]
         action, age = if result == "win" then "win" else "stance", now - round.resolvedAt
@@ -866,6 +890,10 @@ function Motion.render(duel, now, historical)
             defeatAt = duel.round.resolvedAt
         end
         if defeatAt and actor.motionActive and actor.root.Parent == actor.character then
+            if actor.rise then
+                actor.rise = nil
+                Geometry.restoreDefeat(actor)
+            end
             if not actor.defeat then
                 clearCast(actor)
                 clearMarks(actor)
@@ -903,6 +931,10 @@ function Motion.render(duel, now, historical)
         end
         for name, joint in actor.motors do
             joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest
+        end
+        if actor.rise and action ~= "raidRise" then
+            actor.rise = nil
+            Geometry.restoreDefeat(actor)
         end
     end
 end

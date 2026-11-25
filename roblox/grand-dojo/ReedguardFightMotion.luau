@@ -262,7 +262,7 @@ local function stagePlayerDefeat(defeat, shell, motors, joints, tailTurn)
             local parent = defeat.base:ToObjectSpace(motor.Part0.CFrame)
             local turn = if group == "Tail" and tailTurn then tailTurn else pose[2]
             -- The joint change is applied in the captured root's coordinates.
-            local limb = {motor = motor, start = motor.C0, parent = parent,
+            local limb = {name = pose[1], motor = motor, start = motor.C0, parent = parent,
                 undo = motor.C0:Inverse() * parent:Inverse(),
                 target = CFrame.new(rest.Position) * turn * rest.Rotation}
             table.insert(defeat.limbs, limb)
@@ -418,6 +418,62 @@ local function restoreDefeat(state)
         end
         state.defeat = nil
     end
+end
+
+local function capturePlayerRise(state, root)
+    local defeat = state.defeat
+    if not defeat or not defeat.settledFrame or not defeat.limbs then
+        return nil
+    end
+    local frame = root.CFrame
+    local first, inverseRest, parts, limbs = {}, {}, {}, {}
+    for name, binding in state.motors do
+        first[name], inverseRest[name] = binding.motor.C0, binding.rest:Inverse()
+    end
+    for _, limb in defeat.limbs do
+        local parent = frame:ToObjectSpace(limb.motor.Part0.CFrame)
+        limbs[limb] = {name = limb.name, parent = parent, inverse = first[limb.name]:Inverse() * parent:Inverse()}
+    end
+    for part, support in defeat.support do
+        table.insert(parts, {relative = frame:ToObjectSpace(part.CFrame), support = support,
+            limb = limbs[defeat.partLimbs[part]]})
+    end
+    return {first = first, inverseRest = inverseRest, parts = parts, limbs = limbs,
+        inverseRoot = first.RootJoint:Inverse(), floor = defeat.floor}
+end
+
+local function riseEase(phase)
+    phase = math.clamp(phase, 0, 1)
+    return phase * phase * (3 - 2 * phase)
+end
+
+local function playerRiseOffsets(rise, root, offsets, motors, phase)
+    local rootPhase, limbPhase = riseEase(phase), riseEase(phase * 1.28)
+    local pose, solved = {}, {}
+    for name, start in rise.first do
+        local target = (offsets[name] or CFrame.identity) * motors[name].rest
+        pose[name] = start:Lerp(target, if name == "RootJoint" then rootPhase else limbPhase)
+    end
+    local frame = root * pose.RootJoint * rise.inverseRoot
+    for _, limb in rise.limbs do
+        solved[limb] = frame * limb.parent * pose[limb.name] * limb.inverse
+    end
+    local bottom = math.huge
+    for _, part in rise.parts do
+        local support = part.support
+        local at = (solved[part.limb] or frame) * part.relative
+        bottom = math.min(bottom, partMinimum(at, support.size, support.shape, support.points, Vector3.yAxis))
+    end
+    if bottom < math.huge then
+        -- Replant the fitted shell during the push up, then blend into its stance clearance.
+        local weight = riseEase(phase * 12) * (1 - riseEase((phase - .78) / .22))
+        pose.RootJoint = CFrame.new(root:VectorToObjectSpace(Vector3.new(0, (rise.floor + .045 - bottom) * weight, 0)))
+            * pose.RootJoint
+    end
+    for name, frame in pose do
+        pose[name] = frame * rise.inverseRest[name]
+    end
+    return pose
 end
 
 function Motion.open(bout)
@@ -2372,6 +2428,26 @@ function Motion.move(bout, now, dt)
     return gap.Magnitude
 end
 
+local juniperReadyHead = Juniper.sample("idle", 0).groups.Head
+local juniperHitHead = {
+    headHit = juniperReadyHead:ToObjectSpace(Juniper.sample("headHit", .10).groups.Head).Rotation,
+    bodyHit = juniperReadyHead:ToObjectSpace(Juniper.sample("bodyHit", .10).groups.Head).Rotation,
+}
+
+local function juniperWindupFlinch(bout, now)
+    local recoil = bout.juniperWindupRecoil
+    if not recoil then return nil end
+    local round = bout.round
+    local age = now - recoil.at
+    if round.result or bout.outroAt or round.botPhase ~= "windup" or round.botStartedAt ~= recoil.windupAt
+        or age >= .20 then
+        bout.juniperWindupRecoil = nil
+        return nil
+    end
+    local weight = math.clamp(math.min(age / .045, (.20 - age) / .155, (round.botAt - now) / .075), 0, 1)
+    return CFrame.identity:Lerp(recoil.rotation, weight * weight * (3 - 2 * weight))
+end
+
 function Motion.render(bout, now)
     if silverback(bout) then
         skywalkPlayer(bout, now)
@@ -2383,6 +2459,7 @@ function Motion.render(bout, now)
         command(bout, now)
     end
     local round, state = bout.round, bout.motion
+    local windupFlinch = juniperWindupFlinch(bout, now)
     if bout.outroAt and round.playerHealth <= 0 then
         setTravelHold(bout, true)
         renderPlayerDefeat(state, bout.root, bout.arena.floor, now - bout.outroAt)
@@ -2433,7 +2510,12 @@ function Motion.render(bout, now)
     bout.bot.PrimaryPart.CFrame = botBase(bout)
     keepClearance(bout)
     for name, joint in bout.joints do
-        joint.part.CFrame = jointFrame(frame, groups, name, joint) * joint.shell
+        local visible = jointFrame(frame, groups, name, joint)
+        -- Show the hit without changing the palm or the pose sampled by contact checks.
+        if windupFlinch and name == "Head" then
+            visible *= windupFlinch
+        end
+        joint.part.CFrame = visible * joint.shell
     end
 end
 
@@ -2445,6 +2527,13 @@ function Motion.impact(bout, event)
     if damage then
         bout.reactionAt = event.at
         bout.reactionAction = if event.zone == "head" then "headHit" else "bodyHit"
+        if bout.botId == "juniper" then
+            local round = bout.round
+            bout.juniperWindupRecoil = if not round.result and round.botPhase == "windup"
+                and event.at >= round.botStartedAt and event.at < round.botAt
+                then {at = event.at, windupAt = round.botStartedAt, rotation = juniperHitHead[bout.reactionAction]}
+                else nil
+        end
     end
     if event.shockDuration and bout.round.botHealth > 0 then
         Thunder.shock(bout.bot, bout.telegraph, event.shockDuration)
@@ -2554,6 +2643,8 @@ Motion.geometry = table.freeze({
     renderPlayerDefeat = renderPlayerDefeat,
     defeatFits = defeatFits,
     restoreDefeat = restoreDefeat,
+    capturePlayerRise = capturePlayerRise,
+    playerRiseOffsets = playerRiseOffsets,
     defeatSeconds = fallSeconds + .35,
 })
 

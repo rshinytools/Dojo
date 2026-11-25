@@ -128,13 +128,18 @@ local function mount(encounter)
         return actor and not actor.returned and not side.left and not side.eliminated and Match.root(actor.player) == actor.root
     end
 
-    local function canReachForRevive(match, index, target)
+    local function canReachForRevive(match, index, target, at)
         local actor, targetActor = match.actors[index], match.actors[target]
         local side = match.round.sides[target]
-        return liveSide(match, index) and targetActor and not targetActor.returned and side.downed and not side.left
-            and not side.reviveUsed and Match.root(targetActor.player) == targetActor.root
-            and (actor.root.Position - targetActor.root.Position).Magnitude <= REVIVE_DISTANCE
-            and Match.inside(bounds, actor.root.Position)
+        if not (liveSide(match, index) and targetActor and not targetActor.returned and side.downed and not side.left
+            and not side.reviveUsed and Match.root(targetActor.player) == targetActor.root) then
+            return false
+        end
+        -- The downed root stays anchored. Use the reviver's sampled motion for scheduled checks.
+        local frame = at and Motion.raidPosition(match, index, at)
+        local position = if frame then frame.Position else actor.root.Position
+        return (position - targetActor.root.Position).Magnitude <= REVIVE_DISTANCE
+            and Match.inside(bounds, position), position
     end
 
     local function nearestRevive(match, index, now)
@@ -342,10 +347,10 @@ local function mount(encounter)
                 return Motion.raidThreatHits(match, attack, strike, at, origin, match.direction)
             end,
             function(_, at) return chooseTarget(match, at) end,
-            function(index, target)
+            function(index, target, at)
                 local home = match.reviveStarts[index]
-                return home and canReachForRevive(match, index, target)
-                    and (match.actors[index].root.Position - home).Magnitude <= 1.15
+                local reachable, position = canReachForRevive(match, index, target, at)
+                return home and reachable and (position - home).Magnitude <= 1.15
             end)
         local changed = #round.notices > 0
         for _, event in round.notices do
@@ -363,6 +368,9 @@ local function mount(encounter)
             elseif event.source == "team" then
                 cue(match.actors[event.attacker], event.kind, now)
                 cue(match.actors[event.defender], event.kind, now)
+                if event.kind == "revived" and liveSide(match, event.defender) then
+                    Motion.revive(match, event.defender, event.at, Round.REVIVE_RECOVERY, now)
+                end
             end
             if code then
                 local playedAtHazard = event.source == "boss" and event.kind == "hit"
@@ -373,13 +381,7 @@ local function mount(encounter)
         for index, actor in match.actors do
             local side = round.sides[index]
             if not actor.returned then
-                local down = side.downed == true
-                if actor.wasDown and not down and not side.left then
-                    Motion.remove(match, index)
-                    Motion.reopenActor(match, index, now)
-                end
-                actor.wasDown = down
-                actor.reviveMarker.Enabled = down and not side.reviveUsed and not round.result
+                actor.reviveMarker.Enabled = side.downed == true and not side.reviveUsed and not round.result
             end
             if not round.revives[index] then
                 match.reviveStarts[index] = nil
