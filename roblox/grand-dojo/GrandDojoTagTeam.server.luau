@@ -490,6 +490,14 @@ local function settleSeats(match, now)
     return changed
 end
 
+local function settleSeatsAndTiedContacts(match, now, beforeExit)
+    local transitioned = settleSeats(match, now)
+    if beforeExit and resolveContacts(match, now) then
+        return true
+    end
+    return transitioned
+end
+
 prompt.Triggered:Connect(function(player)
     if queue[player] then
         clearQueue(player, "You left the Tag Team queue.")
@@ -557,8 +565,13 @@ remote.OnServerEvent:Connect(function(player, action, value, id, windupToken, en
         or not Motion.canAct(match, index, action, now) then
         return
     end
-    if advance(match, now) then
+    local beforeExit = not hasCombatRoots(match)
+    if advance(match, now, beforeExit) then
         -- Show the outgoing fighter's reaction and HP before a manual swap replaces that slot.
+        Motion.render(match, now)
+        publish(match, "update", now)
+    end
+    if beforeExit and settleSeatsAndTiedContacts(match, now, true) then
         Motion.render(match, now)
         publish(match, "update", now)
     end
@@ -617,10 +630,7 @@ RunService.Heartbeat:Connect(function()
         Motion.render(match, now)
         publish(match, "update", now)
     end
-    local transitioned = settleSeats(match, now)
-    if beforeExit and resolveContacts(match, now) then
-        transitioned = true
-    end
+    local transitioned = settleSeatsAndTiedContacts(match, now, beforeExit)
     if match.round.result and now >= match.round.outroAt then
         stop(match)
         return

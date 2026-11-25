@@ -635,6 +635,12 @@ remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundI
         or not Motion.canAct(duel, index, action) or not Match.takeCombatInput(side, action, direction, now, .08) then
         return
     end
+    for participant, actor in duel.actors do
+        if Match.root(actor.player) ~= actor.root then
+            forfeit(duel, participant, "left")
+            return
+        end
+    end
     -- A new input must not replace an earlier contact still due after a long frame.
     local changed = advance(duel, now)
     if changed then

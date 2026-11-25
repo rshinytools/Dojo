@@ -246,8 +246,6 @@ local festivalContacts = table.freeze({.31, .64})
 local shuffleDuration = .50
 local shuffleStride = 1.40
 local groundedClips = {
-	body = {{0, guardedFeet}, {.11, kickLoad}, {.22, kickChamber}, {kickContactAt, kickContact},
-		{.382, kickRetract}, {.49, kickPlant}, {.56, guardedFeet}},
 	shuffle = {{0, guardedFeet}, {.125, shuffleLead}, {.25, shuffleTransfer}, {.375, shuffleTrail},
 		{shuffleDuration, guardedFeet}},
 }
@@ -273,6 +271,8 @@ local function plantStandingBoots(offsets)
 end
 
 local sweepReady = plantStandingBoots(table.clone(ready))
+groundedClips.body = {{0, sweepReady}, {.11, kickLoad}, {.22, kickChamber}, {kickContactAt, kickContact},
+	{.382, kickRetract}, {.49, kickPlant}, {.56, sweepReady}}
 groundedClips.reedSweep = {{0, sweepReady}, {.120, sweepLoad}, {.225, sweepChamber}, {sweepContactAt, sweepContact},
 	{.455, sweepWithdraw}, {.600, sweepSettle}, {.740, sweepReady}}
 groundedClips.reedstoneHeel = {{0, sweepReady}, {.125, heelLoad}, {.265, heelLift}, {.365, heelChamber},
@@ -438,7 +438,7 @@ Poses.Impact = table.freeze({
 function Poses.sample(action, ageSeconds)
 	if action == "body" then
 		local offsets = floorClips.sample(action, ageSeconds)
-		placeBoot(offsets, joints.leftLeg, bootHome[joints.leftLeg])
+		offsets[joints.leftLeg] = offsets.RootJoint:ToObjectSpace(heelSupport)
 		return offsets
 	elseif action == "reedSweep" then
 		local offsets = floorClips.sample(action, ageSeconds)

@@ -363,22 +363,23 @@ function Intro:_startLive(court, presentation)
     end)
 end
 
-function Intro:Start(introAt, startsAt, court, presentation, onBell)
+function Intro:Start(introAt, startsAt, findCourt, presentation, onBell)
     self:Stop(presentation.quickRound)
     local now = workspace:GetServerTimeNow()
     if now >= startsAt then
-        self:_startLive(court, presentation)
+        self:_startLive(findCourt(), presentation)
         onBell()
         return
     end
-    self.camera = self.camera or takeCamera(self.player)
+    local court = if self.camera then findCourt() else nil
     self.card.Visible = true
     self.locked = true
     ContextActionService:BindActionAtPriority(movementAction, function()
         return Enum.ContextActionResult.Sink
     end, false, Enum.ContextActionPriority.High.Value, table.unpack(Enum.PlayerActions:GetEnumItems()))
     local challengerArt, residentArt = {}, {}
-    local nextWarmAt = now
+    local nextWarmAt, nextCameraCheckAt = now, now
+    local cameraStarted = self.camera ~= nil
     local previousStage, finished = nil, false
     local function render()
         local serverNow = workspace:GetServerTimeNow()
@@ -387,7 +388,7 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
             if not finished then
                 finished = true
                 self:_dismissCard()
-                self:_startLive(court, presentation)
+                self:_startLive(findCourt(), presentation)
                 self.count.Text = "FIGHT"
                 self.count.Visible = true
                 onBell()
@@ -396,6 +397,17 @@ function Intro:Start(introAt, startsAt, court, presentation, onBell)
                 self:_hideCount()
             end
             return
+        end
+        -- The server can start an intro before this client streams its court or fighter.
+        if not cameraStarted and serverNow >= nextCameraCheckAt
+            and not UserInputService.VREnabled and not GuiService.ReducedMotionEnabled then
+            nextCameraCheckAt = serverNow + .15
+            court = findCourt()
+            local first, second = startingMarkers(court, presentation)
+            if first and second then
+                self.camera = takeCamera(self.player)
+                cameraStarted = self.camera ~= nil
+            end
         end
         if not presentation.quickRound and self.camera and serverNow >= nextWarmAt
             and (not challengerArt.queued or not residentArt.queued) then

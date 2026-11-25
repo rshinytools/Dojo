@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.353 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.354 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -194,6 +194,10 @@ The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite
 
 ## Grand Dojo Duel formats
 
+V0.354 checks both original fighters before a new Duel input advances a pending strike. A reset fighter previously could win if the opponent’s Guard reached the server before Heartbeat handled the reset. An exact fitted replay produced the same walkover in both orders after the fix and preserved live hit, parry and recorded series results. Native and published multiplayer remain open.
+
+V0.354 gives Tag Team the same reset and hit ordering whether player input or Heartbeat sees the reset first. A valid hit due before the reset can still decide the match. A reset at the scheduled contact time takes priority. Exact fitted checks exercised both boundaries, a live Guard tie and an already recorded result. Native multiplayer remains open.
+
 V0.352 gives controller focus to the Duel queue’s Leave button when the action is available. The staged City return can focus Retry after a failed transfer or after closing the recap. Standalone inputs covered both rounds, controller and touch actions, preserving unrelated focus, and blocked cancellation. Physical devices and published staging remain open.
 
 V0.349 sends a confirmed Duel hit to the fighters and nearby spectators before the recap when resolving a pending hit during an exit. The existing result or walkover still settles once.
@@ -223,7 +227,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v353-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v354-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -400,6 +404,8 @@ V0.279 applies the Festival Championship HUD to Bot Spar, all Duel formats and B
 
 At zero HP, the defeated fighter drops onto the canvas in about half a second and stays down while the clock holds. V0.312 relaxes arms, head, legs and tail during the fall for the entire playable roster and the four resident models. It measures fitted GLB mesh contact for the imported fighters and analytic support for the visible native parts. Six playable fighters have tailored tail turns. A native Studio fixture mounted all 72 playable forms, measured a settled clearance of 0.0443–0.0453 studs, and verified stable poses and collision restoration. The largest torso clearance in the sampled poses was 0.298 studs. A staged deciding Brawl hit left Penguin’s torso 0.045 studs above the deck and lowered the high foot from 1.77 to 0.82 studs. Desktop Studio also verified Juniper’s fall after a confirmed Reedguard jab, followed by the 60 XP first-win recap. The recap follows the in-ring knockout. Positive-health timeouts keep the fighter upright. V0.288 holds a final Tag Team or Brawl knockout through the full round outro on intact flooring. Earlier knockouts still allow backup entry or the viewing-deck transfer. Raid teammates stay down until revived or the encounter ends. Desktop Studio v0.289 verified both Reedguard boots settling within 0.09 studs of the canvas, a city idle within 0.04 studs of the floor, and a native Retry click that reset both fighters and replayed the ten-second intro.
 
+V0.354 recovers the Bot Spar and Duel intro camera when the arena markers or the local fighter stream in after the match starts loading. The intro and bell keep their server timing. Exact Luau checks covered delayed arena, markers and fighter, normal camera restoration, and the VR and Reduce Motion fallback. Native streaming and device play remain open.
+
 The intro and active fight camera fit both fighters to the current viewport. VR and Reduce Motion use the normal camera, and the city camera returns at the recap. Ground slams and planted tile bursts show a compact pulse at the resolved floor point. Guard and parry have separate contact effects.
 
 Studio ran Reedguard against Juniper through a knockout and the 60 XP recap on desktop and in Galaxy A06 landscape and portrait simulation. All three runs watched the gold trail separate and settle after actual damage. Both portraits rendered and the top HUD cleared the action controls. Landscape used a real simulated tap on the 56 × 48 Uppercut button. Portrait used a scripted gameplay input. A desktop Ranked series replayed both round HUDs, with a fitted opponent stand-in, and displayed the 2–0 result. The Brawl test displayed the remaining fighter count, one portrait and the floor warning. Physical-device and live multiplayer verification remain open.
@@ -417,6 +423,8 @@ The intro names the actual fighters and warms their mesh textures while it plays
 Desktop Studio entered all 16 pairings through the native ring prompts, checked each resident intro and each starter's signature control, landed a starter technique, and observed a resident attack. All 16 ended with the normal player camera and movement restored. Fire Salamander defeated Juniper for 60 XP. The other 15 rounds ended after contact without a reward. Galaxy A06 landscape Studio separately completed Penguin versus Sablecrest for 60 XP after activating Belly-Slide Blitz with touch. Both test profiles used temporary activity XP to open the higher rings. Physical devices and published play remain open.
 
 ## Reedguard and Juniper combat
+
+V0.354 joins Reedguard’s Cross directly to the Body Kick stance and holds his lead boot on the canvas through the kick. The largest hand jump at the transition was 0.435 studs. Offline checks sampled 561 kick poses from the original mesh. The right boot still meets the original contact point 0.30 seconds into the kick. Studio playback remains open.
 
 V0.353 keeps both of Reedguard’s boots planted during a grounded sidestep. With the original fighter mesh, the previous pose put the sole up to 0.209 studs through the canvas. The revised pose holds the soles about 0.003 studs above the canvas in 405 offline samples, with the same lateral movement and upper-body timing. Studio playback remains open.
 

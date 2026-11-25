@@ -2106,20 +2106,22 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
                 or deckView or ringId == "cloud-top",
             deckView = deckView, duel = isDuel,
         }
-        local court
+        local function findCourt()
+            if isDuel then
+                local ring = city:FindFirstChild("Fighting Ring")
+                return ring and ring:FindFirstChild("Duel Court")
+            end
+            return showcaseCourt(ringId)
+        end
         if isDuel then
-            local ring = city:FindFirstChild("Fighting Ring")
-            court = ring and ring:FindFirstChild("Duel Court")
             intro.sideIndex, intro.opponentUserId = opponent.sideIndex, opponent.opponentUserId
             intro.opponentFighter = opponentKit and opponentKit.challenger
             if duelUi.hasRounds(matchPresentation.format) then
                 intro.roundIndex = opponent.roundIndex
                 intro.quickRound = (opponent.roundIndex or 1) > 1
             end
-        else
-            court = showcaseCourt(ringId)
         end
-        fightIntro:Start(introAt, startsAt, court, intro, function()
+        fightIntro:Start(introAt, startsAt, findCourt, intro, function()
             matchPresentation.inIntro = false
             refreshSparControls()
             layoutMatchControls()
