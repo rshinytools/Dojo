@@ -169,6 +169,59 @@ local furnaceFollow = furnacePose({-.20, -2, 119, 7}, {39, 25, -36, .055, .15}, 
 local furnaceBrake = furnacePose({-.17, -5, 59, 2}, {39, 20, -27, .04, .10}, {32, -10, 22, .04, .11},
 	{28, 30}, {6, -28, -1}, {-10, 16, 1})
 
+local sootLoad = techniquePose({-.16, -4, 6, 5}, {47, 18, -23, .04, .12}, {21, -6, 11, .005, .17},
+	{5, -5, -4}, {-9, -6, 2})
+local sootContact = techniquePose({-.21, -10, -27, 5}, {46, 17, -22, .04, .13}, {15, -32, 23, -.04, -.19},
+	{10, 25, -3}, {-11, 25, -2})
+local sootFold = techniquePose({-.16, -7, -15, 3}, {45, 17, -21, .04, .12}, {22, -25, 21, -.01, -.04},
+	{8, 14, -3}, {-10, 17, -1})
+
+local kilnPivot = Vector3.new(-.42, 1.71 - mountedRootHeight, .16)
+local function kilnPose(core, right, left, kick, head, tailMotion)
+	local offsets = techniquePose(core, right, left, head, tailMotion)
+	offsets["Left Hip"] = around(kilnPivot, table.unpack(kick)) * offsets["Left Hip"]
+	return offsets
+end
+
+local kilnLoad = kilnPose({-.15, 2, 6, -8}, {46, 18, -23, .04, .13}, {35, -16, 20, .03, .13},
+	{4, 0, 0, .045, .035}, {4, -9, 6}, {-14, -13, 3})
+local kilnChamber = kilnPose({-.11, 5, 9, -12}, {49, 18, -27, .04, .16}, {35, -15, 23, .04, .06},
+	{11, -7, 1, .22, -.025}, {-1, -12, 6}, {-17, -21, 2})
+local kilnContact = kilnPose({-.08, 6, -7, -9}, {45, 19, -28, .05, .15}, {32, -22, 23, .045, -.015},
+	{17, -14, 3, .07, -.33}, {1, 7, 5}, {-13, 23, 2})
+local kilnTuck = kilnPose({-.115, 4, -1, -8}, {44, 17, -24, .045, .13}, {32, -18, 22, .04, .06},
+	{13, -8, 2, .18, -.12}, {3, 1, 5}, {-12, 11, 2})
+local kilnPlant = kilnPose({-.14, -3, -8, -4}, rightGuard, leftGuard,
+	{4, -2, 1, .07, .015}, {6, 7, 3}, {-8, 10, 2})
+
+local hearthBrace = techniquePose({-.28, -11, -9, -1}, {43, 15, -24, .05, .14}, {40, -18, 25, .055, .16},
+	{11, 8, 1}, {3, 9, 0})
+local hearthRaise = techniquePose({-.20, 7, -4, 0}, {100, 11, -23, .05, .13}, {103, -13, 22, .05, .11},
+	{-7, 5, 0}, {-22, 5, 0})
+local hearthFold = techniquePose({-.70, -42, -5, 1}, {-13, 20, -19, -.12, -.24}, {-13, -22, 22, -.08, -.24},
+	{19, 4, -1}, {25, 8, 0})
+local hearthContact = techniquePose({-.89, -58, 1, 0}, {-36, 25, -15, -.04, -.45}, {-36, -25, 19, -.225, -.49},
+	{24, -1, 0}, {42, -1, 0})
+local hearthRebound = techniquePose({-.64, -38, -2, 1}, {-10, 19, -17, -.12, -.19}, {-8, -20, 22, -.10, -.17},
+	{19, 5, -1}, {24, 5, 0})
+local hearthRecover = techniquePose({-.29, -14, -8, -1}, {32, 17, -21, .025, .04}, {33, -16, 22, .03, .08},
+	{12, 7, 1}, {2, 7, 0})
+
+local crucibleDraw = techniquePose({-.265, -6, 23, 8}, {56, 22, -32, .05, .14}, {19, 6, 15, -.01, .20},
+	{5, -17, -5}, {-12, -23, 2})
+local crucibleLeft = techniquePose({-.20, -13, -35, 6}, {52, 25, -30, .07, .16}, {21, -25, 23, -.015, -.27},
+	{11, 28, -4}, {-9, 28, -2})
+local crucibleSwitch = techniquePose({-.24, -8, -19, -6}, {32, 12, -19, .01, .075}, {42, -20, 25, .04, -.04},
+	{7, 14, 3}, {-8, 15, 2})
+local crucibleCoil = techniquePose({-.30, -3, -26, -11}, {16, 7, -16, -.04, .21}, {48, -20, 26, .04, .14},
+	{4, 19, 6}, {-12, 22, -2})
+local crucibleRight = techniquePose({-.15, -14, 35, -7}, {46, 25, -21, .02, -.37}, {36, -21, 23, .06, .17},
+	{13, -27, 4}, {-10, -31, 3})
+local crucibleFollow = techniquePose({-.20, -16, 41, -6}, {39, 29, -24, .025, -.25}, {35, -18, 22, .05, .18},
+	{13, -30, 3}, {-10, -32, 2})
+local crucibleRecover = techniquePose({-.17, -9, 9, -3}, {39, 19, -22, .025, -.045}, {35, -17, 22, .05, .11},
+	{8, -9, 1}, {-9, -9, 1})
+
 local advanceRight = pose({.085, -.075, -.08, -9, -14, -5}, {33, 13, -13, .02, .08}, leftGuard,
 	{-7, 3, .14, 0, 4, -9, -.26, .13}, {8, 13, 3}, {-9, 17, 2})
 local advanceLeft = pose({-.065, -.08, -.075, -9, -9, 3}, rightGuard, {25, -14, 15, .025, .12},
@@ -226,6 +279,8 @@ local secondTile = table.freeze({markAt = .74, burstAt = 1.28, offset = Vector3.
 local fanWarningAt = .13
 local contact = table.freeze({
 	jab = .17,
+	sootPalm = .17,
+	kilnToe = .26,
 	cross = .225,
 	body = .26,
 	heavy = .42,
@@ -233,6 +288,8 @@ local contact = table.freeze({
 	coalstepKick = .25,
 	furnaceBacklash = .49,
 	magmaTrail = table.freeze({firstTile.burstAt, secondTile.burstAt}),
+	hearthCircle = .64,
+	crucibleArc = table.freeze({.32, .67}),
 })
 local clips = {
 	stance = {{0, ready}, {.48, breathe}, {1.08, ready}},
@@ -240,6 +297,9 @@ local clips = {
 	retreat = {{0, ready}, {.15, backRight}, {.29, ready}, {.43, backLeft}, {.58, ready}},
 	dodge = {{0, ready}, {.105, dodgeRight}, {.24, dodgeRightCatch}, {.49, ready}},
 	jab = {{0, ready}, {.075, jabLoad}, {contact.jab, jabContact}, {.25, jabReturn}, {.41, ready}},
+	sootPalm = {{0, ready}, {.067, sootLoad}, {contact.sootPalm, sootContact}, {.256, sootFold}, {.42, ready}},
+	kilnToe = {{0, ready}, {.091, kilnLoad}, {.171, kilnChamber}, {contact.kilnToe, kilnContact},
+		{.347, kilnTuck}, {.445, kilnPlant}, {.54, ready}},
 	cross = {{0, ready}, {.105, crossLoad}, {contact.cross, crossContact}, {.34, crossReturn}, {.52, ready}},
 	body = {{0, ready}, {.12, bodyLoad}, {contact.body, bodyContact}, {.37, bodyReturn}, {.57, ready}},
 	heavy = {{0, ready}, {.19, heavyLoad}, {.31, heavyDrive}, {contact.heavy, heavyContact}, {.52, heavyFollow}, {.79, ready}},
@@ -260,6 +320,12 @@ local clips = {
 	magmaTrail = {{0, ready}, {.12, trailCrouch}, {.24, trailCutLeft}, {firstTile.markAt, trailMarkLeft},
 		{.52, trailBend}, {secondTile.markAt, trailMarkRight}, {.88, trailBank}, {1.00, trailBrake},
 		{1.08, trailFace}, {1.15, ready}},
+	hearthCircle = {{0, ready}, {.15, hearthBrace}, {.34, hearthRaise}, {.435, hearthRaise}, {.54, hearthFold},
+		{contact.hearthCircle, hearthContact}, {.68, hearthContact}, {.76, hearthRebound}, {1.03, hearthRecover},
+		{1.28, ready}},
+	crucibleArc = {{0, ready}, {.165, crucibleDraw}, {contact.crucibleArc[1], crucibleLeft}, {.434, crucibleSwitch},
+		{.53, crucibleCoil}, {contact.crucibleArc[2], crucibleRight}, {.768, crucibleFollow},
+		{.96, crucibleRecover}, {1.16, ready}},
 	intro = {{0, ready}, {1.06, breathe}, {2.20, ready}, {2.74, traceLeft}, {3.10, traceLeft},
 		{3.46, traceRight}, {3.93, traceRight}, {4.52, ready}, {5.26, breathe}, {6.35, nod},
 		{6.85, nod}, {7.54, ready}, {8.46, breathe}, {9.22, ready}, {10, ready}},
@@ -281,8 +347,26 @@ Poses.Contact = contact
 -- GLB surface points in the neutral floor frame, converted to the mounted root frame.
 local coalstepToe = Vector3.new(.679547846, .100000024 - mountedRootHeight, -.874111548)
 local furnaceTip = Vector3.new(.625723124, .571580887 - mountedRootHeight, 2.866577238)
+local kilnToe = Vector3.new(-.550819397, .100000024 - mountedRootHeight, -.610367432)
+local sootPad = Vector3.new(-.952702701, 3.260699749 - mountedRootHeight, -.841922199)
+local crucibleLeftPad = Vector3.new(-.885654807, 3.253649473 - mountedRootHeight, -.841442620)
+local crucibleRightPad = Vector3.new(.952702701, 2.970699787 - mountedRootHeight, -1.031922197)
+local hearthRightPad = Vector3.new(1.073742270, 2.952694178 - mountedRootHeight, -1.032056427)
+local hearthLeftPad = Vector3.new(-1.073742270, 3.242694139 - mountedRootHeight, -.842056429)
+local function handPoint(frame, hand, pad)
+	return (frame.RootJoint * frame[hand]):PointToWorldSpace(pad)
+end
+local hearthCenter = handPoint(hearthContact, "Right Shoulder", hearthRightPad)
+	:Lerp(handPoint(hearthContact, "Left Shoulder", hearthLeftPad), .5)
+hearthCenter = Vector3.new(hearthCenter.X, -mountedRootHeight, hearthCenter.Z)
+Poses.UltimateSkill = table.freeze({
+	hearthCircle = table.freeze({damage = 29, center = hearthCenter, radius = 2.45, warningAt = .25}),
+	crucibleArc = table.freeze({damage = table.freeze({13, 21}), radius = table.freeze({.45, .47})}),
+})
 Poses.Impact = table.freeze({
 	jab = table.freeze({Vector3.new(.180, .641, -1.673)}),
+	sootPalm = table.freeze({handPoint(sootContact, "Left Shoulder", sootPad)}),
+	kilnToe = table.freeze({kilnContact["Left Hip"]:PointToWorldSpace(kilnToe)}),
 	cross = table.freeze({Vector3.new(-.273, .711, -1.717)}),
 	body = table.freeze({Vector3.new(.057, -.061, -1.827)}),
 	heavy = table.freeze({Vector3.new(-.145, .627, -1.935)}),
@@ -290,9 +374,16 @@ Poses.Impact = table.freeze({
 	coalstepKick = table.freeze({coalContact["Right Hip"]:PointToWorldSpace(coalstepToe)}),
 	furnaceBacklash = table.freeze({(furnaceContact.RootJoint * furnaceContact.TailJoint):PointToWorldSpace(furnaceTip)}),
 	magmaTrail = table.freeze({firstTile.offset, secondTile.offset}),
+	hearthCircle = table.freeze({hearthCenter}),
+	crucibleArc = table.freeze({
+		handPoint(crucibleLeft, "Left Shoulder", crucibleLeftPad),
+		handPoint(crucibleRight, "Right Shoulder", crucibleRightPad),
+	}),
 })
 
 Poses.Skill = table.freeze({
+	sootPalm = table.freeze({damage = 12, radius = .44}),
+	kilnToe = table.freeze({damage = 15, radius = .47, foot = true}),
 	emberSweep = table.freeze({
 		warningAt = fanWarningAt,
 		center = Vector3.new(0, floorY, 0),

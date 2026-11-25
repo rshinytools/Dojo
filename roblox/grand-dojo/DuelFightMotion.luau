@@ -4,7 +4,6 @@ local Jump = require(game:GetService("ReplicatedStorage").ArenaJumpMotion)
 local Debris = game:GetService("Debris")
 local FighterMotion = require(script.Parent.ReedguardFightMotion)
 local Geometry = FighterMotion.geometry
-local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local Penguin = require(script.Parent.PenguinCombatPoses)
 local Silverback = require(script.Parent.SilverbackCombatPoses)
 local Salamander = require(script.Parent.FireSalamanderCombatPoses)
@@ -418,6 +417,7 @@ end
 
 local function updateWarning(duel, actor, cast, age)
     local action, origin = cast.clip.action, cast.origin
+    local pulse = Match.loadoutFloorPulse(cast.poses, action)
     local start, finish, skill
     if action == "bellySlide" then
         start, finish = 0, Penguin.Travel.bellySlide[1].age
@@ -427,9 +427,9 @@ local function updateWarning(duel, actor, cast, age)
     elseif action == "seismicChestPound" then
         skill = Silverback.Skill.seismicChestPound
         start, finish = skill.warningAt, Silverback.Contact.seismicChestPound
-    elseif action == "lanternBreak" then
-        skill = Reedguard.UltimateSkill.lanternBreak
-        start, finish = skill.warningAt, Reedguard.Contact.lanternBreak
+    elseif pulse then
+        skill = pulse
+        start, finish = pulse.warningAt, cast.poses.Contact[action]
     elseif action == "tadpoleTornado" then
         skill = Frog.Skill.tadpoleTornado
         start, finish = skill.warningAt, Frog.Contact.tadpoleTornado
@@ -461,16 +461,15 @@ local function updateWarning(duel, actor, cast, age)
     else
         local gust = action == "gustVortex"
         local flop = action == "tidalBellyFlop"
-        local lantern = action == "lanternBreak"
         local center = if gust then cast.fieldCenter elseif flop then floorPoint(duel, cast.landing)
-            elseif lantern then Match.clampFloor(duel.bounds, origin:PointToWorldSpace(skill.center), duel.floor)
+            elseif pulse then Match.clampFloor(duel.bounds, origin:PointToWorldSpace(pulse.center), duel.floor)
             else floorPoint(duel, origin:PointToWorldSpace(skill.center))
-        if lantern and not floorActive(duel, center, duel.motion.at) then return end
+        if pulse and not floorActive(duel, center, duel.motion.at) then return end
         local fan = action == "emberSweep"
         local tornado = action == "tadpoleTornado"
         local name = if fan then "Ember Sweep warning" elseif tornado then "Tadpole Tornado warning"
             elseif gust then "Gust Vortex warning" elseif flop then "Tidal Belly-Flop warning"
-            elseif lantern then "Lantern Break warning" else "Seismic Chest Pound warning"
+            elseif pulse then "Ultimate floor warning" else "Seismic Chest Pound warning"
         local tint = if fan then amber elseif tornado then Color3.fromRGB(143, 241, 124)
             elseif gust then Color3.fromRGB(188, 179, 255) elseif flop then blue else gold
         cast.warning = floorContour(duel, actor, name,

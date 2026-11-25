@@ -575,7 +575,7 @@ function Motion.close(bout)
     clearLane(state, "rushLane")
     clearLane(state, "returnLane")
     clearLane(state, "seismicWarning")
-    clearLane(state, "lanternWarning")
+    clearLane(state, "loadoutFloorWarning")
     if salamander(bout) then
         clearLane(state, "emberWarning")
         clearLane(state, "graniteWarning")
@@ -1983,6 +1983,7 @@ local function silverbackStrike(bout, action, move, time, index)
     end
     local frame, groups = botPose(bout, time)
     local targets = if action == "ridgePalm" then {"Torso", "Right Arm", "Left Arm"}
+        elseif move.foot then {"Torso", "Left Leg", "Right Leg"}
         elseif move.zone == "head" then {"Head", "Torso"} else {"Torso"}
     for _, name in targets do
         local joint = bout.joints[name]
@@ -2095,7 +2096,12 @@ local function botFloorContact(bout, frame, groups, center, radius)
 end
 
 function Motion.strike(bout, action, move, time, index, castStartedAt)
-    if salamander(bout) then
+    if move.shape == "radial" and move.loadoutFinish then
+        local origin = actorRootAt(bout, castStartedAt)
+        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(move.center), bout.arena.floor)
+        local frame, groups = botPose(bout, time)
+        return ringSupport(bout, center) and botFloorContact(bout, frame, groups, center, move.radius), center, "body"
+    elseif salamander(bout) then
         return salamanderStrike(bout, action, move, time, index, castStartedAt)
     elseif silverback(bout) then
         return silverbackStrike(bout, action, move, time, index)
@@ -2298,10 +2304,6 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
         local contact = nearestPoint(jointFrame(frame, groups, "Torso", joint) * joint.shell, joint.part.Size, center)
         return Match.flat(contact - center).Magnitude <= move.radius
             and contact.Y <= center.Y + 1.5 and not obstructed(bout, center, contact), center, "body"
-    elseif action == "lanternBreak" then
-        local origin = actorRootAt(bout, castStartedAt)
-        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(move.center), bout.arena.floor)
-        return ringSupport(bout, center) and botFloorContact(bout, frame, groups, center, move.radius), center, "body"
     elseif move.lockedCenter then
         local origin = state.dodgeFrom or actorRootAt(bout, castStartedAt)
         local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(move.center), bout.arena.floor)
@@ -2585,18 +2587,18 @@ function Motion.render(bout, now)
     end
     local round, state = bout.round, bout.motion
     local clip = round.clip
-    local lantern = Reedguard.UltimateSkill.lanternBreak
-    local showLantern = not bout.outroAt and clip and clip.action == "lanternBreak"
-        and now >= clip.startedAt + lantern.warningAt and now < clip.startedAt + Reedguard.Contact.lanternBreak
-    if showLantern and not state.lanternWarning then
+    local pulse = clip and Match.loadoutFloorPulse(state.playerPoses, clip.action)
+    local showPulse = not bout.outroAt and pulse
+        and now >= clip.startedAt + pulse.warningAt and now < clip.startedAt + state.playerPoses.Contact[clip.action]
+    if showPulse and not state.loadoutFloorWarning then
         local origin = actorRootAt(bout, clip.startedAt)
-        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(lantern.center), bout.arena.floor)
+        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(pulse.center), bout.arena.floor)
         if ringSupport(bout, center) then
-            state.lanternWarning = galleonContour(bout, "Lantern Break warning", center,
-                lantern.radius, nil, nil, Color3.fromRGB(255, 209, 120))
+            state.loadoutFloorWarning = galleonContour(bout, "Ultimate floor warning", center,
+                pulse.radius, nil, nil, Color3.fromRGB(255, 209, 120))
         end
-    elseif not showLantern then
-        clearLane(state, "lanternWarning")
+    elseif not showPulse then
+        clearLane(state, "loadoutFloorWarning")
     end
     local windupFlinch = residentWindupFlinch(bout, now)
     if bout.outroAt and round.playerHealth <= 0 then

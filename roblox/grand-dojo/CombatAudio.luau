@@ -16,6 +16,7 @@ local cues = {
 }
 local groundPitch = {
     lanternBreak = 1.03,
+    glacierRing = 1.21, hearthCircle = .95,
     seismicChestPound = .86, magmaTrail = 1.08, tadpoleTornado = 1.16, gustVortex = 1.26,
     cavitationCannon = .72, tidalBellyFlop = .84, ["Breakwater Stamp"] = .93,
     thunderDive = 1.35, staticCharge = .80, apexPounce = 1.22,
@@ -26,6 +27,7 @@ local groundPitch = {
 }
 local heavyPitch = {
     festivalCross = 1.05,
+    frostwake = 1.17, cedarCrash = .92, forestClamp = .84, crucibleArc = 1.06,
     forgeShoulder = .81, blackglassSweep = 1.07, crosswindWing = 1.18, nimbusTail = .93,
     quarryBackhand = .86, emeraldProwl = .93, undertowHeel = .94, maelstromPalm = .79,
     kilnShoulder = .83, cinderHeel = 1.06, thunderclapWing = 1.18, ridgelineDrive = .79,
@@ -42,6 +44,7 @@ local heavyPitch = {
 }
 local lightPitch = {
     reedCheck = 1.09, courtyardToe = .97,
+    rimeTap = 1.24, skateToe = 1.11, fernCheck = .99, timberToe = .89, sootPalm = 1.12, kilnToe = 1.00,
     pumiceKnuckle = .91, emberKnuckle = 1.09, gildedFlick = 1.23, horizonPalm = 1.07,
     copperKnuckle = 1.04, mossPalm = 1.13, shoalPalm = 1.17, currentTap = 1.22,
     rivetPalm = .98, ashenSnap = 1.18, quillFlick = 1.28, stoneTap = 1.05,

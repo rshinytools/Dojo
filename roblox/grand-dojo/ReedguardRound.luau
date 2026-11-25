@@ -27,14 +27,10 @@ Round.DURATION = 60
 Round.PARRY_WINDOW = .28
 Round.GUARD_RAISE = .055
 Round.GUARD_DURATION = .64
-local check, toe = Reedguard.Skill.reedCheck, Reedguard.Skill.courtyardToe
-local lantern, festival = Reedguard.UltimateSkill.lanternBreak, Reedguard.UltimateSkill.festivalCross
 Round.CLIPS = {
     jab = {{at = Reedguard.Contact.jab, damage = 13, zone = "head"}},
     cross = {{at = Reedguard.Contact.cross, damage = 14, zone = "body"}},
     body = {{at = Reedguard.Contact.body, damage = 15, zone = "body", foot = true, radius = .52}},
-    reedCheck = {{at = Reedguard.Contact.reedCheck, damage = check.damage, radius = check.radius, zone = "body"}},
-    courtyardToe = {{at = Reedguard.Contact.courtyardToe, damage = toe.damage, radius = toe.radius, zone = "body", foot = toe.foot}},
     uppercut = {{at = Reedguard.Contact.uppercut, damage = 16, zone = "head"}},
     reedSweep = {{at = Reedguard.Contact.reedSweep, damage = 13, zone = "body", foot = true, radius = .50}},
     reedstoneHeel = {{at = Reedguard.Contact.reedstoneHeel, damage = 20, zone = "body", foot = true, radius = .48,
@@ -44,12 +40,6 @@ Round.CLIPS = {
         {at = Reedguard.Contact.reedstep[1], damage = 9, zone = "body"},
         {at = Reedguard.Contact.reedstep[2], damage = 9, zone = "body"},
         {at = Reedguard.Contact.reedstep[3], damage = 14, zone = "head"},
-    },
-    lanternBreak = {{at = Reedguard.Contact.lanternBreak, damage = lantern.damage, zone = "body",
-        shape = "radial", center = lantern.center, radius = lantern.radius, lockedCenter = true}},
-    festivalCross = {
-        {at = Reedguard.Contact.festivalCross[1], damage = festival.damage[1], radius = festival.radius[1], zone = "body"},
-        {at = Reedguard.Contact.festivalCross[2], damage = festival.damage[2], radius = festival.radius[2], zone = "body"},
     },
 }
 
@@ -216,6 +206,36 @@ for id, kit in Inferno.kits do
 end
 for id, kit in Storm.kits do
     kits[id] = kit
+end
+
+local function registerLoadoutClips(kit, group, isUltimate)
+    local skills = if isUltimate then kit.poses.UltimateSkill else kit.poses.Skill
+    for _, option in group.options do
+        local id = option.id
+        if id == group.default then continue end
+        local skill, timing = skills[id], kit.poses.Contact[id]
+        if type(timing) == "number" then
+            local hit = {at = timing, damage = skill.damage, radius = skill.radius, foot = skill.foot, zone = "body",
+                loadoutFinish = if isUltimate then true else nil}
+            if option.floorPulse then
+                hit.shape, hit.center, hit.lockedCenter = "radial", skill.center, true
+            end
+            kit.clips[id] = {hit}
+        else
+            local sequence = {}
+            for index, at in timing do
+                sequence[index] = {at = at, damage = skill.damage[index], radius = skill.radius[index], zone = "body",
+                    loadoutFinish = if isUltimate then index == #timing else nil}
+            end
+            kit.clips[id] = sequence
+        end
+    end
+end
+
+for kitId, fighter in FighterLoadouts.ByKit do
+    local kit = kits[kitId]
+    registerLoadoutClips(kit, fighter.basic, false)
+    registerLoadoutClips(kit, fighter.ultimate, true)
 end
 
 local residents = {
@@ -422,7 +442,7 @@ function Round.act(round, action, now, direction)
     elseif action == "signature" then
         if round.ultimateCooldown then
             if now < round.nextSignature then
-                return kit.signatureCooling or "ultimateCooling"
+                return if round.signature == kit.signature then kit.signatureCooling else "ultimateCooling"
             end
             round.nextSignature = now + round.ultimateCooldown
         elseif now > round.signatureUntil then
@@ -495,11 +515,11 @@ local function resolveBotContact(round, at, fields, hit, _, move)
     return damage
 end
 
-local signatureBeat = {reedstep = 3, festivalCross = 2, featherFlurry = 3, gustVortex = 2, unstoppableFrenzy = 4}
+local signatureBeat = {reedstep = 3, featherFlurry = 3, gustVortex = 2, unstoppableFrenzy = 4}
 local groundedSignature = {
     reedstep = true, seismicChestPound = true, tadpoleTornado = true, gustVortex = true,
     tidalBellyFlop = true, staticCharge = true, apexPounce = true, jawsOfTheDeep = true,
-    unstoppableFrenzy = true, lanternBreak = true, festivalCross = true,
+    unstoppableFrenzy = true,
 }
 
 local function contactPresentation(round, clip, move, index, fields)
@@ -507,11 +527,11 @@ local function contactPresentation(round, clip, move, index, fields)
     if (attack == "body" or move.poseHold) and not clip.tagEntry then
         fields.poseHold = move.poseHold or .04
         fields.holdKick = move.foot or round.kit == kits.rooster
-    elseif attack == round.signature and not move.controlOnly
+    elseif attack == round.signature and not move.controlOnly and move.loadoutFinish ~= false
         and (not signatureBeat[attack] or signatureBeat[attack] == index)
         and (attack ~= "tempestRoar" or move.shape == "stormThunder") then
         fields.signatureCast = clip.startedAt
-        if groundedSignature[attack] then fields.poseHold = .08 end
+        if move.loadoutFinish or groundedSignature[attack] then fields.poseHold = .08 end
     end
     if fields.poseHold then
         fields.poseAt, fields.poseDirection = move.at, clip.direction

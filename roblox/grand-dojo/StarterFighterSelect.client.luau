@@ -615,21 +615,22 @@ end
 local function updateMoveDescriptions(info)
     local loadout = usesLoadoutSlots()
     local powers = info.powers
+    local catalogIndex = tacticalPowerIndexes[selectedId]
     local current = if loadout then nil else getMove("technique", requestedMoves.technique) or savedMove("technique")
     if loadout then
-        -- The loadout already describes the equipped Ultimate. Keep other catalog moves here once.
+        -- The slot picker owns the descriptions of selectable attacks.
         local ultimate = moveGroup("ultimate")
         local default = ultimate and getMove("ultimate", ultimate.default)
         powers = {}
-        for _, move in info.powers do
-            if not default or move.name ~= default.name then
+        for index, move in info.powers do
+            if index ~= catalogIndex and (not default or move.name ~= default.name) then
                 table.insert(powers, move)
             end
         end
     end
     techniques.Text = if loadout then "Other moves" else "Technique preview"
     local hasDescription = current and type(current.description) == "string" and current.description ~= ""
-    local catalogIndex = tacticalPowerIndexes[selectedId]
+    techniques.Visible = #powers > 0 or hasDescription == true
     local extraRow = hasDescription and not catalogIndex
     for index, row in moves do
         local selectedTechnique = hasDescription and index == (catalogIndex or 1)

@@ -46,12 +46,16 @@ function Match.loadout(player, kitId)
     })
 end
 
-local floorAttacks = {lanternBreak = true, seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
+local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
     tidalBellyFlop = true, thunderDive = true, staticCharge = true, apexPounce = true,
     jawsOfTheDeep = true, tentacleCataclysm = true, ["Breakwater Stamp"] = true}
 
 function Match.floorAttack(action)
-    return floorAttacks[action] == true
+    return floorAttacks[action] == true or FighterLoadouts.isFloorPulse(action)
+end
+
+function Match.loadoutFloorPulse(poses, action)
+    return if FighterLoadouts.isFloorPulse(action) then poses.UltimateSkill[action] else nil
 end
 
 function Match.plantedAction(action)

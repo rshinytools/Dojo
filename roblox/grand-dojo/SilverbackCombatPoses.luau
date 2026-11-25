@@ -193,8 +193,58 @@ local bow = pose({.025, -.25, -.015, -19, 5, -1}, {21, 12, -7, -.015, .16}, {36,
 local winTouch = pose({0, -.08, .015, -3, 5, 0}, {55, 54, -23, .045, .46}, {25, -10, 10, 0, .24},
 	planted, {4, -5})
 
+-- Fern Check uses the lead glove. The other wrap stays beside the face.
+local fernDraw = pose({-.048, -.215, .035, -8, 16, 6}, {36, 20, -18, .03, .13}, {27, -4, 14, .01, .26},
+	planted, {7, -14, -4})
+local fernHit = pose({-.07, -.205, -.19, -13, -27, 6}, {42, 27, -20, .07, .22}, {44, -20, 19, .018, -.13},
+	planted, {10, 23, -4})
+local fernFold = pose({-.035, -.22, -.065, -10, -10, 4}, {36, 22, -17, .04, .13}, {35, -16, 16, .02, .045},
+	planted, {8, 9, -3})
+
+-- The wide left sole remains fixed while the right toe snaps through the low line.
+local timberLoad = pose({-.18, -.25, .043, -8, -3, 12}, {32, 22, -22, .02, .11}, {50, -19, 17, .08, .22},
+	{20, 0, .31, 0, 8, 6, -.32, 0}, {7, 3, -8})
+local timberHit = pose({-.14, -.225, -.36, -2, 8, 12}, {39, 23, -24, .03, .09}, {53, -22, 19, .10, .19},
+	{37, 0, .815, 0, 26, 6, -1.61, 0}, {4, -7, -8})
+local timberReturn = pose({-.16, -.25, -.16, -7, 4, 10}, {36, 20, -22, .025, .105}, {48, -19, 17, .08, .21},
+	{21, 0, .48, 0, 12, 6, -.50, 0}, {7, -4, -7})
+
+-- A high right glove drops through the first beat. The left follows from hip height.
+local cedarDraw = pose({.10, -.20, .065, -7, -17, -8}, {109, 15, -12, .085, .17}, {50, -24, 20, .055, .23},
+	planted, {5, 15, 6})
+local cedarHigh = pose({.06, -.185, -.22, -15, 23, -6}, {57, 14, -17, .07, -.13}, {54, -24, 23, .07, .25},
+	planted, {11, -21, 4})
+local cedarShift = pose({-.055, -.37, -.10, -13, 16, 6}, {46, 21, -17, .06, .05}, {23, -4, 11, -.035, .27},
+	planted, {11, -14, -4})
+local cedarLoad = pose({-.11, -.41, .005, -13, 21, 8}, {44, 28, -20, .07, .14}, {18, 3, 14, -.10, .31},
+	planted, {11, -19, -5})
+local cedarLow = pose({-.11, -.35, -.35, -20, -25, 7}, {44, 32, -21, .07, .19}, {42, -27, 21, -.06, -.235},
+	planted, {16, 21, -4})
+local cedarCarry = pose({-.08, -.37, -.25, -20, -26, 7}, {43, 28, -21, .06, .18}, {35, -30, 24, -.055, -.18},
+	planted, {16, 21, -4})
+local cedarRecover = pose({-.04, -.25, -.10, -12, -3, 3}, {33, 21, -18, .04, .13}, {41, -20, 19, .005, .08},
+	planted, {9, 2, -2})
+
+-- The wide guard closes horizontally on one body beat without a floor shockwave.
+local forestDraw = pose({.025, -.27, .055, -6, 6, -2}, {33, -16, 17, .05, .15}, {40, 17, -18, .09, .20},
+	planted, {5, -5, 2})
+local forestOpen = pose({.0, -.24, .12, -4, 1, 0}, {57, -29, 26, .075, .09}, {60, 30, -29, .10, .12},
+	planted, {3, -1, 0})
+local forestDrive = pose({0, -.28, -.045, -10, 2, 0}, {55, 13, -7, .055, -.03}, {55, -13, 8, .09, -.06},
+	planted, {8, -2, 0})
+local forestHit = pose({0, -.31, -.35, -13, 0, 0}, {40, 31, -34, -.025, -.265}, {56, -32, 34, .11, -.225},
+	planted, {11, 0, 0})
+local forestRelease = pose({.0, -.36, -.21, -15, 1, 0}, {37, 19, -20, .005, -.12}, {45, -20, 24, .05, -.15},
+	planted, {13, -1, 0})
+local forestRecover = pose({.015, -.28, -.06, -11, 5, -1}, {30, 18, -15, 0, .07}, {44, -20, 16, .06, .18},
+	planted, {9, -5, 1})
+
 local contact = table.freeze({
 	jab = .21,
+	fernCheck = .17,
+	timberToe = .26,
+	cedarCrash = table.freeze({.33, .69}),
+	forestClamp = .66,
 	cross = .28,
 	body = .32,
 	heavy = .49,
@@ -210,6 +260,12 @@ local clips = {
 	retreat = {{0, ready}, {.21, backRight}, {.40, ready}, {.62, backLeft}, {.80, ready}},
 	dodge = {{0, ready}, {.13, stepRight}, {.32, catchRight}, {.58, ready}},
 	jab = {{0, ready}, {.095, jabLoad}, {contact.jab, jabContact}, {.31, jabReturn}, {.49, ready}},
+	fernCheck = {{0, ready}, {.074, fernDraw}, {contact.fernCheck, fernHit}, {.27, fernFold}, {.43, ready}},
+	timberToe = {{0, ready}, {.111, timberLoad}, {contact.timberToe, timberHit}, {.392, timberReturn}, {.54, ready}},
+	cedarCrash = {{0, ready}, {.148, cedarDraw}, {.21, cedarDraw}, {contact.cedarCrash[1], cedarHigh},
+		{.465, cedarShift}, {.55, cedarLoad}, {contact.cedarCrash[2], cedarLow}, {.79, cedarCarry}, {.96, cedarRecover}, {1.19, ready}},
+	forestClamp = {{0, ready}, {.156, forestDraw}, {.365, forestOpen}, {.456, forestOpen}, {.548, forestDrive},
+		{contact.forestClamp, forestHit}, {.708, forestHit}, {.831, forestRelease}, {1.04, forestRecover}, {1.25, ready}},
 	cross = {{0, ready}, {.14, crossLoad}, {contact.cross, crossContact}, {.43, crossReturn}, {.65, ready}},
 	body = {{0, ready}, {.18, bodyLoad}, {contact.body, bodyContact}, {.46, bodyReturn}, {.70, ready}},
 	heavy = {{0, ready}, {.26, heavyLoad}, {.38, heavyDrive}, {contact.heavy, heavyContact}, {.65, heavyFollow}, {.96, ready}},
@@ -245,7 +301,29 @@ Poses.Contact = contact
 
 -- Forward glove surfaces for ordinary contacts. Seismic uses the floor point
 -- between the two gloves for its dust burst and a separate radial hit volume.
+-- Contact surfaces are fitted vertices in the unposed mounted frame.
+local function surface(key, joint, point)
+	return (key.RootJoint * key[joint]):PointToWorldSpace(point)
+end
+
+local fernPad = Vector3.new(-1.973499889, .222499991, -1.093499800)
+local timberPad = Vector3.new(.664499962, -2.059500008, -.974999900)
+local cedarHighPad = Vector3.new(1.642500211, .292614024, -1.210501895)
+local cedarLowPad = Vector3.new(-2.014500006, .222499991, -1.052499907)
+local forestRightPad = Vector3.new(1.794500295, .521500335, -1.386500100)
+local forestLeftPad = Vector3.new(-1.900195376, -.073500202, -1.014500035)
+local clampRight = surface(forestHit, "Right Shoulder", forestRightPad)
+local clampLeft = surface(forestHit, "Left Shoulder", forestLeftPad)
+Poses.ForestClampHands = table.freeze({clampRight, clampLeft})
+
 Poses.Impact = table.freeze({
+	fernCheck = table.freeze({surface(fernHit, "Left Shoulder", fernPad)}),
+	timberToe = table.freeze({surface(timberHit, "Right Hip", timberPad)}),
+	cedarCrash = table.freeze({
+		surface(cedarHigh, "Right Shoulder", cedarHighPad),
+		surface(cedarLow, "Left Shoulder", cedarLowPad),
+	}),
+	forestClamp = table.freeze({clampRight:Lerp(clampLeft, .5)}),
 	jab = table.freeze({Vector3.new(.490, .634, -2.767)}),
 	cross = table.freeze({Vector3.new(-.488, .066, -3.037)}),
 	body = table.freeze({Vector3.new(.467, -.594, -2.600)}),
@@ -259,6 +337,8 @@ Poses.Impact = table.freeze({
 -- The floor circle stays centered under Silverback's starting root. The
 -- two chest taps cue the warning. Only the slam has a contact marker.
 Poses.Skill = table.freeze({
+	fernCheck = table.freeze({damage = 12, radius = .44}),
+	timberToe = table.freeze({damage = 15, radius = .46, foot = true}),
 	ridgePalm = table.freeze({shove = 1.15}),
 	seismicChestPound = table.freeze({
 		warningAt = warningAt,
@@ -267,6 +347,11 @@ Poses.Skill = table.freeze({
 		popHeight = .55,
 		center = Vector3.new(0, floorHeight, 0),
 	}),
+})
+
+Poses.UltimateSkill = table.freeze({
+	cedarCrash = table.freeze({damage = table.freeze({13, 22}), radius = table.freeze({.45, .49})}),
+	forestClamp = table.freeze({damage = 33, radius = .54}),
 })
 
 local loops = {stance = true, advance = true, retreat = true}

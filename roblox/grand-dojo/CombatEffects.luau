@@ -27,6 +27,10 @@ local tint = {
 local groundPulses = {
     lanternBreak = {name = "Lantern Break floor pulse", color = Color3.fromRGB(255, 209, 120), initial = .9,
         width = 4.9, compact = 4.0, life = .28},
+    glacierRing = {name = "Glacier Ring floor pulse", color = Color3.fromRGB(156, 232, 255), initial = .9,
+        width = 4.9, compact = 4.0, life = .28},
+    hearthCircle = {name = "Hearth Circle floor pulse", color = Color3.fromRGB(255, 167, 107), initial = .9,
+        width = 4.9, compact = 4.0, life = .28},
     seismicChestPound = {name = "Seismic contact pulse", color = Color3.fromRGB(255, 183, 104), initial = 1.4,
         width = 8.5, compact = 5.9, life = .26},
     magmaTrail = {name = "Magma tile burst", color = tint.burst, initial = .65, width = 2.36, compact = 2.15, life = .30},
@@ -42,6 +46,11 @@ local groundPulses = {
 local moveContactTint = {
     reedCheck = Color3.fromRGB(205, 237, 168), courtyardToe = Color3.fromRGB(224, 215, 148),
     festivalCross = Color3.fromRGB(255, 187, 127),
+    rimeTap = Color3.fromRGB(178, 238, 253), skateToe = Color3.fromRGB(133, 206, 250),
+    frostwake = Color3.fromRGB(168, 218, 255), fernCheck = Color3.fromRGB(187, 225, 140),
+    timberToe = Color3.fromRGB(235, 196, 127), cedarCrash = Color3.fromRGB(207, 236, 152),
+    forestClamp = Color3.fromRGB(235, 192, 109), sootPalm = Color3.fromRGB(252, 196, 138),
+    kilnToe = Color3.fromRGB(252, 170, 104), crucibleArc = Color3.fromRGB(255, 191, 115),
     reedSweep = Color3.fromRGB(187, 230, 143),
     reedstoneHeel = Color3.fromRGB(237, 199, 111),
     icecrestPalm = Color3.fromRGB(166, 221, 253),

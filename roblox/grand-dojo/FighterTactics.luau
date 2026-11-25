@@ -25,7 +25,8 @@ local byFighter = {
     ["silverback-gorilla"] = {
         kit = "silverback", attribute = "SilverbackTactical", default = "ridgePalm",
         options = {
-            {id = "ridgePalm", name = "Ridge Palm", compact = "Palm", level = 1, action = "secondary"},
+            {id = "ridgePalm", name = "Ridge Palm", compact = "Palm", level = 1, action = "secondary",
+                description = "A grounded palm strike that pushes nearby fighters back."},
             {id = "canopyKnuckle", name = "Canopy Knuckle", compact = "Knuckle", level = 5, action = "secondary", planted = true,
                 description = "A quick glove strike for close openings. 15 base damage."},
             {id = "ironbarkHammer", name = "Ironbark Hammer", compact = "Hammer", level = 10, action = "secondary", planted = true,
@@ -35,7 +36,8 @@ local byFighter = {
     ["fire-salamander"] = {
         kit = "salamander", attribute = "SalamanderTactical", default = "emberSweep",
         options = {
-            {id = "emberSweep", name = "Ember Sweep", compact = "Sweep", level = 1, action = "secondary"},
+            {id = "emberSweep", name = "Ember Sweep", compact = "Sweep", level = 1, action = "secondary",
+                description = "Sweep embers across a short fan on the mat."},
             {id = "coalstepKick", name = "Coalstep Kick", compact = "Kick", level = 5, action = "secondary", planted = true,
                 description = "A quick close-range boot strike that can catch a low stance. 14 base damage."},
             {id = "furnaceBacklash", name = "Furnace Backlash", compact = "Lash", level = 10, action = "secondary", planted = true,

@@ -138,6 +138,47 @@ local pressRelease = pose({0, -.19, -.19, -11, 1, 0}, {18, 105, 12, .04, -.19}, 
 local pressFold = pose({0, -.11, -.055, -7, -3, 0}, {15, 65, 22, .07, -.035}, {4, -16, -24, .055, .065},
 	tacticalFeet, {5, 4}, {1, -3})
 
+local rimeDraw = pose({.04, -.102, .045, -8, -16, -3}, {-4, 18, 28, .063, .104}, leftGuard,
+	tacticalFeet, {7, 12, 2}, {-4, -9})
+local rimeHit = pose({.025, -.084, -.177, -9, 47, 1}, {16, 77, 18, .066, -.180},
+	{-4, 14, -25, .047, .069}, tacticalFeet, {9, -25, -1}, {4, 14})
+local rimeFold = pose({.014, -.071, -.035, -6, 11, 1}, {14, 51, 21, .062, -.052}, leftGuard,
+	tacticalFeet, {5, -9}, {3, 7})
+
+local function kickBoot(key, depth)
+	key["Right Hip"] = CFrame.new(0, 0, depth) * key["Right Hip"]
+	return key
+end
+
+local toeTuck = kickBoot(pose({-.05, -.18, .045, -10, -9, 5}, {4, 27, 36, .064, .075},
+	{5, 14, -22, .068, .058}, {28, -3, .23, 0, -1, -5}, {9, 8, -4}, {-8, -2}), .08)
+local toeStrike = kickBoot(pose({-.075, -.13, -.285, -9, 12, 6}, {13, 45, 32, .07, -.027},
+	{12, 8, -28, .063, .076}, {69, -3, .64, 0, -13, -5}, {7, -10, -5}, {-7, 9}), -.45)
+local toeFold = kickBoot(pose({-.044, -.123, -.056, -7, 4, 4}, rightGuard, {4, 17, -23, .059, .069},
+	{27, -3, .23, 0, -6, -5}, {7, -3, -3}, {-5, 5}), -.08)
+
+local ringLift = pose({0, .06, .048, -3, -2, 0}, {-35, 27, 58, .25, .02}, {-25, -13, -57, .267, .05},
+	tacticalFeet, {-3, 2, 0}, {-5, -4})
+local ringBow = pose({0, -.31, -.026, -17, -1, 0}, {-6, 55, 37, .10, -.095},
+	{1, -35, -31, .13, -.12}, tacticalFeet, {12, 1, 0}, {-9, -1})
+local ringLand = pose({0, -.95, -.122, -28, 0, 0}, {24, 75, -67, -.36, -.44},
+	{34, -38, 73, -.66, -.50}, tacticalFeet, {23, 0, 0}, {-15, 0})
+local ringRecoil = pose({0, -.78, -.080, -24, -1, 0}, {13, 65, -8, -.15, -.26},
+	{24, -44, 6, -.17, -.24}, tacticalFeet, {20, 1}, {-12, 0})
+local ringUnfold = pose({.014, -.28, -.040, -13, -3, 1}, {7, 50, 21, .032, -.084},
+	{2, -17, -20, .047, -.018}, tacticalFeet, {10, 2}, {-8, -5})
+
+local wakeDraw = pose({-.08, -.17, .08, -9, 23, 6}, {2, 27, 42, .075, .116},
+	{-14, 26, -18, .049, .126}, tacticalFeet, {7, -20, -5}, {-9, 13})
+local wakeFirst = pose({-.033, -.22, -.234, -12, -33, 4}, {10, 31, 27, .055, .120},
+	{8, -29, -11, .048, -.139}, tacticalFeet, {12, 28, -3}, {-4, -16})
+local wakeSwitch = pose({.048, -.174, -.062, -8, -16, -3}, {-7, 9, 45, .053, .13},
+	{-3, -8, -28, .078, .06}, tacticalFeet, {6, 13, 2}, {-10, -10})
+local wakeSecond = pose({.031, -.14, -.381, -12, 38, -2}, {9, 78, 16, .066, -.222},
+	{8, 14, -30, .102, .109}, tacticalFeet, {11, -29, 1}, {8, 19})
+local wakeFollow = pose({.054, -.21, -.192, -15, 44, -4}, {10, 63, 23, .056, -.096},
+	{7, 19, -34, .077, .096}, tacticalFeet, {14, -35, 3}, {5, 23})
+
 local parryCatch = pose({-.055, -.11, .04, -7, -5, 3}, {18, 47, 27, .07}, {3, 23, -28, .08, .06},
 	{3, -4, 0, 0, 10, -6}, {4, 4, -3}, {1, -8})
 local parrySweep = pose({-.115, -.095, .09, -5, 17, 8}, {10, 43, 30, .055}, {9, -34, -33, .045, -.055},
@@ -202,6 +243,10 @@ local contact = table.freeze({
 	icecrestPalm = .34,
 	floeHook = .23,
 	glacierPress = .50,
+	rimeTap = .16,
+	skateToe = .25,
+	glacierRing = .63,
+	frostwake = table.freeze({.32, .66}),
 	bellySlide = table.freeze({.38, .49, .60, .68}),
 })
 local slideContacts = contact.bellySlide
@@ -219,6 +264,12 @@ local clips = {
 	floeHook = {{0, ready}, {.10, hookLoad}, {contact.floeHook, hookCut}, {.34, hookFold}, {.58, ready}},
 	glacierPress = {{0, ready}, {.155, pressCrouch}, {.255, pressLoad}, {.32, pressLoad}, {.405, pressDrive},
 		{contact.glacierPress, pressContact}, {.63, pressRelease}, {.78, pressFold}, {.94, ready}},
+	rimeTap = {{0, ready}, {.068, rimeDraw}, {contact.rimeTap, rimeHit}, {.246, rimeFold}, {.40, ready}},
+	skateToe = {{0, ready}, {.119, toeTuck}, {contact.skateToe, toeStrike}, {.363, toeFold}, {.52, ready}},
+	glacierRing = {{0, ready}, {.215, ringLift}, {.33, ringLift}, {.475, ringBow}, {contact.glacierRing, ringLand},
+		{.745, ringRecoil}, {.955, ringUnfold}, {1.26, ready}},
+	frostwake = {{0, ready}, {.157, wakeDraw}, {contact.frostwake[1], wakeFirst}, {.478, wakeSwitch},
+		{contact.frostwake[2], wakeSecond}, {.775, wakeFollow}, {1.16, ready}},
 	guard = {{0, cover}},
 	block = {{0, guardRecoil}, {.09, guardRecoil}, {.29, cover}},
 	parry = {{0, parryCatch}, {.09, parrySweep}, {.20, parryCatch}, {.36, ready}},
@@ -251,6 +302,30 @@ Poses.Contact = contact
 local slidingChest = Vector3.new(-.054, -1.717, -1.083)
 -- The right flipper's GLB vertex in the mounted rest frame.
 local pressPad = Vector3.new(1.789506197, 2.649204015 - 2.132, .308000468)
+local mountedOrigin = Vector3.new(0, 2.132, 0)
+local function mountedPoint(key, joint, point)
+	return (key.RootJoint * key[joint]):PointToWorldSpace(point - mountedOrigin)
+end
+
+-- Fit the strikes to the flipper and boot vertices in the mounted Blender shell.
+local rimePad = Vector3.new(1.789506197, 2.649204015, .308000468)
+local skatePad = Vector3.new(.550334215, 0, -.737846114)
+local ringRightPad = Vector3.new(1.832914472, 2.810763597, .107272007)
+local ringLeftPad = Vector3.new(-1.356805086, 2.477529049, -.641120553)
+local ringMid = mountedPoint(ringLand, "Right Shoulder", ringRightPad)
+	:Lerp(mountedPoint(ringLand, "Left Shoulder", ringLeftPad), .5)
+local ringCenter = Vector3.new(ringMid.X, -mountedOrigin.Y, ringMid.Z)
+local wakeLeftPad = Vector3.new(-1.311994791, 2.524436236, -.719604611)
+local wakeRightPad = rimePad
+
+Poses.Skill = table.freeze({
+	rimeTap = table.freeze({damage = 11, radius = .43}),
+	skateToe = table.freeze({damage = 14, radius = .48, foot = true}),
+})
+Poses.UltimateSkill = table.freeze({
+	glacierRing = table.freeze({damage = 30, radius = 2.45, warningAt = .20, center = ringCenter}),
+	frostwake = table.freeze({damage = table.freeze({13, 21}), radius = table.freeze({.45, .50})}),
+})
 Poses.Impact = table.freeze({
 	jab = table.freeze({Vector3.new(-.409, .028, -1.819)}),
 	cross = table.freeze({Vector3.new(.546, .481, -2.058)}),
@@ -259,6 +334,13 @@ Poses.Impact = table.freeze({
 	icecrestPalm = table.freeze({Vector3.new(0.432425851, 0.427610454, -2.052795646)}),
 	floeHook = table.freeze({Vector3.new(-0.183524557, -0.136406898, -1.601527903)}),
 	glacierPress = table.freeze({(pressContact.RootJoint * pressContact["Right Shoulder"]):PointToWorldSpace(pressPad)}),
+	rimeTap = table.freeze({mountedPoint(rimeHit, "Right Shoulder", rimePad)}),
+	skateToe = table.freeze({mountedPoint(toeStrike, "Right Hip", skatePad)}),
+	glacierRing = table.freeze({ringCenter}),
+	frostwake = table.freeze({
+		mountedPoint(wakeFirst, "Left Shoulder", wakeLeftPad),
+		mountedPoint(wakeSecond, "Right Shoulder", wakeRightPad),
+	}),
 	bellySlide = table.freeze({slidingChest, slidingChest, slidingChest, Vector3.new(-.044, -1.296, -1.157)}),
 })
 
@@ -283,6 +365,8 @@ Poses.HitWindow = table.freeze({
 	bellySlide = table.freeze({opensAt = slideContacts[1], closesAt = slideContacts[#slideContacts]}),
 })
 
+local planted = {icecrestPalm = true, floeHook = true, glacierPress = true,
+	rimeTap = true, skateToe = true, glacierRing = true, frostwake = true}
 local loops = {stance = true, advance = true, retreat = true}
 
 function Poses.sample(action, age, direction)
@@ -301,9 +385,11 @@ function Poses.sample(action, age, direction)
 			for name, previous in before[2] do
 				result[name] = previous:Lerp(after[2][name], weight)
 			end
-			if action == "icecrestPalm" or action == "floeHook" or action == "glacierPress" then
+			if planted[action] then
 				local root = result.RootJoint
-				result["Right Hip"] = root:ToObjectSpace(plantedRight)
+				if action ~= "skateToe" then
+					result["Right Hip"] = root:ToObjectSpace(plantedRight)
+				end
 				result["Left Hip"] = root:ToObjectSpace(plantedLeft)
 			end
 			return result

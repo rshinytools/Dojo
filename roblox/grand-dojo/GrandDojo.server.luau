@@ -306,24 +306,27 @@ local function syncStarterAvatar(player, data, character)
     end
 end
 
-local function storedChoiceMatches(stored, requested, default)
-    return requested == nil or stored == (if requested == default then nil else requested)
+local function storedChoiceMatches(stored, equipped, requested, default)
+    return requested == nil or (equipped == requested
+        and stored == (if requested == default then nil else requested))
 end
 
 local function savedStarterChoice(profile, pending, selected, form)
     if pending.first then
         return selected ~= nil
     end
-    if selected ~= pending.id or form ~= pending.form
-        or PlayerProfiles.tacticalFor(profile, selected) ~= pending.tactical
-        or PlayerProfiles.basicFor(profile, selected) ~= pending.basic
-        or PlayerProfiles.ultimateFor(profile, selected) ~= pending.ultimate then
+    -- A retry may resume under a new lease. Match the submitted choices and
+    -- let the profile preserve any omitted slots as they exist in that lease.
+    if selected ~= pending.id or (pending.requestedForm ~= nil and form ~= pending.requestedForm)
+        or (pending.requestedTactical ~= nil and PlayerProfiles.tacticalFor(profile, selected) ~= pending.requestedTactical) then
         return false
     end
     local fighter = profile.fighters[selected]
     local loadout = FighterLoadouts.ByFighter[selected]
-    return not loadout or (storedChoiceMatches(fighter and fighter.equippedBasic, pending.requestedBasic, loadout.basic.default)
-        and storedChoiceMatches(fighter and fighter.equippedUltimate, pending.requestedUltimate, loadout.ultimate.default))
+    return not loadout or (storedChoiceMatches(fighter and fighter.equippedBasic, PlayerProfiles.basicFor(profile, selected),
+        pending.requestedBasic, loadout.basic.default)
+        and storedChoiceMatches(fighter and fighter.equippedUltimate, PlayerProfiles.ultimateFor(profile, selected),
+            pending.requestedUltimate, loadout.ultimate.default))
 end
 
 local function projectStarterChoice(player, data, profile)
@@ -693,10 +696,8 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, 
         return
     end
     local pending = {
-        id = fighterId, form = form, requestedForm = requestedForm, first = not switching,
-        tactical = requestedTactical or PlayerProfiles.tacticalFor(data.profile, fighterId), requestedTactical = requestedTactical,
-        basic = requestedBasic or PlayerProfiles.basicFor(data.profile, fighterId), requestedBasic = requestedBasic,
-        ultimate = requestedUltimate or PlayerProfiles.ultimateFor(data.profile, fighterId), requestedUltimate = requestedUltimate,
+        id = fighterId, first = not switching, requestedForm = requestedForm, requestedTactical = requestedTactical,
+        requestedBasic = requestedBasic, requestedUltimate = requestedUltimate,
     }
     local sameAppearance = fighterId == data.selectedStarter and form == data.selectedForm
     if sameAppearance and savedStarterChoice(data.profile, pending, data.selectedStarter, data.selectedForm) then
