@@ -214,6 +214,7 @@ function Match.available(player)
         and not player:GetAttribute("RingTrainingActive")
         and not player:GetAttribute("RingTrainingPending")
         and not player:GetAttribute("SkywalkTrialMode")
+        and not player:GetAttribute("CityAdventureActive")
         and (player:GetAttribute("ParcelStage") or 0) == 0
         and (player:GetAttribute("RelayNextGate") or 0) == 0
 end

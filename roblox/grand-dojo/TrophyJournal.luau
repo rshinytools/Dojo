@@ -56,6 +56,23 @@ local raidAwards = {
 }
 
 local function describe(player, id)
+    local adventureAwards = player:GetAttribute("CityAdventureAwards")
+    if type(adventureAwards) == "string" and string.find("," .. adventureAwards .. ",", "," .. id .. ",", 1, true) then
+        if id == "mastery-sky" then
+            local best = player:GetAttribute("CityAdventureCloudbreakBest")
+            local clean = player:GetAttribute("CityAdventureCleanBest")
+            local note = if type(best) == "number" then string.format("Best: %.1fs.", best) else "Expert clear saved."
+            if type(clean) == "number" then note ..= string.format(" Clean best: %.1fs.", clean) end
+            return if player:GetAttribute("ProgressMode") == "studio" then "Studio award" else "Earned", note
+        end
+        local isAdventure = string.match(id, "^discovery%-") ~= nil or string.match(id, "^mastery%-") ~= nil
+            or id == "journey-01" or id == "journey-02" or id == "journey-03" or id == "journey-05"
+            or id == "journey-06" or id == "world-05" or id == "world-06"
+        if isAdventure then
+            return if player:GetAttribute("ProgressMode") == "studio" then "Studio award" else "Earned",
+                "Recorded in your collection."
+        end
+    end
     local award = raidAwards[id]
     if award then
         if player:GetAttribute(award.attribute) == true then
@@ -103,17 +120,20 @@ local function describe(player, id)
         if player:GetAttribute("SkywalkExpertEarned") == true and player:GetAttribute("SkywalkExpertRewardId") == id then
             local best = player:GetAttribute("SkywalkExpertBest")
             local note = if type(best) == "number" and best > 0
-                then string.format("Session best: %.1fs. This trial result resets when you leave.", best)
-                else "This trial result resets when you leave."
-            return "Session clear", note
+                then string.format("Expert clear in %.1fs. Waiting for the reward save.", best)
+                else "Waiting for the reward save."
+            return "Updating", note
         elseif player:GetAttribute("SkywalkTrialMode") == "expert" then
             local stage = player:GetAttribute("SkywalkTrialNext")
             if type(stage) == "number" then
-                return "In progress", string.format("Expert checkpoints: %d / 6. Clear records last for this session.",
+                return "In progress", string.format("Expert checkpoints: %d / 6.",
                     math.clamp(math.floor(stage), 0, 6))
             end
         end
-        return "Session challenge", "A validated Expert clear records a session result."
+        return "Locked", "Finish the Expert route and ring the summit bell."
+    elseif string.match(id, "^discovery%-") or string.match(id, "^mastery%-") or string.match(id, "^journey%-")
+        or id == "world-05" or id == "world-06" then
+        return "Locked", "Open the Adventure Journal to see city progress."
     end
     return "Planned", "This achievement’s earning path is planned."
 end
@@ -181,6 +201,7 @@ local permanentAwards = {"LanternKeeper", "KilnKeeper", "DeepwaterTeam", "DawnRe
 local observedAttributes = {
     "ProgressMode", "ProgressStatus", "SkywalkExpertEarned", "SkywalkExpertRewardId",
     "SkywalkExpertBest", "SkywalkTrialMode", "SkywalkTrialNext",
+    "CityAdventureAwards", "CityAdventureCloudbreakBest", "CityAdventureCleanBest",
 }
 for _, attribute in permanentAwards do
     table.insert(observedAttributes, attribute)

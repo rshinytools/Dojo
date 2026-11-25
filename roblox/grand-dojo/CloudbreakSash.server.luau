@@ -1,0 +1,173 @@
+local Players = game:GetService("Players")
+
+local COSMETIC_ID = "cloudbreak-summit-sash"
+local COSMETIC_ATTRIBUTE = "CloudbreakCosmetic"
+local EQUIPPED_ATTRIBUTE = "CloudbreakSashEquipped"
+local SHELL_NAME = "Starter Fighter Shell"
+local SASH_NAME = "Cloudbreak Summit Sash"
+local watches = {}
+
+local indigo = Color3.fromRGB(56, 66, 109)
+local brass = Color3.fromRGB(224, 177, 95)
+local wind = Color3.fromRGB(183, 233, 219)
+
+local function frontEdge(frame, size)
+    local halfDepth = .5 * (math.abs(frame.RightVector.Z) * size.X + math.abs(frame.UpVector.Z) * size.Y
+        + math.abs(frame.LookVector.Z) * size.Z)
+    return frame.Z - halfDepth
+end
+
+local function makeSash(torso, art, artFrame)
+    -- Mount beside the fighter shell so the sash cannot change contact or defeat bounds.
+    local sash = Instance.new("Model")
+    sash.Name = SASH_NAME
+    local half = art.Size * .5
+    local right, up, forward = artFrame.RightVector, artFrame.UpVector, artFrame.LookVector
+    local halfWidth = math.abs(right.X) * half.X + math.abs(up.X) * half.Y + math.abs(forward.X) * half.Z
+    local halfHeight = math.abs(right.Y) * half.X + math.abs(up.Y) * half.Y + math.abs(forward.Y) * half.Z
+    local center = artFrame.Position
+    local width = math.clamp(halfWidth, .36, 1.44)
+    local height = math.clamp(halfHeight, .40, 1.56)
+    local front = frontEdge(artFrame, art.Size)
+    for _, ornament in art:GetDescendants() do
+        if ornament:IsA("BasePart") and ornament.Transparency < 1 then
+            local link = ornament:FindFirstChildOfClass("Weld")
+            if link and link.Part0 == art and link.Part1 == ornament then
+                front = math.min(front, frontEdge(artFrame * link.C0 * link.C1:Inverse(), ornament.Size))
+            end
+        end
+    end
+    front -= .07
+    local shoulder = Vector3.new(center.X + width * .47, center.Y + height * .57, front)
+    local hip = Vector3.new(center.X - width * .52, center.Y - height * .22, front)
+    local across = shoulder - hip
+    local stripe = CFrame.new((shoulder + hip) * .5) * CFrame.Angles(0, 0, math.atan2(-across.X, across.Y))
+    local panelWidth = math.clamp(width * .47, .32, .49)
+    local panelLength = math.clamp(height * .64, .49, .75)
+    local panel = CFrame.new(hip + Vector3.new(-.025, -panelLength * .46, -.018)) * CFrame.Angles(0, 0, -.14)
+
+    local function piece(name, localFrame, size, color, material)
+        local part = Instance.new("Part")
+        part.Name, part.Size, part.Color, part.Material = name, size, color, material
+        part.CFrame = torso.CFrame * localFrame
+        part.Anchored, part.RootPriority = false, -127
+        part.Massless, part.CanCollide, part.CanQuery, part.CanTouch, part.CastShadow = true, false, false, false, false
+        local weld = Instance.new("WeldConstraint")
+        weld.Part0, weld.Part1 = torso, part
+        weld.Parent, part.Parent = part, sash
+    end
+
+    piece("Gold selvage", stripe, Vector3.new(.25, across.Magnitude + .10, .09), brass, Enum.Material.Fabric)
+    piece("Indigo cross strap", stripe + Vector3.new(0, 0, -.033),
+        Vector3.new(.17, across.Magnitude + .075, .055), indigo, Enum.Material.Fabric)
+    piece("Summit pennant", panel, Vector3.new(panelWidth, panelLength, .09), indigo, Enum.Material.Fabric)
+    piece("Pennant hem", panel * CFrame.new(0, -panelLength / 2 + .033, -.028),
+        Vector3.new(panelWidth, .065, .045), brass, Enum.Material.Fabric)
+    piece("Cloth knot", CFrame.new(hip + Vector3.new(0, 0, -.065)) * CFrame.Angles(0, 0, .33),
+        Vector3.new(.25, .24, .12), brass, Enum.Material.Fabric)
+    for index, length in {.62, .46, .29} do
+        piece("Wind stitch", panel * CFrame.new((index - 2) * .027, .12 - index * .086, -.049),
+            Vector3.new(panelWidth * length, .037, .019), wind, Enum.Material.Fabric)
+    end
+    return sash
+end
+
+local function watch(player)
+    if watches[player] or player.Parent ~= Players then
+        return
+    end
+    local playerConnections, characterConnections = {}, {}
+    local active, queued = true, false
+    local character, mountedArt, sash
+
+    local function removeSash()
+        if sash then
+            sash:Destroy()
+        end
+        mountedArt, sash = nil, nil
+    end
+
+    local function refresh()
+        if not character or character ~= player.Character or player:GetAttribute(COSMETIC_ATTRIBUTE) ~= COSMETIC_ID
+            or player:GetAttribute(EQUIPPED_ATTRIBUTE) == false then
+            removeSash()
+            return
+        end
+        local torso = character:FindFirstChild("Torso")
+        local shell = character:FindFirstChild(SHELL_NAME)
+        local art = shell and shell:FindFirstChild("Torso")
+        local weld = art and art:IsA("BasePart") and art:FindFirstChildOfClass("Weld")
+        if not (torso and torso:IsA("BasePart") and weld and weld.Part0 == torso and weld.Part1 == art) then
+            removeSash()
+            return
+        end
+        if mountedArt == art and sash and sash.Parent == character then
+            return
+        end
+        removeSash()
+        sash = makeSash(torso, art, weld.C0 * weld.C1:Inverse())
+        mountedArt, sash.Parent = art, character
+    end
+
+    local function schedule()
+        if not active or queued then
+            return
+        end
+        queued = true
+        task.defer(function()
+            queued = false
+            if active then
+                refresh()
+            end
+        end)
+    end
+
+    local function bindCharacter(nextCharacter)
+        for _, connection in characterConnections do
+            connection:Disconnect()
+        end
+        table.clear(characterConnections)
+        removeSash()
+        character = nextCharacter
+        if not character then
+            return
+        end
+        local function shellChanged(child)
+            if child.Name == SHELL_NAME or child.Name == "Torso" then
+                schedule()
+            end
+        end
+        characterConnections[1] = character.ChildAdded:Connect(shellChanged)
+        characterConnections[2] = character.ChildRemoved:Connect(shellChanged)
+        schedule()
+    end
+
+    playerConnections[1] = player:GetAttributeChangedSignal(COSMETIC_ATTRIBUTE):Connect(schedule)
+    playerConnections[2] = player:GetAttributeChangedSignal(EQUIPPED_ATTRIBUTE):Connect(schedule)
+    playerConnections[3] = player.CharacterAdded:Connect(bindCharacter)
+    playerConnections[4] = player.CharacterRemoving:Connect(function(oldCharacter)
+        if character == oldCharacter then
+            bindCharacter(nil)
+        end
+    end)
+    watches[player] = function()
+        active = false
+        for _, connection in playerConnections do
+            connection:Disconnect()
+        end
+        bindCharacter(nil)
+    end
+    bindCharacter(player.Character)
+end
+
+Players.PlayerAdded:Connect(watch)
+Players.PlayerRemoving:Connect(function(player)
+    local stop = watches[player]
+    if stop then
+        watches[player] = nil
+        stop()
+    end
+end)
+for _, player in Players:GetPlayers() do
+    watch(player)
+end

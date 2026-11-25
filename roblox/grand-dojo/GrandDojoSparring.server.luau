@@ -13,6 +13,7 @@ local progression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local bots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local sparringWon = script.Parent:WaitForChild("SparringWon")
+local adventureCompleted = script.Parent:WaitForChild("AdventureSparCompleted")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local templates = ServerStorage:WaitForChild("Resident Dojo Bots")
 
@@ -76,6 +77,9 @@ local function finish(bout, result, now, disconnected)
     local root = Match.root(player)
     if root == bout.root and result ~= "outside" then
         Match.move(root, arena.safeReturn.CFrame)
+    end
+    if root == bout.root and bout.featured and bout.round.result then
+        adventureCompleted:Fire(player, arena.id)
     end
     local wins = player:GetAttribute("SparringWins") or 0
     if result == "win" then

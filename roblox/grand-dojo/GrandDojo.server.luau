@@ -25,6 +25,7 @@ local studio = RunService:IsStudio()
 local transport = require(script.Parent:WaitForChild("DuelTransportRuntime")).get(studio)
 local store = if studio then PlayerProfiles.memoryStore() else DataStoreService:GetDataStore("BeastDojoPlayerProfiles")
 local profiles = PlayerProfiles.new(store, os.time, task.wait)
+local cityAdventure
 local shuttingDown = false
 local profileWorkers = 0
 
@@ -278,10 +279,12 @@ local function projectProgress(player, data, profile)
     local goal = (progress.nextLevelXp or progress.levelFloor) - progress.levelFloor
     local earned = math.clamp(progress.xp - progress.levelFloor, 0, goal)
     player:SetAttribute("FighterHudProgress", string.format("%d:%d:%d", progress.level, earned, goal))
+    if cityAdventure then cityAdventure.project(player, profile) end
 end
 
 local function pendingProgress(data)
-    return data.pendingStarterChoice or data.pendingRelay or data.pendingSparWin or data.pendingTraining or data.pendingRaids[1]
+    return data.pendingStarterChoice or data.pendingRelay or data.pendingSparWin or data.pendingTraining
+        or data.pendingRaids[1] or (data.pendingAdventure and data.pendingAdventure[1])
 end
 
 local function syncStarterAvatar(player, data, character)
@@ -479,6 +482,20 @@ local function saveRaid(player, data, token)
     return profile
 end
 
+local function saveAdventure(player, data, token)
+    local command = data.pendingAdventure[1]
+    local profile, reason, xp = profiles:commitCityAdventure(player.UserId, token, command)
+    if not profile then return nil, reason end
+    table.remove(data.pendingAdventure, 1)
+    data.profile = profile
+    if not (data.departed or shuttingDown) then
+        projectProgress(player, data, profile)
+        player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
+        cityAdventure.saved(player, command, xp)
+    end
+    return profile
+end
+
 local function serveProgress(player, data)
     local token = HttpService:GenerateGUID(false)
     local attempted = false
@@ -538,6 +555,8 @@ local function serveProgress(player, data)
                 data.profile = saveTraining(player, data, token)
             elseif data.pendingRaids[1] then
                 data.profile = saveRaid(player, data, token)
+            elseif data.pendingAdventure[1] then
+                data.profile = saveAdventure(player, data, token)
             else
                 data.profile = profiles:renew(player.UserId, token)
             end
@@ -591,6 +610,9 @@ local function serveProgress(player, data)
                     break
                 end
             end
+        end
+        while data.pendingAdventure and data.pendingAdventure[1] do
+            if not saveAdventure(player, data, token) then break end
         end
     end
     if attempted and not outbound then
@@ -663,11 +685,47 @@ end)
 
 local function activeActivity(player, data)
     return data.run or player:GetAttribute("SparringActive") or player:GetAttribute("SkywalkTrialMode")
+        or player:GetAttribute("CityAdventureActive")
         or player:GetAttribute("RingTrainingActive") or player:GetAttribute("RingTrainingPending")
         or player:GetAttribute("DuelQueued") or player:GetAttribute("BrawlQueued") or player:GetAttribute("TagTeamQueued")
         or player:GetAttribute("KilnbackRaidQueued")
         or (player:GetAttribute("ParcelStage") or 0) > 0
 end
+
+cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).mount(city:WaitForChild("City Adventure"), {
+    profile = function(player)
+        local data = state[player]
+        return data and data.profile
+    end,
+    pending = function(player)
+        local data = state[player]
+        return data and data.pendingAdventure or {}
+    end,
+    blocked = function(player)
+        local data = state[player]
+        return not data or not data.selectedStarter or not data.profile or activeActivity(player, data)
+            or player:GetAttribute("FighterSelectOpen") or player:GetAttribute("DuelTransferHold")
+    end,
+    queue = function(player, command)
+        local data = state[player]
+        if not data or not data.profile or not data.selectedStarter or data.departed or shuttingDown
+            or #data.pendingAdventure >= 16 or (transport and transport.profiles:ownsOutbound(player)) then
+            return false
+        end
+        command.id, command.fighterId = HttpService:GenerateGUID(false), data.selectedStarter
+        table.insert(data.pendingAdventure, command)
+        if transport then transport.profiles:receiptQueued(player) end
+        return true
+    end,
+})
+script.Parent:WaitForChild("CloudbreakAdventureCleared").Event:Connect(function(player, seconds, clean)
+    if type(seconds) == "number" and seconds > 0 and seconds <= 120 and type(clean) == "boolean" then
+        cityAdventure.trusted(player, {kind = "cloudbreak", tenths = math.round(seconds * 10), clean = clean})
+    end
+end)
+script.Parent:WaitForChild("AdventureSparCompleted").Event:Connect(function(player, ring)
+    if ring == "grand-dojo" then cityAdventure.trusted(player, {kind = "trial", district = "valley"}) end
+end)
 
 local function atFighterSelect(player)
     return switchPrompt and switchPrompt.Enabled and near(player, switchStation, switchPrompt.MaxActivationDistance)
@@ -781,7 +839,7 @@ local function addPlayer(player)
         return
     end
     local data = {openUntil = 0, lastAction = 0, lastStrike = 0, targetStrikes = {}, nextChime = 1, lastChime = -math.huge,
-        pendingRaids = {}}
+        pendingRaids = {}, pendingAdventure = {}}
     state[player] = data
     if transport then
         local role = transport:profileRole(player)
@@ -1009,6 +1067,7 @@ local function finish(player, data, now)
         remote:FireClient(player, "finished", tenths / 10, false, true)
     else
         data.pendingRelay = {tenths = tenths, id = HttpService:GenerateGUID(false), fighterId = run.fighterId}
+        cityAdventure.trusted(player, {kind = "festival", activity = "relay"})
         if transport then transport.profiles:receiptQueued(player) end
         player:SetAttribute("ProgressStatus", "saving")
         remote:FireClient(player, "notice", "Saving your Relay result…")

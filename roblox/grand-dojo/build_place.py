@@ -145,6 +145,7 @@ from ring_gate_standard import build_ring_gate_standard
 from saltwind_bluff_art import FACE_TINTS as SALTWIND_SLATE, build_saltwind_bluff_art
 from saltwind_high_walk import (NAME as SALTWIND_WALK, POINTS as SALTWIND_WALK_POINTS,
                                 SALTWIND_OPENING, build_saltwind_high_walk)
+from city_adventure_scenery import build_city_adventure_scenery
 from south_channel_arch import build_south_channel_arch
 from south_ridge_trail import build_south_ridge_trail
 from south_valley_backdrop import build_south_valley_backdrop, hillside_cedar, ridge_surface_height
@@ -7771,8 +7772,11 @@ build_ring_training(scene, {
     "kiln-rhythm": (150, 10.027, -182, 0),
     "wind-signals": (23, 25.027, -256, 90),
 }, item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
+build_city_adventure_scenery(scene, item=item, part=part, prop=prop, sign=sign,
+                            cedar=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
+item(storage,"RemoteEvent","CityAdventure")
 item(storage,"RemoteEvent","GrandDojoAction")
 item(storage,"RemoteEvent","GrandDojoSparring")
 item(storage,"RemoteEvent","GrandDojoDuel")
@@ -8028,7 +8032,12 @@ server=item(root,"ServerScriptService","ServerScriptService")
 item(server,"BindableEvent","SparringWon")
 item(server,"BindableEvent","RingTrainingCompleted")
 item(server,"BindableEvent","DojoRaidCompleted")
+item(server,"BindableEvent","CloudbreakAdventureCleared")
+item(server,"BindableEvent","AdventureSparCompleted")
 for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDojo.server.luau"),
+                                    (server,"ModuleScript","CityAdventureCatalog","CityAdventureCatalog.luau"),
+                                    (server,"ModuleScript","CityAdventureProgress","CityAdventureProgress.luau"),
+                                    (server,"ModuleScript","CityAdventureService","CityAdventureService.luau"),
                                     (server,"Script","GrandDojoSparring","GrandDojoSparring.server.luau"),
                                     (server,"Script","GrandDojoDuel","GrandDojoDuel.server.luau"),
                                     (server,"Script","GrandDojoBrawl","GrandDojoBrawl.server.luau"),
@@ -8037,6 +8046,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","CombatProfileHandoff","CombatProfileHandoff.luau"),
                                     (server,"Script","GrandDojoRingTraining","GrandDojoRingTraining.server.luau"),
                                     (server,"Script","CloudbreakTrial","CloudbreakTrial.server.luau"),
+                                    (server,"Script","CloudbreakSash","CloudbreakSash.server.luau"),
                                     (server,"Script","FrostglassReflectorLogic","FrostglassReflectors.server.luau"),
                                     (server,"ModuleScript","SparringRound","SparringRound.luau"),
                                     (server,"ModuleScript","ReedguardRound","ReedguardRound.luau"),
@@ -8132,6 +8142,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","ArenaJumpMotion","ArenaJumpMotion.luau"),
                                     (opening,"LocalScript","GrandDojoSplash","GrandDojoSplash.client.luau"),
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
+                                    (scripts,"LocalScript","CityAdventureClient","CityAdventure.client.luau"),
                                     (scripts,"LocalScript","GrandDojoBrawlClient","GrandDojoBrawl.client.luau"),
                                     (scripts,"LocalScript","GrandDojoTagTeamClient","GrandDojoTagTeam.client.luau"),
                                     (scripts,"LocalScript","KilnbackRaidClient","KilnbackRaid.client.luau"),

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.356 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.357 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -169,6 +169,16 @@ When the v0.322 combat rehearsal ran, Creator Dashboard still showed v0.240 as p
 
 A second Roblox account was invited through Early testers. The invitation was verified in Roblox Studio. Its first live join is pending.
 
+## City Adventure and Training Festival
+
+V0.357 adds six native mentor chapters with 18 steps, 12 district activities, 18 hidden seals, six district caches, and the Grand Treasure. The Adventure Journal shows clues, tracked destinations, first clears and records. Completing a chapter unlocks its district return point and local expert routes where offered. Server checks use authored positions, timed lamp presses and ordered checkpoints. The published build still needs a full six-district playthrough.
+
+Adventure progress uses the existing leased profile and receipt worker. Standalone tests covered all 18 chapter steps, 12 activities, 18 seals, seven caches, repeated festival windows, a lost reward reply, and profile reopen and account isolation. Native Studio verified the Valley mentor, three surveys, three seals, the first two trophies, a 40 XP cache grant, and a 30 XP Reed-path clear by walking all four markers on its isolated test profile. Published reconnect is still open.
+
+Training Festival opens for 12 minutes each half hour. Any three different eligible activity clears in the same window earn 65 XP and the first Festival Regular trophy. Official Lantern Relay and Cloudbreak Expert can count. At the bell, the existing fireworks still run relative to the same half-hour clock. Repeat and duplicate stamp rules passed standalone tests. Live scheduling and multiplayer occupancy need verification.
+
+Cloudbreak Expert stops the clock on landing 24, with the summit bell required to verify the clear. Clean and recovered bests save separately. A first clear awards Skywalk Peaks Master, the wearable Summit Sash, and 85 XP. The fitted route uses the existing 24 landings and six stages. In a guided Studio playtest, the real landing checks recorded 26.1 seconds across all 24 landings. The summit bell saved 85 XP, the Skywalk Peaks Master trophy and the equipped Summit Sash to the isolated Studio profile. The exact-source replay also verified a 28.1-second clean route and that a separate 12.6-second bell delay adds no time. Player-controlled timing and published reward restoration remain open.
+
 ## Shared city and personal trophy rooms
 
 All six districts belong to one walkable Roblox city place. Players in the same server see each other and share the city and its events. Roblox can run multiple copies of the city at once. The district roads keep a group together in the same server. Roblox's Join Experience action can bring a player into a friend's session when account settings, experience access, and server capacity allow it. [Roblox friend joining](https://en.help.roblox.com/hc/en-us/articles/203314220-How-to-follow-or-join-another-player-in-experiences)
@@ -229,7 +239,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v356-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v357-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)

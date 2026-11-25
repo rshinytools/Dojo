@@ -9,6 +9,7 @@ local startMarker = course:WaitForChild("Start")
 local startDeck = course:WaitForChild("Cloudbreak start deck")
 local platformFolder = course:WaitForChild("Platforms")
 local noticeRemote = ReplicatedStorage:WaitForChild("GrandDojoAction")
+local adventureCleared = script.Parent:WaitForChild("CloudbreakAdventureCleared")
 
 local LANDING_COUNT = 24
 local STAGE_ENDS = {[3] = 1, [6] = 2, [12] = 3, [17] = 4, [22] = 5, [24] = 6}
@@ -81,6 +82,7 @@ local function hasConflictingActivity(player)
         or player:GetAttribute("DuelQueued") == true or player:GetAttribute("DuelTransferHold") == true
         or player:GetAttribute("RingTrainingActive") ~= nil
         or player:GetAttribute("RingTrainingPending") == true
+        or player:GetAttribute("CityAdventureActive") == true
 end
 
 local function nearPrompt(root, prompt)
@@ -100,6 +102,7 @@ local function clearRun(player)
     player:SetAttribute("SkywalkTrialMode", nil)
     player:SetAttribute("SkywalkTrialNext", nil)
     player:SetAttribute("SkywalkTrialStartedAt", nil)
+    player:SetAttribute("SkywalkTrialFinishedAt", nil)
     player:SetAttribute("SkywalkTrialRecoveries", nil)
 end
 
@@ -127,6 +130,7 @@ local function beginRun(player, prompt, mode)
         mode = mode,
         nextPad = 1,
         recovery = 0,
+        recoveredFromFall = false,
         started = nil,
         previousPosition = root.Position,
         sampledAt = now,
@@ -166,6 +170,8 @@ end
 local function recover(player, run, now)
     local recovery = run.recovery
     local point = if recovery == 0 then firstPoint else platformTop(platforms[recovery])
+    run.recoveredFromFall = true
+    run.finishedAt = nil
     placeOnLanding(run.root, point)
     run.nextPad = recovery + 1
     run.previousPosition = run.root.Position
@@ -173,6 +179,7 @@ local function recover(player, run, now)
     run.activeAt = now
     run.movementAllowance = REPLICATION_ALLOWANCE
     player:SetAttribute("SkywalkTrialNext", STAGE_ENDS[recovery] or 0)
+    player:SetAttribute("SkywalkTrialFinishedAt", nil)
     notice(player, if recovery == 0 then "Back at the staging platform." else "Back at your last recovery shrine.")
 end
 
@@ -252,6 +259,10 @@ local function advance(player, run, now)
         player:SetAttribute("SkywalkTrialRecoveries", RECOVERY_AT[index])
         notice(player, string.format("Recovery shrine %d of 2 reached.", RECOVERY_AT[index]))
     elseif index == LANDING_COUNT then
+        run.finishedAt = now
+        if run.mode == "expert" then
+            player:SetAttribute("SkywalkTrialFinishedAt", now)
+        end
         notice(player, "All six stages cleared. Ring the summit bell to finish.")
     end
 end
@@ -277,14 +288,15 @@ bellPrompt.Triggered:Connect(function(player)
         notice(player, "Practice clear. Try Expert for the timed climb.")
         return
     end
-    if not run.started or now - run.started < MIN_EXPERT_TIME then
+    local elapsed = run.started and run.finishedAt and run.finishedAt - run.started
+    if not elapsed or elapsed < MIN_EXPERT_TIME then
         notice(player, "That run could not be verified. Start another attempt.")
         return
     end
     if bellSound then
         bellSound:Play()
     end
-    local seconds = math.round((now - run.started) * 10) / 10
+    local seconds = math.round(elapsed * 10) / 10
     local best = player:GetAttribute("SkywalkExpertBest")
     if not best or seconds < best then
         player:SetAttribute("SkywalkExpertBest", seconds)
@@ -292,10 +304,11 @@ bellPrompt.Triggered:Connect(function(player)
     if player:GetAttribute("SkywalkExpertEarned") ~= true then
         player:SetAttribute("SkywalkExpertEarned", true)
         player:SetAttribute("SkywalkExpertRewardId", MASTERY_ID)
-        notice(player, string.format("Skywalk Peaks Master earned this session · %.1fs", seconds))
+        notice(player, string.format("Cloudbreak clear · %.1fs · Saving your reward", seconds))
     else
         notice(player, string.format("Cloudbreak Expert clear · %.1fs", seconds))
     end
+    adventureCleared:Fire(player, seconds, not run.recoveredFromFall)
 end)
 
 returnPrompt.Triggered:Connect(function(player)

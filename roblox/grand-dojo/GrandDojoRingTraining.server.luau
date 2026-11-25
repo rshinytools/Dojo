@@ -41,6 +41,7 @@ local function incompatible(player)
         or player:GetAttribute("DuelQueued")
         or player:GetAttribute("DuelTransferHold")
         or player:GetAttribute("SkywalkTrialMode")
+        or player:GetAttribute("CityAdventureActive")
         or (player:GetAttribute("RelayNextGate") or 0) > 0
 end
 

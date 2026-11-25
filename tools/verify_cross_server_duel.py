@@ -90,9 +90,14 @@ print("A reserved job keeps its recovery path when the matching store cannot ini
 def stored_profile_fixture():
     body = source("PlayerProfiles")
     declarations, body = body.split("local PlayerProfiles = {}", 1)
-    assert declarations.count("require(") == 3
-    modules = ("FighterForms", "FighterTactics", "FighterLoadouts")
+    assert declarations.count("require(") == 4
+    modules = ("FighterForms", "FighterTactics", "FighterLoadouts", "CityAdventureCatalog")
+    adventure = source("CityAdventureProgress").replace(
+        "local Catalog = require(script.Parent.CityAdventureCatalog)", "local Catalog = CityAdventureCatalog", 1
+    )
     return "".join(as_local(name, source(name)) for name in modules) + as_local(
+        "CityAdventureProgress", adventure
+    ) + as_local(
         "PlayerProfiles", "local PlayerProfiles = {}" + body
     ) + (FIXTURES / "return_release.luau").read_text()
 

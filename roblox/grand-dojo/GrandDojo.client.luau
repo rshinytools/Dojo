@@ -1071,8 +1071,11 @@ local function updateCloudbreakText()
     if mode == "expert" then
         local timer = "Jump to start"
         if startedAt > 0 then
-            local tenths = math.floor(math.max(0, workspace:GetServerTimeNow() - startedAt) * 10)
+            local finishedAt = player:GetAttribute("SkywalkTrialFinishedAt")
+            local now = if type(finishedAt) == "number" then finishedAt else workspace:GetServerTimeNow()
+            local tenths = math.floor(math.max(0, now - startedAt) * 10 + .5)
             timer = string.format("%d:%02d.%d", math.floor(tenths / 600), math.floor(tenths / 10) % 60, tenths % 10)
+            if finishedAt then timer ..= " · Ring bell" end
         end
         progress ..= "  ·  " .. timer
     end
@@ -1135,7 +1138,7 @@ local function layout()
     end
 end
 
-for _, attribute in {"SkywalkTrialMode", "SkywalkTrialNext", "SkywalkTrialStartedAt", "SkywalkTrialRecoveries"} do
+for _, attribute in {"SkywalkTrialMode", "SkywalkTrialNext", "SkywalkTrialStartedAt", "SkywalkTrialRecoveries", "SkywalkTrialFinishedAt"} do
     player:GetAttributeChangedSignal(attribute):Connect(function()
         updateCloudbreakText()
         layout()

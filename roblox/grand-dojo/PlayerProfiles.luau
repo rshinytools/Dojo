@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
+local CityAdventureProgress = require(script.Parent:WaitForChild("CityAdventureProgress"))
 
 local PlayerProfiles = {}
 PlayerProfiles.__index = PlayerProfiles
@@ -219,6 +220,9 @@ local function valid(profile)
         and (trophy == nil or type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
             and whole(trophy.criterionVersion, 1, 1e6))
         and (profile.kilnback == nil or validRaidReceipt(profile.kilnback))
+        and CityAdventureProgress.valid(profile.cityAdventure)
+        and (profile.cityAdventureReceipt == nil or type(profile.cityAdventureReceipt) == "table"
+            and validCompletionId(profile.cityAdventureReceipt.id) and whole(profile.cityAdventureReceipt.xp, 0, 200))
         and validLease(profile.lease)
         and (profile.duelReturn == nil or type(profile.duelReturn) == "table"
             and validHandoffId(profile.duelReturn.id) and validHandoffId(profile.duelReturn.token))
@@ -633,6 +637,38 @@ function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, ta
     end)
 end
 
+local function completeWorldCollection(profile, now)
+    local trophies = profile.trophies
+    if not trophies["world-06"] and trophies[KILN_KEEPER] and trophies[DEEPWATER_TEAM]
+        and trophies[DAWN_RETURN] and trophies[LANTERN_KEEPER] and trophies["world-05"] then
+        profile.trophies = table.clone(trophies)
+        profile.trophies["world-06"] = {earnedAt = now, criterionVersion = 1}
+    end
+end
+
+function PlayerProfiles:commitCityAdventure(userId, token, receipt)
+    if type(receipt) ~= "table" or not validCompletionId(receipt.id) or not isFighter(receipt.fighterId) then
+        return nil, "invalid adventure receipt"
+    end
+    local saved, reason = self:_owned(userId, token, function(profile, now)
+        if profile.cityAdventureReceipt and profile.cityAdventureReceipt.id == receipt.id then return end
+        if not PlayerProfiles.canSwitch(profile, receipt.fighterId) then return "fighter locked" end
+        local updated, xp, awards = CityAdventureProgress.apply(profile.cityAdventure, receipt)
+        profile.cityAdventure = updated
+        if #awards > 0 then
+            profile.trophies = table.clone(profile.trophies)
+            for _, id in awards do
+                profile.trophies[id] = profile.trophies[id] or {earnedAt = now, criterionVersion = 1}
+            end
+        end
+        completeWorldCollection(profile, now)
+        if xp > 0 then addFighterXp(profile, receipt.fighterId, xp) end
+        profile.cityAdventureReceipt = {id = receipt.id, xp = xp}
+    end)
+    local recorded = saved and saved.cityAdventureReceipt
+    return saved, reason, if recorded and recorded.id == receipt.id then recorded.xp else 0
+end
+
 function PlayerProfiles:commitRaid(userId, token, raidId, window, completionId)
     local trophyId = RAID_TROPHIES[raidId]
     if not trophyId or not whole(window, 0, 1e10) or not validCompletionId(completionId) then
@@ -655,6 +691,7 @@ function PlayerProfiles:commitRaid(userId, token, raidId, window, completionId)
             profile.trophies = table.clone(profile.trophies)
             profile.trophies[trophyId] = {earnedAt = now, criterionVersion = 1, completionId = completionId}
         end
+        completeWorldCollection(profile, now)
         local tokens, shards = previous and previous.tokens or 0, previous and previous.shards or 0
         local grantTokens, grantShards = math.min(RAID_TOKENS, 1e12 - tokens), math.min(RAID_SHARDS, 1e12 - shards)
         -- The previous checkpoint only accepts Kilnback and Kraken in raidId.
@@ -702,6 +739,7 @@ function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId, 
             profile.trophies = table.clone(profile.trophies)
             profile.trophies[LANTERN_KEEPER] = {earnedAt = now, criterionVersion = 1, completionId = completionId}
         end
+        completeWorldCollection(profile, now)
         profile[receiptKey] = {id = completionId, fighterId = fighterId, xp = xp}
         addFighterXp(profile, fighterId, xp)
     end)
