@@ -5,6 +5,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import re
+from tempfile import TemporaryDirectory
 from xml.sax.saxutils import escape
 from zipfile import ZipFile
 
@@ -51,10 +52,19 @@ def export(output, universe_id, place_id, protocol):
         raise ValueError("the archived DuelTransportConfig differs from the checked-out source")
     result = place.replace(archived, staged, 1)
 
-    with output.open("xb") as file:
-        file.write(result)
-    return {"version": checkpoint["version"], "source_sha256": source_digest, "staging_sha256": sha256(result).hexdigest(),
-            "universe_id": universe_id, "place_id": place_id, "protocol": protocol, "output": str(output)}
+    with TemporaryDirectory(dir=output.parent) as temporary:
+        prepared = Path(temporary) / output.name
+        prepared.write_bytes(result)
+        output.hardlink_to(prepared)
+    return {
+        "version": checkpoint["version"],
+        "source_sha256": source_digest,
+        "staging_sha256": sha256(result).hexdigest(),
+        "universe_id": universe_id,
+        "place_id": place_id,
+        "protocol": protocol,
+        "output": str(output),
+    }
 
 
 def main():
