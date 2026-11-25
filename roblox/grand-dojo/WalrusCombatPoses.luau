@@ -19,7 +19,8 @@ local rightSole, leftSole = sole(1), sole(-1)
 local rig = Choreography.new(2.60, pivots, rightSole, leftSole)
 local pose = rig.pose
 local mountedHeight = 2.132
-local attackPose = Choreography.new(mountedHeight, pivots, rightSole, leftSole).pose
+local mountedRig = Choreography.new(mountedHeight, pivots, rightSole, leftSole)
+local attackPose = mountedRig.pose
 
 local rightGuard, leftGuard = {48, 15, -18, -.06, .045, .02}, {46, -17, 17, .075, .055, -.06}
 local rearFoot, leadFoot = {3, -23, 0, .17, 0, .15, 0}, {5, 25, 0, -.16, 0, -.16, 0}
@@ -172,4 +173,122 @@ local travel = {
     tidalBellyFlop = table.freeze({axis = "forward", distance = 1.36, startsAt = .34, endsAt = .79}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {whiskerCheck = true, basinPress = true})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"},
+    {whiskerCheck = true, basinPress = true})
+
+-- The new strikes use the equipped shell's root height. Plant the visible
+-- flipper soles just above the mat and preserve the original pose repertoire.
+local leftHip, rightHip = "Left Hip", "Right Hip"
+local leftPlant = CFrame.new(0, .011, 0) * ready.RootJoint * ready[leftHip]
+local rightPlant = CFrame.new(0, .018, 0) * ready.RootJoint * ready[rightHip]
+
+local function plantFlippers(offsets, both)
+    local root = offsets.RootJoint
+    offsets[leftHip] = root:ToObjectSpace(leftPlant)
+    if both then
+        offsets[rightHip] = root:ToObjectSpace(rightPlant)
+    end
+    return offsets
+end
+
+local function fitted(core, right, left, head, tail, kick)
+    return plantFlippers(mountedRig.pose(core, right, left, kick or rearFoot, leadFoot, head, tail), kick == nil)
+end
+
+local variantReady = plantFlippers(table.clone(ready), true)
+local tapGather = fitted({.055, -.24, .062, -8, -20, -4}, {37, 12, -32, .078, .083, .13},
+    leftGuard, {11, 18, 3}, {5, 20, 3})
+local tapHit = fitted({.042, -.24, .105, -12, 32, -4}, {68, 29, -4, -.187, .11, -.126},
+    {48, -13, 22, .08, .065, .045}, {12, -29, 2}, {10, -32, 4})
+local tapEase = fitted({.054, -.25, -.075, -8, 16, -4}, {56, 17, -18, -.089, .082, -.095},
+    leftGuard, {10, -13, 1}, {9, -15, 4})
+
+local toeGather = fitted({-.078, -.273, .021, -10, -14, 7}, {47, 18, -24, .015, .087, .058},
+    {56, -20, 21, .065, .104, .023}, {13, 14, -4}, {-5, 17, -5})
+local toeTuck = fitted({-.12, -.288, -.005, -7, -11, 9}, {47, 13, -29, .045, .074, .095},
+    {61, -20, 16, .098, .124, .033}, {8, 11, -5}, {-3, 15, -7},
+    {31, -16, 5, .138, .035, .059, .25})
+local toeHit = fitted({-.115, -.24, -.20, -12, 16, 8}, {48, 22, -29, .02, .072, -.058},
+    {60, -20, 18, .108, .123, .056}, {11, -14, -4}, {8, -16, -6},
+    {64, -5, 5, -.035, .05, -.24, .63})
+local toeEase = fitted({-.10, -.275, -.07, -10, 5, 6}, {48, 18, -26, .023, .085, -.025},
+    {54, -19, 22, .087, .096, .04}, {10, -5, -3}, {5, -6, -5},
+    {28, -14, 4, .055, .055, -.097, .20})
+
+local dropRaise = fitted({.018, -.025, .128, 0, -4, 1}, {101, 8, -61, .04, .23, .035},
+    {99, -7, 56, -.031, .20, .059}, {5, 3, -1}, {-2, 6, -1})
+local dropHold = fitted({.013, -.066, .111, -7, -1, 0}, {94, 9, -53, -.025, .18, .053},
+    {91, -8, 51, .024, .17, .065}, {11, 2, -1}, {-4, 4, -1})
+local dropDrive = fitted({.028, -.259, -.092, -17, 2, -3}, {68, 20, -32, -.115, .071, -.12},
+    {67, -17, 33, .104, .073, -.115}, {15, -2, 2}, {10, -4, 4})
+local dropHit = fitted({.047, -.41, -.34, -25, 5, -3}, {50, 26, -14, -.279, -.103, -.37},
+    {51, -21, 20, .231, -.090, -.315}, {18, -4, 2}, {15, -7, 4})
+local dropReceive = fitted({.034, -.39, -.183, -22, 7, -3}, {55, 23, -19, -.185, -.052, -.223},
+    {54, -19, 22, .161, -.051, -.21}, {17, -6, 2}, {14, -9, 4})
+local dropEase = fitted({.029, -.27, -.052, -12, 2, -1}, rightGuard, leftGuard,
+    {13, 0, 1}, {9, -4, 1})
+
+local tideLeftLoad = fitted({-.066, -.28, .093, -8, 31, 6}, {53, 15, -18, -.041, .076, .054},
+    {44, 21, -56, .15, .05, .063}, {9, -27, -5}, {4, -34, -6})
+local tideLeft = fitted({-.049, -.207, -.237, -12, -36, 4}, {52, 14, -29, -.098, .069, .074},
+    {74, -23, 14, .199, .083, -.203}, {12, 29, -3}, {15, 38, -6})
+local tideRightLoad = fitted({.076, -.296, -.057, -11, -39, -6}, {41, -20, 58, -.159, .051, .054},
+    {48, -19, 25, .123, .088, .002}, {11, 30, 5}, {-5, 43, 7})
+local tideRight = fitted({.051, -.214, -.301, -13, 39, -5}, {76, 26, -14, -.228, .078, -.274},
+    {49, -17, 24, .116, .084, .052}, {15, -34, 4}, {16, -44, 7})
+local tideEase = fitted({.063, -.235, -.145, -14, 25, -6}, {59, 20, -20, -.136, .072, -.106},
+    {50, -17, 20, .084, .071, .058}, {13, -24, 4}, {11, -29, 6})
+
+local toeLiftAt, toePlantAt = .067, .51
+local variantContact = {dockTap = .153, brineToe = .26, mooringDrop = .62, tidelineClap = table.freeze({.34, .69})}
+local variantClips = {
+    dockTap = {{0, variantReady}, {.067, tapGather}, {variantContact.dockTap, tapHit},
+        {.253, tapEase}, {.41, variantReady}},
+    brineToe = {{0, variantReady}, {toeLiftAt, toeGather}, {.148, toeTuck}, {variantContact.brineToe, toeHit},
+        {.365, toeEase}, {toePlantAt, variantReady}, {.55, variantReady}},
+    mooringDrop = {{0, variantReady}, {.237, dropRaise}, {.332, dropRaise}, {.431, dropHold}, {.527, dropDrive},
+        {variantContact.mooringDrop, dropHit}, {.756, dropReceive}, {.99, dropEase}, {1.23, variantReady}},
+    tidelineClap = {{0, variantReady}, {.14, tideLeftLoad}, {variantContact.tidelineClap[1], tideLeft},
+        {.505, tideRightLoad}, {variantContact.tidelineClap[2], tideRight}, {.815, tideEase}, {1.20, variantReady}},
+}
+-- Contact points sampled from the forward-facing surfaces on the shipped shell.
+local variantHits = {
+    dockTap = {{tapHit, "Right Shoulder", v(1.577509024, 1.698820213, -.693145547)}},
+    brineToe = {{toeHit, rightHip, v(.796677020, .078773836, -.866673597)}},
+    mooringDrop = {{dropHit, "Right Shoulder", v(1.551914907, 1.741691451, -.758949033)}},
+    tidelineClap = {{tideLeft, "Left Shoulder", v(-1.594760753, 1.721822605, -.690281874)},
+        {tideRight, "Right Shoulder", v(1.599291775, 1.728037077, -.685471205)}},
+}
+local basicSkills = {
+    dockTap = table.freeze({damage = 12, radius = .44}),
+    brineToe = table.freeze({damage = 15, radius = .48, foot = true}),
+}
+local variants = mountedRig.finish(variantClips, variantContact, variantHits, basicSkills, {}, {})
+local poses = table.clone(standard)
+poses.UltimateSkill = table.freeze({
+    mooringDrop = table.freeze({damage = 32, radius = .57}),
+    tidelineClap = table.freeze({damage = table.freeze({14, 21}), radius = table.freeze({.48, .54})}),
+})
+for _, field in {"Duration", "Contact", "Impact", "Skill"} do
+    local values = table.clone(standard[field])
+    for move, value in variants[field] do
+        values[move] = value
+    end
+    poses[field] = table.freeze(values)
+end
+
+function poses.sample(action, age, direction)
+    if variantContact[action] then
+        local time = age or 0
+        local keepBothPlanted = action ~= "brineToe" or time <= toeLiftAt or time >= toePlantAt
+        return plantFlippers(variants.sample(action, time, direction), keepBothPlanted)
+    end
+    return standard.sample(action, age, direction)
+end
+
+function poses.impact(action, index, direction)
+    local source = if variantContact[action] then variants else standard
+    return source.impact(action, index, direction)
+end
+
+return table.freeze(poses)

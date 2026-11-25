@@ -218,6 +218,122 @@ local byFighter = {
             },
         },
     },
+    ["desert-scorpion"] = {
+        kit = "scorpion",
+        basic = {
+            attribute = "ScorpionBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start with a claw strike, then cross and follow up low."},
+                {id = "flintCheck", name = "Flint Check", compact = "Flint", action = "strike", level = 5,
+                    planted = true,
+                    description = "Open the combo with a short left claw check."},
+                {id = "siltScoop", name = "Silt Scoop", compact = "Scoop", action = "strike", level = 10,
+                    planted = true,
+                    description = "Turn the right claw under a low guard with both feet set."},
+            },
+        },
+        ultimate = {
+            attribute = "ScorpionUltimate", default = "cinderSnare",
+            options = {
+                {id = "cinderSnare", name = "Cinder Snare", compact = "Snare", action = "signature", level = 1,
+                    description = "Mark a short area where the tail can trap a close opponent."},
+                {id = "sunforgeClasp", name = "Sunforge Clasp", compact = "Clasp", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Spread both claws, then bring them together for one body hit."},
+                {id = "stingerRelay", name = "Stinger Relay", compact = "Relay", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Sweep the tail low, then follow with the opposite claw."},
+            },
+        },
+    },
+    ["pistol-shrimp"] = {
+        kit = "shrimp",
+        basic = {
+            attribute = "ShrimpBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Lead with a claw, then alternate sides and finish low."},
+                {id = "coralCheck", name = "Coral Check", compact = "Coral", action = "strike", level = 5,
+                    planted = true,
+                    description = "Tap forward with the larger claw from a tight guard."},
+                {id = "dockKick", name = "Dock Kick", compact = "Kick", action = "strike", level = 10,
+                    planted = true,
+                    description = "Open with a low left kick while the right foot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "ShrimpUltimate", default = "cavitationCannon",
+            options = {
+                {id = "cavitationCannon", name = "Cavitation Cannon", compact = "Cannon", action = "signature", level = 1,
+                    description = "Wind up the larger claw and release a marked pressure blast."},
+                {id = "coralGate", name = "Coral Gate", compact = "Gate", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Open both pincers wide, then close them for one direct hit."},
+                {id = "quaysideCross", name = "Quayside Cross", compact = "Cross", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Strike high with the right claw and follow low with the left."},
+            },
+        },
+    },
+    ["walrus-sumo"] = {
+        kit = "walrus",
+        basic = {
+            attribute = "WalrusBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Lead with a flipper, then follow with a cross and a low strike."},
+                {id = "dockTap", name = "Dock Tap", compact = "Dock", action = "strike", level = 5,
+                    planted = true,
+                    description = "Use a short, quick right flipper to start the combo."},
+                {id = "brineToe", name = "Brine Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Open with a low right toe strike from the planted left boot."},
+            },
+        },
+        ultimate = {
+            attribute = "WalrusUltimate", default = "tidalBellyFlop",
+            options = {
+                {id = "tidalBellyFlop", name = "Tidal Belly-Flop", compact = "Flop", action = "signature", level = 1,
+                    description = "Leap, then land on the marked mat to send out a pulse."},
+                {id = "mooringDrop", name = "Mooring Drop", compact = "Drop", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Raise both flippers, then bring the lead flipper down for one hit."},
+                {id = "tidelineClap", name = "Tideline Clap", compact = "Clap", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Sweep one flipper across, then turn into a second flipper strike."},
+            },
+        },
+    },
+    ["snapping-tortoise"] = {
+        kit = "tortoise",
+        basic = {
+            attribute = "TortoiseBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start with a padded knuckle, then cross and follow up low."},
+                {id = "masonTap", name = "Mason Tap", compact = "Mason", action = "strike", level = 5,
+                    planted = true,
+                    description = "Lead with a short left knuckle strike from behind the shell."},
+                {id = "plinthToe", name = "Plinth Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the left boot while the right boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "TortoiseUltimate", default = "fortressRicochet",
+            options = {
+                {id = "fortressRicochet", name = "Fortress Ricochet", compact = "Roll", action = "signature", level = 1,
+                    description = "Tuck into the shell and roll around the ring."},
+                {id = "stonegatePress", name = "Stonegate Press", compact = "Press", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Lift both wraps, then bring them through for one close body hit."},
+                {id = "keystoneTurn", name = "Keystone Turn", compact = "Turn", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Land a high right knuckle, then turn into a low left strike."},
+            },
+        },
+    },
 }
 
 local byMove, byKit = {}, {}

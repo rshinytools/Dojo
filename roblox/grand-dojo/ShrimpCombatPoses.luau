@@ -120,7 +120,59 @@ local bow = pose({-.01, -.30, -.075, -26, 5, 1}, {31, 12, -16, -.025, .07, .045}
 local victory = pose({.012, -.018, -.025, 0, 21, 5}, {84, 15, -34, .035, .17, -.17},
     {77, -20, 27, -.035, .14, -.04}, rearFoot, leadFoot, {3, -19, -2}, {25, -20, -9})
 
+-- Compact right-claw check, with the small left claw covering the face.
+local coralDraw = techniquePose({.04, -.19, .048, -7, -14, -4}, {28, -5, -24, .06, .08, .135},
+    {61, -18, 17, .065, .14, .06}, rearFoot, leadFoot, {8, 12, 3}, {4, 21, 8})
+local coralHit = techniquePose({.025, -.155, -.135, -9, 21, -4}, {41, 18, -14, -.13, .08, -.105},
+    {62, -19, 21, .08, .155, .075}, rearFoot, leadFoot, {10, -18, 3}, {14, -26, 7})
+local coralFold = techniquePose({-.008, -.17, -.045, -8, 14, -1}, {36, 15, -15, -.055, .10, -.02},
+    leadGuard, rearFoot, leadFoot, {9, -13, 1}, {9, -17, 2})
+
+-- Dock Kick keeps the rear sole fixed and snaps the lead boot forward below the claws.
+local dockLoad = techniquePose({.125, -.20, .048, -5, 11, -12}, {50, 17, -20, -.050, .12, .11},
+    {62, -18, 24, .08, .15, .05}, rearFoot, {19, 12, -2, -.03, 0, -.30, .31},
+    {6, -10, 7}, {-5, -8, 8})
+local dockHit = techniquePose({.12, -.14, -.22, -2, -3, -10}, {48, 13, -19, -.04, .12, .10},
+    {58, -15, 27, .07, .16, .09}, rearFoot, {57, -14, -4, .15, 0, -.57, .56},
+    {4, 3, 6}, {-1, 18, 8})
+local dockFold = techniquePose({.13, -.195, -.08, -4, 5, -10}, {46, 15, -17, -.04, .12, .10},
+    {59, -17, 23, .08, .15, .06}, rearFoot, {34, -3, -2, .03, 0, -.46, .43},
+    {5, -4, 6}, {-4, 10, 7})
+local dockSettle = techniquePose({.025, -.16, -.01, -6, 13, -3}, {42, 13, -14, -.03, .105, .10},
+    leadGuard, rearFoot, {9, 8, 0, -.08, 0, -.21, .09}, {8, -12, 1}, {5, -9, 1})
+
+-- Both pincers draw wide and close across one direct contact. Neither claw throws a projectile.
+local gateBrace = techniquePose({0, -.195, .07, -7, 1, 0}, {44, -4, 6, .04, .105, .15},
+    {58, 3, -7, -.03, .135, .12}, rearFoot, leadFoot, {8, -1, 0}, {5, 0, 0})
+local gateOpen = techniquePose({0, -.23, .13, -4, 0, 0}, {49, -37, 31, .10, .12, .15},
+    {59, 37, -31, -.105, .16, .13}, rearFoot, leadFoot, {4, 0, 0}, {2, 0, 0})
+local gateDrive = techniquePose({0, -.26, -.04, -10, 0, 0}, {45, 9, -11, -.025, .07, .08},
+    {56, -12, 12, .04, .11, -.045}, rearFoot, leadFoot, {10, 0, 0}, {8, 0, 0})
+local gateHit = techniquePose({0, -.255, -.255, -10, 0, 0}, {44, 21, -34, -.17, .020, .08},
+    {58, -28, 27, .12, .08, -.30}, rearFoot, leadFoot, {10, 0, 0}, {10, 0, 0})
+local gateEase = techniquePose({0, -.29, -.15, -13, 0, 0}, {39, 14, -24, -.095, .03, .04},
+    {49, -18, 24, .08, .11, -.10}, rearFoot, leadFoot, {13, 0, 0}, {12, 2, 0})
+local gateRecover = techniquePose({-.016, -.195, -.02, -8, 9, 2}, {41, 12, -15, -.03, .10, .10},
+    {61, -17, 18, .065, .14, .045}, rearFoot, leadFoot, {9, -9, -1}, {7, -11, -3})
+
+-- Quayside Cross changes from the large raised claw to the smaller low pincer.
+local quayRaise = techniquePose({.075, -.14, .06, -6, -18, -7}, {109, 10, -12, .04, .10, .13},
+    {64, -18, 21, .07, .15, -.015}, rearFoot, leadFoot, {5, 16, 4}, {6, 23, 7})
+local quayHigh = techniquePose({.055, -.155, -.22, -12, 24, -5}, {56, 22, -14, -.075, .11, -.16},
+    {57, -18, 24, .055, .15, .10}, rearFoot, leadFoot, {11, -21, 3}, {16, -29, 4})
+local quayShift = techniquePose({-.045, -.29, -.09, -13, 9, 5}, {48, 17, -13, -.055, .115, .04},
+    {36, -3, 23, -.025, .06, .15}, rearFoot, leadFoot, {14, -8, -4}, {9, -10, -6})
+local quayLoad = techniquePose({-.115, -.33, .04, -14, 25, 8}, {51, 17, -18, -.035, .13, .095},
+    {24, 10, 24, -.065, .025, .21}, rearFoot, leadFoot, {16, -22, -5}, {-5, -25, -7})
+local quayLow = techniquePose({-.10, -.29, -.29, -19, -25, 7}, {47, 18, -17, -.04, .15, .135},
+    {51, -26, 9, .025, -.015, -.338}, rearFoot, leadFoot, {18, 24, -4}, {17, 34, -6})
+local quayCarry = techniquePose({-.085, -.315, -.19, -18, -37, 6}, {43, 17, -18, -.035, .13, .14},
+    {40, -31, 20, .16, .015, -.17}, rearFoot, leadFoot, {17, 32, -4}, {14, 41, -6})
+local quayRecover = techniquePose({-.05, -.20, -.045, -9, -7, 3}, snapGuard,
+    {53, -16, 20, .08, .12, .02}, rearFoot, leadFoot, {9, 7, -2}, {6, 8, -4})
+
 local contact = {jab = .155, cross = .215, body = .258, heavy = .403, clawDash = .285,
+    coralCheck = .16, dockKick = .25, coralGate = .62, quaysideCross = table.freeze({.31, .67}),
     jetSnap = .23, tidebreakerClaw = .51, cavitationCannon = .68}
 local clips = {
     stance = {{0, ready}, {.39, bob}, {.83, ready}},
@@ -128,6 +180,13 @@ local clips = {
     retreat = {{0, ready}, {.143, rearBack}, {.29, ready}, {.435, leadBack}, {.59, ready}},
     sidestep = {{0, ready}, {.09, skip}, {.232, skipPlant}, {.43, ready}},
     jab = {{0, ready}, {.066, jabLoad}, {contact.jab, jabHit}, {.245, bob}, {.39, ready}},
+    coralCheck = {{0, ready}, {.071, coralDraw}, {contact.coralCheck, coralHit}, {.254, coralFold}, {.40, ready}},
+    dockKick = {{0, ready}, {.105, dockLoad}, {contact.dockKick, dockHit}, {.355, dockFold}, {.452, dockSettle}, {.53, ready}},
+    coralGate = {{0, ready}, {.159, gateBrace}, {.342, gateOpen}, {.424, gateOpen}, {.526, gateDrive},
+        {contact.coralGate, gateHit}, {.674, gateHit}, {.795, gateEase}, {1.02, gateRecover}, {1.21, ready}},
+    quaysideCross = {{0, ready}, {.152, quayRaise}, {.202, quayRaise}, {contact.quaysideCross[1], quayHigh},
+        {.436, quayShift}, {.536, quayLoad}, {contact.quaysideCross[2], quayLow}, {.782, quayCarry},
+        {.955, quayRecover}, {1.17, ready}},
     cross = {{0, ready}, {.096, crossLoad}, {contact.cross, crossHit}, {.318, bob}, {.47, ready}},
     body = {{0, ready}, {.115, bodyLoad}, {contact.body, bodyHit}, {.397, bob}, {.55, ready}},
     heavy = {{0, ready}, {.175, heavyLoad}, {.29, heavyLoad}, {contact.heavy, heavyHit}, {.525, heavyRecoil}, {.79, ready}},
@@ -160,7 +219,28 @@ local function clawSurface(authored, joint, center, halfSize, yaw, roll)
     return frame:PointToWorldSpace(scaled * halfSize / scaled.Magnitude)
 end
 
+-- Contacts use surfaces found on the actual mounted snap claw, toe and offhand.
+local function posedSurface(key, joint, rest)
+    return (key.RootJoint * key[joint]):PointToWorldSpace(rest)
+end
+
+local floorLift = v(0, .006, 0)
+local coralPad = v(1.597694052, -.206570352, -1.100512655)
+local dockPad = v(-.503647224, -2.062686048, -.676595715)
+local gateSnapPad = v(1.570400390, -.205034166, -1.124508629)
+local gateOffPad = v(-1.264913936, -.242439939, -.624149430)
+local quayHighPad = v(1.616494920, -.229857054, -1.062770734)
+local quayLowPad = v(-1.285583306, -.210912474, -.622816548)
+local gateRight = posedSurface(gateHit, "Right Shoulder", gateSnapPad)
+local gateLeft = posedSurface(gateHit, "Left Shoulder", gateOffPad)
 local hits = {
+    coralCheck = {posedSurface(coralHit, "Right Shoulder", coralPad)},
+    dockKick = {posedSurface(dockHit, "Left Hip", dockPad) + floorLift},
+    coralGate = {gateRight:Lerp(gateLeft, .5)},
+    quaysideCross = {
+        posedSurface(quayHigh, "Right Shoulder", quayHighPad),
+        posedSurface(quayLow, "Left Shoulder", quayLowPad),
+    },
     jab = {{jabHit, "Left Shoulder", leadTip}},
     cross = {{crossHit, "Right Shoulder", snapTip}},
     body = {{bodyHit, "Left Shoulder", leadTip}},
@@ -171,9 +251,33 @@ local hits = {
     cavitationCannon = {{cannonFire, "Right Shoulder", snapTip}},
 }
 local skills = {
+    coralCheck = table.freeze({damage = 11, radius = .43}),
+    dockKick = table.freeze({damage = 14, radius = .46, foot = true}),
     clawDash = table.freeze({damage = 21, radius = .51, shove = .70}),
     cavitationCannon = table.freeze({warningAt = .21, flight = .53, damage = 26, shove = 3.25}),
 }
 local travel = {clawDash = table.freeze({axis = "forward", distance = 1.18, startsAt = .11, endsAt = .28})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {jetSnap = true, tidebreakerClaw = true})
+local poses = table.clone(rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {
+    jetSnap = true, tidebreakerClaw = true,
+    coralCheck = true, coralGate = true, quaysideCross = true,
+}))
+local sample = poses.sample
+local rearAnchor = ready.RootJoint * ready["Right Hip"]
+local groundedLoadouts = {coralCheck = true, dockKick = true, coralGate = true, quaysideCross = true}
+function poses.sample(action, age, direction)
+    local offsets = sample(action, age, direction)
+    if groundedLoadouts[action] then
+        local root = offsets.RootJoint
+        local support = if action == "dockKick" then rearAnchor else root * offsets["Right Hip"]
+        offsets["Right Hip"] = root:ToObjectSpace(support + floorLift)
+        offsets["Left Hip"] = root:ToObjectSpace(root * offsets["Left Hip"] + floorLift)
+    end
+    return offsets
+end
+poses.CoralGateClaws = table.freeze({gateRight, gateLeft})
+poses.UltimateSkill = table.freeze({
+    coralGate = table.freeze({damage = 32, radius = .53}),
+    quaysideCross = table.freeze({damage = table.freeze({12, 21}), radius = table.freeze({.44, .48})}),
+})
+return table.freeze(poses)

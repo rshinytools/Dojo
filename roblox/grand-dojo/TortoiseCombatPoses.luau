@@ -169,7 +169,8 @@ end
 
 local function plantFeet(offsets, action, age)
     local root = offsets.RootJoint
-    offsets[leftHip] = root:ToObjectSpace(leftPlant)
+    local front = if action == "plinthToe" then CFrame.new(0, .019, 0) * root * offsets[leftHip] else leftPlant
+    offsets[leftHip] = root:ToObjectSpace(front)
     local rear = rightPlant
     if action == "rampartBash" then
         -- Set the right foot in front before the shell comes through, then reset it.
@@ -205,8 +206,70 @@ local bashThrough = fitted({-.31, -.28, -.42, -6, 91, -4}, {48, 15, -22, -.17, .
 local bashWithdraw = fitted({-.14, -.30, -.055, -7, 25, 0}, rightGuard, leftGuard,
     {12, -21, -3, 0, -.035, .055}, {11, -19, 3})
 
-local tacticalContact = {quickSnap = .23, rampartBash = .51}
+local masonWind = fitted({-.09, -.26, .085, -7, 22, 6}, rightGuard,
+    {35, -10, 21, .085, .075, .135}, {10, -18, -4}, {-4, -22, 6})
+local masonHit = fitted({-.045, -.22, -.22, -10, -25, 4}, rightGuard,
+    {63, -17, 12, .14, .065, -.16}, {11, 21, -3}, {9, 28, -6})
+local masonPull = fitted({-.07, -.23, -.085, -9, -10, 5}, rightGuard,
+    {51, -14, 19, .10, .06, -.06}, {10, 8, -3}, {6, 10, -4})
+
+local function kicking(core, arms, lift, gazeAngle)
+    return mountedRig.pose(core, rightGuard, arms, rearFoot, lift, gazeAngle, tailRest)
+end
+local toeDraw = kicking({.10, -.31, .08, -12, -4, -9},
+    {58, -15, 22, .083, .08, .02}, {26, 12, 0, -.09, .06, -.05, .15}, {12, 4, 6})
+local toeContact = kicking({.115, -.27, -.075, -14, 1, -10},
+    {56, -16, 25, .08, .09, .02}, {52, 6, 4, -.015, .07, -.40, .22}, {12, -1, 6})
+local toePull = kicking({.091, -.31, -.055, -15, -2, -8},
+    {55, -16, 24, .087, .08, .025}, {32, 8, 1, -.07, .07, -.19, .15}, {14, 1, 6})
+local toeSet = kicking({.035, -.275, -.035, -10, -9, -2}, leftGuard, leadFoot, {11, 8, 2})
+
+local pressLoad = fitted({0, -.35, .10, -9, 0, 0}, {43, 8, 57, .08, .105, .12},
+    {43, -8, -57, -.08, .105, .12}, {13, 0, 0}, {3, 0, 0})
+local pressHigh = fitted({0, -.22, .04, -9, 0, 0}, {97, 10, 48, .065, .12, .08},
+    {97, -10, -48, -.065, .12, .08}, {9, 0, 0}, {-5, 0, 0})
+local pressHit = fitted({0, -.39, -.32, -18, 0, 0}, {57, 28, -16, -.19, .04, -.24},
+    {57, -28, 16, .19, .04, -.24}, {18, 0, 0}, {16, 0, 0})
+local pressEase = fitted({0, -.33, -.15, -15, 0, 0}, {49, 23, -17, -.15, .065, -.11},
+    {49, -23, 17, .15, .065, -.11}, {16, 0, 0}, {12, 0, 0})
+
+local keyLead = fitted({.12, -.31, .09, -9, -34, -6}, {36, 14, 34, .035, .08, .15},
+    leftGuard, {11, 28, 4}, {2, 34, 10})
+local keyHigh = fitted({.032, -.24, -.27, -13, 28, -4}, {71, 20, -13, -.16, .10, -.24},
+    leftGuard, {11, -25, 3}, {12, -31, 5})
+local keyTurn = fitted({-.11, -.34, .02, -16, 31, 8}, rightGuard,
+    {18, -9, -41, -.032, .03, .18}, {17, -26, -7}, {-4, -31, -8})
+local keyLow = fitted({-.062, -.41, -.29, -20, -28, 5}, rightGuard,
+    {50, -17, 10, .16, -.015, -.26}, {17, 24, -3}, {12, 27, -5})
+local keyEase = fitted({-.065, -.31, -.155, -15, -18, 5}, rightGuard,
+    {46, -15, 14, .12, .045, -.09}, {16, 16, -3}, {10, 20, -4})
+
+-- Surface marks follow the packed knuckle and toe cap ellipsoids as they rotate.
+local function forwardSurface(at, joint, center, radii)
+    local group = at.RootJoint * at[joint]
+    local view = group:VectorToObjectSpace(v(0, 0, -1))
+    local offset = (view * radii * radii) / (view * radii).Magnitude
+    return group:PointToWorldSpace(center + offset - v(0, 2.132, 0))
+end
+local function knuckle(at, side)
+    return forwardSurface(at, if side > 0 then "Right Shoulder" else "Left Shoulder",
+        v(side * 1.30, 1.92, -.60), v(.2575, .1625, .124))
+end
+local toeSurface = forwardSurface(toeContact, leftHip, v(-.58, .14, -.754), v(.380, .106, .1475)) + v(0, .019, 0)
+local pressCenter = knuckle(pressHit, 1):Lerp(knuckle(pressHit, -1), .5)
+
+local tacticalContact = {quickSnap = .23, rampartBash = .51,
+    masonTap = .165, plinthToe = .25, stonegatePress = .64, keystoneTurn = table.freeze({.32, .67})}
 local tacticalClips = {
+    masonTap = {{0, ready}, {.075, masonWind}, {tacticalContact.masonTap, masonHit},
+        {.265, masonPull}, {.43, ready}},
+    plinthToe = {{0, ready}, {.105, toeDraw}, {tacticalContact.plinthToe, toeContact},
+        {.345, toePull}, {.46, toeSet}, {.55, ready}},
+    stonegatePress = {{0, ready}, {.168, pressLoad}, {.32, pressHigh}, {.438, pressHigh},
+        {tacticalContact.stonegatePress, pressHit}, {.721, pressHit}, {.87, pressEase}, {1.24, ready}},
+    keystoneTurn = {{0, ready}, {.166, keyLead}, {tacticalContact.keystoneTurn[1], keyHigh},
+        {.48, keyTurn}, {.552, keyTurn}, {tacticalContact.keystoneTurn[2], keyLow},
+        {.81, keyEase}, {1.18, ready}},
     quickSnap = {{0, ready}, {.095, snapGather}, {tacticalContact.quickSnap, snapHit},
         {.315, snapRecoil}, {.60, ready}},
     rampartBash = {{0, ready}, {.17, bashLoad}, {.295, bashLoad}, {.38, bashStart},
@@ -214,15 +277,23 @@ local tacticalClips = {
 }
 -- Surface samples come from the blunt beak and broad shell rim at full contact.
 local tacticalHits = {
+    masonTap = {knuckle(masonHit, -1)}, plinthToe = {toeSurface},
+    stonegatePress = {pressCenter}, keystoneTurn = {knuckle(keyHigh, 1), knuckle(keyLow, -1)},
     quickSnap = {{snapHit, "Neck", v(.004858011, 3.751437919, -1.071198672)}},
     rampartBash = {bashHit.RootJoint:PointToWorldSpace(v(1.271194983, .558756863, .507326925))},
 }
 local tacticalSkills = {
+    masonTap = table.freeze({damage = 12, radius = .43}),
+    plinthToe = table.freeze({damage = 15, radius = .47, foot = true}),
     quickSnap = table.freeze({damage = 14, radius = .50}),
     rampartBash = table.freeze({damage = 22, radius = .56, shove = 1.12}),
 }
 local tactical = mountedRig.finish(tacticalClips, tacticalContact, tacticalHits, tacticalSkills, {}, {})
 local poses = table.clone(standard)
+poses.UltimateSkill = table.freeze({
+    stonegatePress = table.freeze({damage = 32, radius = .54}),
+    keystoneTurn = table.freeze({damage = table.freeze({13, 22}), radius = table.freeze({.46, .50})}),
+})
 for _, field in {"Duration", "Contact", "Impact", "Skill"} do
     local values = table.clone(standard[field])
     for move, value in tactical[field] do

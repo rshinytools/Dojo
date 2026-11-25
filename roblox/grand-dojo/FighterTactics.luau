@@ -91,7 +91,8 @@ local byFighter = {
     ["desert-scorpion"] = {
         kit = "scorpion", attribute = "ScorpionTactical", default = "tailFeint",
         options = {
-            {id = "tailFeint", name = "Tail Feint", compact = "Feint", level = 1, action = "secondary"},
+            {id = "tailFeint", name = "Tail Feint", compact = "Feint", level = 1, action = "secondary",
+                description = "Dip the claw guard and sweep the tail through a close opening."},
             {id = "sandPincer", name = "Sand Pincer", compact = "Pincer", level = 5, action = "secondary", planted = true,
                 description = "A quick claw strike for an opening at close range."},
             {id = "duneLash", name = "Dune Lash", compact = "Lash", level = 10, action = "secondary", planted = true,
@@ -101,7 +102,8 @@ local byFighter = {
     ["pistol-shrimp"] = {
         kit = "shrimp", attribute = "ShrimpTactical", default = "clawDash",
         options = {
-            {id = "clawDash", name = "Claw Dash", compact = "Dash", level = 1, action = "secondary"},
+            {id = "clawDash", name = "Claw Dash", compact = "Dash", level = 1, action = "secondary",
+                description = "Step in quickly and strike with the larger claw."},
             {id = "jetSnap", name = "Jet Snap", compact = "Snap", level = 5, action = "secondary", planted = true,
                 description = "A fast strike with the smaller claw and a short recoil."},
             {id = "tidebreakerClaw", name = "Tidebreaker Claw", compact = "Claw", level = 10, action = "secondary", planted = true,
@@ -111,7 +113,8 @@ local byFighter = {
     ["walrus-sumo"] = {
         kit = "walrus", attribute = "WalrusTactical", default = "harborPalm",
         options = {
-            {id = "harborPalm", name = "Harbor Palm", compact = "Palm", level = 1, action = "secondary"},
+            {id = "harborPalm", name = "Harbor Palm", compact = "Palm", level = 1, action = "secondary",
+                description = "Sweep a broad flipper forward and push the opponent back."},
             {id = "whiskerCheck", name = "Whisker Check", compact = "Check", level = 5, action = "secondary", planted = true,
                 description = "A short head dip that catches a nearby opening."},
             {id = "basinPress", name = "Basin Press", compact = "Press", level = 10, action = "secondary", planted = true,
@@ -121,7 +124,8 @@ local byFighter = {
     ["snapping-tortoise"] = {
         kit = "tortoise", attribute = "TortoiseTactical", default = "shellCheck",
         options = {
-            {id = "shellCheck", name = "Shell Check", compact = "Shell", level = 1, action = "secondary"},
+            {id = "shellCheck", name = "Shell Check", compact = "Shell", level = 1, action = "secondary",
+                description = "Step into a short padded strike from behind the shell."},
             {id = "quickSnap", name = "Quick Snap", compact = "Snap", level = 5, action = "secondary", planted = true,
                 description = "A short beak strike from a steady guard."},
             {id = "rampartBash", name = "Rampart Bash", compact = "Bash", level = 10, action = "secondary", planted = true,
