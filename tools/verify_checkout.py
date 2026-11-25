@@ -59,6 +59,7 @@ def verify_place():
                 "SolarRaid", "SolarRaidVisuals", "Solar Raid Entry", "Solar Raid Court", "JoinSolarRaidPrompt",
                 "Solar Phoenix",
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
+                "FighterForms", "FighterFormVisuals", "reedguard-kangaroo-warrior", "reedguard-kangaroo-grandmaster",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander", "karate-frog", "river-otter",
                 "rooster-kickboxer", "sugar-glider",

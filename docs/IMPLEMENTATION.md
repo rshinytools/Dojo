@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.298 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.299 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -22,6 +22,14 @@ Desktop Studio sampled Reedguard’s boots on the plaza and Grand Dojo canvas. T
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
 Choose an original starter on first join. Use the Fighter Select station between activities to preview all twenty-four playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+
+### Reedguard evolution forms
+
+Reedguard starts as Rookie. Warrior adds crimson cloth and brass armor at Level 5 (460 Reedguard XP). Grandmaster adds jade panels and ivory armor at Level 10 (1,500 Reedguard XP). Fighter Select previews all three looks and shows the remaining level requirement. The account’s highest fighter level still controls roster access. Reedguard’s own level controls his forms.
+
+The profile writes the equipped form and first **A New Form** trophy in the same server transaction. Switching back to Rookie or changing fighters keeps the trophy. The game restores the saved look on respawn and uses the saved look for either slot in Tag Team. The forms reuse the same skeleton, contact geometry, animations and shorter tail.
+
+Desktop Studio verified a fresh Rookie choice and a separate 400-to-460 XP Juniper win. A Galaxy A06 landscape simulation verified the 1,440-to-1,500 XP path, including a touch Uppercut and the Grandmaster preview and equip. Both checkpoints used isolated Studio profiles for progression testing. The native Journal kept one Journey trophy after equipping each form, and the Warrior and Grandmaster outfits kept their fit across respawn and a Juniper rematch. Exact-source tests covered storage retries, rollback and the Tag Team form snapshot. Published DataStore restoration, physical device input and live human Tag Team remain open.
 
 ### Golden Eagle and Celestial Storm Dragon
 

@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
+local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
@@ -9,6 +10,7 @@ local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
 local Round = require(script.Parent:WaitForChild("TagCombatRound"))
 local Equip = require(script.Parent:WaitForChild("StarterFighters"))
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local catalog = fighterCatalog.ById
 local remote = ReplicatedStorage:WaitForChild("GrandDojoTagTeam")
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
@@ -49,6 +51,17 @@ local function eligibleBackup(player, primaryId, id)
     local fighter = catalog[id]
     return id ~= primaryId and fighter and Match.FighterKits[id]
         and (player:GetAttribute("HighestFighterLevel") or 1) >= (fighter.unlockLevel or 1)
+end
+
+local function savedForm(player, fighterId)
+    local encoded = player:GetAttribute("FighterRosterForms")
+    if typeof(encoded) == "string" then
+        local ok, equipped = pcall(HttpService.JSONDecode, HttpService, encoded)
+        if ok and type(equipped) == "table" and FighterForms.get(fighterId, equipped[fighterId]) then
+            return equipped[fighterId]
+        end
+    end
+    return FighterForms.BaseId
 end
 
 local function queueCount()
@@ -169,13 +182,16 @@ local function start(now)
     local actors, entrants, sideFor = {}, {}, {}
     for index, waiting in lineup do
         local player = waiting.player
+        local primaryForm, backupForm = player:GetAttribute("SelectedFighterForm") or FighterForms.BaseId,
+            savedForm(player, waiting.backupId)
         if not eligibleBackup(player, waiting.primaryId, waiting.backupId)
-            or not Equip.canEquip(player.Character, waiting.primaryId) or not Equip.canEquip(player.Character, waiting.backupId) then
+            or not Equip.canEquip(player.Character, waiting.primaryId, primaryForm)
+            or not Equip.canEquip(player.Character, waiting.backupId, backupForm) then
             clearQueue(player, "Your fighters could not load. Rejoin the Tag Team queue.")
             return
         end
         actors[index] = {player = player, root = waiting.root, ids = {waiting.primaryId, waiting.backupId},
-            nextInput = now, feedbackUntil = 0}
+            forms = {primaryForm, backupForm}, nextInput = now, feedbackUntil = 0}
         entrants[index] = {primary = kitEntry(waiting.primaryId), backup = kitEntry(waiting.backupId)}
         sideFor[player] = index
     end
@@ -234,17 +250,18 @@ local function swap(match, index, now)
         return false
     end
     local id = actor.ids[slot]
-    if not Equip.canEquip(actor.root.Parent, id) then
+    if not Equip.canEquip(actor.root.Parent, id, actor.forms[slot]) then
         return false
     end
     local frame = actor.root.CFrame
     Motion.remove(match, index)
-    local equipped = Equip.equip(actor.root.Parent, id)
+    local equipped = Equip.equip(actor.root.Parent, id, actor.forms[slot])
     local side, cue
     if equipped then
         side, cue = Round.swap(round, index, now, slot)
         if not side then
-            Equip.equip(actor.root.Parent, actor.ids[round.lineup[index].active])
+            local original = round.lineup[index].active
+            Equip.equip(actor.root.Parent, actor.ids[original], actor.forms[original])
         end
     end
     Match.move(actor.root, frame)
@@ -281,7 +298,7 @@ local function finishPlayer(match, index, result, departing)
     local player = actor.player
     local root = Match.root(player)
     if root == actor.root then
-        Equip.equip(root.Parent, actor.ids[1])
+        Equip.equip(root.Parent, actor.ids[1], actor.forms[1])
     end
     if departing or player.Parent ~= Players then
         return

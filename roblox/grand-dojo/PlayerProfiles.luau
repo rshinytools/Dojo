@@ -1,3 +1,5 @@
+local FighterForms = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterForms"))
+
 local PlayerProfiles = {}
 PlayerProfiles.__index = PlayerProfiles
 
@@ -35,6 +37,7 @@ local LANTERN_KEEPER = "world-04"
 local KILN_KEEPER = "world-01"
 local DEEPWATER_TEAM = "world-02"
 local DAWN_RETURN = "world-03"
+local NEW_FORM = "journey-04"
 local RAID_TROPHIES = {kilnback = KILN_KEEPER, kraken = DEEPWATER_TEAM, phoenix = DAWN_RETURN}
 local RAID_TOKENS, RAID_SHARDS = 20, 2
 local LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
@@ -238,16 +241,40 @@ function PlayerProfiles.levelForXp(xp)
     return level
 end
 
+function PlayerProfiles.canEquipForm(profile, fighterId, formId)
+    if not isFighter(fighterId) or type(formId) ~= "string" then
+        return false
+    end
+    local form = FighterForms.get(fighterId, formId)
+    if not form then
+        return false
+    end
+    local fighter = profile.fighters[fighterId]
+    local level = PlayerProfiles.levelForXp(if fighter then fighter.xp else 0)
+    return level >= form.level
+end
+
+function PlayerProfiles.formFor(profile, fighterId)
+    local fighter = profile.fighters[fighterId]
+    local equipped = fighter and fighter.equippedForm
+    -- A rollback can see a form from a newer catalog. Keep the saved choice so
+    -- it can be restored when that catalog returns.
+    return if PlayerProfiles.canEquipForm(profile, fighterId, equipped) then equipped else FighterForms.BaseId
+end
+
 function PlayerProfiles.summary(profile, fighterId)
     fighterId = fighterId or REEDGUARD
     local fighter = profile.fighters[fighterId]
     local xp = if fighter then fighter.xp else 0
     local level = PlayerProfiles.levelForXp(xp)
-    local fighterLevels = {}
+    local fighterLevels, fighterForms = {}, {}
     for _, roster in {STARTERS, ROSTER_UNLOCKS, EXPANDED_UNLOCKS} do
         for id in roster do
             local owned = profile.fighters[id]
             fighterLevels[id] = if owned then PlayerProfiles.levelForXp(owned.xp) else 1
+            if #FighterForms.list(id) > 1 then
+                fighterForms[id] = PlayerProfiles.formFor(profile, id)
+            end
         end
     end
     local raid = profile.kilnback
@@ -257,6 +284,7 @@ function PlayerProfiles.summary(profile, fighterId)
         kilnKeeper = profile.trophies[KILN_KEEPER] ~= nil,
         deepwaterTeam = profile.trophies[DEEPWATER_TEAM] ~= nil,
         dawnReturn = profile.trophies[DAWN_RETURN] ~= nil,
+        newForm = profile.trophies[NEW_FORM] ~= nil,
         raidTokens = raid and raid.tokens or 0,
         mythicShards = raid and raid.shards or 0,
         dojoPracticeComplete = profile.dojoPracticeId ~= nil,
@@ -268,6 +296,7 @@ function PlayerProfiles.summary(profile, fighterId)
         nextLevelXp = LEVEL_THRESHOLDS[level + 1],
         highestFighterLevel = PlayerProfiles.levelForXp(highestXp(profile)),
         fighterLevels = fighterLevels,
+        fighterForms = fighterForms,
         ringTraining = (training and training[fighterId]) or {},
     }
 end
@@ -349,13 +378,30 @@ function PlayerProfiles:commitStarterChoice(userId, token, fighterId)
     end)
 end
 
-function PlayerProfiles:commitFighterSwitch(userId, token, fighterId)
+function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId)
     if not isFighter(fighterId) then
         return nil, "invalid fighter"
     end
-    return self:_owned(userId, token, function(profile)
+    return self:_owned(userId, token, function(profile, now)
         if not PlayerProfiles.canSwitch(profile, fighterId) then
             return "fighter locked"
+        end
+        if formId ~= nil then
+            if not PlayerProfiles.canEquipForm(profile, fighterId, formId) then
+                return "form locked"
+            end
+            local fighter = profile.fighters[fighterId]
+            local equipped = if formId == FighterForms.BaseId then nil else formId
+            if equipped ~= (fighter and fighter.equippedForm) then
+                profile.fighters = table.clone(profile.fighters)
+                local updated = table.clone(fighter or {xp = 0})
+                updated.equippedForm = equipped
+                profile.fighters[fighterId] = updated
+            end
+            if equipped and profile.trophies[NEW_FORM] == nil then
+                profile.trophies = table.clone(profile.trophies)
+                profile.trophies[NEW_FORM] = {earnedAt = now, criterionVersion = 1, completionId = "fighter-form"}
+            end
         end
         if EXPANDED_UNLOCKS[fighterId] then
             -- Older builds still see a fighter they can equip and retain new progress fields.

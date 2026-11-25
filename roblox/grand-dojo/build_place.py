@@ -109,6 +109,7 @@ from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from starter_fighter_assets import build_starter_fighter_visuals
+from reedguard_forms_art import build_reedguard_forms
 from roster_fighter_art import build_expansion_visuals
 from sky_fighter_art import build_sky_visuals
 from ember_aqua_art import build_ember_aqua_visuals
@@ -7794,6 +7795,7 @@ catalog_script = item(storage,"ModuleScript","StarterFighterCatalog")
 prop(catalog_script,"ProtectedString","Source",
      f'return game:GetService("HttpService"):JSONDecode([==[{encoded_catalog}]==])')
 fighter_visuals = build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
+build_reedguard_forms(storage, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_expansion_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_sky_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_ember_aqua_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
@@ -8078,6 +8080,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","CombatHealth","CombatHealth.luau"),
                                     (storage,"ModuleScript","ChampionshipHud","ChampionshipHud.luau"),
                                     (storage,"ModuleScript","ChampionshipPortraits","ChampionshipPortraits.luau"),
+                                    (storage,"ModuleScript","FighterForms","FighterForms.luau"),
                                     (server,"ModuleScript","DojoMatchSupport","DojoMatchSupport.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),

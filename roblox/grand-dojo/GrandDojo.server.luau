@@ -6,6 +6,7 @@ local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
 local PlayerProfiles = require(script.Parent:WaitForChild("PlayerProfiles"))
 local StarterFighters = require(script.Parent:WaitForChild("StarterFighters"))
+local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
@@ -254,6 +255,7 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("KilnKeeper", progress.kilnKeeper)
     player:SetAttribute("DeepwaterTeam", progress.deepwaterTeam)
     player:SetAttribute("DawnReturn", progress.dawnReturn)
+    player:SetAttribute("FighterNewForm", progress.newForm)
     player:SetAttribute("RaidTokens", progress.raidTokens)
     player:SetAttribute("MythicShards", progress.mythicShards)
     player:SetAttribute("RelayBest", progress.relayBest)
@@ -261,6 +263,7 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("FighterLevel", progress.level)
     player:SetAttribute("HighestFighterLevel", progress.highestFighterLevel)
     player:SetAttribute("FighterRosterLevels", HttpService:JSONEncode(progress.fighterLevels))
+    player:SetAttribute("FighterRosterForms", HttpService:JSONEncode(progress.fighterForms))
     local goal = (progress.nextLevelXp or progress.levelFloor) - progress.levelFloor
     local earned = math.clamp(progress.xp - progress.levelFloor, 0, goal)
     player:SetAttribute("FighterHudProgress", string.format("%d:%d:%d", progress.level, earned, goal))
@@ -280,7 +283,7 @@ local function syncStarterAvatar(player, data, character)
     if not data.selectedStarter then
         return
     end
-    if not StarterFighters.equip(character, data.selectedStarter) then
+    if not StarterFighters.equip(character, data.selectedStarter, data.selectedForm) then
         player:SetAttribute("StarterSelectionError", "Your starter choice was saved, but its appearance could not load.")
         warn("[Grand Dojo] Starter shell could not mount for", data.selectedStarter)
     end
@@ -291,9 +294,11 @@ end
 
 local function projectStarterChoice(player, data, profile)
     local selected = PlayerProfiles.activeFighter(profile)
+    local form = if selected then PlayerProfiles.formFor(profile, selected) else FighterForms.BaseId
     local pending = data.pendingStarterChoice
-    local alreadySaved = pending and (selected == pending.id or (pending.first and selected ~= nil))
-    data.selectedStarter = selected
+    local alreadySaved = pending and ((selected == pending.id and form == pending.form)
+        or (pending.first and selected ~= nil))
+    data.selectedStarter, data.selectedForm = selected, form
     if not pending or alreadySaved then
         data.pendingStarterChoice = nil
         player:SetAttribute("StarterSelectionError", nil)
@@ -306,6 +311,7 @@ local function projectStarterChoice(player, data, profile)
         syncStarterAvatar(player, data, player.Character)
     end
     player:SetAttribute("InitialStarterFighter", profile.selectedStarterFighter)
+    player:SetAttribute("SelectedFighterForm", form)
     player:SetAttribute("SelectedStarterFighter", selected)
     player:SetAttribute("StarterSelectionRequired", selected == nil)
 end
@@ -316,14 +322,16 @@ local function saveStarterChoice(player, data, token)
     if pending.first then
         profile, reason = profiles:commitStarterChoice(player.UserId, token, pending.id)
     else
-        profile, reason = profiles:commitFighterSwitch(player.UserId, token, pending.id)
+        profile, reason = profiles:commitFighterSwitch(player.UserId, token, pending.id, pending.requestedForm)
     end
-    if reason == "fighter locked" then
+    if reason == "fighter locked" or reason == "form locked" then
         data.pendingStarterChoice = nil
         if not (data.departed or shuttingDown) then
             player:SetAttribute("StarterSelectionPending", false)
             player:SetAttribute("ProgressStatus", "ready")
-            player:SetAttribute("StarterSelectionError", "Reach the required fighter level to equip this fighter.")
+            player:SetAttribute("StarterSelectionError", if reason == "form locked"
+                then "Earn the required level with this fighter to equip the form."
+                else "Reach the required fighter level to equip this fighter.")
             if player.Character then
                 StarterFighters.release(player.Character)
             end
@@ -334,9 +342,13 @@ local function saveStarterChoice(player, data, token)
         return nil
     end
     if not (data.departed or shuttingDown) then
+        local alreadyEarnedForm = player:GetAttribute("FighterNewForm")
         projectStarterChoice(player, data, profile)
         projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
+        if not alreadyEarnedForm and player:GetAttribute("FighterNewForm") then
+            remote:FireClient(player, "notice", "A New Form earned. Find it in your Trophy Journal.")
+        end
     end
     return profile
 end
@@ -571,7 +583,7 @@ if switchPrompt then
     end)
 end
 
-starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter)
+starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, requestedForm)
     local data = state[player]
     if not data or data.departed or shuttingDown or data.pendingStarterChoice then
         return
@@ -585,13 +597,13 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter)
     if not StarterFighters.isChoice(fighterId) or switching ~= (data.selectedStarter ~= nil) then
         return
     end
+    if requestedForm ~= nil and (not switching or typeof(requestedForm) ~= "string"
+        or #requestedForm > 24 or not FighterForms.get(fighterId, requestedForm)) then
+        return
+    end
     if switching and (not player:GetAttribute("FighterSelectOpen") or not atFighterSelect(player)
         or activeActivity(player, data)) then
         remote:FireClient(player, "notice", "Stand beside Fighter Select between activities.")
-        player:SetAttribute("FighterSelectOpen", false)
-        return
-    end
-    if fighterId == data.selectedStarter then
         player:SetAttribute("FighterSelectOpen", false)
         return
     end
@@ -607,11 +619,21 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter)
         player:SetAttribute("StarterSelectionError", string.format("Reach fighter level %d to unlock this fighter.", unlockLevel))
         return
     end
-    if not StarterFighters.canEquip(player.Character, fighterId) then
+    local form = requestedForm or PlayerProfiles.formFor(data.profile, fighterId)
+    if requestedForm and not PlayerProfiles.canEquipForm(data.profile, fighterId, form) then
+        player:SetAttribute("StarterSelectionError", string.format("Reach level %d with this fighter to equip the form.",
+            FighterForms.get(fighterId, form).level))
+        return
+    end
+    if fighterId == data.selectedStarter and form == data.selectedForm then
+        player:SetAttribute("FighterSelectOpen", false)
+        return
+    end
+    if not StarterFighters.canEquip(player.Character, fighterId, form) then
         player:SetAttribute("StarterSelectionError", "This fighter's appearance could not load. Choose another fighter.")
         return
     end
-    data.pendingStarterChoice = {id = fighterId, first = not switching}
+    data.pendingStarterChoice = {id = fighterId, form = form, requestedForm = requestedForm, first = not switching}
     player:SetAttribute("StarterSelectionError", nil)
     player:SetAttribute("StarterSelectionPending", true)
     player:SetAttribute("ProgressStatus", "saving")

@@ -4,7 +4,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 
 local catalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local forms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local visuals = ReplicatedStorage:WaitForChild("StarterFighterVisuals")
+local formVisuals = ReplicatedStorage:WaitForChild("FighterFormVisuals")
 local restRig = StarterPlayer:WaitForChild("StarterCharacter")
 
 local StarterFighters = {}
@@ -17,11 +19,6 @@ for _, joint in restRig:GetDescendants() do
     if joint:IsA("Motor6D") and joint.Name ~= "RootJoint" and joint.Part0 and joint.Part1 then
         restJoints[joint.Part1.Name] = joint
     end
-end
-
-local function visualModel(id)
-    local model = visuals:FindFirstChild(id)
-    return if model and model:IsA("Model") then model else nil
 end
 
 function StarterFighters.isChoice(id)
@@ -88,8 +85,8 @@ local function mountedPieces(character, model)
     return pieces
 end
 
-function StarterFighters.canEquip(character, id)
-    local model = visualModel(id)
+function StarterFighters.canEquip(character, id, formId)
+    local model = forms.appearance(visuals, formVisuals, id, formId)
     return model ~= nil and character ~= nil and mountedPieces(character, model) ~= nil
 end
 
@@ -101,12 +98,13 @@ local function makeCosmetic(part)
     part.CanQuery = false
 end
 
-function StarterFighters.equip(character, id)
+function StarterFighters.equip(character, id, formId)
+    formId = formId or forms.BaseId
     local current = character:FindFirstChild(SHELL_NAME)
-    if current and current:GetAttribute("FighterId") == id then
+    if current and current:GetAttribute("FighterId") == id and current:GetAttribute("FighterFormId") == formId then
         return true
     end
-    local model = visualModel(id)
+    local model = forms.appearance(visuals, formVisuals, id, formId)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     local pieces = model and humanoid and mountedPieces(character, model)
     if not pieces then
@@ -115,6 +113,7 @@ function StarterFighters.equip(character, id)
     local shell = Instance.new("Folder")
     shell.Name = SHELL_NAME
     shell:SetAttribute("FighterId", id)
+    shell:SetAttribute("FighterFormId", formId)
     for _, piece in pieces do
         local mesh = piece.source:Clone()
         local frame = piece.carrier.CFrame * piece.offset

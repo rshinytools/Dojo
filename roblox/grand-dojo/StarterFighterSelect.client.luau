@@ -12,6 +12,8 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local roster = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local visuals = ReplicatedStorage:WaitForChild("StarterFighterVisuals")
+local forms = require(ReplicatedStorage:WaitForChild("FighterForms"))
+local formVisuals = ReplicatedStorage:WaitForChild("FighterFormVisuals")
 local choice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local actionName = "BeastDojoStarterSelection"
 local cancelActionName = "BeastDojoCloseFighterSelect"
@@ -179,6 +181,16 @@ local function detail(name, size, tint, font)
 end
 local fighterName = detail("FighterName", 26, colors.text, Enum.Font.FredokaOne)
 local title = detail("FighterTitle", 15, colors.gold, Enum.Font.GothamBold)
+local formBar = create("Frame", details, {
+    Name = "FighterForms", LayoutOrder = 3, Visible = false, BackgroundTransparency = 1, BorderSizePixel = 0,
+})
+local formButtons = {}
+for index = 1, 3 do
+    local control, stroke = button(formBar, "Form" .. index, "", colors.panel, colors.edge)
+    control.TextWrapped = true
+    control.TextTruncate = Enum.TextTruncate.None
+    formButtons[index] = {control = control, stroke = stroke}
+end
 local home = detail("Home", 13, colors.muted)
 local style = detail("ElementAndStyle", 13, colors.text, Enum.Font.GothamBold)
 local stats = detail("Stats", 14, colors.text)
@@ -210,8 +222,10 @@ status.TextWrapped = true
 local cards = {}
 local cardById = {}
 local selectedId
+local requestedForm
 local switching = false
 local fighterLevels = {}
+local fighterForms = {}
 local animation
 local previewModel
 local previewSize
@@ -219,6 +233,7 @@ local previewParts = {}
 local beganAt = 0
 local previewState
 local buttons
+local layout
 local inFlight = false
 local requestNumber = 0
 local lastError = ""
@@ -233,6 +248,29 @@ end
 local function requiredLevel(id)
     local required = roster.ById[id].unlockLevel or 1
     return if required > (player:GetAttribute("HighestFighterLevel") or 1) then required else nil
+end
+
+local function savedForm(id)
+    local stored = fighterForms[id]
+    if id == player:GetAttribute("SelectedStarterFighter") then
+        stored = player:GetAttribute("SelectedFighterForm") or stored
+    end
+    local record = forms.get(id, stored or forms.BaseId)
+    return if record then record.id else forms.BaseId
+end
+
+local function previewForm(id)
+    return if switching then requestedForm or savedForm(id) else forms.BaseId
+end
+
+local function formRequirement(id, formId)
+    local form = forms.get(id, formId)
+    local requirement = if form then form.level else 1
+    return if requirement > (tonumber(fighterLevels[id]) or 1) then requirement else nil
+end
+
+local function alreadyEquipped(id)
+    return switching and id == player:GetAttribute("SelectedStarterFighter") and previewForm(id) == savedForm(id)
 end
 
 local function focusNavigation()
@@ -317,8 +355,11 @@ local function drawPreview(id, tint)
     end
     table.clear(previewParts)
     previewSize = nil
+    local formId = previewForm(id)
+    screen:SetAttribute("PreviewFighterForm", formId)
     viewport:SetAttribute("FighterId", id)
-    local sample = visuals:FindFirstChild(id)
+    viewport:SetAttribute("FighterFormId", formId)
+    local sample = forms.appearance(visuals, formVisuals, id, formId)
     stageLight.Color = ColorSequence.new(tint:Lerp(colors.raised, .57), colors.veil)
     if not (sample and sample:IsA("Model")) then
         setPreviewState("failed")
@@ -328,7 +369,7 @@ local function drawPreview(id, tint)
     setPreviewState("loading")
     local model = sample:Clone()
     previewModel = model
-    model.Name = id
+    model.Name = if formId == forms.BaseId then id else sample.Name
     model.Parent = world
     -- The import manifest already defines a floor-aligned frame facing -Z.
     -- Moving the auto-selected pivot to identity would turn the model around.
@@ -402,13 +443,39 @@ local function drawPreview(id, tint)
     end)
 end
 
+local function updateFormButtons(saving)
+    local options = forms.list(selectedId)
+    formBar.Visible = switching and #options > 1
+    local preview = previewForm(selectedId)
+    local equipped = if selectedId == player:GetAttribute("SelectedStarterFighter") then savedForm(selectedId) else nil
+    for index, tile in formButtons do
+        local form = if formBar.Visible then options[index] else nil
+        tile.form = form
+        local control = tile.control
+        control.Visible, control.Selectable, control.Active = form ~= nil, form ~= nil and not saving, form ~= nil and not saving
+        if form then
+            local selected = form.id == preview
+            local requirement = formRequirement(selectedId, form.id)
+            control.Name = form.name
+            control.Text = form.name .. "\n" .. (if form.id == equipped then "Equipped"
+                elseif requirement then "Level " .. requirement else "Unlocked")
+            control.TextColor3 = if selected then colors.gold elseif requirement then colors.muted else colors.text
+            control.BackgroundColor3 = if selected then colors.gold:Lerp(colors.panel, .82) else colors.panel
+            tile.stroke.Color = if selected then colors.gold else colors.edge
+        end
+    end
+end
+
 buttons = function()
     local saving = inFlight or player:GetAttribute("StarterSelectionPending") == true
     local waiting = previewState == "loading"
     local busy = saving or waiting
     local name = displayName(roster.ById[selectedId])
-    local equipped = switching and selectedId == player:GetAttribute("SelectedStarterFighter")
-    local locked = switching and requiredLevel(selectedId)
+    local formId = previewForm(selectedId)
+    local equipped = alreadyEquipped(selectedId)
+    local locked = switching and (requiredLevel(selectedId) or formRequirement(selectedId, formId))
+    local option = forms.get(selectedId, formId)
+    local formCopy = switching and #forms.list(selectedId) > 1 and option
     local enabled = not busy and (previewState == "failed" or (not equipped and not locked))
     confirm.Active = enabled
     close.Active = not saving
@@ -418,20 +485,22 @@ buttons = function()
         elseif previewState == "failed" then "Retry 3D preview"
         elseif locked then string.format("Unlock at Level %d", locked)
         elseif equipped then "Currently equipped"
+        elseif formCopy then "Equip " .. option.name
         else (if switching then "Switch to " else "Start as ") .. name
     confirm.BackgroundColor3 = if enabled then colors.gold else colors.gold:Lerp(colors.panel, .28)
     confirmStroke.Color = if enabled then colors.gold else colors.edge
     status.Text = if lastError ~= "" then lastError elseif saving then "Saving your choice" else ""
     status.TextColor3 = if lastError ~= "" then colors.error else colors.text
+    updateFormButtons(saving)
 end
 
 local function updateLevel()
     level.Visible = switching and selectedId ~= nil
     if level.Visible then
-        local equipped = selectedId == player:GetAttribute("SelectedStarterFighter")
+        local equipped = alreadyEquipped(selectedId)
         local required = requiredLevel(selectedId)
         level.Text = if required then string.format("Reach Level %d with any fighter to unlock", required)
-            else string.format("Level %d%s", fighterLevels[selectedId] or 1, if equipped then " · Equipped" else "")
+            else string.format("Level %d%s", tonumber(fighterLevels[selectedId]) or 1, if equipped then " · Equipped" else "")
     end
 end
 
@@ -479,6 +548,7 @@ local function showFighter(id)
         return
     end
     selectedId = id
+    requestedForm = nil
     local tint = elements[info.element] or colors.gold
     screen:SetAttribute("PreviewFighterId", id)
     fighterName.Text, title.Text, home.Text = info.name, info.title, info.home
@@ -502,6 +572,7 @@ local function showFighter(id)
         drawPreview(id, tint)
     end
     buttons()
+    layout()
 end
 
 for index, id in roster.Order do
@@ -534,7 +605,38 @@ local function selectedCard()
     return (cardById[selectedId] or cardById[selectionOrder()[1]]).control
 end
 
-local function layout()
+local function revealForm(control)
+    local before = details.CanvasPosition.Y
+    local top = control.AbsolutePosition.Y - details.AbsolutePosition.Y + before
+    local bottom = top + control.AbsoluteSize.Y
+    local range = math.max(0, details.AbsoluteCanvasSize.Y - details.AbsoluteWindowSize.Y)
+    local nextPosition = math.clamp(before, math.min(top, bottom - details.AbsoluteWindowSize.Y), top)
+    details.CanvasPosition = Vector2.new(0, math.clamp(nextPosition, 0, range))
+end
+
+local function selectForm(form)
+    if not (panel.Visible and formBar.Visible and form) or inFlight or player:GetAttribute("StarterSelectionPending") == true
+        or form.id == previewForm(selectedId) then
+        return
+    end
+    requestedForm, lastError = form.id, ""
+    drawPreview(selectedId, elements[roster.ById[selectedId].element] or colors.gold)
+    updateLevel()
+end
+
+for _, tile in formButtons do
+    tile.control.Activated:Connect(function()
+        selectForm(tile.form)
+    end)
+    tile.control.SelectionGained:Connect(function()
+        if panel.Visible and focusNavigation() then
+            revealForm(tile.control)
+            selectForm(tile.form)
+        end
+    end)
+end
+
+layout = function()
     local safe = backdrop.AbsoluteSize
     if safe.X < 2 or safe.Y < 2 then
         return
@@ -609,7 +711,8 @@ local function layout()
             then cardById[order[index + 1]].control else control
         control.NextSelectionUp = if row > 0 then cardById[order[index - columns]].control else (if switching then close else control)
         local nextRow = (row + 1) * columns + 1
-        control.NextSelectionDown = if order[nextRow] then cardById[order[math.min(index + columns, #order)]].control else confirm
+        control.NextSelectionDown = if id == selectedId and formBar.Visible then formButtons[1].control
+            elseif order[nextRow] then cardById[order[math.min(index + columns, #order)]].control else confirm
     end
     revealSelection()
 
@@ -634,8 +737,39 @@ local function layout()
     down.Position = UDim2.new(1, -detailButtonSize - 6, .5, 3)
     fighterName.TextSize = if compact then 19 else 25
     title.TextSize, home.TextSize = if compact then 13 else 15, if compact then 12 else 13
-    stats.LayoutOrder, style.LayoutOrder, home.LayoutOrder =
-        if compact then 3 else 5, 4, if compact then 5 else 3
+    if formBar.Visible then
+        local formGap = 4
+        local widthForForms = detailWidth - textPad - controlsWidth - 9
+        local formColumns = if widthForForms >= 218 then 3 elseif widthForForms >= 130 then 2 else 1
+        local formRows = math.ceil(#formButtons / formColumns)
+        local formHeight = 44
+        formBar.Size = UDim2.new(1, -9, 0, formRows * (formHeight + formGap) - formGap)
+        for index, tile in formButtons do
+            local control = tile.control
+            local column, row = (index - 1) % formColumns, math.floor((index - 1) / formColumns)
+            control.Position = UDim2.new(column / formColumns, column * formGap / formColumns, 0, row * (formHeight + formGap))
+            control.Size = UDim2.new(1 / formColumns, -formGap * (formColumns - 1) / formColumns, 0, formHeight)
+            control.TextSize = if compact or widthForForms < 260 then 11 else 13
+            control.NextSelectionLeft = if column > 0 then formButtons[index - 1].control else control
+            control.NextSelectionRight = if column < formColumns - 1 and formButtons[index + 1]
+                then formButtons[index + 1].control else control
+            control.NextSelectionUp = if row > 0 then formButtons[index - formColumns].control else selectedCard()
+            control.NextSelectionDown = if row < formRows - 1 then formButtons[math.min(index + formColumns, #formButtons)].control
+                else confirm
+        end
+        stats.LayoutOrder, style.LayoutOrder, home.LayoutOrder, level.LayoutOrder = 5, 7, 8, 4
+        quote.LayoutOrder, story.LayoutOrder, techniques.LayoutOrder = 9, 10, 11
+        for index, move in moves do
+            move.name.LayoutOrder, move.effect.LayoutOrder = 10 + index * 2, 11 + index * 2
+        end
+    else
+        stats.LayoutOrder, style.LayoutOrder, home.LayoutOrder =
+            if compact then 3 else 5, 4, if compact then 5 else 3
+        level.LayoutOrder, quote.LayoutOrder, story.LayoutOrder, techniques.LayoutOrder = 6, 7, 8, 9
+        for index, move in moves do
+            move.name.LayoutOrder, move.effect.LayoutOrder = 8 + index * 2, 9 + index * 2
+        end
+    end
     close.NextSelectionDown = selectedCard()
     confirm.Size = UDim2.fromOffset(if tall then contentWidth else math.min(contentWidth * .53, 338), footer)
     confirm.AnchorPoint = Vector2.new(1, 0)
@@ -644,7 +778,7 @@ local function layout()
     status.Position = UDim2.fromOffset(pad + 2, if tall then footerY - 42 else footerY)
     status.Size = UDim2.fromOffset(if tall then contentWidth - 4 else contentWidth - confirm.Size.X.Offset - 12,
         if tall then 39 else footer)
-    confirm.NextSelectionUp = selectedCard()
+    confirm.NextSelectionUp = if formBar.Visible then formButtons[#formButtons].control else selectedCard()
     confirm.NextSelectionDown = confirm
     up.NextSelectionDown, down.NextSelectionUp = down, up
     up.NextSelectionLeft, down.NextSelectionLeft = confirm, confirm
@@ -669,7 +803,7 @@ local function confirmChoice()
     elseif previewState ~= "ready" then
         return
     end
-    if switching and (requiredLevel(selectedId) or selectedId == player:GetAttribute("SelectedStarterFighter")) then
+    if switching and (requiredLevel(selectedId) or formRequirement(selectedId, previewForm(selectedId)) or alreadyEquipped(selectedId)) then
         return
     end
     inFlight = true
@@ -678,7 +812,11 @@ local function confirmChoice()
     local thisRequest = requestNumber
     buttons()
     if switching then
-        choice:FireServer("switch", selectedId)
+        if requestedForm then
+            choice:FireServer("switch", selectedId, requestedForm)
+        else
+            choice:FireServer("switch", selectedId)
+        end
     else
         choice:FireServer(selectedId)
     end
@@ -708,6 +846,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
         confirmChoice()
     elseif input.KeyCode == Enum.KeyCode.Backspace then
         closePicker()
+    elseif formBar.Visible and (input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down) then
+        local options = forms.list(selectedId)
+        local current = table.find(options, forms.get(selectedId, previewForm(selectedId))) or 1
+        local direction = if input.KeyCode == Enum.KeyCode.Up then -1 else 1
+        selectForm(options[(current - 1 + direction) % #options + 1])
     elseif input.KeyCode == Enum.KeyCode.Left or input.KeyCode == Enum.KeyCode.Right then
         local order = selectionOrder()
         local index = table.find(order, selectedId) or 1
@@ -723,7 +866,6 @@ local function focus()
     end
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(function()
-    layout()
     focus()
 end)
 UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(function()
@@ -853,9 +995,33 @@ local function readFighterLevels()
         end
     end
     updateLevel()
+    if panel.Visible and selectedId then
+        buttons()
+    end
 end
 player:GetAttributeChangedSignal("FighterRosterLevels"):Connect(readFighterLevels)
 readFighterLevels()
+local function readFighterForms()
+    local encoded = player:GetAttribute("FighterRosterForms")
+    if type(encoded) == "string" then
+        local ok, decoded = pcall(HttpService.JSONDecode, HttpService, encoded)
+        if ok and type(decoded) == "table" then
+            fighterForms = decoded
+        end
+    else
+        fighterForms = {}
+    end
+    if panel.Visible and selectedId then
+        if screen:GetAttribute("PreviewFighterForm") ~= previewForm(selectedId) then
+            drawPreview(selectedId, elements[roster.ById[selectedId].element] or colors.gold)
+        end
+        updateLevel()
+        buttons()
+    end
+end
+player:GetAttributeChangedSignal("FighterRosterForms"):Connect(readFighterForms)
+player:GetAttributeChangedSignal("SelectedFighterForm"):Connect(readFighterForms)
+readFighterForms()
 player:GetAttributeChangedSignal("HighestFighterLevel"):Connect(function()
     if panel.Visible then
         updateCards()

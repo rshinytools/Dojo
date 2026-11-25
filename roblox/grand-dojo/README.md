@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.299, preview Reedguard's three forms at **Fighter Select**. His own XP unlocks Warrior at Level 5 and Grandmaster at Level 10. Equip an evolved form and open **Trophy Hall → Trophy Journal → Journey** to see **A New Form**. That form uses the same Dojo Ring moves as Rookie.
+
 In v0.298, **Golden Eagle** and **Celestial Storm Dragon** unlock at Level 10. **V** or D-pad Up uses Gale Rake or Storm Claw. **F** or **Y** uses Talon Drop or Tempest Roar. Move left or right during Tempest Roar to aim the beam, including with the touch movement stick. Watch the violet ground marker for the separate thunder strike.
 
 In v0.297, earn **Magma Grizzly Bear** and **Obsidian Hellhound** at Level 10. Press **V** or D-pad Up for Basalt Backhand or Cinder Lunge. Press **F** or **Y** for Eruption Slam or Hellfire Stampede. Touch players use **Basalt**, **Erupt**, **Lunge**, and **Clones**. Each pillar rises in sequence, and the two hounds run across marked lanes in opposite directions.

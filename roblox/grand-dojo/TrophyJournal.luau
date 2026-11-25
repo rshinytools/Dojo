@@ -69,6 +69,20 @@ local function describe(player, id)
             return "Updating", "Waiting for the raid reward to save."
         end
         return "Waiting", "The journal will update when progression is available."
+    elseif id == "journey-04" then
+        if player:GetAttribute("FighterNewForm") == true then
+            if player:GetAttribute("ProgressMode") == "studio" then
+                return "Studio award", "Earned by equipping an evolved form in this playtest."
+            end
+            return "Earned", "Your first evolved form earned this permanent trophy."
+        end
+        local progress = player:GetAttribute("ProgressStatus")
+        if progress == "saving" then
+            return "Updating", "Waiting for your form choice to save."
+        elseif progress == "ready" or progress == "saved" then
+            return "Locked", "Reach Level 5 with Reedguard, then equip Warrior in Fighter Select."
+        end
+        return "Waiting", "The journal will update when progression is available."
     elseif id == "world-04" then
         if player:GetAttribute("LanternKeeper") == true then
             if player:GetAttribute("ProgressMode") == "studio" then
@@ -163,10 +177,14 @@ local function cardLine(parent, name, size, tint, bold, order)
     return line
 end
 
+local permanentAwards = {"LanternKeeper", "KilnKeeper", "DeepwaterTeam", "DawnReturn", "FighterNewForm"}
 local observedAttributes = {
-    "LanternKeeper", "KilnKeeper", "ProgressMode", "ProgressStatus", "SkywalkExpertEarned", "SkywalkExpertRewardId",
+    "ProgressMode", "ProgressStatus", "SkywalkExpertEarned", "SkywalkExpertRewardId",
     "SkywalkExpertBest", "SkywalkTrialMode", "SkywalkTrialNext",
 }
+for _, attribute in permanentAwards do
+    table.insert(observedAttributes, attribute)
+end
 
 function TrophyJournal.new(panel, player, onBack)
     local gui = make("Frame", panel, {
@@ -248,10 +266,14 @@ function TrophyJournal:_update()
     self.state.Text, self.note.Text = describe(self.player, entry[1])
     local mode = self.player:GetAttribute("ProgressMode")
     local state = self.player:GetAttribute("ProgressStatus")
-    local earned = (if self.player:GetAttribute("LanternKeeper") == true then 1 else 0)
-        + (if self.player:GetAttribute("KilnKeeper") == true then 1 else 0)
+    local earned = 0
+    for _, attribute in permanentAwards do
+        if self.player:GetAttribute(attribute) == true then
+            earned += 1
+        end
+    end
     if mode == "studio" then
-        self.summary.Text = "Studio collection"
+        self.summary.Text = string.format("%d of 30 earned · Studio", earned)
     elseif earned > 0 or state == "ready" or state == "saved" then
         self.summary.Text = string.format("%d of 30 earned", earned)
     else
