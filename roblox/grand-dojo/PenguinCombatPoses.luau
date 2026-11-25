@@ -104,6 +104,27 @@ local heavyContact = pose({.065, -.105, -.41, -14, 35, -3}, {10, 66, 22, .015, -
 local heavyFollow = pose({.045, -.14, -.29, -12, 40, 1}, {11, 52, 25, .035, -.13}, leftGuard,
 	{5, -7, 0, 0, 16, -8}, {8, -27}, {5, 21})
 
+-- The torso and flippers carry the strikes while both webbed feet stay planted.
+local tacticalFeet = {2, -3, 0, 0, 7, -5}
+local plantedRight = ready.RootJoint * ready["Right Hip"]
+local plantedLeft = ready.RootJoint * ready["Left Hip"]
+
+local palmGather = pose({.065, -.18, .055, -12, -20, -4}, {8, 24, 39, .09, .09}, {8, 18, -36, .13, .07},
+	tacticalFeet, {8, 16}, {-6, -11})
+local palmFrame = pose({.08, -.16, -.045, -12, -10, -3}, {24, 43, 38, .13, -.025}, {16, 24, -40, .15, .055},
+	tacticalFeet, {8, 8}, {-4, -5})
+local palmPush = pose({.04, -.12, -.37, -11, 43, -2}, {12, 82, 24, .055, -.26}, {18, 22, -41, .15, .09},
+	tacticalFeet, {9, -23}, {8, 13})
+local palmRelease = pose({.045, -.10, -.16, -8, 23, 1}, {20, 57, 32, .08, -.095}, {11, 18, -35, .11, .08},
+	tacticalFeet, {6, -18}, {6, 11})
+
+local hookLoad = pose({-.095, -.24, .09, -13, 24, 7}, {16, 44, 30, .09, .035}, {-14, 34, -7, -.075, .20},
+	tacticalFeet, {11, -18, -3}, {-5, 11})
+local hookCut = pose({-.065, -.235, -.20, -13, -40, 4}, {17, 43, 31, .09, .045}, {2, -33, -17, -.095, -.055},
+	tacticalFeet, {11, 24, -3}, {6, -13})
+local hookFold = pose({-.04, -.19, -.11, -10, -30, 3}, {14, 44, 27, .07, .025}, {3, -41, -25, -.015, .035},
+	tacticalFeet, {9, 24, -2}, {5, -14})
+
 local parryCatch = pose({-.055, -.11, .04, -7, -5, 3}, {18, 47, 27, .07}, {3, 23, -28, .08, .06},
 	{3, -4, 0, 0, 10, -6}, {4, 4, -3}, {1, -8})
 local parrySweep = pose({-.115, -.095, .09, -5, 17, 8}, {10, 43, 30, .055}, {9, -34, -33, .045, -.055},
@@ -165,6 +186,8 @@ local contact = table.freeze({
 	cross = .24,
 	body = .27,
 	heavy = .43,
+	icecrestPalm = .34,
+	floeHook = .23,
 	bellySlide = table.freeze({.38, .49, .60, .68}),
 })
 local slideContacts = contact.bellySlide
@@ -177,6 +200,9 @@ local clips = {
 	cross = {{0, ready}, {.12, crossLoad}, {contact.cross, crossContact}, {.34, crossReturn}, {.57, ready}},
 	body = {{0, ready}, {.14, bodyLoad}, {contact.body, bodyContact}, {.40, bodyReturn}, {.62, ready}},
 	heavy = {{0, ready}, {.22, heavyLoad}, {.33, heavyDrive}, {contact.heavy, heavyContact}, {.56, heavyFollow}, {.86, ready}},
+	icecrestPalm = {{0, ready}, {.13, palmGather}, {.23, palmFrame}, {contact.icecrestPalm, palmPush},
+		{.47, palmRelease}, {.72, ready}},
+	floeHook = {{0, ready}, {.10, hookLoad}, {contact.floeHook, hookCut}, {.34, hookFold}, {.58, ready}},
 	guard = {{0, cover}},
 	block = {{0, guardRecoil}, {.09, guardRecoil}, {.29, cover}},
 	parry = {{0, parryCatch}, {.09, parrySweep}, {.20, parryCatch}, {.36, ready}},
@@ -212,6 +238,8 @@ Poses.Impact = table.freeze({
 	cross = table.freeze({Vector3.new(.546, .481, -2.058)}),
 	body = table.freeze({Vector3.new(-.434, -.529, -1.967)}),
 	heavy = table.freeze({Vector3.new(.510, .165, -2.224)}),
+	icecrestPalm = table.freeze({Vector3.new(0.432425851, 0.427610454, -2.052795646)}),
+	floeHook = table.freeze({Vector3.new(-0.183524557, -0.136406898, -1.601527903)}),
 	bellySlide = table.freeze({slidingChest, slidingChest, slidingChest, Vector3.new(-.044, -1.296, -1.157)}),
 })
 
@@ -253,6 +281,11 @@ function Poses.sample(action, age, direction)
 			local result = {}
 			for name, previous in before[2] do
 				result[name] = previous:Lerp(after[2][name], weight)
+			end
+			if action == "icecrestPalm" or action == "floeHook" then
+				local root = result.RootJoint
+				result["Right Hip"] = root:ToObjectSpace(plantedRight)
+				result["Left Hip"] = root:ToObjectSpace(plantedLeft)
 			end
 			return result
 		end

@@ -1,4 +1,5 @@
 local TweenService = game:GetService("TweenService")
+local FighterTactics = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterTactics"))
 local Match = {}
 
 Match.FighterKits = table.freeze({
@@ -28,11 +29,11 @@ Match.FighterKits = table.freeze({
     ["celestial-storm-dragon"] = "dragon",
 })
 
-function Match.reedguardTactical(player, kitId)
-    if kitId == "reedguard" then
-        return if player:GetAttribute("ReedguardTactical") == "reedSweep" then "reedSweep" else "uppercut"
-    end
-    return nil
+function Match.tactical(player, kitId)
+    local profile = FighterTactics.ByKit[kitId]
+    if not profile then return nil end
+    local option = FighterTactics.forKit(kitId, player:GetAttribute(profile.attribute))
+    return option.id
 end
 
 local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,

@@ -209,7 +209,7 @@ local function start(now)
         local kit = Match.FighterKits[id]
         actors[index] = {player = player, root = waiting.root, kit = kit, nextInput = now, feedbackUntil = 0}
         entrants[index] = {fighter = fighters[id], kitId = kit, level = player:GetAttribute("FighterLevel"),
-            tactical = Match.reedguardTactical(player, kit)}
+            tactical = Match.tactical(player, kit)}
         sideFor[player] = index
     end
     matchId += 1

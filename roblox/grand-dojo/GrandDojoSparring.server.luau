@@ -130,7 +130,7 @@ local function begin(player, arena, now, retrying)
     telegraph.Name = "Attack tell"
     telegraph.Parent = arena.corner
     local kit, botId = Match.FighterKits[fighterId], arena.config.botId
-    local tactical = Match.reedguardTactical(player, kit)
+    local tactical = Match.tactical(player, kit)
     local round = if kit then FeaturedRound.new(now, profile, fighter, kit, botId, tactical) else Round.new(now, profile, fighter)
     local bout = {featured = kit ~= nil, kit = kit, botId = botId, arena = arena, player = player, root = root, fighterId = fighterId,
         bot = bot, profile = profile, cue = cue, joints = jointMap(bot), telegraph = telegraph,

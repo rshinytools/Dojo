@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.330 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.331 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -271,6 +271,8 @@ Exact-source tests covered 16 ranked and 16 casual contact pairings, the element
 V0.328 gives each Studio test player a distinct rating identity in the current server’s memory. Published servers use the player’s Roblox user ID and the rating DataStore. Two Studio clients selected Ranked at the normal gate after staging beside the sign. Both Level 1 Reedguards started each round with 156 ranked HP. At about 233–234 ms measured median round trip, Jab and Heavy showed local startup before acknowledgment and resolved for 20 and 34 damage at 180 and 420 ms in both rounds. The two knockouts produced a 2–0 series. Bronze ratings moved once from 1200 to 1216 and 1184, and both players dismissed the recap and regained city controls. Reopening and cancelling Ranked independently read back the same points. Published DataStore settlement, cross-server matchmaking and physical devices remain open.
 
 ## Combat presentation
+
+V0.331 gives Penguin Brawler Icecrest Palm at Level 1 and unlocks Floe Hook at 460 Penguin XP (Level 5). Palm lands for 17 base damage at 340 ms and has the longer reach. Hook lands for 13 at 230 ms and returns to stance sooner. Both share a five-second cooldown. Fighter Select saves the choice independently of Reedguard’s. Desktop Studio verified both moves against Juniper using keyboard input, with the boots held through contact and an early retry unable to land. The test advanced a temporary profile through normal reward events and equipped Hook through the native picker. Exact Luau checks cover both contacts, block and parry, the shared timer, independent unlock and save paths, and technique handoff in all combat modes. Published saves, physical devices, and native multiplayer and raid checks for these Penguin techniques remain open.
 
 V0.329 adds Reed Sweep as a saved alternative to Uppercut after Reedguard earns Level 5 with 460 of his own XP. The left boot sweeps low while the right boot carries the stance. Its base hit deals 13 damage at 350 ms and returns to stance at 740 ms. The authored toe reaches about half a stud farther forward than Uppercut. Desktop Studio verified the locked picker, the normal save, the equipped HUD, an out-of-range miss and a clean 13-damage counter against Juniper. The Studio fixture used existing award events to reach Level 5. Exact Luau verified older saves, the threshold, save retries, defense, per-mode selection and scaling. Published saves, the other multiplayer modes, raids, and physical devices remain open for Sweep.
 

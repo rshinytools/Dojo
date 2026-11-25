@@ -225,7 +225,7 @@ local function mount(encounter)
         for index, member in lineup do
             local kit = Match.FighterKits[member.fighterId]
             entrants[index] = {fighter = fighters[member.fighterId], kitId = kit,
-                tactical = Match.reedguardTactical(member.player, kit)}
+                tactical = Match.tactical(member.player, kit)}
             actors[index] = {player = member.player, root = member.root, nextInput = now, feedbackUntil = 0,
                 reviveMarker = reviveMarker(member.root, telegraph)}
             byPlayer[member.player] = index

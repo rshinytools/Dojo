@@ -8,6 +8,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoBrawl")
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local ChampionshipPortraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -131,7 +132,12 @@ make("UISizeConstraint", notice, {MaxSize = Vector2.new(410, 42)})
 make("UIPadding", notice, {PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9)})
 style(notice)
 
-local earnedCues = {reedSweep = "Reed Sweep"}
+local earnedCues = {penguinTacticalCooling = "Technique cooling down"}
+for _, group in fighterTactics.ByKit do
+    for _, option in group.options do
+        earnedCues[option.id] = option.name
+    end
+end
 local kits = {
     reedguard = {fighter = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {fighter = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
@@ -152,13 +158,6 @@ for _, fighter in fighterCatalog.ById do
         earnedCues[combat.signatureCue] = combat.signature
     end
 end
-local reedSweep = table.clone(kits.reedguard)
-reedSweep.technique, reedSweep.techniqueAction, reedSweep.compactTechnique = "Reed Sweep", "secondary", "Sweep"
-
-local function equippedKit(state)
-    return if state.kitId == "reedguard" and state.tactical == "reedSweep" then reedSweep else kits[state.kitId] or kits.reedguard
-end
-
 local keyMap = {
     [Enum.KeyCode.E] = "strike", [Enum.KeyCode.ButtonR2] = "strike", [Enum.KeyCode.ButtonX] = "strike",
     [Enum.KeyCode.Q] = "guard", [Enum.KeyCode.ButtonL2] = "guard",
@@ -214,8 +213,9 @@ local function layout()
     championship:Layout(compact or stacked, true)
     local preferredBottom = if compact and not stacked then 20
         elseif touch then math.min(112, math.floor(height * .24)) else 26
-    local kit = if match then equippedKit(match) else kits.reedguard
-    local order = if kit.technique then {"strike", "technique", "heavy", "guard", "dodge", "signature"}
+    local kit = match and (kits[match.kitId] or kits.reedguard) or kits.reedguard
+    local hasTechnique = kit.technique ~= nil or (match and fighterTactics.ByKit[match.kitId] ~= nil)
+    local order = if hasTechnique then {"strike", "technique", "heavy", "guard", "dodge", "signature"}
         else {"strike", "heavy", "guard", "dodge", "signature"}
     local columns = if stacked then 3 else #order
     local controlHeight = if stacked then 102 else 48
@@ -223,7 +223,7 @@ local function layout()
     local bottom = math.clamp(height - controlHeight - (if narrow then 151 else 86), 5, math.max(5, preferredBottom))
     controls.Position, controls.Size = UDim2.new(.5, 0, 1, -bottom), UDim2.new(.94, 0, 0, controlHeight)
     controlLimit.MaxSize = Vector2.new(if stacked then 345 elseif compact then 365 else 522, controlHeight)
-    actions.technique.Visible = kit.technique ~= nil
+    actions.technique.Visible = hasTechnique == true
     for index, action in order do
         local buttonIndex = index - 1
         local object = actions[action]
@@ -251,10 +251,13 @@ local function updateActionLabels(now, kit)
     actions.heavy.Text = hint("Heavy", "R", "RB")
     actions.guard.Text = hint("Guard", "Q", "LT")
     actions.dodge.Text = hint(kit.dodge or "Dodge", "X", "LB")
-    if kit.technique then
+    local option = fighterTactics.forKit(match.kitId, match.tactical)
+    local techniqueName = if option then option.name else kit.technique
+    if techniqueName then
         local width = actions.technique.AbsoluteSize.X
-        local compactWidth = if kit == reedSweep then 100 else 70
-        local technique = if kit.compactTechnique and width > 0 and width < compactWidth then kit.compactTechnique else kit.technique
+        local compactWidth = if option then 100 else 70
+        local compactName = if option then option.compact else kit.compactTechnique
+        local technique = if compactName and width > 0 and width < compactWidth then compactName else techniqueName
         cooldown(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
@@ -285,7 +288,7 @@ local function refresh()
     if not current then
         return
     end
-    local kit = equippedKit(match)
+    local kit = kits[match.kitId] or kits.reedguard
     local seconds = match.startsAt - now
     if not match.eliminated and not match.resolvedAt and not sendingLeave and now < match.endsAt then
         CombatAudio.countdown(seconds)
@@ -342,9 +345,10 @@ local function send(action, direction)
     if not controls.Visible then
         return
     end
-    local kit = equippedKit(match)
     if action == "technique" then
-        action = kit.techniqueAction
+        local kit = kits[match.kitId] or kits.reedguard
+        local option = fighterTactics.forKit(match.kitId, match.tactical)
+        action = if option then option.action else kit.techniqueAction
     end
     if not action then
         return
@@ -440,7 +444,7 @@ remote.OnClientEvent:Connect(function(kind, data)
             or (health.displayedHealth and match.playerHealth < health.displayedHealth) then
             CombatWindup.clear()
         end
-        local kit = equippedKit(match)
+        local kit = kits[match.kitId] or kits.reedguard
         health:Set(match.playerHealth, match.maxHealth or match.playerMaxHealth, kit.fighter, kind == "begin")
         if kind == "begin" then
             ChampionshipPortraits.set(fighterPortrait, match.kitId)

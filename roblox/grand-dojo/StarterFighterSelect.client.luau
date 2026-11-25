@@ -11,6 +11,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local roster = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local visuals = ReplicatedStorage:WaitForChild("StarterFighterVisuals")
 local forms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local formVisuals = ReplicatedStorage:WaitForChild("FighterFormVisuals")
@@ -47,8 +48,6 @@ local previewMoves = {
     ["fire-salamander"] = {right = -28, left = 15, lean = -11, roll = -9, lift = .17, step = .20},
 }
 local starterOrder = roster.StarterOrder or roster.Order
-local reedguardId, sweepLevel = "reedguard-kangaroo", 5
-local tacticalNames = {uppercut = "Uppercut", reedSweep = "Reed Sweep"}
 
 local function displayName(info)
     return info.shortName or shortNames[info.id] or info.name
@@ -189,10 +188,10 @@ local tacticalBar = create("Frame", details, {
 local tacticalHeading = label(tacticalBar, "Heading", "Technique", 13, colors.gold, Enum.Font.GothamBold)
 tacticalHeading.Size = UDim2.new(1, 0, 0, 16)
 local tacticalButtons = {}
-for index, id in {"uppercut", "reedSweep"} do
-    local control, stroke = button(tacticalBar, id, tacticalNames[id], colors.panel, colors.edge)
+for index = 1, 2 do
+    local control, stroke = button(tacticalBar, "Option" .. index, "", colors.panel, colors.edge)
     control.TextWrapped, control.TextTruncate = true, Enum.TextTruncate.None
-    tacticalButtons[index] = {id = id, control = control, stroke = stroke}
+    tacticalButtons[index] = {control = control, stroke = stroke}
 end
 local formBar = create("Frame", details, {
     Name = "FighterForms", LayoutOrder = 3, Visible = false, BackgroundTransparency = 1, BorderSizePixel = 0,
@@ -284,11 +283,15 @@ local function formRequirement(id, formId)
 end
 
 local function savedTactical()
-    return if player:GetAttribute("ReedguardTactical") == "reedSweep" then "reedSweep" else "uppercut"
+    local group = fighterTactics.ByFighter[selectedId]
+    if not group then return nil end
+    local option = fighterTactics.forKit(group.kit, player:GetAttribute(group.attribute))
+    return option and option.id
 end
 
 local function tacticalRequirement(tactical)
-    return if tactical == "reedSweep" and (tonumber(fighterLevels[reedguardId]) or 1) < sweepLevel then sweepLevel else nil
+    local option = tactical and fighterTactics.get(selectedId, tactical)
+    return if option and (tonumber(fighterLevels[selectedId]) or 1) < option.level then option.level else nil
 end
 
 local function alreadyEquipped(id)
@@ -495,20 +498,24 @@ local function updateFormButtons(saving)
 end
 
 local function updateTacticalButtons(saving)
-    tacticalBar.Visible = switching and selectedId == reedguardId
+    local group = fighterTactics.ByFighter[selectedId]
+    tacticalBar.Visible = switching and group ~= nil and #group.options > 1
     if not tacticalBar.Visible then return end
     local stored = savedTactical()
     local selected = requestedTactical or stored
     local activeFighter = selectedId == player:GetAttribute("SelectedStarterFighter")
     tacticalHeading.Text = if UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
-        and not tacticalRequirement("reedSweep") then "Technique · T" else "Technique"
-    for _, tile in tacticalButtons do
+        and not tacticalRequirement(group.options[2].id) then "Technique · T" else "Technique"
+    for index, tile in tacticalButtons do
+        local option = group.options[index]
+        tile.id = option.id
         local control = tile.control
-        local locked = tacticalRequirement(tile.id)
-        local chosen = tile.id == selected
-        local subline = if locked then "Level " .. locked elseif tile.id == stored and activeFighter then "Equipped"
+        local locked = tacticalRequirement(option.id)
+        local chosen = option.id == selected
+        local subline = if locked then "Level " .. locked elseif option.id == stored and activeFighter then "Equipped"
             elseif chosen then "Selected" else ""
-        control.Text = tacticalNames[tile.id] .. (if subline == "" then "" else "\n" .. subline)
+        control.Name = option.id
+        control.Text = option.name .. (if subline == "" then "" else "\n" .. subline)
         control.Active, control.Selectable = not saving and not locked, not saving
         control.AutoButtonColor = not locked
         control.TextColor3 = if chosen then colors.gold elseif locked then colors.muted else colors.text
@@ -527,6 +534,7 @@ buttons = function()
     local locked = switching and (requiredLevel(selectedId) or formRequirement(selectedId, formId)
         or tacticalRequirement(requestedTactical))
     local option = forms.get(selectedId, formId)
+    local tactic = requestedTactical and fighterTactics.get(selectedId, requestedTactical)
     local formCopy = switching and #forms.list(selectedId) > 1 and option
     local enabled = not busy and (previewState == "failed" or (not equipped and not locked))
     confirm.Active = enabled
@@ -537,8 +545,8 @@ buttons = function()
         elseif previewState == "failed" then "Retry 3D preview"
         elseif locked then string.format("Unlock at Level %d", locked)
         elseif equipped then "Currently equipped"
-        elseif requestedTactical and selectedId == player:GetAttribute("SelectedStarterFighter")
-            and formId == savedForm(selectedId) then "Equip " .. tacticalNames[requestedTactical]
+        elseif tactic and selectedId == player:GetAttribute("SelectedStarterFighter")
+            and formId == savedForm(selectedId) then "Equip " .. tactic.name
         elseif formCopy then "Equip " .. option.name
         else (if switching then "Switch to " else "Start as ") .. name
     confirm.BackgroundColor3 = if enabled then colors.gold else colors.gold:Lerp(colors.panel, .28)
@@ -955,10 +963,13 @@ UserInputService.InputBegan:Connect(function(input, processed)
         confirmChoice()
     elseif input.KeyCode == Enum.KeyCode.Backspace then
         closePicker()
-    elseif tacticalBar.Visible and input.KeyCode == Enum.KeyCode.T and not tacticalRequirement("reedSweep") then
-        local nextIndex = if (requestedTactical or savedTactical()) == "reedSweep" then 1 else 2
-        selectTactical(tacticalButtons[nextIndex].id)
-        revealDetail(tacticalButtons[nextIndex].control)
+    elseif tacticalBar.Visible and input.KeyCode == Enum.KeyCode.T then
+        local current = requestedTactical or savedTactical()
+        local nextTile = if current == tacticalButtons[1].id then tacticalButtons[2] else tacticalButtons[1]
+        if not tacticalRequirement(nextTile.id) then
+            selectTactical(nextTile.id)
+            revealDetail(nextTile.control)
+        end
     elseif formBar.Visible and (input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down) then
         local options = forms.list(selectedId)
         local current = table.find(options, forms.get(selectedId, previewForm(selectedId))) or 1
@@ -1135,12 +1146,14 @@ local function readFighterForms()
 end
 player:GetAttributeChangedSignal("FighterRosterForms"):Connect(readFighterForms)
 player:GetAttributeChangedSignal("SelectedFighterForm"):Connect(readFighterForms)
-player:GetAttributeChangedSignal("ReedguardTactical"):Connect(function()
-    if panel.Visible and selectedId == reedguardId then
-        updateLevel()
-        buttons()
-    end
-end)
+for fighterId, group in fighterTactics.ByFighter do
+    player:GetAttributeChangedSignal(group.attribute):Connect(function()
+        if panel.Visible and selectedId == fighterId then
+            updateLevel()
+            buttons()
+        end
+    end)
+end
 readFighterForms()
 player:GetAttributeChangedSignal("HighestFighterLevel"):Connect(function()
     if panel.Visible then

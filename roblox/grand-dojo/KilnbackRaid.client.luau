@@ -7,6 +7,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local Health = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -47,7 +48,12 @@ local raids = {
         health = Color3.fromRGB(246, 132, 79), lastMatchId = 0, nextStatusAt = 0},
 }
 
-local earnedCues = {reedSweep = "Reed Sweep"}
+local earnedCues = {penguinTacticalCooling = "Technique cooling down"}
+for _, group in fighterTactics.ByKit do
+    for _, option in group.options do
+        earnedCues[option.id] = option.name
+    end
+end
 local kits = {
     reedguard = {name = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {name = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
@@ -68,13 +74,6 @@ for _, fighter in fighterCatalog.ById do
         earnedCues[combat.signatureCue] = combat.signature
     end
 end
-local reedSweep = table.clone(kits.reedguard)
-reedSweep.technique, reedSweep.techniqueAction, reedSweep.compactTechnique = "Reed Sweep", "secondary", "Sweep"
-
-local function equippedKit(slot)
-    return if slot.kitId == "reedguard" and slot.tactical == "reedSweep" then reedSweep else kits[slot.kitId] or kits.reedguard
-end
-
 local function make(class, parent, properties)
     local node = Instance.new(class)
     for key, value in properties do
@@ -434,11 +433,13 @@ local function binding(name, key, pad)
 end
 
 local function refreshActions(own, now)
-    local kit = equippedKit(own)
+    local kit = kits[own.kitId] or kits.reedguard
+    local option = fighterTactics.forKit(own.kitId, own.tactical)
+    local techniqueName = if option then option.name else kit.technique
     local fighting = active(now) and canFight(own)
     for action, control in actions do
         control.Visible = if action == "leave" then not match.resolvedAt
-            elseif action == "technique" then fighting and kit.technique ~= nil else fighting
+            elseif action == "technique" then fighting and techniqueName ~= nil else fighting
     end
     actions.strike.Text, actions.heavy.Text = binding("Strike", "E", "RT"), binding("Heavy", "R", "RB")
     actions.guard.Text, actions.dodge.Text = binding("Guard", "Q", "LT"), binding(kit.dodge or "Dodge", "X", "LB")
@@ -448,10 +449,11 @@ local function refreshActions(own, now)
         control.Text = if seconds > 0 then name .. "\n" .. seconds .. "s" else binding(name, key, pad)
         control.TextColor3 = if seconds > 0 then muted else paper
     end
-    if kit.technique then
+    if techniqueName then
         local width = actions.technique.AbsoluteSize.X
-        local compactWidth = if kit == reedSweep then 100 else 70
-        local technique = if kit.compactTechnique and width > 0 and width < compactWidth then kit.compactTechnique else kit.technique
+        local compactWidth = if option then 100 else 70
+        local compactName = if option then option.compact else kit.compactTechnique
+        local technique = if compactName and width > 0 and width < compactWidth then compactName else techniqueName
         cooldown(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
@@ -609,8 +611,11 @@ local function send(action, direction)
         end
         return
     end
-    local kit = equippedKit(own)
-    if action == "technique" then action = kit.techniqueAction end
+    if action == "technique" then
+        local kit = kits[own.kitId] or kits.reedguard
+        local option = fighterTactics.forKit(own.kitId, own.tactical)
+        action = if option then option.action else kit.techniqueAction
+    end
     if not action then return end
     if action == "dodge" or action == "secondary" then
         local character = player.Character

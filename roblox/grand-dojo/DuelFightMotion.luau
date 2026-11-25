@@ -1,6 +1,7 @@
 -- Native fighter motion, fitted contact volumes, and authored floor effects.
 local Match = require(script.Parent.DojoMatchSupport)
 local Jump = require(game:GetService("ReplicatedStorage").ArenaJumpMotion)
+local Tactics = require(game:GetService("ReplicatedStorage").FighterTactics)
 local Debris = game:GetService("Debris")
 local FighterMotion = require(script.Parent.ReedguardFightMotion)
 local Geometry = FighterMotion.geometry
@@ -273,7 +274,7 @@ function Motion.canAct(duel, side, action, now)
     if duel.motion.brawl and not floorActive(duel, root.Position, now or duel.motion.at) then
         return false
     end
-    if action == "secondary" and duel.round.sides[side].tactical == "reedSweep" then
+    if action == "secondary" and Tactics.isPlanted(duel.round.sides[side].tactical) then
         return FighterMotion.reactionGrounded(root, duel.floor)
     end
     if action == "dodge" or action == "signature" or action == "secondary" then
@@ -672,7 +673,7 @@ local function updateActor(duel, index, now, deferredCasts)
     local traveling = clip and (travelActions[clip.action] or (travel and travel.axis))
     local special = clip and Storm.isCast(clip.action)
     local planting = (clip and (plantedActions[clip.action] or special))
-        or FighterMotion.canPlantKick(state.kitId, clip, root, duel.floor)
+        or FighterMotion.canPlantStrike(state.kitId, clip, root, duel.floor)
     local live = now >= duel.round.startsAt and not duel.round.resolvedAt
     local rooted = now < math.max(state.rootedUntil or 0, state.shockedUntil or 0)
     if live and talonHold(duel, index, now) and floorActive(duel, root.Position, now) then

@@ -17,6 +17,7 @@ local remote = ReplicatedStorage:WaitForChild("GrandDojoAction")
 local sparRemote = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local duelRemote = ReplicatedStorage:WaitForChild("GrandDojoDuel")
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local trophyTemplate = ReplicatedStorage:WaitForChild("LanternKeeperTrophy")
 local sceneLights = {}
 local ambientEmitters = {}
@@ -1738,7 +1739,7 @@ local cues = {
     attackBlocked = "Your opponent blocked the strike.",
     attackParried = "Your opponent parried the strike.",
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike", uppercut = "Uppercut",
-    reedstep = "Reedstep Rising", reedSweep = "Reed Sweep", dodge = "Sidestep", brace = "Shell Set",
+    reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
     floeTurn = "Floe Turn", bellySlide = "Belly-Slide Blitz",
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
@@ -1765,13 +1766,14 @@ local cues = {
 }
 local cooldownCues = {
     slideCooling = {label = "Belly Slide", field = "nextSignature"},
+    penguinTacticalCooling = {field = "nextSecondary"},
     ridgeCooling = {label = "Ridge Palm", field = "nextSecondary"},
     seismicCooling = {label = "Seismic", field = "nextSignature"},
     emberCooling = {label = "Ember Sweep", field = "nextSecondary"},
     magmaCooling = {label = "Magma Trail", field = "nextSignature"},
 }
 local priorityCues = {
-    uppercut = true, reedSweep = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
+    uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
     gustPull = true, snareCaught = true, ricochetBounce = true, guardBroken = true, shockLanded = true,
     frenzyResist = true, apexRootCaught = true, submerged = true,
@@ -1802,11 +1804,11 @@ for _, fighter in fighterCatalog.ById do
     end
 end
 
-showcaseKits.reedSweep = table.clone(showcaseKits.reedguard)
-showcaseKits.reedSweep.techniqueAction = "secondary"
-showcaseKits.reedSweep.techniqueName = "ReedSweep"
-showcaseKits.reedSweep.techniqueLabel = "Reed Sweep"
-showcaseKits.reedSweep.compactTechnique = "Sweep"
+for _, group in fighterTactics.ByKit do
+    for _, option in group.options do
+        cues[option.id], priorityCues[option.id] = option.name, true
+    end
+end
 
 local resultAwaitingReward = false
 
@@ -1838,10 +1840,9 @@ local function refreshSparControls(now)
     local shortTechnique = kit.compactTechnique and techniqueWidth > 0 and techniqueWidth < 70
     local techniqueLabel = if shortTechnique then kit.compactTechnique else kit.techniqueLabel or "Uppercut"
     local techniqueCooldown = if shortTechnique then techniqueLabel .. "\n%ds" else kit.techniqueCooldown
-    local sweep = kit == showcaseKits.reedSweep
-    combatButtons.technique.TextWrapped = kit.techniqueCooldown ~= nil or sweep
+    combatButtons.technique.TextWrapped = kit.techniqueCooldown ~= nil or kit.wrapTechnique == true
     combatButtons.technique.Text = if techniqueCooling > 0 then string.format(techniqueCooldown, techniqueCooling)
-        else techniqueLabel .. (if keyboard then (if sweep then "\nV" else " · V")
+        else techniqueLabel .. (if keyboard then (if kit.wrapTechnique then "\nV" else " · V")
             elseif gamepad then "\nD-pad ↑" else "")
     combatButtons.technique.TextColor3 = if techniqueCooling > 0 then palette.muted else palette.parchment
     combatButtons.heavy.Text = if keyboard then "Heavy · R" elseif gamepad then "Heavy · RB" else "Heavy"
@@ -2014,8 +2015,15 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     matchPresentation.matchId = if isDuel and opponent then opponent.matchId else nil
     matchPresentation.roundIndex = if isDuel and opponent then opponent.roundIndex else nil
     matchPresentation.roundResult = nil
-    local loadout = if kitId == "reedguard" and tactical == "reedSweep" then showcaseKits.reedSweep else showcaseKits[kitId]
-    local kit = if matchPresentation.showcase then loadout or showcaseKits.reedguard else nil
+    local kit = if matchPresentation.showcase then showcaseKits[kitId] or showcaseKits.reedguard else nil
+    local option = fighterTactics.forKit(kitId, tactical)
+    if kit and option and kit.techniqueLabel ~= option.name then
+        kit = table.clone(kit)
+        kit.techniqueAction = option.action
+        kit.techniqueName = option.id:gsub("^%l", string.upper)
+        kit.techniqueLabel, kit.compactTechnique, kit.wrapTechnique = option.name, option.compact, true
+        if kitId == "penguin" then kit.techniqueCooldown = option.name .. "\n%ds" end
+    end
     matchPresentation.kit = kit
     matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
     matchPresentation.nextSecondary = if type(nextSecondary) == "number" then nextSecondary else nil
@@ -2096,7 +2104,7 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     if kit then
         combatAudio.countdown(startsAt - now)
     end
-    if kit and kit.signatureCooldown then
+    if kit and (kit.signatureCooldown or kit.techniqueCooldown) then
         matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
         matchPresentation.nextSecondary = if type(nextSecondary) == "number" then nextSecondary else nil
         refreshSparControls(now)
@@ -2124,8 +2132,8 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
         sparHint.Text = matchPresentation.steering.hint
     elseif not parryCue and cooldownCue then
         local cooling = cooldownSeconds(matchPresentation[cooldownCue.field], now)
-        sparHint.Text = if cooling > 0 then string.format("%s ready in %ds", cooldownCue.label, cooling)
-            else cooldownCue.label .. " ready"
+        local label = cooldownCue.label or (kit and kit.techniqueLabel) or "Technique"
+        sparHint.Text = if cooling > 0 then string.format("%s ready in %ds", label, cooling) else label .. " ready"
     elseif phase == "windup" then
         sparHint.Text = if feedback == "guard" then "Guard up"
             elseif parryCue then "Guard now to parry!"

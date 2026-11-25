@@ -164,7 +164,7 @@ end
 
 local function kitEntry(player, id)
     local kit = Match.FighterKits[id]
-    return {fighter = catalog[id], kitId = kit, tactical = Match.reedguardTactical(player, kit)}
+    return {fighter = catalog[id], kitId = kit, tactical = Match.tactical(player, kit)}
 end
 
 local function teamMarker(actor, parent, team)

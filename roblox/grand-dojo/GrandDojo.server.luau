@@ -7,6 +7,7 @@ local HttpService = game:GetService("HttpService")
 local PlayerProfiles = require(script.Parent:WaitForChild("PlayerProfiles"))
 local StarterFighters = require(script.Parent:WaitForChild("StarterFighters"))
 local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
+local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
@@ -264,7 +265,9 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("HighestFighterLevel", progress.highestFighterLevel)
     player:SetAttribute("FighterRosterLevels", HttpService:JSONEncode(progress.fighterLevels))
     player:SetAttribute("FighterRosterForms", HttpService:JSONEncode(progress.fighterForms))
-    player:SetAttribute("ReedguardTactical", progress.reedguardTactical)
+    for fighterId, loadout in FighterTactics.ByFighter do
+        player:SetAttribute(loadout.attribute, PlayerProfiles.tacticalFor(profile, fighterId))
+    end
     local goal = (progress.nextLevelXp or progress.levelFloor) - progress.levelFloor
     local earned = math.clamp(progress.xp - progress.levelFloor, 0, goal)
     player:SetAttribute("FighterHudProgress", string.format("%d:%d:%d", progress.level, earned, goal))
@@ -318,6 +321,10 @@ local function projectStarterChoice(player, data, profile)
     player:SetAttribute("StarterSelectionRequired", selected == nil)
 end
 
+local function tacticalLockedMessage(option)
+    return string.format("Reach level %d with this fighter to equip %s.", option.level, option.name)
+end
+
 local function saveStarterChoice(player, data, token)
     local pending = data.pendingStarterChoice
     local profile, reason
@@ -334,7 +341,7 @@ local function saveStarterChoice(player, data, token)
             player:SetAttribute("ProgressStatus", "ready")
             player:SetAttribute("StarterSelectionError", if reason == "form locked"
                 then "Earn the required level with this fighter to equip the form."
-                elseif reason == "tactical locked" then "Reach level 5 with Reedguard to equip Reed Sweep."
+                elseif reason == "tactical locked" then tacticalLockedMessage(FighterTactics.get(pending.id, pending.requestedTactical))
                 else "Reach the required fighter level to equip this fighter.")
             if player.Character then
                 StarterFighters.release(player.Character)
@@ -605,8 +612,8 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, 
         or #requestedForm > 24 or not FighterForms.get(fighterId, requestedForm)) then
         return
     end
-    local tacticalLevel = PlayerProfiles.tacticalUnlockLevel(fighterId, requestedTactical)
-    if requestedTactical ~= nil and (not switching or not tacticalLevel) then
+    local tacticalOption = FighterTactics.get(fighterId, requestedTactical)
+    if requestedTactical ~= nil and (not switching or not tacticalOption) then
         return
     end
     if switching and (not player:GetAttribute("FighterSelectOpen") or not atFighterSelect(player)
@@ -633,9 +640,8 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, 
             FighterForms.get(fighterId, form).level))
         return
     end
-    if requestedTactical and not PlayerProfiles.canEquipTactical(data.profile, fighterId, requestedTactical) then
-        player:SetAttribute("StarterSelectionError", string.format("Reach level %d with Reedguard to equip Reed Sweep.",
-            tacticalLevel))
+    if tacticalOption and not PlayerProfiles.canEquipTactical(data.profile, fighterId, requestedTactical) then
+        player:SetAttribute("StarterSelectionError", tacticalLockedMessage(tacticalOption))
         return
     end
     local equippedTactical = PlayerProfiles.tacticalFor(data.profile, fighterId)

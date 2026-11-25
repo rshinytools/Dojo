@@ -1,6 +1,7 @@
 -- Featured sparring uses the same authored frame for posing and contact.
 local Match = require(script.Parent.DojoMatchSupport)
 local Jump = require(game:GetService("ReplicatedStorage").ArenaJumpMotion)
+local Tactics = require(game:GetService("ReplicatedStorage").FighterTactics)
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local reedguardSupport = require(script.Parent.ReedguardDefeatSupport)
 local meshDefeatSupport = require(script.Parent.CombatDefeatSupport)
@@ -604,7 +605,7 @@ function Motion.close(bout)
 end
 
 function Motion.canAct(bout, action)
-    if action == "secondary" and bout.round.tactical == "reedSweep" then
+    if action == "secondary" and Tactics.isPlanted(bout.round.tactical) then
         return Motion.reactionGrounded(bout.root, bout.arena.floor)
     end
     local groundedOnly = (bout.motion.rosterHistory and (action == "dodge" or action == "secondary" or action == "signature"))
@@ -647,8 +648,8 @@ function Motion.locomotion(poses, state, root, forward, now, readOnly)
     return if along >= 0 then "advance" else "retreat", now
 end
 
-function Motion.canPlantKick(kit, clip, root, floor)
-    return kit == "reedguard" and clip and (clip.action == "body" or clip.action == "reedSweep")
+function Motion.canPlantStrike(kit, clip, root, floor)
+    return clip and ((kit == "reedguard" and clip.action == "body") or Tactics.isPlanted(clip.action))
         and math.abs(root.Position.Y - (floor + 2.13)) < .38 and math.abs(root.AssemblyLinearVelocity.Y) < 4
 end
 
@@ -873,6 +874,19 @@ local function setTravelHold(bout, moving)
         bout.root.Anchored = hold or state.anchored
         state.holding = hold
     end
+end
+
+local function plantStrike(bout, clip)
+    local state, root = bout.motion, bout.root
+    local planted = Motion.canPlantStrike(bout.kit, clip, root, bout.arena.floor)
+    if planted and state.plantedStrikeClip ~= clip then
+        state.plantedStrikeClip = clip
+        local forward = directionTo(root.Position, bout.position, root.CFrame.LookVector)
+        Match.move(root, CFrame.lookAlong(root.Position, forward))
+    elseif not planted then
+        state.plantedStrikeClip = nil
+    end
+    return planted == true
 end
 
 local function galleonLine(bout, folder, from, to, tint)
@@ -1103,7 +1117,7 @@ local function penguinTravel(bout, now)
         state.playerTravel = nil
         clearLane(state, "slideLane")
         restoreClearance(bout, .655)
-        setTravelHold(bout, now < round.startsAt)
+        setTravelHold(bout, plantStrike(bout, clip) or now < round.startsAt)
         return
     end
 
@@ -1373,16 +1387,9 @@ local function playerDodge(bout, now)
         end
         Fields.updateCast(bout.telegraph, fieldCast, age, now, EmberAqua, true)
     end
-    local kick = Motion.canPlantKick(bout.kit, clip, root, bout.arena.floor)
-    if kick and state.kickClip ~= clip then
-        state.kickClip = clip
-        local forward = directionTo(root.Position, bout.position, root.CFrame.LookVector)
-        Match.move(root, CFrame.lookAlong(root.Position, forward))
-    elseif not kick then
-        state.kickClip = nil
-    end
+    local plantedStrike = plantStrike(bout, clip)
     local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil or fieldAction == true
-        or heavyActive or kick == true or (clip ~= nil and clip.action == "unstoppableFrenzy")
+        or heavyActive or plantedStrike == true or (clip ~= nil and clip.action == "unstoppableFrenzy")
     if hold ~= state.holding then
         root.Anchored = hold or state.anchored
         state.holding = hold

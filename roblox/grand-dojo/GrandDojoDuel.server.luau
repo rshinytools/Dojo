@@ -36,6 +36,7 @@ local actions = {strike = true, guard = true, heavy = true, uppercut = true, sec
 local tells = {
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike",
     uppercut = "Uppercut", reedSweep = "Reed Sweep", reedstep = "Reedstep Rising", bellySlide = "Belly-Slide Blitz",
+    icecrestPalm = "Icecrest Palm", floeHook = "Floe Hook",
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
 }
@@ -145,7 +146,7 @@ end
 local function actor(player, root)
     local id = player:GetAttribute("SelectedStarterFighter")
     local kit = Match.FighterKits[id]
-    return {player = player, root = root, kit = kit, fighter = fighters[id], tactical = Match.reedguardTactical(player, kit),
+    return {player = player, root = root, kit = kit, fighter = fighters[id], tactical = Match.tactical(player, kit),
         nextInput = 0, feedbackUntil = 0}
 end
 

@@ -1,4 +1,6 @@
-local FighterForms = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterForms"))
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
+local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 
 local PlayerProfiles = {}
 PlayerProfiles.__index = PlayerProfiles
@@ -11,8 +13,6 @@ local FIRST_DOJO_PRACTICE_XP = 20
 local FIRST_SPAR_WIN_XP = 60
 local REPEAT_SPAR_WIN_XP = 30
 local REEDGUARD = "reedguard-kangaroo"
-local DEFAULT_TACTICAL = "uppercut"
-local REEDGUARD_TACTICAL_LEVELS = {[DEFAULT_TACTICAL] = 1, reedSweep = 5}
 local STARTERS = {
     [REEDGUARD] = true,
     ["penguin-brawler"] = true,
@@ -265,7 +265,8 @@ function PlayerProfiles.formFor(profile, fighterId)
 end
 
 function PlayerProfiles.tacticalUnlockLevel(fighterId, tactical)
-    return if fighterId == REEDGUARD and type(tactical) == "string" then REEDGUARD_TACTICAL_LEVELS[tactical] else nil
+    local option = FighterTactics.get(fighterId, tactical)
+    return option and option.level
 end
 
 function PlayerProfiles.canEquipTactical(profile, fighterId, tactical)
@@ -276,10 +277,12 @@ function PlayerProfiles.canEquipTactical(profile, fighterId, tactical)
 end
 
 function PlayerProfiles.tacticalFor(profile, fighterId)
-    if fighterId ~= REEDGUARD then return nil end
+    local registered = FighterTactics.ByFighter[fighterId]
+    if not registered then return nil end
     local fighter = profile.fighters[fighterId]
     local equipped = fighter and fighter.equippedTactical
-    return if PlayerProfiles.canEquipTactical(profile, fighterId, equipped) then equipped else DEFAULT_TACTICAL
+    -- A newer or currently locked option stays in the saved record while the default is projected.
+    return if PlayerProfiles.canEquipTactical(profile, fighterId, equipped) then equipped else registered.default
 end
 
 function PlayerProfiles.summary(profile, fighterId)
@@ -317,7 +320,6 @@ function PlayerProfiles.summary(profile, fighterId)
         highestFighterLevel = PlayerProfiles.levelForXp(highestXp(profile)),
         fighterLevels = fighterLevels,
         fighterForms = fighterForms,
-        reedguardTactical = PlayerProfiles.tacticalFor(profile, REEDGUARD),
         ringTraining = (training and training[fighterId]) or {},
     }
 end
@@ -424,7 +426,7 @@ function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, ta
             if not PlayerProfiles.canEquipTactical(profile, fighterId, tactical) then
                 return "tactical locked"
             end
-            equippedTactical = if tactical == DEFAULT_TACTICAL then nil else tactical
+            equippedTactical = if tactical == FighterTactics.ByFighter[fighterId].default then nil else tactical
         end
         if equippedForm ~= storedForm or equippedTactical ~= storedTactical then
             profile.fighters = table.clone(profile.fighters)

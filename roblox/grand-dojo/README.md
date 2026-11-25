@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.331, choose Penguin Brawler and press **V**, **D-pad Up**, or the **Icecrest Palm** control in the ring. At Penguin’s own Level 5, visit Fighter Select, choose **Floe Hook**, and confirm. The same control now performs the faster, shorter-range strike. Return to Fighter Select to equip Palm again.
+
 In v0.330, use Tag Team and switch fighters with **T** or **Tag In**. An action still in transit from the outgoing fighter expires at the swap.
 
 In v0.329, earn Reedguard Level 5 and visit Fighter Select. Choose **Reed Sweep**, confirm it, and press **V** in the ring. The regular Technique control also works with touch or D-pad Up. Switch back to Uppercut at Fighter Select whenever you prefer.

@@ -15,6 +15,7 @@ local Apex = require(script.Parent.ApexFighterCombat)
 local Abyss = require(script.Parent.AbyssFighterCombat)
 local Inferno = require(script.Parent.InfernoFighterCombat)
 local Storm = require(script.Parent.StormFighterCombat)
+local FighterTactics = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterTactics"))
 local apexTimeline = Apex.zoneMoves()
 local Round = {}
 local reactions = {hitHead = true, hitBody = true, block = true, parry = true, stagger = true}
@@ -44,6 +45,8 @@ local penguinClips = {
     cross = {{at = Penguin.Contact.cross, damage = 13, zone = "head"}},
     body = {{at = Penguin.Contact.body, damage = 14, zone = "body"}},
     heavy = {{at = Penguin.Contact.heavy, damage = 20, zone = "body"}},
+    icecrestPalm = {{at = Penguin.Contact.icecrestPalm, damage = 17, zone = "body", radius = .47}},
+    floeHook = {{at = Penguin.Contact.floeHook, damage = 13, zone = "body", radius = .47}},
     bellySlide = {},
 }
 for _, time in Penguin.Contact.bellySlide do
@@ -138,6 +141,7 @@ local kits = {
         poses = Penguin, clips = penguinClips,
         dodge = "floeTurn", dodgeCue = "floeTurn", dodgeCooldown = 1.05,
         signature = "bellySlide", signatureCooldown = 7, signatureCooling = "slideCooling",
+        secondaryCooldown = 5, secondaryCooling = "penguinTacticalCooling",
     },
     silverback = {
         poses = Silverback, clips = silverbackClips,
@@ -208,12 +212,14 @@ local combo = {jab = "cross", cross = "body"}
 local PARRY_COUNTER_TIME = 2.4
 
 local function newCombatant(now, fighter, kitId, timing, tactical)
-    local kit = kits[kitId or "reedguard"]
+    kitId = kitId or "reedguard"
+    local kit = kits[kitId]
     assert(kit, "Unknown combat kit")
+    local option = FighterTactics.forKit(kitId, tactical)
     local startsAt = now + (timing and timing.intro or Round.INTRO)
     return {
         kit = kit,
-        tactical = if kit == kits.reedguard then (if tactical == "reedSweep" then tactical else "uppercut") else nil,
+        tactical = option and option.id,
         introAt = now, startsAt = startsAt, endsAt = startsAt + (timing and timing.duration or Round.DURATION),
         playerHealth = fighter.health, playerMaxHealth = fighter.health,
         playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
@@ -328,9 +334,10 @@ function Round.act(round, action, now, direction)
         return
     end
     local kit = round.kit
+    local secondary = kit.secondaryCooldown and (round.tactical or kit.secondary)
     local reedSweep = action == "secondary" and round.tactical == "reedSweep"
     if now < (round.rootedUntil or 0) then
-        local attempted = if action == "secondary" then kit.secondary
+        local attempted = if action == "secondary" then secondary
             elseif action == "signature" then kit.signature elseif action == "dodge" then kit.dodge else nil
         if attempted and inMotion(round, attempted) then
             return "snared"
@@ -364,14 +371,14 @@ function Round.act(round, action, now, direction)
         play(round, kit.dodge, now)
         round.clip.direction = if direction == -1 then -1 else 1
         return kit.dodgeCue
-    elseif action == "secondary" and kit.secondary then
+    elseif action == "secondary" and secondary then
         if now < round.nextSecondary then
             return kit.secondaryCooling
         end
         round.nextSecondary, round.guardUntil = now + kit.secondaryCooldown, 0
-        play(round, kit.secondary, now)
+        play(round, secondary, now)
         round.clip.direction = if direction == -1 then -1 else 1
-        return kit.secondary
+        return secondary
     elseif action == "signature" then
         if kit.signatureCooldown then
             if now < round.nextSignature then
