@@ -151,3 +151,23 @@ def build_reedguard_forms(storage, fighter_visuals, *, item, part, prop, vector)
                   for node in model.findall("Item")}
         decorate(art, groups)
     return library
+
+
+def compact_form_visuals(library, fighter_visuals, *, item):
+    """Ship the new ornaments only. The preview and shell use the single base art model."""
+    def by_name(parent):
+        return {child.findtext("Properties/*[@name='Name']"): child for child in parent.findall("Item")}
+
+    bases = by_name(fighter_visuals)
+    for variant, outfit in by_name(library).items():
+        fighter, stage = variant.rsplit("-", 1)
+        if stage not in {"warrior", "grandmaster"}:
+            raise ValueError(f"Unknown outfit stage: {variant}")
+        base_groups = by_name(bases[fighter])
+        for name, group in by_name(outfit).items():
+            originals = base_groups[name].findall("Item")
+            ornaments = group.findall("Item")[len(originals):]
+            outfit.remove(group)
+            if ornaments:
+                holder = item(outfit, "Folder", name)
+                holder.extend(ornaments)

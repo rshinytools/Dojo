@@ -104,7 +104,7 @@ function StarterFighters.equip(character, id, formId)
     if current and current:GetAttribute("FighterId") == id and current:GetAttribute("FighterFormId") == formId then
         return true
     end
-    local model = forms.appearance(visuals, formVisuals, id, formId)
+    local model, outfit = forms.appearance(visuals, formVisuals, id, formId)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     local pieces = model and humanoid and mountedPieces(character, model)
     if not pieces then
@@ -116,6 +116,7 @@ function StarterFighters.equip(character, id, formId)
     shell:SetAttribute("FighterFormId", formId)
     for _, piece in pieces do
         local mesh = piece.source:Clone()
+        forms.decorate(mesh, outfit)
         local frame = piece.carrier.CFrame * piece.offset
         makeCosmetic(mesh)
         for _, ornament in mesh:GetDescendants() do

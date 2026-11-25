@@ -60,6 +60,8 @@ def verify_place():
                 "Solar Phoenix",
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
                 "FighterForms", "FighterFormVisuals", "reedguard-kangaroo-warrior", "reedguard-kangaroo-grandmaster",
+                "penguin-brawler-grandmaster", "silverback-gorilla-grandmaster", "fire-salamander-grandmaster",
+                "karate-frog-grandmaster", "river-otter-grandmaster", "rooster-kickboxer-grandmaster",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander", "karate-frog", "river-otter",
                 "rooster-kickboxer", "sugar-glider",

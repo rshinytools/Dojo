@@ -161,6 +161,7 @@ local keyMap = {
 local tips = {
     blocked = "Blocked", parried = "Parried! Counter now", attackBlocked = "Your strike was blocked",
     attackParried = "Your strike was parried", hit = "You took a hit", strike = "Strike landed",
+    edge = "Element edge!", resist = "Element resisted",
     counter = "Counter landed", guard = "Guard up", needParry = "Parry to unlock Rising",
     projectileDeflected = "Projectile deflected!",
     gustPull = "Vortex pulls inward",
@@ -297,7 +298,9 @@ local function refresh()
     else
         local text = tips[match.feedback] or earnedCues[match.feedback]
         cue.Text = text or ""
-        if match.feedback == "parried" then
+        if match.feedback == "edge" then
+            cue.TextColor3 = gold
+        elseif match.feedback == "parried" then
             cue.TextColor3 = Color3.fromRGB(141, 231, 231)
         end
     end

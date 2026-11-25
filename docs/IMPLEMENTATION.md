@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.299 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.300 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -23,7 +23,13 @@ After the splash, first-time players can preview Reedguard Kangaroo, Penguin Bra
 
 Choose an original starter on first join. Use the Fighter Select station between activities to preview all twenty-four playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
 
-### Reedguard evolution forms
+### Fighter evolution forms
+
+V0.300 adds Warrior and Grandmaster to Penguin Brawler, Silverback Gorilla, Fire Salamander, Karate Frog, River Otter and Rooster Kickboxer. Along with Reedguard, seven fighters now have three looks. The form library stores each outfit’s new ornaments and reuses its single base mesh or Part rig in both preview and the arena. The current milestone levels are 5 and 10 per fighter. Outfits preserve the original collision, movement, animation and attack data. Evolved moves, the remaining 17 fighters and published save restoration are release work.
+
+The exact place retains all 24 base visuals. Fourteen outfits use 525 instances in the shared library, saving 528 instances compared with duplicating each complete model. Desktop Studio equipped both forms on six fighters and verified the unchanged joint transforms and ornament mounts. It rejected Warrior on a Level 4 Karate Frog even with a Level 10 fighter on the account. Penguin Warrior landed two 30-damage Belly Slides and earned 60 XP in a full win. Silverback Grandmaster landed a 20-damage Ridge Palm and Salamander Warrior landed an 18-damage Ember Sweep before those test bouts ended. Galaxy A06 landscape simulation used touch for both Frog equips and landed a 20-damage Lily Vault as Grandmaster.
+
+Brawl displays Element edge and Element resisted. Galaxy A06 Studio replayed the exact feedback messages and confirmed the labels, the gold edge treatment, and the priority of floor and status warnings. The stand-in bout received a technique touch and failed to land the intended first strike. Contact-to-cue verification in a live Brawl remains open.
 
 Reedguard starts as Rookie. Warrior adds crimson cloth and brass armor at Level 5 (460 Reedguard XP). Grandmaster adds jade panels and ivory armor at Level 10 (1,500 Reedguard XP). Fighter Select previews all three looks and shows the remaining level requirement. The account’s highest fighter level still controls roster access. Reedguard’s own level controls his forms.
 

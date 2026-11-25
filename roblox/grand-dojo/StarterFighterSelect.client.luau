@@ -359,7 +359,7 @@ local function drawPreview(id, tint)
     screen:SetAttribute("PreviewFighterForm", formId)
     viewport:SetAttribute("FighterId", id)
     viewport:SetAttribute("FighterFormId", formId)
-    local sample = forms.appearance(visuals, formVisuals, id, formId)
+    local sample, outfit = forms.appearance(visuals, formVisuals, id, formId)
     stageLight.Color = ColorSequence.new(tint:Lerp(colors.raised, .57), colors.veil)
     if not (sample and sample:IsA("Model")) then
         setPreviewState("failed")
@@ -369,7 +369,12 @@ local function drawPreview(id, tint)
     setPreviewState("loading")
     local model = sample:Clone()
     previewModel = model
-    model.Name = if formId == forms.BaseId then id else sample.Name
+    model.Name = if outfit then outfit.Name else id
+    for _, group in model:GetChildren() do
+        if group:IsA("BasePart") then
+            forms.decorate(group, outfit)
+        end
+    end
     model.Parent = world
     -- The import manifest already defines a floor-aligned frame facing -Z.
     -- Moving the auto-selected pivot to identity would turn the model around.

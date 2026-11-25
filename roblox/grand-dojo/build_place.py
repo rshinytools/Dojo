@@ -109,7 +109,9 @@ from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from starter_fighter_assets import build_starter_fighter_visuals
-from reedguard_forms_art import build_reedguard_forms
+from reedguard_forms_art import build_reedguard_forms, compact_form_visuals
+from starter_evolution_art import build_starter_evolutions
+from early_roster_evolution_art import build_early_roster_evolutions
 from roster_fighter_art import build_expansion_visuals
 from sky_fighter_art import build_sky_visuals
 from ember_aqua_art import build_ember_aqua_visuals
@@ -7795,7 +7797,6 @@ catalog_script = item(storage,"ModuleScript","StarterFighterCatalog")
 prop(catalog_script,"ProtectedString","Source",
      f'return game:GetService("HttpService"):JSONDecode([==[{encoded_catalog}]==])')
 fighter_visuals = build_starter_fighter_visuals(storage, item=item, part=part, prop=prop, asset=asset, vector=vector)
-build_reedguard_forms(storage, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_expansion_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_sky_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_ember_aqua_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
@@ -7806,6 +7807,10 @@ build_apex_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vect
 build_abyss_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_inferno_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_storm_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+form_visuals = build_reedguard_forms(storage, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_starter_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_early_roster_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+compact_form_visuals(form_visuals, fighter_visuals, item=item)
 server_storage=item(root,"ServerStorage","ServerStorage")
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
