@@ -1,5 +1,6 @@
 -- Original poses for Silverback's rigid Blender shell. Forward is local -Z.
 -- Apply each offset as offset * restC0 to preserve the fitted joint axes.
+local Choreography = require(script.Parent.FighterChoreography)
 local Poses = {}
 
 local neck = Vector3.new(0, 1.650, -.260)
@@ -277,4 +278,5 @@ function Poses.sample(action, age, direction)
 	return frames[#frames][2]
 end
 
+Choreography.addShuffle(Poses, rightSole, leftSole, 2.60)
 return table.freeze(Poses)

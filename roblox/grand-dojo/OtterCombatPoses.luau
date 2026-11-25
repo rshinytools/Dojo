@@ -1,5 +1,6 @@
 -- River Otter's original R6 choreography. Surface points are calculated from
 -- the authored keys so the palm and pebble cues follow the visible hands.
+local Choreography = require(script.Parent.FighterChoreography)
 local Poses = {}
 
 local floorY = -2.60
@@ -300,4 +301,5 @@ function Poses.sample(action, age, direction)
     return result
 end
 
+Choreography.addShuffle(Poses, rightSole, leftSole, 2.60)
 return table.freeze(Poses)

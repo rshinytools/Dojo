@@ -1,5 +1,6 @@
 -- Karate Frog's original R6 choreography. Transforms are relative to the
 -- floor-aligned shell at rest. The ring handles travel and confirms contacts.
+local Choreography = require(script.Parent.FighterChoreography)
 local Poses = {}
 
 local floorY = -2.60
@@ -288,4 +289,5 @@ function Poses.sample(action, age, direction)
     return result
 end
 
+Choreography.addShuffle(Poses, rightSole, leftSole, 2.60)
 return table.freeze(Poses)

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.315 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.316 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -259,6 +259,8 @@ The separate ranked store claims each player’s rating before the match. It rec
 Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
+
+V0.316 fits left and right shuffles to the other 23 playable fighters. Each keeps their own fighting stance while the leading foot opens and the trailing foot closes. The support foot stays on its mark at the intended lateral pace. The shared step solves against each fighter’s authored sole geometry. Existing attack clips, cooldowns, travel paths and input bindings carry forward. Exact Luau sampled 5,808 lateral poses across all 24 kits, including Reedguard’s existing shuffle. A separate comparison matched 14,496 samples from all 439 pre-existing clips to v0.315. Native desktop Bot Spar accepted keyboard movement in both directions for Penguin and Golden Eagle. Penguin’s boot spacing varied by about 1.29 studs as he stepped, compared with about 0.02 studs in the same movement before this change.
 
 V0.315 gives revived raid fighters a grounded rise during the existing 0.30-second recovery. The fitted shell moves from the fallen pose to stance while the root stays in place. Studio Kilnback, Solar, and Abyssal raids with one player and three fitted stand-ins checked Penguin's actual knockout, 34 HP after revival, one revive credit and a successful guard after he stood up. The scheduled revive uses the reviver’s sampled position at the deadline. Exact Luau checks confirmed a revive due before a late update and preserved interruption for movement or damage at the deadline.
 

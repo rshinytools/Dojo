@@ -1,5 +1,6 @@
 -- Original animation on Penguin Brawler's floor-aligned Blender shell.
 -- Joint offsets are applied as offset * restC0. Forward is local -Z.
+local Choreography = require(script.Parent.FighterChoreography)
 local Poses = {}
 
 local neck = Vector3.new(.003, .790, -.118)
@@ -259,4 +260,5 @@ function Poses.sample(action, age, direction)
 	return table.clone(frames[#frames][2])
 end
 
+Choreography.addShuffle(Poses, rightSole, leftSole, 2.60)
 return table.freeze(Poses)

@@ -3,6 +3,9 @@
 local Choreography = {}
 
 local looped = {stance = true, advance = true, retreat = true}
+local mountedRootHeight = 2.132
+local soleClearance = .018
+local rightHip, leftHip = "Right Hip", "Left Hip"
 local reflectedJoint = {
     ["Right Shoulder"] = "Left Shoulder", ["Left Shoulder"] = "Right Shoulder",
     ["Right Hip"] = "Left Hip", ["Left Hip"] = "Right Hip",
@@ -27,6 +30,65 @@ end
 
 local function moveVertically(root, offset, delta)
     return CFrame.new(root:VectorToObjectSpace(Vector3.new(0, delta, 0))) * offset
+end
+
+local function shuffleFoot(stance, joint, points, rootHeight)
+    local home = stance.RootJoint * stance[joint]
+    local soles, center = table.create(#points), Vector3.zero
+    local correction = Vector3.yAxis * (rootHeight - mountedRootHeight)
+    for index, point in points do
+        soles[index] = point + correction
+        center += soles[index]
+    end
+    return {home = home, bottom = lowest(home, soles), center = home:PointToWorldSpace(center / #soles)}
+end
+
+local function shuffleSwing(t)
+    return t * t * (3 - 2 * t), math.sin(math.pi * t) ^ 2
+end
+
+function Choreography.addShuffle(poses, rightSole, leftSole, rootHeight)
+    local sample = poses.sample
+    local ready = sample("stance", 0)
+    local feet = {
+        [rightHip] = shuffleFoot(ready, rightHip, rightSole, rootHeight),
+        [leftHip] = shuffleFoot(ready, leftHip, leftSole, rootHeight),
+    }
+    local width = feet[rightHip].center.X - feet[leftHip].center.X
+    local stride = math.clamp(1.02 + width * .26, 1.24, 1.57)
+    -- Keep the authored stride and duration proportional to the locked ring speed range.
+    local duration = stride / 2.80
+    local lift = math.clamp(.096 + width * .032, .125, .17)
+    local durations = table.clone(poses.Duration)
+    durations.strafeLeft, durations.strafeRight = duration, duration
+    poses.Duration, poses.StrafeStepDistance = table.freeze(durations), stride
+
+    function poses.sample(action, age, direction)
+        if action ~= "strafeLeft" and action ~= "strafeRight" then
+            return sample(action, age, direction)
+        end
+        local sign = if action == "strafeRight" then 1 else -1
+        local phase = (math.max(age or 0, 0) % duration) / duration
+        local leading = if sign > 0 then rightHip else leftHip
+        local firstStep = phase < .5
+        local step, arc = shuffleSwing((phase * 2) % 1)
+        local sway = math.sin(2 * math.pi * phase)
+        local root = CFrame.new(sign * .082 * sway, -.058 * math.sin(math.pi * phase) ^ 2, 0)
+            * CFrame.Angles(0, 0, -sign * math.rad(5) * sway) * ready.RootJoint
+        local result = table.clone(ready)
+        result.RootJoint = root
+        local inverse = root:Inverse()
+        for joint, foot in feet do
+            local lead = joint == leading
+            local position = if lead then (if firstStep then step else 1) else (if firstStep then 0 else step)
+            local swing = if lead == firstStep then arc * lift else 0
+            -- Subtract the root's nominal motion from both boots so the support stays on the mat.
+            local x = sign * stride * (position - phase)
+            local y = soleClearance - mountedRootHeight + swing - foot.bottom
+            result[joint] = inverse * CFrame.new(x, y, 0) * foot.home
+        end
+        return result
+    end
 end
 
 local function reflect(frame)
@@ -176,6 +238,9 @@ function Choreography.new(rootHeight, pivots, rightSole, leftSole)
             return result
         end
 
+        if clips.stance then
+            Choreography.addShuffle(poses, feet[rightHip], feet[leftHip], rootHeight)
+        end
         return table.freeze(poses)
     end
 

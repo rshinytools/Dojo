@@ -1,5 +1,6 @@
 -- Original combat poses for the floor-aligned Fire Salamander shell.
 -- Offsets multiply restC0 from the left. Forward in the pose frame is -Z.
+local Choreography = require(script.Parent.FighterChoreography)
 local Poses = {}
 
 local neck = Vector3.new(0, .830, -.090)
@@ -296,4 +297,5 @@ function Poses.sample(action, age, direction)
 	return result
 end
 
+Choreography.addShuffle(Poses, rightSole, leftSole, 2.60)
 return table.freeze(Poses)
