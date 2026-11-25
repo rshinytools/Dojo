@@ -189,17 +189,23 @@ The v0.361 checkpoint closes the gap along the waterfall side of the Trophy Hall
 
 Three small pieces connect Reedguard's shoulders and neck to the torso. They add no collision or physics mass. The city walk now swings the arms forward and back and returns to the original idle pose. In Studio the fitted pieces stayed attached through a 14-stud walk. The city adjustments leave the ring animation system and Cloudbreak movement settings alone.
 
-## Public beta storefront and rights
+## Six-district traversal
 
-Keep the current invite-only build for team testing. A public beta can follow the walkability, first-session combat, reward rejoin, low-end device, and Creator Hub release checks. Excluding the game from recommendations limits discovery during the initial public period. Keep marketing separate from the beta switch so the team can fix reported blockers first. Preserve the full v1 scope. Under-16 access remains subject to the separate Roblox Kids and Select eligibility and evaluation process. [Roblox publishing requirements](https://create.roblox.com/docs/production/publishing/publish-games-and-places) · [Kids and Select eligibility](https://create.roblox.com/docs/production/publishing/kids-and-select)
+Native desktop Studio tests walked the five roads from Grand Dojo and the Harbor–Cinder and Lantern–Frostglass links in both directions. All 14 traversals reached their route checkpoints. Targeted tests reproduced the blocked Lantern Circuit sidewalk and four crossings through low rails at Reedfall, Cinder and Frostglass.
+
+V0.362 moves the Lantern Circuit tree off the sidewalk, installs continuous collision behind the existing railings and adds paved side lanes from Tideharbor and Lantern Circuit to their north roads. The map guides players around Harbor House, Night Market, and the Frostglass and Skywalk gate posts. In the rebuilt place, Reedguard passed all five targeted paths in both directions, and all four side-push tests stopped at the rail without dropping. The Tideharbor and Lantern main entrances passed a rebuilt-place retest in both directions. A Studio fall east of the map triggered the harbor return, and a separate fall west respawned Reedguard at the city spawn. Studio confirmed the v0.362 upload was ready for the existing private playtest audience. Additional optional trails, live streaming, and physical-device checks remain open.
+
+## Public release storefront and rights
+
+The public storefront title is **Beast Dojo**. The current invite-only place is for development and team testing. The full v1 public launch targets Roblox Kids (ages 5–8), Roblox Select (ages 9–15), and older players. Require walkability, first-session combat, saved reward rejoin, low-end device, all supported device families, and the full v1 release checks. Schedule the all-ages announcement when Creator Hub confirms both younger audiences.
+
+Target a Mild content rating. Disclose the actual frequency and presentation of sparring, knockdowns, and boss combat in the full questionnaire. Roblox separately requires a verified creator account, 2-Step Verification, an eligible subscription or refundable per-game publishing fee, and the Kids and Select evaluation. The standard evaluation starts with age-checked 16+ access, a safety review, and 100 qualifying unique plays in 60 days. Creator Hub showed identity and 2-Step Verification complete on November 25, 2026. It showed the questionnaire, 1,000 Robux publishing fee, and evaluation incomplete, with zero qualifying players. Reserve the all-ages announcement for approval. [Roblox content ratings](https://create.roblox.com/docs/production/promotion/content-ratings) · [Roblox Kids and Select eligibility](https://create.roblox.com/docs/production/publishing/kids-and-select)
 
 Use the Reedguard face icon and 16:9 illustrations already in `roblox/grand-dojo/art/experience-media/`. Check the cover against the approved build at phone size. Lead the supporting images with an actual Dojo Ring parry with Juniper, a wide look at the festival plaza, and a Cloudbreak jump. Open the 20–25 second gameplay preview on the parry and counter. Then show the city, the Lantern Relay and a Cloudbreak summit jump. End with the earned trophy and the Beast Dojo title. Capture the ring and Relay shots in the approved launch build. The Cloudbreak private-beta clip supplies usable gameplay footage now. [Roblox thumbnails and video previews](https://create.roblox.com/docs/production/publishing/thumbnails)
 
 ### Game description draft
 
 Spar as an animal fighter in a lantern-lit mountain city. Step into the Dojo Ring, learn to parry, and level up your fighter. Between bouts, race the Lantern Relay, hunt for hidden treasure, or take on Cloudbreak’s 24-stone climb. See the trophies you earn in Trophy Hall.
-
-Beast Dojo is in beta. We’re tuning combat and improving the city as we test across devices.
 
 ### Evidence for rights enforcement
 

@@ -291,6 +291,16 @@ def beam(parent, name, a, b, width, tint, *, collide=False):
                 collide=collide)
 
 
+def walking_rail_collider(parent, name, start, end):
+    dx,dy,dz=(end[i]-start[i] for i in range(3))
+    length=hypot(dx,dz)
+    x,y,z=((a+b)/2 for a,b in zip(start,end))
+    collider=part(parent,name,(x,y+1.09,z),(.30,2.55,hypot(length,dy)+.20),
+                  "875A4C",yaw=degrees(atan2(dx,dz)),
+                  pitch=-degrees(atan2(dy,length)),transparency=1)
+    prop(collider,"bool","CastShadow",False)
+
+
 def air_effect(parent, name, position, volume, texture_id, *, tint, rate, lifetime,
                speed, size, opacity, drift, down=False, glow=0, orientation=0):
     source = part(parent, name, position, volume, tint, collide=False, transparency=1)
@@ -3007,7 +3017,7 @@ for i,(x,z) in enumerate([(59,-18),(79,-23),(61,-37),(82,-44), (51,-54)]):
              rng.choice(pcolors),yaw=rng.randint(-20,20),collide=False)
 gate(district,22,-70,span=21,label="UPPER CITY",trim="725781")
 gate(district,-83,9,span=18,label="GARDEN WALK",trim="3D795D")
-for x,z in [(30,-51),(36,-65),(10,-69),(92,-53),(98,4),(-92,25),(-85,-24),(-70,-46),(-99,-53),(-25,-66)]:
+for x,z in [(30,-51),(36,-65),(10,-69),(92,-53),(98,4),(-92,19),(-85,-24),(-70,-46),(-99,-53),(-25,-66)]:
     tree(district,x,z,pink=(x+z)%2==0)
 for x,z in [(-52,47),(25,61),(11,-25),(-27,-21),(-28,-41),(-72,12),(-59,-60),(57,18),(43,-34)]:
     tree(district,x,z,pink=x%2==0,scale=.8)
@@ -3452,9 +3462,11 @@ for side in (-1,1):
     x=42+side*5.62
     for z in (-22.6,-28.8):
         part(overlook,"Overlook stone pillar",(x,2.68,z),(.7,1.65,.7),"8C7D87",material=SLATE)
-    beam(overlook,"Reedfall side rail",(x,3.08,-22.6),(x,3.08,-28.8),.28,"875A4C",collide=True)
+    beam(overlook,"Reedfall side rail",(x,3.08,-22.6),(x,3.08,-28.8),.28,"875A4C")
+    walking_rail_collider(overlook,"Reedfall side guard",(x,1.85,-22.6),(x,1.85,-28.8))
     lamp(overlook,x,3.88,-28.84,scale=.62,light=True)
-beam(overlook,"Reedfall pool rail",(36.38,3.08,-28.8),(47.62,3.08,-28.8),.29,"875A4C",collide=True)
+beam(overlook,"Reedfall pool rail",(36.38,3.08,-28.8),(47.62,3.08,-28.8),.29,"875A4C")
+walking_rail_collider(overlook,"Reedfall pool guard",(36.38,1.85,-28.8),(47.62,1.85,-28.8))
 sign(overlook,"REEDFALL",42,2.68,-29.14,4.6,1.0,0,"34616C")
 air_effect(landscape, "Lantern garden motes", (-40, 3.3, 31), (12, 4, 7), 14302399641,
            tint="FFD58E", rate=4, lifetime=(2.1, 3.8), speed=(.23, .8),
@@ -3467,7 +3479,8 @@ prop(district_markers,"token","ModelStreamingMode",2)
 part(district_markers,"Grand Dojo City",(0,0,0),(.25,.25,.25),STONE,collide=False,transparency=1)
 
 
-def route(parent,name,points,width,tint,*,surface=SANDSTONE,stone_footings=True,join_overlap=1.5,railings=True):
+def route(parent,name,points,width,tint,*,surface=SANDSTONE,stone_footings=True,join_overlap=1.5,
+          railings=True,solid_rails=False):
     """A continuous, gently graded native path with overlapping joints."""
     for start,end in zip(points,points[1:]):
         dx,dy,dz=(end[i]-start[i] for i in range(3))
@@ -3487,10 +3500,13 @@ def route(parent,name,points,width,tint,*,surface=SANDSTONE,stone_footings=True,
                      "74676F",yaw=yaw,material=SLATE)
         if railings and min(start[1],end[1]) >= 3:
             for side in (-1,1):
-                offset=(side*width*.5*dz/level_length,1.05,-side*width*.5*dx/level_length)
+                offset=(side*width*.5*dz/level_length,0,-side*width*.5*dx/level_length)
                 a=tuple(p+o for p,o in zip(start,offset))
                 b=tuple(p+o for p,o in zip(end,offset))
-                beam(parent,"Elevated route rail",a,b,.20,DARK,collide=True)
+                beam(parent,"Elevated route rail",(a[0],a[1]+1.05,a[2]),(b[0],b[1]+1.05,b[2]),
+                     .20,DARK,collide=not solid_rails)
+                if solid_rails:
+                    walking_rail_collider(parent,"Elevated route guard",a,b)
 
 
 def road_sign(parent, origin, destination, label, tint, *, width=8, reverse_label=None):
@@ -5849,7 +5865,7 @@ for (label,points,tone),(destination,paint) in zip(routes,[
             beam(road,"Elevated route rail",lantern_rail_point(start,-1),
                  lantern_rail_point(end,-1),.20,DARK,collide=True)
     else:
-        route(road,label,points,13,tone)
+        route(road,label,points,13,tone,solid_rails=label in ("Cinder workshop road","Frostglass garden climb"))
     if label=="Cinder workshop road":
         # Reach the square's grade before either edge of the road meets the retaining shelf.
         entry=item(road,"Model","Cinder square road transition")
@@ -6285,6 +6301,18 @@ for index,(name,x,y,z,yaw,accent,paving,sign_name) in enumerate(towns):
              terrain_tone,material=SLATE,collide=False)
     # Separate paving from the equally high retaining shelf so neither surface flickers.
     part(town,"District courtyard",(x,y-.093,z),(59,.24,61),paving,material=LIMESTONE)
+    # Widen the outside of the two gate shoulders so players can reach the north roads.
+    if name in ("Tideharbor Coast","Lantern Circuit"):
+        harbor=name=="Tideharbor Coast"
+        lane_x,near,far,outer_x=(189.00,-6,15,186.85) if harbor else (-190.40,4.5,24,-188.22)
+        lane_z=(near+far)/2
+        part(town,"North road side lane",(lane_x,y-.143,lane_z),(4.40,.34,far-near),
+             paving,material=LIMESTONE)
+        part(town,"North road lane stone footing",(lane_x,y/2-1.35,lane_z),
+             (4.28,y+2.3,far-near),paving,material=SLATE)
+        beam(town,"North road lane low rail",(outer_x,y+1.06,near),(outer_x,y+1.06,far),
+             .25,"81594E")
+        walking_rail_collider(town,"North road lane guard",(outer_x,y+.027,near),(outer_x,y+.027,far))
     map_x,map_z,map_yaw=((7.5,4.8,0),(9.6,22.1,0),(-7.7,15.1,0),(14.8,23.5,0),(3.4,18.5,65))[index]
     district_map_post(town,name,x+map_x,y+.027,z+map_z,map_yaw)
     if name=="Lantern Circuit":
@@ -7524,13 +7552,22 @@ map_districts={"Grand Dojo City":(0,0,0), **{town[0]:tuple(town[1:4]) for town i
 map_paths=[(name,[(0,0,0),*points,map_districts[town[0]]],False)
            for (name,points,_),town in zip(routes,towns)]
 map_centers={name.upper():point for name,point in map_districts.items()}
-map_paths.extend((name,[map_centers[returning],*points,map_centers[leaving]],True)
-                 for name,points,_,leaving,returning,_ in crossroads)
+for name,points,_,leaving,returning,_ in crossroads:
+    if name=="Harbor to Cinder road":
+        # The walkway bends around Harbor House before it reaches the road.
+        entry=[(195,3,17),(189.5,3,16),(189.5,3,-4),(195,3,-7),(203,3,-12)]
+        exit=[]
+    else:
+        # Use the Night Market side lane and enter Frostglass through its gate.
+        entry=[(-194,6,27),(-190.5,6,24),(-190.5,6,5),(-197,6,4.5),(-210,6,-1)]
+        exit=[(-196,14,-152),(-189,14,-159)]
+    map_paths.append((name,[map_centers[returning],*entry,*points,*exit,map_centers[leaving]],True))
 map_paths.append(("Cloudstep Pass",[map_districts["Cinder Terraces"],(122,10,-186),(122,14.8,-212),
                                    (107.5,18.3,-212),(101.8,18.3,-209.55),*cloudstep_points,
                                    (34,25.027,-244.1),(22,25.027,-246),map_districts["Skywalk Peaks"]],True))
+mistline_skywalk_entry=[(16,25.027,-243),(22,25.027,-245),map_districts["Skywalk Peaks"]]
 map_paths.append(("Mistline Crossing",[map_districts["Frostglass Gardens"],*mistline_west,*mistline_east,
-                                      (22,25.027,-240.4),map_districts["Skywalk Peaks"]],True))
+                                      *mistline_skywalk_entry],True))
 map_paths.append((SNOWBELL_RIDGE,[map_districts["Frostglass Gardens"],(-189,14.027,-164.90),
                                  (-182.75,14.036,-164.90),(-182.75,18.636,-178.72),
                                  (-182.96,18.624,-180.75),(-184.16,18.612,-182.12),
@@ -7539,7 +7576,7 @@ map_paths.append((SNOWBELL_RIDGE,[map_districts["Frostglass Gardens"],(-189,14.0
                                  (-168.25,21.53,-174.62),BALCONY_JOIN,*GLACIER_ASCENT,GLACIER_PAVILION,
                                  *snowbell_path,*mistline_west[MISTLINE_SEGMENT+1:],
                                  *mistline_deck[1:-1],*mistline_east,
-                                 (22,25.027,-240.4),map_districts["Skywalk Peaks"]],True))
+                                 *mistline_skywalk_entry],True))
 map_paths.append((ORCHARD_WALK,[map_districts["Grand Dojo City"],routes[4][1][0],
                                *ORCHARD_ASCENT,*ORCHARD_DESCENT,routes[4][1][-1],
                                map_districts["Lantern Circuit"]],True))
