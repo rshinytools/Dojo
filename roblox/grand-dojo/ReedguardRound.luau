@@ -499,7 +499,7 @@ local function resolveBotContact(round, at, fields, hit, _, move)
         elseif brace then math.ceil(fields.damage / 2) else fields.damage
     if guardBroken then
         round.botPhase, round.recoveryStartedAt = "recovery", at
-        round.recoveryKind, round.botAt = "hit", at + .52
+        round.recoveryKind, round.botAt = "guardBroken", at + .52
     elseif not brace and move and move.shockDuration then
         round.botPhase, round.recoveryStartedAt = "recovery", at
         round.recoveryKind, round.botAt = "shocked", at + move.shockDuration

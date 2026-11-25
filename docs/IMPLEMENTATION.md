@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.350 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.351 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -221,7 +221,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v350-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v351-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -233,6 +233,8 @@ Run `python3 -B tools/verify_cross_server_duel.py luau` from the repository root
 The exact v0.346 Tag run verified four player entries, the Grizzly reserve and its 41-damage Heavy. Cinder Tap was attempted after knockback pushed the defender outside its reach. An updated test approaches again before attempting the move. The v0.346 eight-client Brawl test lost its local connection before recording match evidence. Staggered startup is prepared for the rerun. Latest-build full Tag and Brawl replays remain open.
 
 ## Grand Dojo Tag Team
+
+V0.351 gives Technique and Heavy separate touch targets for Penguin, Silverback and Fire Salamander in Tag Team and Raids. Exact layout checks covered 390 × 760 portrait and 682 × 380 landscape, including Tag In, both action wires and controller D-pad Up. Physical device verification remains open.
 
 V0.349 resolves Tag Team contacts and the regulation bell strictly before an observed exit when the relevant fighter roots are available. Exits take priority at exact contact ties. A Leave and an opposing character reset observed together are settled as one batch.
 
@@ -317,6 +319,8 @@ Exact-source tests covered 16 ranked and 16 casual contact pairings, the element
 V0.328 gives each Studio test player a distinct rating identity in the current server’s memory. Published servers use the player’s Roblox user ID and the rating DataStore. Two Studio clients selected Ranked at the normal gate after staging beside the sign. Both Level 1 Reedguards started each round with 156 ranked HP. At about 233–234 ms measured median round trip, Jab and Heavy showed local startup before acknowledgment and resolved for 20 and 34 damage at 180 and 420 ms in both rounds. The two knockouts produced a 2–0 series. Bronze ratings moved once from 1200 to 1216 and 1184, and both players dismissed the recap and regained city controls. Reopening and cancelling Ranked independently read back the same points. Published DataStore settlement, cross-server matchmaking and physical devices remain open.
 
 ## Combat presentation
+
+V0.351 prioritizes a nearby parry chime when the combat mixer is full. The existing caps remain four simultaneous spatial sounds on touch and six on other inputs. The exact-source mixer check also covered distant parries, unavailable sounds and countdown. Published listening remains open.
 
 V0.346 plants both of Reedguard’s boots during the Heavy punch. A four-client Kilnback replay found a boot sinking 0.24 studs through the visible floor after the completed revive when Reedguard loaded his Heavy. From a teammate’s view, 13 sampled frames of the corrected punch kept the same boot clearance as quiet stance. All four cleared the raid again. The archive comparison checked 821 Heavy pose samples. The glove path, torso motion, 420 ms contact and 820 ms duration retained their authored values. All 5,252 sampled poses outside Heavy matched the prior checkpoint.
 
@@ -411,6 +415,8 @@ The intro names the actual fighters and warms their mesh textures while it plays
 Desktop Studio entered all 16 pairings through the native ring prompts, checked each resident intro and each starter's signature control, landed a starter technique, and observed a resident attack. All 16 ended with the normal player camera and movement restored. Fire Salamander defeated Juniper for 60 XP. The other 15 rounds ended after contact without a reward. Galaxy A06 landscape Studio separately completed Penguin versus Sablecrest for 60 XP after activating Belly-Slide Blitz with touch. Both test profiles used temporary activity XP to open the higher rings. Physical devices and published play remain open.
 
 ## Reedguard and Juniper combat
+
+V0.351 plays Juniper’s grounded hit reaction when a guard break interrupts Shell Set. The earlier animation jumped the visible glove about 2.71 studs into a palm pose. The matched offline mesh comparison and exact round checks preserved damage, the 0.52-second recovery and standard palm outcomes. Native animation playback remains open. V0.351 queues one Bot Spar XP receipt before the profile closes when the round already recorded a win. A reset during the knockout outro also preserves that win. Standalone checks verified 60 XP for the first win, 30 for a distinct repeat, duplicate prevention and delayed notification. The shared profile handoff retained all 25 raid closure checks. Published reconnect remains open.
 
 Choose Reedguard and enter the Grand Dojo Bot Spar. A 10-second introduction shows both fighters and ends with the countdown. Use **E** or **Strike** for the jab, cross and right body-kick chain. Use **V** for Uppercut, **Q** for guard and timed parry, **R** for heavy, **X** for sidestep and **F** for Reedstep Rising after a parry. Move around Juniper while Reedguard keeps his guard pointed toward him. Uppercut also uses D-pad Up or the Uppercut touch button. The match has equivalents for touch and controller. VR and Reduce Motion retain the normal player camera.
 

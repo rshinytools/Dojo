@@ -153,6 +153,32 @@ local function playing(slot, now)
     return now < slot.readyAt or slot.sound.IsPlaying
 end
 
+local interruptPriority = {light = 1, ground = 2, heavy = 3, guard = 4}
+
+local function reserveSpatialVoice(now, prioritizeParry)
+    local active, replace, rank = 0, nil, math.huge
+    for cue, slots in voices do
+        if cue == "countdown" then continue end
+        local priority = prioritizeParry and interruptPriority[cue]
+        for _, slot in slots do
+            if not playing(slot, now) then continue end
+            active += 1
+            if priority and (priority < rank or (priority == rank and slot.readyAt < replace.readyAt)) then
+                replace, rank = slot, priority
+            end
+        end
+    end
+    local limit = if UserInputService.TouchEnabled then 4 else 6
+    if active < limit then return true end
+    if active == limit and replace then
+        -- Prefer the nearby parry over a weaker contact without raising the mixer budget.
+        replace.readyAt, replace.duck = 0, false
+        replace.sound:Stop()
+        return true
+    end
+    return false
+end
+
 local function play(cue, point, pitch, duck, restart)
     CombatAudio.prepare()
     local slots = voices[cue]
@@ -160,24 +186,10 @@ local function play(cue, point, pitch, duck, restart)
         return
     end
     local now = os.clock()
-    if point then
-        local active = 0
-        for other, spatialSlots in voices do
-            if other ~= "countdown" then
-                for _, slot in spatialSlots do
-                    if playing(slot, now) then
-                        active += 1
-                    end
-                end
-            end
-        end
-        if active >= (if UserInputService.TouchEnabled then 4 else 6) then
-            return
-        end
-    end
     for _, slot in slots do
         local sound = slot.sound
         if sound.IsLoaded and (restart or not playing(slot, now)) then
+            if point and not reserveSpatialVoice(now, cue == "parry" and duck) then return end
             if restart and sound.IsPlaying then
                 sound:Stop()
             elseif point then

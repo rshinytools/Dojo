@@ -7,7 +7,7 @@ local Match = require(script.Parent.DojoMatchSupport)
 local Motion = require(script.Parent.DuelFightMotion)
 local Windup = require(script.Parent.CombatWindupSupport)
 local Round = require(script.Parent.KilnbackRaidRound)
-local RaidHandoff = require(script.Parent.RaidProfileHandoff)
+local CombatHandoff = require(script.Parent.CombatProfileHandoff)
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local completed = script.Parent:WaitForChild("DojoRaidCompleted")
@@ -348,7 +348,7 @@ local function mount(encounter)
         for index, qualified in match.round.result.eligible or {} do
             local actor = match.actors[index]
             if qualified and not actor.returned and not actor.reward
-                and RaidHandoff.queueReceipt(actor.player, match.window, match.clearId, match.id, raidId) then
+                and CombatHandoff.queueReceipt("raid", actor.player, match.window, match.clearId, match.id, raidId) then
                 actor.reward = true
                 completed:Fire(actor.player, match.window, match.clearId, match.id, raidId)
             end
@@ -559,7 +559,7 @@ local function mount(encounter)
         end
     end)
 
-    RaidHandoff.onProfileClose(function(player, now)
+    CombatHandoff.onProfileClose(function(player, now)
         statusAt[player] = nil
         local match = active
         local index = match and match.byPlayer[player]

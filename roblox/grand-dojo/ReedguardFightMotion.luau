@@ -1795,6 +1795,8 @@ local function moveCrossKnock(bout, now)
     end
 end
 
+local juniperPalmRecovery = {hit = "recover", dodged = "recover", submerged = "recover", parried = "deflect", blocked = "blocked"}
+
 local function botAction(bout, now)
     local round = bout.round
     if bout.outroAt then
@@ -1831,10 +1833,8 @@ local function botAction(bout, now)
         return "palm", now - round.botStartedAt, round.attack.windup
     elseif round.botPhase == "setup" then
         return "brace", now - round.botStartedAt, round.attack.setupTime
-    elseif round.botPhase == "recovery" and now - round.recoveryStartedAt < .52 then
-        local action = if round.recoveryKind == "parried" then "deflect"
-            elseif round.recoveryKind == "blocked" then "blocked" else "recover"
-        return action, now - round.recoveryStartedAt
+    elseif round.botPhase == "recovery" and juniperPalmRecovery[round.recoveryKind] and now - round.recoveryStartedAt < .52 then
+        return juniperPalmRecovery[round.recoveryKind], now - round.recoveryStartedAt
     elseif bout.reactionAt and now - bout.reactionAt < .28 then
         return bout.reactionAction, now - bout.reactionAt
     end

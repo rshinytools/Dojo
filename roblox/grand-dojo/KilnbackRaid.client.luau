@@ -389,7 +389,9 @@ local function layout()
 
     local own = localSlot()
     local kit = own and kits[own.kitId]
-    local order = if kit and not kit.technique then {"strike", "heavy", "guard", "dodge", "signature", "revive", "leave"}
+    local hasTechnique = not kit or kit.technique ~= nil
+        or fighterTactics.forKit(own.kitId, own.tactical) ~= nil
+    local order = if not hasTechnique then {"strike", "heavy", "guard", "dodge", "signature", "revive", "leave"}
         else {"strike", "technique", "heavy", "guard", "dodge", "signature", "revive", "leave"}
     local stacked = width < 510 or (touch and width < 630)
     local columns = if stacked then 4 else #order

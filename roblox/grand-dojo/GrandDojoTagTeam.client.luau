@@ -364,7 +364,9 @@ local function layout()
 
     local state = match and match.slots[match.selfIndex]
     local kit = state and byKit[state.kitId]
-    local order = if kit and not kit.technique then {"strike", "heavy", "guard", "dodge", "signature", "tag", "leave"}
+    local hasTechnique = not kit or kit.technique ~= nil
+        or fighterTactics.forKit(state.kitId, state.tactical) ~= nil
+    local order = if not hasTechnique then {"strike", "heavy", "guard", "dodge", "signature", "tag", "leave"}
         else {"strike", "technique", "heavy", "guard", "dodge", "signature", "tag", "leave"}
     local columns = if stacked then 4 else #order
     local targetHeight = if height <= 260 then 44 else 46
@@ -374,7 +376,7 @@ local function layout()
     controls.Position, controls.Size = UDim2.new(.5, 0, 1, -bottom), UDim2.new(if touch and not stacked then .81 else .94, 0, 0, controlHeight)
     controlsLimit.MaxSize = Vector2.new(if stacked then 390 elseif touch and compact then 398
         elseif compact then 574 else 694, controlHeight)
-    actions.technique.Visible = actions.strike.Visible and (not kit or kit.technique ~= nil)
+    actions.technique.Visible = actions.strike.Visible and hasTechnique
     for index, action in order do
         local i, node = index - 1, actions[action]
         node.Position = UDim2.new((i % columns) / columns, 2, 0, math.floor(i / columns) * (targetHeight + 4))

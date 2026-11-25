@@ -8034,7 +8034,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"Script","GrandDojoBrawl","GrandDojoBrawl.server.luau"),
                                     (server,"Script","GrandDojoTagTeam","GrandDojoTagTeam.server.luau"),
                                     (server,"Script","DojoRaids","DojoRaids.server.luau"),
-                                    (server,"ModuleScript","RaidProfileHandoff","RaidProfileHandoff.luau"),
+                                    (server,"ModuleScript","CombatProfileHandoff","CombatProfileHandoff.luau"),
                                     (server,"Script","GrandDojoRingTraining","GrandDojoRingTraining.server.luau"),
                                     (server,"Script","CloudbreakTrial","CloudbreakTrial.server.luau"),
                                     (server,"Script","FrostglassReflectorLogic","FrostglassReflectors.server.luau"),

@@ -58,7 +58,7 @@ def verify_place():
                 "GrandDojoTagTeam", "GrandDojoTagTeamClient", "TagCombatRound", "Tag Team Entry", "Tag Team Court", "JoinTagTeamPrompt",
                 "KilnbackRaid", "KilnbackRaidClient", "KilnbackRaidRound", "KilnbackRaidVisuals", "DojoRaidCompleted",
                 "Kilnback Raid Entry", "Kilnback Raid Court", "JoinKilnbackRaidPrompt", "Kilnback Custodian", "Core Hit",
-                "DojoRaids", "RaidProfileHandoff", "AbyssalRaid", "AbyssalRaidVisuals", "Abyssal Raid Entry", "Abyssal Raid Court",
+                "DojoRaids", "CombatProfileHandoff", "AbyssalRaid", "AbyssalRaidVisuals", "Abyssal Raid Entry", "Abyssal Raid Court",
                 "JoinAbyssalRaidPrompt", "Abyssal Kraken",
                 "SolarRaid", "SolarRaidVisuals", "Solar Raid Entry", "Solar Raid Court", "JoinSolarRaidPrompt",
                 "Solar Phoenix",

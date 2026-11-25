@@ -13,7 +13,7 @@ local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
 local trainingCompleted = script.Parent:WaitForChild("RingTrainingCompleted")
-local RaidHandoff = require(script.Parent:WaitForChild("RaidProfileHandoff"))
+local CombatHandoff = require(script.Parent:WaitForChild("CombatProfileHandoff"))
 local raidRemotes = {
     kilnback = ReplicatedStorage:WaitForChild("KilnbackRaid"),
     kraken = ReplicatedStorage:WaitForChild("AbyssalRaid"),
@@ -600,7 +600,7 @@ local function serveProgress(player, data)
     profileWorkers -= 1
 end
 
-RaidHandoff.setReceiptReceiver(function(player, window, id, matchId, raidId)
+CombatHandoff.setReceiptReceiver("raid", function(player, window, id, matchId, raidId)
     local data = state[player]
     if not data or data.departed or shuttingDown or not raidRemotes[raidId]
         or (transport and transport.profiles:ownsOutbound(player)) then
@@ -619,16 +619,33 @@ RaidHandoff.setReceiptReceiver(function(player, window, id, matchId, raidId)
     return true
 end)
 
-sparringWon.Event:Connect(function(player, fighterId)
+local function queueSparWin(player, fighterId, id)
     local data = state[player]
-    if data and fighterId and fighterId == data.selectedStarter
-        and not (data.departed or shuttingDown or data.pendingSparWin) then
-        data.pendingSparWin = {id = HttpService:GenerateGUID(false), fighterId = fighterId}
-        if transport then transport.profiles:receiptQueued(player) end
+    if not data or not fighterId or fighterId ~= data.selectedStarter or data.departed or shuttingDown
+        or (transport and transport.profiles:ownsOutbound(player)) then
+        return false
+    end
+    if data.pendingSparWin then
+        return data.pendingSparWin.id == id
+    end
+    data.pendingSparWin = {id = id, fighterId = fighterId}
+    if transport then transport.profiles:receiptQueued(player) end
+    if player.Parent == Players then
         player:SetAttribute("FirstSparWinPending", true)
         player:SetAttribute("ProgressStatus", "saving")
     end
-end)
+    return true
+end
+
+CombatHandoff.setReceiptReceiver("spar", queueSparWin)
+if studio then
+    sparringWon.Event:Connect(function(player, fighterId, completionId)
+        -- Older Studio fixtures inject a practice win without a match receipt.
+        if completionId == nil then
+            queueSparWin(player, fighterId, HttpService:GenerateGUID(false))
+        end
+    end)
+end
 
 trainingCompleted.Event:Connect(function(player, drillId, fighterId)
     local data = state[player]
@@ -806,7 +823,7 @@ Players.PlayerAdded:Connect(addPlayer)
 Players.PlayerRemoving:Connect(function(player)
     local data = state[player]
     if data then
-        RaidHandoff.close(player, workspace:GetServerTimeNow())
+        CombatHandoff.close(player, workspace:GetServerTimeNow())
         data.departed = true
         state[player] = nil
     end
@@ -817,7 +834,7 @@ end
 game:BindToClose(function()
     local now = workspace:GetServerTimeNow()
     for player in state do
-        RaidHandoff.close(player, now)
+        CombatHandoff.close(player, now)
     end
     shuttingDown = true
     local limit = os.clock() + 25

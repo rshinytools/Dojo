@@ -2,11 +2,13 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
+local HttpService = game:GetService("HttpService")
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Round = require(script.Parent:WaitForChild("SparringRound"))
 local FeaturedRound = require(script.Parent:WaitForChild("ReedguardRound"))
 local Motion = require(script.Parent:WaitForChild("ReedguardFightMotion"))
 local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
+local CombatHandoff = require(script.Parent:WaitForChild("CombatProfileHandoff"))
 local progression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local bots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
@@ -45,6 +47,15 @@ end
 
 local function finish(bout, result, now, disconnected)
     local arena, player = bout.arena, bout.player
+    if activeByPlayer[player] ~= bout then
+        return
+    end
+    result = bout.round.result or result
+    local rewardPending = false
+    if result == "win" then
+        bout.completionId = bout.completionId or HttpService:GenerateGUID(false)
+        rewardPending = CombatHandoff.queueReceipt("spar", player, bout.fighterId, bout.completionId)
+    end
     arena.active, activeByPlayer[player] = nil, nil
     bout.bot:Destroy()
     bout.telegraph:Destroy()
@@ -57,6 +68,9 @@ local function finish(bout, result, now, disconnected)
     Match.syncStormAim(player, nil)
     player:SetAttribute("ActiveDojoRing", nil)
     if disconnected then
+        if rewardPending then
+            sparringWon:Fire(player, bout.fighterId, bout.completionId)
+        end
         return
     end
     local root = Match.root(player)
@@ -69,9 +83,9 @@ local function finish(bout, result, now, disconnected)
         player:SetAttribute("SparringWins", wins)
     end
     rematches[player] = {arena = arena, untilAt = now + 35}
-    remote:FireClient(player, "result", result, wins, result == "win", arena.config.botId, arena.id)
-    if result == "win" then
-        sparringWon:Fire(player, bout.fighterId)
+    remote:FireClient(player, "result", result, wins, rewardPending, arena.config.botId, arena.id)
+    if rewardPending then
+        sparringWon:Fire(player, bout.fighterId, bout.completionId)
     end
 end
 
@@ -467,10 +481,10 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-Players.PlayerRemoving:Connect(function(player)
+CombatHandoff.onProfileClose(function(player, now)
     local bout = activeByPlayer[player]
     if bout then
-        finish(bout, "left", 0, true)
+        finish(bout, "left", now, true)
     end
     rematches[player], offers[player], lastAction[player] = nil, nil, nil
 end)

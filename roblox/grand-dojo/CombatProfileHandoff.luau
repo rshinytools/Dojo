@@ -1,14 +1,15 @@
 -- The profile worker owns saving. Arena callbacks run before its queue closes.
 local Handoff = {}
 local beforeClose = {}
-local receiveReceipt
+local receivers = {}
 
-function Handoff.setReceiptReceiver(receiver)
-    receiveReceipt = receiver
+function Handoff.setReceiptReceiver(kind, receiver)
+    receivers[kind] = receiver
 end
 
-function Handoff.queueReceipt(player, window, completionId, matchId, raidId)
-    return receiveReceipt ~= nil and receiveReceipt(player, window, completionId, matchId, raidId)
+function Handoff.queueReceipt(kind, player, ...)
+    local receiver = receivers[kind]
+    return receiver ~= nil and receiver(player, ...)
 end
 
 function Handoff.onProfileClose(settle)
@@ -19,7 +20,7 @@ function Handoff.close(player, now)
     for _, settle in beforeClose do
         local ok, message = pcall(settle, player, now)
         if not ok then
-            warn("[Beast Dojo] Raid settlement failed before profile close: " .. tostring(message))
+            warn("[Beast Dojo] Combat settlement failed before profile close: " .. tostring(message))
         end
     end
 end
