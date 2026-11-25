@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.319 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.320 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -261,6 +261,8 @@ The separate ranked store claims each player’s rating before the match. It rec
 Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
+
+V0.320 makes Bracken, Sablecrest and Granite react to a confirmed hit during a committed attack. Their fitted head poses briefly recoil while the rest of the body follows the original windup. Desktop Studio used staged positions and scripted inputs in the three native rings. Each resident took 16 HP from Reedguard’s Uppercut and visibly recoiled once. Kiln Rush, Wind Court Return and Harbor Sweep landed at their scheduled contact times. A subsequent attempt for each resident remained parryable. Juniper’s separate 22-HP Heavy and 22-HP Stillwater Palm replay also passed. Exact Luau covered all eight resident head and body reactions, lift exclusions, knockout cleanup and the original Juniper timing. Published play and physical-device checks remain open.
 
 V0.319 gives a normal arena jump a takeoff, tucked boots in the air, an extension on descent, and a brief shoulder brace at touchdown. Each client poses the fitted shell against the root it sees. The original combat motors, hit volumes, and jump settings retain their existing behavior. A physical deck check prevents a missing Brawl tile from posing as a landing. Exact Luau exercised 312 samples from 24 fitted fighters, including a short jump, an unsupported fall and return to stance. Desktop Studio checked real Space input in Reedguard versus Juniper and from both sides of a Casual Duel. The two Duel clients showed a grounded Penguin jab taking the opponent from 98 to 88 HP after the jump, followed by the recaps. Physical devices, published play and live Brawl jump coverage remain open.
 

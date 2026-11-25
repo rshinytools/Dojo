@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.320, catch Bracken, Sablecrest or Granite with an Uppercut as they start an attack. Watch the resident’s head react and read the rest of the windup for the incoming strike. Time Guard on a later attempt to test the parry window.
+
 In v0.319, press **Space** once the bell rings in Bot Spar or Casual Duel. Watch the fighter tuck their boots in the air, extend toward the mat, and brace on landing. Practice a jump with a sideways step to see the transition back to footwork.
 
 In v0.318, stand still at Festival Plaza arrival and during Juniper Bot Spar. Reedguard’s boots and their shadows follow the actual paving in the plaza. The authored stance controls his hips in the ring, and the same shorter tail fits all three forms.

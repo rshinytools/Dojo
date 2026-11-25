@@ -2529,20 +2529,28 @@ function Motion.move(bout, now, dt)
     return gap.Magnitude
 end
 
-local juniperReadyHead = Juniper.sample("idle", 0).groups.Head
-local juniperHitHead = {
-    headHit = juniperReadyHead:ToObjectSpace(Juniper.sample("headHit", .10).groups.Head).Rotation,
-    bodyHit = juniperReadyHead:ToObjectSpace(Juniper.sample("bodyHit", .10).groups.Head).Rotation,
-}
+local residentHitHead = {}
+for id, resident in residents do
+    local poses = resident.poses
+    local ready = poses.sample("idle", 0).groups.Head
+    residentHitHead[id] = {
+        headHit = ready:ToObjectSpace(poses.sample("headHit", .10).groups.Head).Rotation,
+        bodyHit = ready:ToObjectSpace(poses.sample("bodyHit", .10).groups.Head).Rotation,
+    }
+end
 
-local function juniperWindupFlinch(bout, now)
-    local recoil = bout.juniperWindupRecoil
+local function residentWindupFlinch(bout, now)
+    local recoil = bout.windupRecoil
     if not recoil then return nil end
-    local round = bout.round
+    local round, state = bout.round, bout.motion
     local age = now - recoil.at
+    local lifted = bout.botId ~= "juniper" and (state.galleonPop
+        or (state.shove and (state.shove.height or 0) > 0)
+        or (state.crossKnock and (state.crossKnock.height or 0) > 0)
+        or math.max(state.galleonLift or 0, state.skywalkLift or 0, state.crossLift or 0) > 0)
     if round.result or bout.outroAt or round.botPhase ~= "windup" or round.botStartedAt ~= recoil.windupAt
-        or age >= .20 then
-        bout.juniperWindupRecoil = nil
+        or lifted or age >= .20 then
+        bout.windupRecoil = nil
         return nil
     end
     local weight = math.clamp(math.min(age / .045, (.20 - age) / .155, (round.botAt - now) / .075), 0, 1)
@@ -2560,7 +2568,7 @@ function Motion.render(bout, now)
         command(bout, now)
     end
     local round, state = bout.round, bout.motion
-    local windupFlinch = juniperWindupFlinch(bout, now)
+    local windupFlinch = residentWindupFlinch(bout, now)
     if bout.outroAt and round.playerHealth <= 0 then
         Jump.allow(bout.root.Parent, false)
         setTravelHold(bout, true)
@@ -2615,7 +2623,7 @@ function Motion.render(bout, now)
     keepClearance(bout)
     for name, joint in bout.joints do
         local visible = jointFrame(frame, groups, name, joint)
-        -- Show the hit without changing the palm or the pose sampled by contact checks.
+        -- Keep the recoil out of the authored pose sampled by contact checks.
         if windupFlinch and name == "Head" then
             visible *= windupFlinch
         end
@@ -2631,13 +2639,11 @@ function Motion.impact(bout, event)
     if damage then
         bout.reactionAt = event.at
         bout.reactionAction = if event.zone == "head" then "headHit" else "bodyHit"
-        if bout.botId == "juniper" then
-            local round = bout.round
-            bout.juniperWindupRecoil = if not round.result and round.botPhase == "windup"
-                and event.at >= round.botStartedAt and event.at < round.botAt
-                then {at = event.at, windupAt = round.botStartedAt, rotation = juniperHitHead[bout.reactionAction]}
-                else nil
-        end
+        local round = bout.round
+        bout.windupRecoil = if not round.result and round.botPhase == "windup"
+            and event.at >= round.botStartedAt and event.at < round.botAt
+            then {at = event.at, windupAt = round.botStartedAt, rotation = residentHitHead[bout.botId][bout.reactionAction]}
+            else nil
     end
     if event.shockDuration and bout.round.botHealth > 0 then
         Thunder.shock(bout.bot, bout.telegraph, event.shockDuration)
