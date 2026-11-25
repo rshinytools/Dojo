@@ -12,14 +12,16 @@ local EmberAqua = require(script.Parent.EmberAquaCombat)
 local Fields = require(script.Parent.ArenaFields)
 local Heavy = require(script.Parent.HeavyFighterCombat)
 local Ricochet = require(script.Parent.RingRicochet)
+local Magma = require(script.Parent.MagmaFighterCombat)
+local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 
 local Motion = {}
 local defeatSeconds = Geometry.defeatSeconds
 local joints = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
 local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true, lilyVault = true, eddyPalm = true,
-    fortressRicochet = true}
+    fortressRicochet = true, meteorRoll = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
-    pebbleBarrage = true, cinderSnare = true, cavitationCannon = true}
+    pebbleBarrage = true, cinderSnare = true, cavitationCannon = true, volcanicBreath = true}
 local sideStep = {
     reedguard = {distance = 2.45, time = .23, start = 0},
     silverback = {distance = 2.23, time = .29, start = .045},
@@ -32,6 +34,8 @@ local sideStep = {
     shrimp = {distance = 2.40, time = .23, start = .025},
     walrus = {distance = 1.85, time = .27, start = .03},
     tortoise = {distance = 1.91, time = .27, start = .03},
+    armadillo = {distance = 1.95, time = .27, start = .03},
+    komodo = {distance = 2.36, time = .24, start = .03},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -420,8 +424,9 @@ local function moveCast(duel, actor, other, cast, now)
     local action = clip.action
     local endAt = math.min(now, clip.endsAt)
     if cast.rollPath then
-        if endAt >= clip.startedAt + Heavy.roll.windup then
-            local frame = Ricochet.frameAt(cast.rollPath, endAt - clip.startedAt - Heavy.roll.windup)
+        local windup = cast.rollPath.skill.windup
+        if endAt >= clip.startedAt + windup then
+            local frame = Ricochet.frameAt(cast.rollPath, endAt - clip.startedAt - windup)
             Match.move(actor.root, frame)
         end
         cast.movedAt = endAt
@@ -534,8 +539,8 @@ local function updateActor(duel, index, now)
             elseif clip.action == "tidalBellyFlop" then
                 local target = Match.clampFloor(duel.bounds, origin.Position + orientation * Heavy.flopTravel.distance, origin.Y)
                 actor.cast.landing = arenaTravel(duel, origin.Position, target, origin, Vector3.new(1.84, 2.20, 1.50))
-            elseif clip.action == "fortressRicochet" then
-                actor.cast.rollPath = Ricochet.plan(duel.bounds, origin.Position, orientation, Heavy.roll, function(from, delta)
+            elseif rolls[clip.action] then
+                actor.cast.rollPath = Ricochet.plan(duel.bounds, origin.Position, orientation, rolls[clip.action], function(from, delta)
                     local center = Vector3.new(from.X, duel.floor + 1.22, from.Z)
                     return workspace:Blockcast(CFrame.new(center), Vector3.new(2.44, 2.22, 2.44), delta, duel.motion.arenaCast)
                 end)
@@ -547,7 +552,12 @@ local function updateActor(duel, index, now)
             moveCast(duel, actor, other, actor.cast, now)
         end
         if actor.cast.rollPath then
-            Ricochet.present(actor.cast, actor.fx, duel.floor, now - clip.startedAt, Heavy.roll)
+            Ricochet.present(actor.cast, actor.fx, duel.floor, now - clip.startedAt, actor.cast.rollPath.skill)
+        elseif clip.action == "volcanicBreath" then
+            Magma.presentBreath(actor.cast, actor.fx, duel.floor, now - clip.startedAt, function(mouth, direction, range)
+                local ray = workspace:Raycast(mouth, direction * range, duel.motion.arenaCast)
+                return if ray then ray.Distance else range
+            end)
         elseif actor.cast.field then
             local field = actor.cast.field
             Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
@@ -593,9 +603,12 @@ local function poseAt(duel, index, now, readOnly)
     else
         action, age = FighterMotion.locomotion(state.kit.poses, actor, actor.root, actor.root.CFrame.LookVector, now, readOnly)
     end
-    local offsets = state.kit.poses.sample(action, age, direction)
-    if action == "fortressRicochet" then
-        offsets = Ricochet.pose(offsets, age, Heavy.roll, Heavy.roll.shellCenter)
+    local roll = rolls[action]
+    local path = actor.cast and actor.cast.rollPath
+    local sampleAge = if roll then Ricochet.sampleAge(path, age, roll) else age
+    local offsets = state.kit.poses.sample(action, sampleAge, direction)
+    if roll then
+        offsets = Ricochet.pose(offsets, age, roll, roll.shellCenter, path)
     end
     if (actor.lift or 0) > 0 then
         offsets = table.clone(offsets)
@@ -832,6 +845,25 @@ local function rollContact(duel, other, at, target, segments, radius)
     return nil, false
 end
 
+local function breathFrame(actor, move, castStartedAt)
+    local cast = actor.cast
+    if cast and cast.clip.startedAt == castStartedAt then
+        return Magma.breathFrame(cast.origin, move)
+    end
+    return nil
+end
+
+local function breathContact(duel, other, at, target, move, mouth, direction)
+    local facing = defenderFacing(target, mouth)
+    for _, volume in defenderVolumes(duel, other, at, target, facing) do
+        if not volume.grounded then
+            local hit = Magma.breathHit(mouth, direction, move, volume.frame, volume.size, Geometry.nearestPoint)
+            if hit and not obstructed(duel, mouth, hit) then return hit, facing end
+        end
+    end
+    return nil, facing
+end
+
 function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local other = 3 - side
     local actor = duel.actors[side]
@@ -873,6 +905,14 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
             effect:Destroy()
         end
         return hit ~= nil, hit or finish, zone, facing
+    end
+    if move.shape == "breath" then
+        local mouth, direction = breathFrame(actor, move, castStartedAt)
+        if mouth then
+            local hit, guardFacing = breathContact(duel, other, at, target, move, mouth, direction)
+            return hit ~= nil, hit or mouth, "body", guardFacing
+        end
+        return false
     end
     local fan = move.shape == "fan"
     if fan or move.shape == "radial" then
@@ -935,8 +975,11 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     if tile and move.marker then
         return plantMagma(brawl, actor, move, at, index, castStartedAt)
     end
-    local center, point, previous
-    if tile then
+    local center, point, previous, breathDirection
+    if move.shape == "breath" then
+        center, breathDirection = breathFrame(actor, move, castStartedAt)
+        if not center then return {} end
+    elseif tile then
         center = takeMagma(brawl, actor, at, index, castStartedAt)
         if not center then
             return {}
@@ -991,7 +1034,10 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
             continue
         end
         local hit, zone, facing
-        if center then
+        if breathDirection then
+            hit, facing = breathContact(brawl, other, at, target, move, center, breathDirection)
+            zone = "body"
+        elseif center then
             if Match.flat(target.Position - center).Magnitude <= move.radius + 3 then
                 hit, facing = floorContact(brawl, other, at, target, center, move.radius,
                     if fan then root.LookVector else nil, move.halfAngle)
@@ -1071,8 +1117,11 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     if tile and move.marker then
         return plantMagma(raid, actor, move, at, index, castStartedAt)
     end
-    local center, point, previous, effect
-    if tile then
+    local center, point, previous, effect, breathDirection
+    if move.shape == "breath" then
+        center, breathDirection = breathFrame(actor, move, castStartedAt)
+        if not center then return false end
+    elseif tile then
         center = takeMagma(raid, actor, at, index, castStartedAt)
         if not center then
             return false
@@ -1097,7 +1146,9 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     for _, volume in targets do
         local frame, size = volume.part.CFrame, volume.part.Size
         local hit
-        if center then
+        if breathDirection then
+            hit = Magma.breathHit(center, breathDirection, move, frame, size, Geometry.nearestPoint)
+        elseif center then
             local near = Geometry.nearestPoint(frame, size, center + Vector3.new(0, .45, 0))
             local delta = Match.flat(near - center)
             if delta.Magnitude <= move.radius and (not fan or delta.Magnitude <= .03
@@ -1117,7 +1168,7 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
             if effect then
                 effect:Destroy()
             end
-            return true, if center and not fan then center else hit, volume.zone
+            return true, if center and not fan and not breathDirection then center else hit, volume.zone
         end
     end
     return false, center or point
@@ -1203,7 +1254,7 @@ function Motion.raidImpact(raid, index, origin, at, strength)
 end
 
 function Motion.impact(duel, event)
-    if (event.damage or 0) <= 0 and event.kind ~= "pull" then
+    if event.kind == "burn" or ((event.damage or 0) <= 0 and event.kind ~= "pull") then
         return
     end
     local action = event.attack
@@ -1221,6 +1272,9 @@ function Motion.impact(duel, event)
         local center = if action == "cavitationCannon" and field then field.center else root.Position
         offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
             (if action == "cavitationCannon" then .34 else .20), 0
+    elseif Magma.shove[action] then
+        offset, duration, height = heading(root.Position, target.root.Position, direction) * Magma.shove[action],
+            .24, if action == "meteorRoll" then .32 else 0
     elseif Heavy.shove[action] then
         local center = if action == "tidalBellyFlop" then event.point else root.Position
         local away = if action == "fortressRicochet" then direction else heading(center, target.root.Position, direction)

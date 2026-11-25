@@ -1,5 +1,6 @@
 local Spar = require(script.Parent.ReedguardRound)
 local Elements = require(script.Parent.DuelRankRules)
+local Magma = require(script.Parent.MagmaFighterCombat)
 local Combatant = Spar.Combatant
 local Brawl = {INTRO = Spar.INTRO, DURATION = Spar.DURATION, OUTRO = Spar.OUTRO}
 
@@ -177,6 +178,11 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
             if move.controlOnly then
                 notice.kind = if notice.kind then "blocked" elseif move.rootDuration then "snare" else "pull"
                 notice.damage = 0
+            elseif notice.kind == "blocked" and not deflected and move.guardBreak then
+                local matchup = attacker.matchups[target.defender]
+                notice.kind, notice.damage = "guardBroken", math.round(math.ceil(fields.damage * .55) * matchup.damageScale)
+                notice.elementEffect, notice.knockbackScale = matchup.elementEffect, matchup.knockbackScale
+                spent = fields.damage
             elseif notice.kind then
                 notice.damage = 0
             else
@@ -184,6 +190,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
                 local matchup = attacker.matchups[target.defender]
                 notice.damage = math.round(fields.damage * matchup.damageScale)
                 notice.elementEffect, notice.knockbackScale = matchup.elementEffect, matchup.knockbackScale
+                if move.burnDamage then notice.burnDamage = math.max(1, math.round(move.burnDamage * matchup.damageScale)) end
                 spent = fields.damage
             end
             notice.detached = move.shape == "tile" or move.shape == "wave" or move.projectile ~= nil
@@ -219,7 +226,12 @@ local function resolveBatch(round, at, notices, eliminateMany)
         if event.damage > 0 then
             defender.damage += event.damage
             local head = event.zone == "head"
-            reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4, HIT_STUN)
+            if event.kind ~= "burn" then
+                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4, HIT_STUN)
+                if event.burnDamage then
+                    Magma.ignite(round, event.attacker, event.defender, round.sides[event.defender], at, event.burnDamage)
+                end
+            end
         elseif event.kind == "parried" then
             reaction(defender, "parry", 3, 0)
             defender.parried = true
@@ -300,7 +312,7 @@ function Brawl.step(round, now, check, eliminateMany, resolveTimeout)
     end
     local limit = math.min(now, round.endsAt)
     while not round.result do
-        local at = math.huge
+        local at = Magma.nextBurn(round)
         for _, side in round.sides do
             if not side.eliminated then
                 at = math.min(at, Combatant.nextContacts(side))
@@ -309,7 +321,7 @@ function Brawl.step(round, now, check, eliminateMany, resolveTimeout)
         if at > limit then
             break
         end
-        local notices, finishedClips = {}, {}
+        local notices, finishedClips = Magma.burnsAt(round, at), {}
         for index, side in round.sides do
             if not side.eliminated then
                 local clipAt, trailAt, finishAt = Combatant.nextContacts(side)

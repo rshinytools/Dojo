@@ -1,0 +1,149 @@
+-- Komodo counters with a low sweeping tail and turns the snout through a broad arc.
+local Choreography = require(script.Parent.FighterChoreography)
+local v = Vector3.new
+local rootHeight = 2.132
+
+local function sole(side)
+    local x = side * .50
+    return {v(x - .3525, .012, -.855), v(x + .3525, .012, -.855),
+        v(x - .3525, .012, .135), v(x + .3525, .012, .135)}
+end
+
+local rig = Choreography.new(rootHeight, {
+    Neck = v(0, 3.14, -.14),
+    ["Right Shoulder"] = v(.91, 2.99, .04), ["Left Shoulder"] = v(-.91, 2.99, .04),
+    ["Right Hip"] = v(.50, 1.55, .04), ["Left Hip"] = v(-.50, 1.55, .04),
+    TailJoint = v(0, 1.71, .52),
+}, sole(1), sole(-1))
+local pose = rig.pose
+
+local rightGuard, leftGuard = {45, 17, -17, -.025, .115, .065}, {54, -19, 18, .085, .09, -.04}
+local rear, lead = {5, -24, 1, .14, 0, .145, .018}, {7, 16, -1, -.12, 0, -.20, .018}
+local ready = pose({.018, -.22, .055, -12, -12, 4}, rightGuard, leftGuard, rear, lead, {12, 13, -2}, {-4, 14, 5})
+local breathe = pose({.035, -.17, .026, -10, -9, 2}, {48, 15, -20, -.03, .10, .06}, leftGuard,
+    rear, lead, {10, 10, -1}, {-3, 19, 2})
+local stepLead = pose({-.145, -.25, -.14, -12, -15, 7}, rightGuard, leftGuard, rear,
+    {13, 17, -2, -.16, 0, -.36, .16}, {12, 15, -5}, {-16, 28, -7})
+local stepRear = pose({.153, -.22, -.12, -12, -3, -7}, rightGuard, leftGuard,
+    {13, -22, 2, .20, 0, -.33, .14}, lead, {12, 4, 4}, {-14, -19, 9})
+local backLead = pose({-.15, -.25, .145, 0, -17, 6}, rightGuard, leftGuard, rear,
+    {-11, 15, -2, -.175, 0, .32, .12}, {0, 16, -4}, {-18, 26, -5})
+local backRear = pose({.143, -.27, .15, 1, -5, -6}, rightGuard, leftGuard,
+    {-9, -23, 2, .18, 0, .35, .12}, lead, {0, 5, 4}, {-18, -20, 8})
+local slip = pose({.25, -.34, .08, -15, -22, -20}, {31, 12, -27, .08, .05, .18}, leftGuard,
+    {11, -26, -2, .24, 0, .16, .10}, lead, {16, 22, 10}, {-14, 38, -18})
+local brake = pose({.14, -.30, .03, -12, -5, -10}, rightGuard, leftGuard,
+    {8, -23, 0, .17, 0, .13, .018}, lead, {12, 5, 8}, {-13, 24, -4})
+
+local jabLoad = pose({.08, -.26, .12, -12, -26, -6}, {29, 7, -16, .035, .09, .20}, leftGuard,
+    rear, lead, {13, 25, 4}, {-8, 29, -7})
+local jabHit = pose({.025, -.105, -.235, -7, 23, -1}, {66, 18, -11, -.14, .145, -.22}, leftGuard,
+    rear, lead, {9, -24, 1}, {-9, -29, 4})
+local crossLoad = pose({-.11, -.32, .13, -12, 26, 8}, rightGuard, {25, -6, 22, -.05, .075, .25},
+    rear, lead, {13, -27, -4}, {-11, -30, -7})
+local crossHit = pose({-.06, -.16, -.26, -9, -28, 4}, rightGuard, {67, -19, 11, .13, .095, -.215},
+    rear, lead, {12, 27, -3}, {-15, 32, 7})
+local bodyLoad = pose({.05, -.40, .13, -19, -25, -7}, {24, 9, -19, .035, -.055, .23}, leftGuard,
+    rear, lead, {19, 23, 4}, {-13, 28, 4})
+local bodyHit = pose({.028, -.33, -.25, -19, 19, 1}, {50, 16, -15, -.13, -.07, -.23}, leftGuard,
+    rear, lead, {20, -20, 2}, {-11, -24, 3})
+local heavyLoad = pose({-.12, -.42, .19, -18, 40, 11}, {29, 15, -27, .15, .05, .22},
+    {22, -7, 30, -.12, .045, .29}, rear, lead, {19, -34, -6}, {-22, -49, -9})
+local heavyHit = pose({.03, -.15, -.28, -9, -32, 4}, {49, 11, -27, .025, .075, .06},
+    {68, -15, 6, .14, .055, -.22}, rear, lead, {12, 30, -2}, {-15, 41, 9})
+local heavyEase = pose({.08, -.30, -.14, -16, -43, -6}, rightGuard, {55, -10, 15, .08, .055, -.09},
+    rear, lead, {17, 40, 3}, {-9, 60, 12})
+
+local tailDraw = pose({-.11, -.31, .12, -6, -32, 12}, {61, 11, -29, .11, .13, .11},
+    {33, -4, 39, -.12, .07, .06}, rear, lead, {8, 31, -7}, {-17, 36, -20})
+local tailPass = pose({.075, -.26, -.12, -7, 10, -9}, {61, 11, -26, .06, .13, .025},
+    {45, -12, 36, -.10, .09, .08}, rear, lead, {10, -10, 6}, {-13, 99, -18})
+local tailHit = pose({.02, -.13, -.20, -6, 26, -3}, {65, 14, -24, .05, .14, .09},
+    {38, -11, 34, -.06, .075, .09}, rear, lead, {7, -26, 3}, {10, 154, 7})
+local tailFollow = pose({-.105, -.27, -.16, -13, 39, 8}, {57, 17, -32, .12, .1, .13},
+    {44, -16, 33, -.06, .065, .11}, rear, lead, {15, -38, -6}, {9, 202, 11})
+local tailReset = pose({-.04, -.32, -.055, -13, 22, 7}, rightGuard, leftGuard,
+    rear, lead, {14, -24, -3}, {-14, 293, 10})
+
+local breathFeet = {8, -21, 0, .19, 0, .19, .017}
+local breathLead = {12, 16, 0, -.16, 0, -.26, .017}
+local inhale = pose({-.07, -.25, .13, 3, 11, 5}, {45, 14, -25, .06, .085, .12},
+    {44, -10, 27, -.07, .10, .14}, breathFeet, breathLead, {-8, 27, -4}, {-19, -18, 7})
+local flameLeft = pose({-.10, -.34, -.16, -14, 10, 4}, {49, 10, -31, .04, .075, .08},
+    {48, -15, 27, -.04, .11, .10}, breathFeet, breathLead, {18, 20, -1}, {-22, -20, -6})
+local flameCenter = pose({0, -.30, -.185, -14, 0, 0}, {50, 12, -27, .05, .10, .10},
+    {51, -13, 28, -.05, .115, .085}, breathFeet, breathLead, {18, 0, 0}, {-21, 0, 0})
+local flameRight = pose({.11, -.32, -.15, -14, -10, -4}, {47, 15, -27, .04, .08, .10},
+    {49, -9, 30, -.05, .095, .08}, breathFeet, breathLead, {18, -20, 1}, {-22, 22, 6})
+local breathEase = pose({.10, -.25, -.08, -8, -19, -5}, rightGuard, leftGuard, breathFeet,
+    breathLead, {11, -16, 3}, {-18, 30, 6})
+
+local cover = pose({0, -.30, .085, -13, 0, 0}, {69, 12, -17, -.18, .13, -.035},
+    {67, -11, 17, .18, .12, -.02}, rear, lead, {15, 0, 0}, {-10, 0, 0})
+local recoil = pose({-.055, -.36, .16, 6, -7, 6}, {61, 13, -15, -.14, .085, .105},
+    {61, -13, 15, .16, .095, .10}, rear, lead, {-10, 7, -5}, {-15, 11, -6})
+local deflect = pose({.045, -.24, -.11, -10, 28, -6}, {57, -15, -13, -.09, .16, -.125},
+    {55, -14, 23, .074, .11, .05}, rear, lead, {9, -25, 5}, {-14, -28, 9})
+local headHit = pose({-.105, -.24, .21, 15, -20, 9}, {40, 12, -25, .10, .065, .14},
+    {43, -16, 23, -.08, .065, .14}, rear, lead, {-25, 18, -8}, {-12, 27, -11})
+local gutHit = pose({.10, -.45, .15, -21, 18, -9}, {42, 13, -18, .02, -.06, .03},
+    {43, -14, 18, -.02, -.06, .03}, rear, lead, {20, -17, 6}, {-13, -30, 9})
+local salute = pose({.035, -.10, -.04, -2, -18, 3}, {82, 3, -30, .04, .13, -.09},
+    leftGuard, rear, lead, {3, 17, -2}, {-16, 29, -7})
+local bow = pose({0, -.35, -.12, -29, 0, 0}, {35, 14, -17, -.045, .05, .10},
+    {35, -14, 18, .045, .05, .10}, rear, lead, {26, 0, 0}, {-18, 0, 0})
+local raised = pose({-.008, -.10, -.055, -2, 8, 0}, {78, 8, -37, .10, .14, -.12},
+    {76, -10, 36, -.10, .14, -.12}, rear, lead, {3, -8, 0}, {-19, -16, 8})
+
+local breathTimes = table.freeze({.58, .78, .98})
+local contact = {jab = .164, cross = .232, body = .276, heavy = .437, tailRake = .36,
+    volcanicBreath = breathTimes}
+local clips = {
+    stance = {{0, ready}, {.47, breathe}, {.94, ready}},
+    advance = {{0, ready}, {.16, stepLead}, {.32, breathe}, {.49, stepRear}, {.65, ready}},
+    retreat = {{0, ready}, {.18, backRear}, {.35, ready}, {.52, backLead}, {.69, ready}},
+    sidestep = {{0, ready}, {.108, slip}, {.24, brake}, {.47, ready}},
+    jab = {{0, ready}, {.074, jabLoad}, {contact.jab, jabHit}, {.235, jabHit}, {.43, ready}},
+    cross = {{0, ready}, {.105, crossLoad}, {contact.cross, crossHit}, {.318, crossHit}, {.52, ready}},
+    body = {{0, ready}, {.135, bodyLoad}, {contact.body, bodyHit}, {.392, breathe}, {.58, ready}},
+    heavy = {{0, ready}, {.185, heavyLoad}, {.29, heavyLoad}, {contact.heavy, heavyHit}, {.55, heavyEase}, {.82, ready}},
+    tailRake = {{0, ready}, {.15, tailDraw}, {.238, tailPass}, {contact.tailRake, tailHit},
+        {.45, tailFollow}, {.59, tailReset}, {.75, ready}},
+    volcanicBreath = {{0, ready}, {.21, inhale}, {.39, inhale}, {breathTimes[1], flameLeft},
+        {breathTimes[2], flameCenter}, {breathTimes[3], flameRight}, {1.12, breathEase}, {1.34, ready}},
+    guard = {{0, cover}},
+    block = {{0, cover}, {.081, recoil}, {.165, recoil}, {.286, cover}},
+    parry = {{0, cover}, {.089, deflect}, {.180, deflect}, {.34, ready}},
+    hitHead = {{0, ready}, {.077, headHit}, {.18, headHit}, {.35, ready}},
+    hitBody = {{0, ready}, {.091, gutHit}, {.192, gutHit}, {.37, ready}},
+    stagger = {{0, headHit}, {.18, brake}, {.36, recoil}, {.57, ready}},
+    intro = {{0, ready}, {.88, breathe}, {1.58, salute}, {2.20, salute}, {2.90, bow}, {3.45, ready},
+        {4.17, inhale}, {4.54, flameLeft}, {4.84, flameCenter}, {5.11, flameRight}, {5.68, ready},
+        {6.17, slip}, {6.59, brake}, {7.52, ready}, {8.74, breathe}, {10, ready}},
+    win = {{0, ready}, {.29, raised}, {.91, raised}, {1.24, bow}, {1.54, bow}, {1.99, ready}},
+}
+
+local rightFist, leftFist = v(1.18, 1.88, -.77), v(-1.18, 1.88, -.77)
+local mouth, tailTip = v(0, 3.58, -1.38), v(.18, .94, 2.65)
+local hits = {
+    jab = {{jabHit, "Right Shoulder", rightFist}}, cross = {{crossHit, "Left Shoulder", leftFist}},
+    body = {{bodyHit, "Right Shoulder", rightFist}}, heavy = {{heavyHit, "Left Shoulder", leftFist}},
+    tailRake = {{tailHit, "TailJoint", tailTip}}, volcanicBreath = {},
+}
+local samples = {}
+for index, key in {flameLeft, flameCenter, flameRight} do
+    local muzzle = key.RootJoint * key.Neck
+    local normal = muzzle.LookVector
+    local direction = v(normal.X, 0, normal.Z).Unit
+    samples[index] = table.freeze({age = breathTimes[index], direction = direction,
+        origin = muzzle:PointToWorldSpace(mouth - v(0, rootHeight, 0))})
+    hits.volcanicBreath[index] = {key, "Neck", mouth}
+end
+local skills = {
+    tailRake = table.freeze({damage = 21, radius = .58, shove = 1.0}),
+    volcanicBreath = table.freeze({warningAt = .21, radius = 4.65, halfAngle = math.rad(17),
+        damage = 22, burnDamage = 3, shove = .78, samples = table.freeze(samples)}),
+}
+local travel = {tailRake = table.freeze({axis = "forward", distance = .24, startsAt = .18, endsAt = .34})}
+
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})

@@ -321,5 +321,87 @@
         "counter": "Watch the launch line, move out of each pass, or parry to stop the roll."
       }
     ]
+  },
+  {
+    "id": "armadillo-striker",
+    "name": "Armadillo Striker",
+    "shortName": "Armadillo",
+    "title": "The Kiln Cart Courier",
+    "home": "Cinder Terraces · Glaze Terrace",
+    "element": "Magma",
+    "rarity": "Rare",
+    "role": "Heavy",
+    "style": "Armored checks and a straight-line roll",
+    "health": 132,
+    "normal_hit": 14,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "armadillo",
+      "techniqueCue": "plateCheck",
+      "signatureCue": "meteorRoll",
+      "techniqueCoolingCue": "plateCooling",
+      "signatureCoolingCue": "meteorCooling",
+      "compactTechnique": "Plate",
+      "compactSignature": "Meteor",
+      "tint": "FFC08A",
+      "cardStyle": "Armored checks and a guard-breaking roll",
+      "initials": "AS",
+      "previewPose": {"right": -39, "left": -26, "lean": -9, "roll": -9, "lift": 0.06, "step": 0.17, "legs": 7}
+    },
+    "story": "Armadillo hauls kiln supplies up the Glaze Terrace switchbacks. When a cart wheel cracked on the last turn, he rolled a loose barrel out of the lane before it reached the stair. He now chalks the same straight line on the mat to teach where to stand when something heavy is moving.",
+    "quote": "Once I tuck, I follow the line.",
+    "powers": [
+      {
+        "name": "Plate Check",
+        "effect": "Drive an armored forearm across close range for 21 damage.",
+        "counter": "Back out of forearm range as Armadillo sets his leading foot."
+      },
+      {
+        "name": "Meteor Roll",
+        "effect": "Tuck and roll along the marked line. The shell knocks targets back, deals 30 base damage and breaks an ordinary guard.",
+        "counter": "Leave the line or time a parry to stop the roll."
+      }
+    ]
+  },
+  {
+    "id": "komodo-dragon",
+    "name": "Komodo Dragon",
+    "shortName": "Komodo",
+    "title": "Keeper of the Glaze Kilns",
+    "home": "Cinder Terraces · Potters’ Yard",
+    "element": "Magma",
+    "rarity": "Rare",
+    "role": "Beast",
+    "style": "Sweeping tail strikes and ember breath",
+    "health": 115,
+    "normal_hit": 14,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "komodo",
+      "techniqueCue": "tailRake",
+      "signatureCue": "volcanicBreath",
+      "techniqueCoolingCue": "rakeCooling",
+      "signatureCoolingCue": "breathCooling",
+      "compactTechnique": "Rake",
+      "compactSignature": "Breath",
+      "tint": "FFAA85",
+      "cardStyle": "Tail sweeps and a moving ember cone",
+      "initials": "KD",
+      "previewPose": {"right": -24, "left": -37, "lean": -11, "roll": 12, "lift": 0.09, "step": 0.20, "legs": 7}
+    },
+    "story": "Komodo tends the glaze kilns when the yard goes quiet. He listens for the draft and shifts the shutters until the heat spreads evenly through the chamber. In sparring he sweeps his breath in that same measured rhythm, watching his opponent’s feet between turns.",
+    "quote": "A steady breath reaches farther.",
+    "powers": [
+      {
+        "name": "Tail Rake",
+        "effect": "Pivot and sweep across close range with the tail for 21 damage.",
+        "counter": "Step out of the sweep as Komodo turns his shoulder."
+      },
+      {
+        "name": "Volcanic Breath",
+        "effect": "Sweep an ember cone across the marked arc. It pushes each target once for 22 damage. An unguarded hit adds two 3-damage burn ticks.",
+        "counter": "Leave the marked arc or face Komodo and guard against the sweep."
+      }
+    ]
   }
 ]

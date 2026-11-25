@@ -317,7 +317,7 @@ local function advance(match, now)
     for _, event in match.round.notices do
         Motion.impact(match, event)
         local attacker = match.actors[event.attacker]
-        if event.defender and event.kind ~= "miss" then
+        if event.defender and event.kind ~= "miss" and event.kind ~= "burn" then
             attacker.lastTarget = event.defender
             match.actors[event.defender].lastTarget = event.attacker
         end
@@ -330,6 +330,9 @@ local function advance(match, now)
         elseif event.kind == "snare" then
             feedback(attacker, "snareCaught", now)
             feedback(match.actors[event.defender], "snared", now)
+        elseif event.kind == "guardBroken" or event.kind == "burn" then
+            feedback(attacker, event.kind, now)
+            feedback(match.actors[event.defender], event.kind, now)
         elseif (event.damage or 0) > 0 then
             feedback(attacker, if event.tagEntry then "tagStrike" else "strike", now)
             feedback(match.actors[event.defender], "hit", now)

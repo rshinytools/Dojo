@@ -9,6 +9,7 @@ local Otter = require(script.Parent.OtterCombatPoses)
 local Sky = require(script.Parent.SkyFighterCombat)
 local EmberAqua = require(script.Parent.EmberAquaCombat)
 local Heavy = require(script.Parent.HeavyFighterCombat)
+local Magma = require(script.Parent.MagmaFighterCombat)
 local Round = {}
 
 Round.INTRO = 10
@@ -164,6 +165,9 @@ end
 for id, kit in Heavy.kits do
     kits[id] = kit
 end
+for id, kit in Magma.kits do
+    kits[id] = kit
+end
 
 local residents = {
     juniper = {startRange = 3.65, attackLabel = "palm"},
@@ -240,7 +244,7 @@ end
 
 local function inMotion(side, action)
     local travel = side.kit.poses.Travel
-    return action == side.kit.dodge or action == "fortressRicochet" or (travel and travel[action] ~= nil)
+    return action == side.kit.dodge or (action == "fortressRicochet" or action == "meteorRoll") or (travel and travel[action] ~= nil)
 end
 
 local function applyRoot(side, at, duration)
@@ -252,7 +256,7 @@ end
 
 local function interruptFixedTravel(side)
     local action = side.clip and side.clip.action
-    if action == "fortressRicochet" or action == "tidalBellyFlop" then
+    if action == "fortressRicochet" or action == "meteorRoll" or action == "tidalBellyFlop" then
         side.clip, side.bufferedLight = nil, false
     end
 end
@@ -324,7 +328,7 @@ function Round.act(round, action, now, direction)
     end
 end
 
-local function resolveBotContact(round, at, fields, hit)
+local function resolveBotContact(round, at, fields, hit, _, move)
     if not hit then
         report(round, "miss", at, fields)
         return 0
@@ -338,10 +342,18 @@ local function resolveBotContact(round, at, fields, hit)
         return 0
     end
     local counter = round.botPhase == "recovery" and round.recoveryKind == "parried"
-    local damage = if brace then math.ceil(fields.damage / 2) else fields.damage
+    local guardBroken = brace and move and move.guardBreak
+    local damage = if guardBroken then math.ceil(fields.damage * .55)
+        elseif brace then math.ceil(fields.damage / 2) else fields.damage
+    if guardBroken then
+        round.botPhase, round.recoveryStartedAt = "recovery", at
+        round.recoveryKind, round.botAt = "hit", at + .52
+    elseif not brace and move and move.burnDamage then
+        Magma.ignite(round, nil, 0, round, at, move.burnDamage)
+    end
     round.botHealth = math.max(0, round.botHealth - damage)
     fields.damage = damage
-    report(round, if brace then "braced" elseif counter then "counter" else "strike", at, fields)
+    report(round, if guardBroken then "guardBroken" elseif brace then "braced" elseif counter then "counter" else "strike", at, fields)
     if round.botHealth == 0 then
         round.result = "win"
     end
@@ -366,7 +378,7 @@ local function contact(round, at, check, resolve, publishCast)
     end
     local hit, point, resolvedZone, facing
     if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
-        or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" then
+        or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" or move.shape == "breath" then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -385,7 +397,7 @@ local function contact(round, at, check, resolve, publishCast)
     end
     local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
         rootDuration = move.rootDuration,
-        castStartedAt = if publishCast then clip.startedAt else nil}
+        castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
     end
@@ -533,9 +545,17 @@ function Round.step(round, now, distance, checkPlayer, checkBot)
     end
     while not round.result do
         local contactAt, trailAt, completeAt = nextContacts(round)
-        local eventAt = math.min(contactAt, trailAt, completeAt, round.botAt)
+        local burnAt = Magma.nextBurn(round)
+        local eventAt = math.min(contactAt, trailAt, completeAt, round.botAt, burnAt)
         if eventAt > limit then
             break
+        elseif eventAt == burnAt then
+            for _, event in Magma.burnsAt(round, burnAt) do
+                event.damage = math.min(event.damage, round.botHealth)
+                round.botHealth -= event.damage
+                table.insert(round.notices, event)
+            end
+            if round.botHealth == 0 then round.result = "win" end
         elseif eventAt == contactAt then
             contact(round, eventAt, checkPlayer, resolveBotContact)
         elseif eventAt == trailAt then

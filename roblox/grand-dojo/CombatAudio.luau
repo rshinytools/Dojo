@@ -22,6 +22,7 @@ local groundPitch = {
 local heavyPitch = {
     heavy = 1, ridgePalm = .96, lilyVault = 1.12, spurLift = 1.19, bellySlide = 1.04, palm = .94, sunDive = .88,
     harborPalm = .91, shellCheck = .89, fortressRicochet = .79,
+    plateCheck = .93, meteorRoll = .78, tailRake = 1.02, volcanicBreath = .88,
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {

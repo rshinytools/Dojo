@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.291, earn **Armadillo Striker** and **Komodo Dragon** at Level 10. **V** or D-pad Up uses Plate Check or Tail Rake. **F** or **Y** uses Meteor Roll or Volcanic Breath. Touch uses the corresponding combat buttons. Meteor Roll breaks a held guard, and a timed parry stops it. Volcanic Breath can leave two afterburn ticks.
+
 In v0.288, earn **Walrus Sumo** at Level 8 and **Snapping Tortoise** at Level 9. **V** or D-pad Up uses Harbor Palm or Shell Check. **F** or **Y** uses Tidal Belly-Flop or Fortress Ricochet. Leave Walrus’s landing circle or guard the pulse. Track the shell’s launch line and rebounds when facing Tortoise.
 
 In v0.287, earn **Desert Scorpion** at Level 6 and **Pistol Shrimp** at Level 7. **V** or D-pad Up uses Tail Feint or Claw Dash. **F** or **Y** uses Cinder Snare or Cavitation Cannon. Step outside Scorpion’s three-node triangle, or jump or guard as it triggers. Time a jump or guard against Shrimp’s ground wave.

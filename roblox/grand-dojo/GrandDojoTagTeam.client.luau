@@ -43,7 +43,8 @@ for _, id in fighterCatalog.Order do
     if combat then
         table.insert(roster, {id = id, kit = combat.kit, name = fighter.shortName or fighter.name,
             style = combat.cardStyle or fighter.style, technique = combat.technique, techniqueAction = combat.techniqueAction,
-            signature = combat.signature, compactSignature = combat.compactSignature, earned = (fighter.unlockLevel or 1) > 1})
+            signature = combat.signature, compactTechnique = combat.compactTechnique, compactSignature = combat.compactSignature,
+            earned = (fighter.unlockLevel or 1) > 1})
         if combat.techniqueCue then
             earnedCues[combat.techniqueCue] = combat.technique
         end
@@ -248,6 +249,7 @@ local tips = {
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     ricochetBounce = "Shell rebounds",
+    guardBroken = "Guard broken", burn = "Heat lingers",
 }
 
 local offer, waiting, match
@@ -444,7 +446,9 @@ local function showCombatActions(now, own, kit)
     actions.strike.Text, actions.heavy.Text = binding("Strike", "E", "RT"), binding("Heavy", "R", "RB")
     actions.guard.Text, actions.dodge.Text = binding("Guard", "Q", "LT"), binding(kit.dodge or "Dodge", "X", "LB")
     if kit.technique then
-        cool(actions.technique, kit.technique, "V", "↑", match.nextSecondary)
+        local width = actions.technique.AbsoluteSize.X
+        local technique = if kit.compactTechnique and width > 0 and width < 70 then kit.compactTechnique else kit.technique
+        cool(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
     local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature

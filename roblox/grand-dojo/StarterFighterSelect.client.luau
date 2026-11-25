@@ -560,7 +560,8 @@ local function layout()
     local columns = if tall then 2 else 4
     if switching then
         local count = #order
-        local limit = if contentWidth >= 835 then 8 elseif contentWidth >= 604 then 6
+        local limit = if contentWidth >= 835 then 8 elseif contentWidth >= 7 * 84 + 6 * gap then 7
+            elseif contentWidth >= 604 then 6
             elseif contentWidth >= 530 then 5 elseif contentWidth >= 450 then 4
             elseif contentWidth >= 300 then 3 else 2
         columns = if count > limit and count <= limit * 2 then math.ceil(count / 2) else math.min(count, limit)

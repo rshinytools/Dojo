@@ -163,7 +163,7 @@ function CombatEffects.play(kind, point, attack)
         end
         return
     end
-    if attack == "emberSweep" then
+    if attack == "emberSweep" or attack == "volcanicBreath" or attack == "meteorRoll" then
         color = tint.burst
     elseif attack == "canopySlip" then
         color = tint.gustPull

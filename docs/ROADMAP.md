@@ -189,7 +189,7 @@ Frostglass Gardens and Lantern Circuit remain activity districts. The four theme
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P7.1 | Playable roster expansion | In progress | Twelve fighters have original rigs and kits, including Level 8 Walrus Sumo and Level 9 Snapping Tortoise. Complete the remaining twelve base fighters and validate all 24 fighters’ unlocks, timing, balance and match loops. |
+| P7.1 | Playable roster expansion | In progress | Fourteen fighters have original rigs and kits, including Level 10 Armadillo Striker and Komodo Dragon. Complete the remaining ten base fighters and validate all 24 fighters’ unlocks, timing, balance and match loops. |
 | P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | Separate starter XP tracks and the Level 3 route passed Studio play. Verify published persistence, repeat pacing, evolutions, breeds and mutations. |
 | P7.3 | Four combat rings and original bosses | In progress | All four rings support the four authored starter kits in Studio. Kilnback Custodian, Abyssal Kraken and Solar Phoenix have original animated rigs and separate co-op arenas in Studio. Verify published access, boss audio and device play. |
 | P7.4 | Content balance and regression | Planned | Fix outliers and ensure content additions do not regress the alpha save/input contract. |

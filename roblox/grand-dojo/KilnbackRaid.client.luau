@@ -57,7 +57,7 @@ for _, fighter in fighterCatalog.ById do
         kits[combat.kit] = {
             name = fighter.shortName or fighter.name,
             technique = combat.technique, techniqueAction = combat.techniqueAction, signature = combat.signature,
-            compactSignature = combat.compactSignature,
+            compactTechnique = combat.compactTechnique, compactSignature = combat.compactSignature,
         }
         if combat.techniqueCue then
             earnedCues[combat.techniqueCue] = combat.technique
@@ -231,6 +231,7 @@ local feedback = {
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     ricochetBounce = "Shell rebounds",
+    guardBroken = "Guard broken", burn = "Heat lingers",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},
@@ -433,7 +434,9 @@ local function refreshActions(own, now)
         control.TextColor3 = if seconds > 0 then muted else paper
     end
     if kit.technique then
-        cooldown(actions.technique, kit.technique, "V", "↑", match.nextSecondary)
+        local width = actions.technique.AbsoluteSize.X
+        local technique = if kit.compactTechnique and width > 0 and width < 70 then kit.compactTechnique else kit.technique
+        cooldown(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
     local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature

@@ -1,6 +1,7 @@
 -- The encounter clock shares the fighters' authored contact frames. The
 -- caller provides historical hit geometry and live revive eligibility.
 local Spar = require(script.Parent.ReedguardRound)
+local Magma = require(script.Parent.MagmaFighterCombat)
 local Fighter = Spar.Combatant
 
 local Raid = {
@@ -314,9 +315,13 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
         return
     end
     local function sample(action, move, contactAt, contactIndex, castAt)
+        if round.bossAirborne and (move.shape == "ricochet" or move.shape == "breath") then
+            -- An invulnerable overlap cannot consume the cast before a later landing sample.
+            return false
+        end
         return checkPlayer(index, action, move, contactAt, contactIndex, castAt)
     end
-    local function resolve(_, contactAt, fields, hit, _facing, _move)
+    local function resolve(_, contactAt, fields, hit, _facing, move)
         if fields.controlOnly then
             if fields.point then
                 fields.source, fields.attacker, fields.at = "player", index, contactAt
@@ -331,7 +336,7 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
             local core = round.coreExposed and fields.zone == "core"
             local scale = if core then 1.64 elseif round.coreExposed then 1.18 else .72
             fields.kind, fields.damage = if core then "counter" else "strike", math.max(1, math.round(baseDamage * scale))
-            fields.core = core
+            fields.core, fields.burnDamage = core, move.burnDamage
             table.insert(hits, fields)
             return baseDamage
         end
@@ -384,6 +389,9 @@ local function applyHits(round, hits)
             event.damage = math.min(round.bossHealth, event.damage)
             round.bossHealth -= event.damage
             round.sides[event.attacker].contribution.damage += event.damage
+            if event.damage > 0 and event.burnDamage then
+                Magma.ignite(round, event.attacker, 0, round, event.at, event.burnDamage)
+            end
         else
             applyBossHit(round, event)
         end
@@ -428,7 +436,7 @@ function Raid.step(round, now, checkPlayer, checkBoss, chooseTarget, checkRevive
     validateRevives(round, limit, checkRevive)
     while not round.result do
         local bossAt = attackEventAt(round)
-        local at = bossAt
+        local at = math.min(bossAt, Magma.nextBurn(round))
         for _, side in round.sides do
             if standing(side) then
                 at = math.min(at, Fighter.nextContacts(side))
@@ -441,7 +449,7 @@ function Raid.step(round, now, checkPlayer, checkBoss, chooseTarget, checkRevive
             break
         end
 
-        local hits, clipsEnding = {}, {}
+        local hits, clipsEnding = Magma.burnsAt(round, at), {}
         if bossAt == at then
             advanceBoss(round, at, chooseTarget, checkBoss, hits)
         end

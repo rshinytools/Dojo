@@ -1740,6 +1740,7 @@ local cues = {
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     ricochetBounce = "Shell rebounds",
+    guardBroken = "Guard broken", burn = "Heat lingers",
     needParry = "Parry a strike to unlock Rising.",
     ["Shell Set"] = "Shell Set · Wait out the brace",
     ["Kiln Rush"] = "Kiln Rush · Leave the lane",
@@ -1758,7 +1759,7 @@ local cooldownCues = {
 local priorityCues = {
     uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
-    gustPull = true, snareCaught = true, ricochetBounce = true,
+    gustPull = true, snareCaught = true, ricochetBounce = true, guardBroken = true,
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat
@@ -1766,7 +1767,7 @@ for _, fighter in fighterCatalog.ById do
         showcaseKits[combat.kit] = {
             challenger = fighter.name, challengerShort = fighter.shortName or fighter.name,
             techniqueAction = combat.techniqueAction, techniqueName = combat.techniqueName, techniqueLabel = combat.techniqueLabel,
-            techniqueCooldown = combat.techniqueCooldown,
+            techniqueCooldown = combat.techniqueCooldown, compactTechnique = combat.compactTechnique,
             dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = combat.signatureName,
             signatureLabel = combat.signatureLabel, signatureCooldown = combat.signatureCooldown,
             compactSignature = combat.compactSignature, tint = Color3.fromHex(combat.tint),
@@ -1811,9 +1812,13 @@ local function refreshSparControls(now)
     leaveButton.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · Y" else "Leave"
     local clock = now or workspace:GetServerTimeNow()
     local techniqueCooling = if kit.techniqueCooldown then cooldownSeconds(matchPresentation.nextSecondary, clock) else 0
+    local techniqueWidth = combatButtons.technique.AbsoluteSize.X
+    local shortTechnique = kit.compactTechnique and techniqueWidth > 0 and techniqueWidth < 70
+    local techniqueLabel = if shortTechnique then kit.compactTechnique else kit.techniqueLabel or "Uppercut"
+    local techniqueCooldown = if shortTechnique then techniqueLabel .. "\n%ds" else kit.techniqueCooldown
     combatButtons.technique.TextWrapped = kit.techniqueCooldown ~= nil
-    combatButtons.technique.Text = if techniqueCooling > 0 then string.format(kit.techniqueCooldown, techniqueCooling)
-        else (kit.techniqueLabel or "Uppercut") .. (if keyboard then " · V" elseif gamepad then "\nD-pad ↑" else "")
+    combatButtons.technique.Text = if techniqueCooling > 0 then string.format(techniqueCooldown, techniqueCooling)
+        else techniqueLabel .. (if keyboard then " · V" elseif gamepad then "\nD-pad ↑" else "")
     combatButtons.technique.TextColor3 = if techniqueCooling > 0 then palette.muted else palette.parchment
     combatButtons.heavy.Text = if keyboard then "Heavy · R" elseif gamepad then "Heavy · RB" else "Heavy"
     local separator = if kit.signatureCooldown then "\n" else " · "

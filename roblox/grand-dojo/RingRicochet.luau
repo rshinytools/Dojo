@@ -29,7 +29,7 @@ function Ricochet.plan(bounds, start, heading, skill, obstacle)
     local localHeading = flat(basis:VectorToObjectSpace(heading))
     local direction = if localHeading.Magnitude < epsilon then Vector3.new(0, 0, -1) else localHeading.Unit
     local legs, bounces = {}, {}
-    local time = 0
+    local time, stopAt = 0, nil
     for _ = 1, 22 do
         if time >= skill.rollSeconds - epsilon then
             break
@@ -58,6 +58,10 @@ function Ricochet.plan(bounds, start, heading, skill, obstacle)
         if time >= skill.rollSeconds - epsilon then
             break
         end
+        if skill.reflect == false then
+            stopAt = time
+            break
+        end
         if normal then
             direction -= normal * (2 * direction:Dot(normal))
             position += normal * .018
@@ -73,7 +77,7 @@ function Ricochet.plan(bounds, start, heading, skill, obstacle)
         table.insert(legs, {first = time, last = skill.rollSeconds, a = ending, b = ending,
             heading = if tail then tail.heading else basis:VectorToWorldSpace(direction)})
     end
-    return {legs = legs, bounces = bounces, origin = origin, skill = skill}
+    return {legs = legs, bounces = bounces, origin = origin, skill = skill, stopAt = stopAt}
 end
 
 local function positionAt(leg, time)
@@ -91,23 +95,29 @@ function Ricochet.frameAt(path, time)
 end
 
 local function pitchAt(time, skill)
-    return -math.clamp(time, 0, skill.rollSeconds) * skill.speed / 1.31
+    return -math.clamp(time, 0, skill.rollSeconds) * skill.speed / (skill.wheelRadius or 1.31)
 end
 
 local function wheelHeight(pitch, skill)
     local supports = skill.supportHeights
-    local phase = (pitch / (2 * math.pi) % 1) * #supports
+    local phase = pitch / (2 * math.pi) * #supports
     local index = math.floor(phase)
-    local a, b = supports[index + 1], supports[(index + 1) % #supports + 1]
+    local a, b = supports[index % #supports + 1], supports[(index + 1) % #supports + 1]
     return a + (b - a) * (phase - index) + .025
 end
 
 local function wheelAt(leg, time, skill)
-    return positionAt(leg, time) + Vector3.new(0, wheelHeight(pitchAt(time, skill), skill) - 2.60, 0)
+    return positionAt(leg, time) + Vector3.new(0, wheelHeight(pitchAt(time, skill), skill) - (skill.rootHeight or 2.60), 0)
 end
 
 function Ricochet.sweeps(path, first, last)
     local segments = {}
+    if path.stopAt then
+        last = math.min(last, path.stopAt)
+        if first >= last then
+            return segments
+        end
+    end
     for _, leg in path.legs do
         if leg.last >= first and leg.first <= last then
             table.insert(segments, {a = wheelAt(leg, math.max(first, leg.first), path.skill),
@@ -117,21 +127,35 @@ function Ricochet.sweeps(path, first, last)
     return segments
 end
 
-function Ricochet.pose(offsets, age, skill, shellPivot)
+function Ricochet.sampleAge(path, age, skill)
+    if path and path.stopAt and age >= skill.windup + path.stopAt then
+        return age + skill.rollSeconds - path.stopAt
+    end
+    return age
+end
+
+function Ricochet.pose(offsets, age, skill, shellPivot, path)
     if age < skill.windup then
         return offsets
     end
     local elapsed = age - skill.windup
-    local pitch = pitchAt(elapsed, skill)
+    local active = if path and path.stopAt then path.stopAt else skill.rollSeconds
+    local pitch = pitchAt(math.min(elapsed, active), skill)
     local center = offsets.RootJoint:PointToWorldSpace(shellPivot)
-    local roll = CFrame.new(0, wheelHeight(pitch, skill) - 2.60, 0) * CFrame.Angles(pitch, 0, 0)
+    local roll = CFrame.new(0, wheelHeight(pitch, skill) - (skill.rootHeight or 2.60), 0) * CFrame.Angles(pitch, 0, 0)
         * CFrame.new(-center) * offsets.RootJoint
-    local fade = math.clamp((elapsed - skill.rollSeconds) / .30, 0, 1)
+    local fade = math.clamp((elapsed - active) / .30, 0, 1)
     if fade >= 1 then
         return offsets
     end
     local result = table.clone(offsets)
-    result.RootJoint = roll:Lerp(offsets.RootJoint, fade)
+    local frame = roll:Lerp(offsets.RootJoint, fade)
+    if skill.groundRecovery and fade > 0 then
+        local bank = frame.UpVector
+        local height = wheelHeight(math.atan2(bank.Z, bank.Y), skill) - (skill.rootHeight or 2.60)
+        frame += Vector3.new(0, height - frame:PointToWorldSpace(shellPivot).Y, 0)
+    end
+    result.RootJoint = frame
     return result
 end
 
@@ -150,10 +174,10 @@ function Ricochet.present(cast, parent, floor, age, skill)
     if age >= .14 and age < skill.windup then
         if not cast.warning then
             local start = path.origin
-            local distance = math.min(4.3, path.legs[1].last * skill.speed)
+            local distance = math.min(4.3, (path.stopAt or path.legs[1].last) * skill.speed)
             local heading = path.legs[1].heading
             local point = Vector3.new(start.X, floor + .1, start.Z) + heading * (distance / 2)
-            cast.warning = mark(parent, "Fortress Ricochet guide", CFrame.lookAlong(point, heading),
+            cast.warning = mark(parent, skill.guideName or "Fortress Ricochet guide", CFrame.lookAlong(point, heading),
                 Vector3.new(.23, .045, math.max(.13, distance)))
         end
         return
@@ -161,6 +185,17 @@ function Ricochet.present(cast, parent, floor, age, skill)
     if cast.warning then
         cast.warning:Destroy()
         cast.warning = nil
+    end
+    local active = path.stopAt or skill.rollSeconds
+    if skill.reflect == false and age >= skill.windup and age < skill.windup + active
+        and age >= (cast.emberAt or 0) then
+        cast.emberAt = age + .11
+        local frame = Ricochet.frameAt(path, age - skill.windup)
+        local point = Vector3.new(frame.X, floor + .09, frame.Z)
+        local spark = mark(parent, "Meteor Roll ember", CFrame.lookAlong(point, frame.LookVector), Vector3.new(.46, .08, .90))
+        spark.Color = Color3.fromRGB(255, 141, 69)
+        TweenService:Create(spark, TweenInfo.new(.24, Enum.EasingStyle.Quad), {Transparency = 1}):Play()
+        Debris:AddItem(spark, .26)
     end
     local index = cast.nextBounce or 1
     local bounced = false

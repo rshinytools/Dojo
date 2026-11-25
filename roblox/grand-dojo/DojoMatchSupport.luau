@@ -14,6 +14,8 @@ Match.FighterKits = table.freeze({
     ["pistol-shrimp"] = "shrimp",
     ["walrus-sumo"] = "walrus",
     ["snapping-tortoise"] = "tortoise",
+    ["armadillo-striker"] = "armadillo",
+    ["komodo-dragon"] = "komodo",
 })
 
 local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,

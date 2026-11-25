@@ -140,7 +140,7 @@ for _, fighter in fighterCatalog.ById do
         kits[combat.kit] = {
             fighter = fighter.shortName or fighter.name,
             technique = combat.technique, techniqueAction = combat.techniqueAction, signature = combat.signature,
-            compactSignature = combat.compactSignature,
+            compactTechnique = combat.compactTechnique, compactSignature = combat.compactSignature,
         }
         if combat.techniqueCue then
             earnedCues[combat.techniqueCue] = combat.technique
@@ -165,6 +165,7 @@ local tips = {
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     ricochetBounce = "Shell rebounds",
+    guardBroken = "Guard broken", burn = "Heat lingers",
 }
 
 local waiting, match, lastResultId
@@ -232,7 +233,9 @@ local function updateActionLabels(now, kit)
     actions.guard.Text = hint("Guard", "Q", "LT")
     actions.dodge.Text = hint(kit.dodge or "Dodge", "X", "LB")
     if kit.technique then
-        cooldown(actions.technique, kit.technique, "V", "↑", match.nextSecondary)
+        local width = actions.technique.AbsoluteSize.X
+        local technique = if kit.compactTechnique and width > 0 and width < 70 then kit.compactTechnique else kit.technique
+        cooldown(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
     local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature

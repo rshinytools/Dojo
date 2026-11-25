@@ -1,5 +1,6 @@
 -- Authoritative Duel round clock. The arena supplies contact geometry.
 local Spar = require(script.Parent.ReedguardRound)
+local Magma = require(script.Parent.MagmaFighterCombat)
 local RankRules = require(script.Parent.DuelRankRules)
 local Combatant = Spar.Combatant
 local Duel = {INTRO = Spar.INTRO, DURATION = Spar.DURATION, OUTRO = Spar.OUTRO}
@@ -68,16 +69,21 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
         elseif not kind then
             kind = if defender.counterUntil and at < defender.counterUntil then "counter" else "strike"
         end
-        local landed = kind == "strike" or kind == "counter"
+        local guardBroken = kind == "blocked" and not deflected and move.guardBreak
+        if guardBroken then kind = "guardBroken" end
+        local landed = kind == "strike" or kind == "counter" or guardBroken
         fields.attacker, fields.defender, fields.kind, fields.at = attackerIndex, defenderIndex, kind, at
         fields.deflected = if deflected then true else nil
-        local baseDamage = if landed then fields.damage else 0
+        local baseDamage = if guardBroken then math.ceil(fields.damage * .55) elseif landed then fields.damage else 0
         local matchup = attacker.rankedMatchup
         fields.damage = baseDamage
         if matchup and baseDamage > 0 then
             fields.damage = math.round(baseDamage * matchup.damageScale)
             fields.elementEffect = matchup.elementEffect
             fields.knockbackScale = matchup.knockbackScale
+        end
+        if landed and move.burnDamage then
+            fields.burnDamage = math.max(1, math.round(move.burnDamage * (if matchup then matchup.damageScale else 1)))
         end
         table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and move.shape ~= "wave" and not move.projectile})
         -- The authored Magma Trail budget spends unscaled move damage.
@@ -108,7 +114,12 @@ local function resolveBatch(duel, time, batch)
         if event.damage > 0 then
             defender.damage += event.damage
             local head = event.zone == "head"
-            reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4, HIT_STUN)
+            if event.kind ~= "burn" then
+                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4, HIT_STUN)
+                if event.burnDamage then
+                    Magma.ignite(duel, event.attacker, event.defender, duel.sides[event.defender], time, event.burnDamage)
+                end
+            end
         elseif event.kind == "parried" then
             reaction(defender, "parry", 3, 0)
             defender.parried = true
@@ -165,7 +176,8 @@ function Duel.step(duel, now, check)
     while not duel.result do
         local firstClip, firstTrail, firstEnd = Combatant.nextContacts(first)
         local secondClip, secondTrail, secondEnd = Combatant.nextContacts(second)
-        local time = math.min(firstClip, firstTrail, firstEnd, secondClip, secondTrail, secondEnd)
+        local burnAt = Magma.nextBurn(duel)
+        local time = math.min(firstClip, firstTrail, firstEnd, secondClip, secondTrail, secondEnd, burnAt)
         if time > limit then
             break
         end
@@ -173,6 +185,11 @@ function Duel.step(duel, now, check)
         -- Both contacts see the pre-impact state. Reactions and health only
         -- change after the batch, so a simultaneous knockout is a draw.
         local batch = {}
+        if burnAt == time then
+            for _, event in Magma.burnsAt(duel, time) do
+                table.insert(batch, {notice = event})
+            end
+        end
         collect(duel, 1, time, firstClip, firstTrail, check, batch)
         collect(duel, 2, time, secondClip, secondTrail, check, batch)
         if firstEnd == time then
