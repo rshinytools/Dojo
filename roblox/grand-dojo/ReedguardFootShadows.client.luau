@@ -6,9 +6,7 @@ local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local opacity = {.12, .17, .27, .41}
--- The flagstones sit above the invisible spawn pad and the smooth promenade bed.
-local soleLift = { ["Grand Dojo Spawn"] = .030, ["Promenade mortar bed"] = .068 }
-local shadowLift = { ["Grand Dojo Spawn"] = .024, ["Promenade mortar bed"] = .079 }
+local soleClearance = .003
 local fighterId = "reedguard-kangaroo"
 local source = ReplicatedStorage:WaitForChild("StarterFighterVisuals"):WaitForChild(fighterId)
 local soles = {}
@@ -71,6 +69,9 @@ end
 local ray = RaycastParams.new()
 ray.RespectCanCollide = true
 ray.IgnoreWater = true
+local visibleRay = RaycastParams.new()
+visibleRay.FilterType = Enum.RaycastFilterType.Include
+local visibleScope, visibleFilter = nil, {}
 local trackedCharacter
 local idleWeight = 0
 local plantedFeet = {}
@@ -89,8 +90,40 @@ local function idleJoint(character, humanoid, root)
     return root:FindFirstChild("RootJoint")
 end
 
+local function visibleFloor(floor, probe)
+    local name = floor.Instance.Name
+    local art
+    if name == "Promenade mortar bed" then
+        art = floor.Instance.Parent
+    elseif name == "Grand Dojo Spawn" then
+        local city = workspace:FindFirstChild("Grand Dojo City")
+        local plaza = city and city:FindFirstChild("Plaza & streets")
+        art = plaza and plaza:FindFirstChild("Hewn promenade paving")
+    elseif name == "Warm ring canvas" then
+        art = floor.Instance.Parent:FindFirstChild("Woven arena canvas")
+    end
+    if art then
+        if art ~= visibleScope then
+            visibleScope = art
+            visibleFilter[1] = art
+            visibleRay.FilterDescendantsInstances = visibleFilter
+        end
+        local point = Vector3.new(probe.X, floor.Position.Y, probe.Z)
+        local surface = workspace:Raycast(point + Vector3.yAxis * .12, -Vector3.yAxis * .17, visibleRay)
+        if surface and surface.Normal.Y >= .90 then
+            return surface
+        end
+    end
+    return floor
+end
+
+local function floorAt(probe, above, reach)
+    local floor = workspace:Raycast(probe + Vector3.yAxis * above, -Vector3.yAxis * reach, ray)
+    return floor and visibleFloor(floor, probe)
+end
+
 local function footFloor(probe, center)
-    local floor = workspace:Raycast(probe + Vector3.yAxis * .40, -Vector3.yAxis * .80, ray)
+    local floor = floorAt(probe, .40, .80)
     if not floor or floor.Normal.Y < .90 then
         return nil
     end
@@ -125,7 +158,7 @@ local function footTarget(hip, foot, sole, torsoRest)
     local normal = floor.Normal
     local tangent = forward - normal * forward:Dot(normal)
     local restSole = CFrame.lookAt(point, point + forward)
-    local contact = center + normal * (soleLift[floor.Instance.Name] or 0)
+    local contact = center + normal * soleClearance
     local planted = CFrame.lookAt(contact, contact + tangent, normal)
     return planted * restSole:ToObjectSpace(hipRest)
 end
@@ -134,6 +167,23 @@ RunService.PreSimulation:Connect(function(dt)
     local character = player.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
     local root = humanoid and humanoid.RootPart
+    local shell = character and character:FindFirstChild("Starter Fighter Shell")
+    local animate = character and character:FindFirstChild("Animate")
+    if shell and shell:GetAttribute("FighterId") == fighterId and animate and animate.Disabled then
+        -- Arena poses are authored in C0. The local Animator can still supply
+        -- a hip Transform after Animate stops, lifting the planted boots.
+        local torso = character:FindFirstChild("Torso")
+        if torso then
+            for _, name in {"Left Hip", "Right Hip"} do
+                local hip = torso:FindFirstChild(name)
+                if hip and hip.Transform ~= CFrame.identity then
+                    hip.Transform = CFrame.identity
+                end
+            end
+        end
+        idleWeight = 0
+        return
+    end
     local joint = character == trackedCharacter and next(plantedFeet) and idleJoint(character, humanoid, root)
     if not joint or not joint.Part1 then
         idleWeight = 0
@@ -184,18 +234,17 @@ RunService.Heartbeat:Connect(function(dt)
         local foot = active and shell:FindFirstChild(name)
         local sole = soles[name]
         local position = foot and foot.CFrame:PointToWorldSpace(sole.point)
-        local floor = position and workspace:Raycast(position + Vector3.yAxis * .18, -Vector3.yAxis * .54, ray)
-        local lift = floor and shadowLift[floor.Instance.Name] or 0
+        local floor = position and floorAt(position, .18, .54)
         local floorGap = if floor then position.Y - floor.Position.Y else math.huge
         local fade = if floor and floor.Normal.Y >= .65
-            then math.clamp(1 - (floorGap - lift) / .26, 0, 1)
+            then math.clamp(1 - floorGap / .26, 0, 1)
             else 0
         shadow.surface.Enabled = fade > .03
         if shadow.surface.Enabled then
             local normal = floor.Normal
             local forward = foot.CFrame:VectorToWorldSpace(sole.forward)
             forward -= normal * forward:Dot(normal)
-            local center = floor.Position + normal * (.009 + lift)
+            local center = floor.Position + normal * .009
             local tangent = if forward.Magnitude > .01 then forward.Unit else normal:Cross(Vector3.xAxis).Unit
             shadow.plate.CFrame = CFrame.lookAt(center, center + tangent, normal)
             for index, layer in shadow.layers do

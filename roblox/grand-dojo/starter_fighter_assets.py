@@ -199,7 +199,7 @@ def build_fighter_visual_models(library, visual_assets, *, item, part, prop, ass
         for name, (mesh_id, texture_id, channel, size, mesh_size, cframe, pivot) in groups.items():
             if fighter_id == "reedguard-kangaroo" and name == "Tail":
                 # Shorten the tail from its attachment while retaining its fitted thickness.
-                scales = (.48, .48, .33)
+                scales = (.48, .48, .30)
                 scaled_pivot = tuple(value * scale for value, scale in zip(pivot[:3], scales))
                 center = tuple(cframe[i] + sum(cframe[3 + 3 * i + j] * (pivot[j] - scaled_pivot[j])
                                                for j in range(3)) for i in range(3))

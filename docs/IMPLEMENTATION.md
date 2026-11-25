@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.317 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.318 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -10,6 +10,8 @@ The v0.317 Studio checkpoint is the starting point for new work. This repository
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
 
 ## Reedguard footing
+
+V0.318 keeps Roblox’s idle hip animation from lifting Reedguard during the authored combat stance. The plaza boots and their contact shadows follow the visible sandstone surface. The tail is 0.865 studs deep, down from 0.951, with the same attachment and thickness on Rookie, Warrior and Grandmaster. Desktop Studio measured the ring sole centers within 0.006 studs of the collision mat during Juniper’s intro and live stance. The previous maximum was 0.037 studs. The plaza test sampled 25 authored points on each boot and both boots made contact on every sampled frame. Published play and physical-device checks remain open.
 
 V0.314 plants Reedguard’s local idle boots on the visible plaza stone and keeps the adjustment active during the Lantern Timing drill. Each boot can find support independently. Two wider floor shadows make his stance easier to read. Tail depth fell from 1.038 to 0.951 studs across all three forms, using the same joint and thickness. Desktop Studio measured toe, center and heel near the visible arrival flagstone, and repeated the check on the promenade, red bridge and live drill. At spawn the six sole samples were within 0.007 studs of the visible stone. The drill’s maximum toe-to-heel spread dropped from 0.069 studs to below 0.001 studs. Published play and physical-device checks remain open.
 

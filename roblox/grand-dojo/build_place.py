@@ -421,6 +421,7 @@ def build_promenade(parent):
             triangle(stone,face[0],a,b,triangle_tint,name="Sandstone cut",
                      thickness=.021,material=LIMESTONE,shadow=False)
             for facet in stone[first:]:
+                facet.find("Properties/bool[@name='CanQuery']").text="true"
                 prop(facet,"string",MATERIAL_VARIANT_FIELD,FESTIVAL_FLAGSTONE)
                 if damp>.16:
                     prop(facet,"float","Reflectance",round(damp*.15,3))
@@ -2040,6 +2041,7 @@ part(ring,"Ring edge",(36,2.6+ring_rise,5),(36,.35,30),"A44A31")
 part(ring,"Warm ring canvas",(36,ring_floor-.12,5),(32,.24,26),"E5BC7E")
 cloth=part(ring,"Woven arena canvas",(36,ring_floor-.007,5),(31.98,.020,25.98),CANVAS_TINT,
            material=FABRIC,collide=False)
+cloth.find("Properties/bool[@name='CanQuery']").text="true"
 prop(cloth,"string",MATERIAL_VARIANT_FIELD,ARENA_WEAVE)
 prop(cloth,"bool","CastShadow",False)
 build_ring_canvas_detail(ring, center=(36,ring_floor,5),item=item,part=part,prop=prop,

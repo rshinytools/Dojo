@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.318, stand still at Festival Plaza arrival and during Juniper Bot Spar. Reedguard’s boots and their shadows follow the actual paving in the plaza. The authored stance controls his hips in the ring, and the same shorter tail fits all three forms.
+
 In v0.317, watch Bracken, Sablecrest and Granite between attacks. Step close to see them back up, then hold their guard distance to see them circle or pivot before committing to their next attack.
 
 In v0.316, move left and right around Juniper while facing him. Penguin and the other playable fighters now open and close their stance as they move left or right. The step direction is relative to the fighter’s facing.
