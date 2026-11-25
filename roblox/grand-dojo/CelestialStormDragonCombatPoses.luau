@@ -128,10 +128,73 @@ local bow = pose({0, -.31, -.151, -27, 0, 0}, {36, 13, -23}, {36, -15, 25},
 local dragonCrown = pose({0, -.056, .041, 8, 0, 0}, {71, -13, -56, .078, .095, .086},
     {70, 14, 56, -.081, .095, .088}, anchorRight, anchorLeft, {15, 0, 0}, {-10, -7, 1})
 
+-- Zephyr Knuckle folds the near wing inward to tap with its padded forepaw.
+local zephyrLoad = pose({-.083, -.211, .079, -10, 24, 6}, rightGuard,
+    {43, -6, 61, -.054, .082, .111}, rear, lead, {9, -22, -5}, {-11, -29, -6})
+local zephyrHit = pose({-.05, -.206, -.162, -17, -23, 4}, {60, 19, -33, -.07, .085, .04},
+    {62, -29, 16, .185, .067, -.15}, rear, lead, {16, 21, -3}, {-15, 27, 8})
+local zephyrFold = pose({-.038, -.235, -.053, -13, -10, 3}, rightGuard,
+    {50, -23, 29, .094, .059, -.024}, rear, lead, {12, 9, -2}, {-13, 13, 5})
+
+-- Cloudbank Toe lets the right boot check low from a firm left support.
+local bankLoad = pose({-.15, -.252, .048, -8, -14, 11}, {57, 20, -33, -.035, .076, .068},
+    {61, -17, 32, .067, .086, .031}, {26, -8, 1, .109, .014, -.119, .258}, lead,
+    {8, 12, -7}, {-13, 21, 8})
+local bankHit = pose({-.146, -.185, -.195, -3, 9, 11}, {61, 17, -33, -.043, .076, .029},
+    {65, -21, 32, .080, .09, .054}, {47, 11, 2, -.067, .02, -.31, .478}, lead,
+    {6, -8, -8}, {-9, -14, 7})
+local bankFold = pose({-.145, -.225, -.069, -8, -4, 9}, {59, 18, -32, -.053, .065, .038},
+    leftGuard, {31, -4, 3, .09, .015, -.13, .303}, lead, {9, 4, -6}, {-13, 8, 6})
+local bankSettle = pose({-.065, -.206, .018, -10, -2, 4}, rightGuard,
+    leftGuard, {13, -17, 0, .14, 0, .094, .078}, lead, {10, 2, -2}, {-11, 9, 2})
+
+-- Thunderhead Drop raises both wings while the boots stay down. The right
+-- padded paw cuts down into the opponent's upper body as the left opens.
+local thunderheadBrace = pose({.07, -.29, .138, -16, -15, -6},
+    {72, 17, -29, -.045, .148, .079}, {67, -15, 26, .038, .127, .065},
+    rear, lead, {14, 12, 6}, {-10, 21, 6})
+local thunderheadCrown = pose({.13, -.115, .074, 6, -22, -7},
+    {146, 12, 8, .11, .11, .115}, {117, -15, -15, -.11, .1, .13},
+    rear, lead, {-2, 19, 5}, {-3, 26, 10})
+local thunderheadFall = pose({.115, -.328, -.063, -2, 12, -7},
+    {103, 19, 0, -.082, .086, -.065}, {84, -15, 9, -.055, .092, .096},
+    rear, lead, {7, -10, 5}, {-12, -18, 9})
+local thunderheadHit = pose({.077, -.437, -.31, -22, 28, -3},
+    {63, 27, -12, -.192, -.012, -.237}, {72, -16, 29, -.033, .081, .078},
+    rear, lead, {21, -25, 3}, {-17, -36, 7})
+local thunderheadCarry = pose({.069, -.473, -.178, -25, 35, -2},
+    {45, 31, -17, -.137, -.041, -.182}, {62, -19, 32, .04, .079, .055},
+    rear, lead, {23, -31, 2}, {-18, -43, 6})
+local thunderheadFold = pose({.038, -.248, -.048, -14, 13, -4}, rightGuard,
+    leftGuard, rear, lead, {13, -11, 3}, {-13, -18, 5})
+
+-- Cirrus Breaker presents a low tail sweep, opens the far wing to show the
+-- beat between hits, then lands high with the opposite padded forepaw.
+local cirrusCoil = pose({.068, -.289, .087, -10, 30, -5},
+    {55, 15, -33, -.067, .092, .041}, {62, -17, 39, .042, .105, .065},
+    rear, lead, {9, -25, 3}, {-15, -60, 11})
+local cirrusUnwind = pose({-.017, -.282, -.106, -10, -56, 1},
+    {57, 15, -39, .027, .094, .094}, {59, -17, 36, .07, .084, .089},
+    rear, lead, {9, 27, -3}, {-13, -75, -8})
+local cirrusTail = pose({.023, -.285, -.40, -8, -130, 1},
+    {58, 19, -45, .045, .087, .106}, {59, -18, 35, .055, .092, .077},
+    rear, lead, {11, 55, -3}, {1, -61, -2, 0, .035, .11})
+local cirrusGather = pose({-.061, -.289, -.092, -13, -75, 4}, rightGuard,
+    {79, -12, 22, .02, .10, .067}, rear, lead, {11, 42, -4}, {-14, -52, 7})
+local cirrusRaise = pose({-.105, -.229, .072, -7, 21, 8},
+    {57, 15, -31, -.058, .096, .043}, {114, -8, 22, -.055, .115, .108},
+    rear, lead, {6, -19, -4}, {-10, -30, -8})
+local cirrusPaw = pose({-.067, -.133, -.234, -8, -29, 6},
+    {61, 21, -32, -.066, .110, .06}, {69, -26, 12, .171, .126, -.206},
+    rear, lead, {8, 27, -5}, {-9, 32, 9})
+local cirrusFold = pose({-.068, -.249, -.062, -17, -37, 8}, rightGuard,
+    {52, -30, 21, .13, .071, -.077}, rear, lead, {16, 33, -6}, {-16, 46, 9})
+
 local channelAt, channelEnd = .52, 1.54
 local beamBeats = table.freeze({channelAt, .76, 1.00, 1.24, 1.48})
 local thunderAt = 1.37
 local contacts = {jab = .175, cross = .239, body = .281, heavy = .433, stormClaw = .31,
+    zephyrKnuckle = .16, cloudbankToe = .25, thunderheadDrop = .65, cirrusBreaker = table.freeze({.35, .71}),
     horizonPalm = .24, nimbusTail = .52, tempestRoar = table.freeze({beamBeats[1], beamBeats[2], beamBeats[3], beamBeats[4], thunderAt, beamBeats[5]})}
 local clips = {
     stance = {{0, ready}, {.675, breathe}, {1.35, ready}},
@@ -145,6 +208,15 @@ local clips = {
         {.551, heavyCarry}, {.829, ready}},
     stormClaw = {{0, ready}, {.135, clawWind}, {.224, clawArmed}, {contacts.stormClaw, clawHit},
         {.403, clawFollow}, {.53, breathe}, {.679, ready}},
+    zephyrKnuckle = {{0, ready}, {.07, zephyrLoad}, {contacts.zephyrKnuckle, zephyrHit}, {.263, zephyrFold}, {.41, ready}},
+    cloudbankToe = {{0, ready}, {.108, bankLoad}, {contacts.cloudbankToe, bankHit}, {.348, bankFold},
+        {.446, bankSettle}, {.54, ready}},
+    thunderheadDrop = {{0, ready}, {.159, thunderheadBrace}, {.349, thunderheadCrown}, {.448, thunderheadCrown},
+        {.55, thunderheadFall}, {contacts.thunderheadDrop, thunderheadHit}, {.766, thunderheadCarry},
+        {.995, thunderheadFold}, {1.25, ready}},
+    cirrusBreaker = {{0, ready}, {.129, cirrusCoil}, {.241, cirrusUnwind}, {contacts.cirrusBreaker[1], cirrusTail},
+        {.455, cirrusGather}, {.574, cirrusRaise}, {contacts.cirrusBreaker[2], cirrusPaw}, {.824, cirrusFold},
+        {.993, thunderheadFold}, {1.22, ready}},
     horizonPalm = {{0, ready}, {.094, horizonLoad}, {contacts.horizonPalm, horizonHit}, {.345, horizonFold}, {.60, ready}},
     nimbusTail = {{0, ready}, {.145, nimbusGather}, {.246, nimbusCoil}, {.310, nimbusCoil}, {.392, nimbusOpen},
         {.454, nimbusSwing}, {contacts.nimbusTail, nimbusHit}, {.627, nimbusFollow}, {.781, nimbusFold}, {.99, ready}},
@@ -175,7 +247,24 @@ local function contactSurface(authored, joint, center, halfSize, pitch, directio
     return frame:PointToWorldSpace(front * halfSize / front.Magnitude)
 end
 
+-- Track the visible rounded striking surfaces through their contact keys.
+local function mountedSurface(key, joint, rest)
+    return (key.RootJoint * key[joint]):PointToWorldSpace(rest)
+end
+
+local zephyrPad = v(-1.640323907, -.257698744, -.764944485)
+local bankToe = v(.540524973, -2.022870568, -.858420485)
+local thunderheadPad = v(1.642682955, -.252545160, -.765462257)
+local cirrusTailPad = v(.021649957, .184353785, 1.901827709)
+local cirrusPawPad = v(-1.626778109, -.281600999, -.760228376)
 local hits = {
+    zephyrKnuckle = {mountedSurface(zephyrHit, "Left Shoulder", zephyrPad)},
+    cloudbankToe = {mountedSurface(bankHit, "Right Hip", bankToe)},
+    thunderheadDrop = {mountedSurface(thunderheadHit, "Right Shoulder", thunderheadPad)},
+    cirrusBreaker = {
+        mountedSurface(cirrusTail, "TailJoint", cirrusTailPad),
+        mountedSurface(cirrusPaw, "Left Shoulder", cirrusPawPad),
+    },
     jab = {{jabHit, "Right Shoulder", rightClaw}}, cross = {{crossHit, "Left Shoulder", leftClaw}},
     body = {{bodyHit, "Right Shoulder", rightClaw}}, heavy = {{heavyHit, "Left Shoulder", leftClaw}},
     stormClaw = {{clawHit, "Left Shoulder", leftClaw}},
@@ -185,6 +274,8 @@ local hits = {
         {beamEase, "Neck", muzzle}, v(0, -rootHeight, 0), {beamEase, "Neck", muzzle}},
 }
 local skills = {
+    zephyrKnuckle = table.freeze({damage = 12, radius = .43}),
+    cloudbankToe = table.freeze({damage = 15, radius = .47, foot = true}),
     stormClaw = table.freeze({damage = 21, radius = .60, shove = .88}),
     horizonPalm = table.freeze({damage = 15, radius = .43}),
     nimbusTail = table.freeze({damage = 24, radius = .55}),
@@ -196,8 +287,25 @@ local skills = {
 }
 local travel = {stormClaw = table.freeze({axis = "forward", distance = .29, startsAt = .163, endsAt = .30})}
 
-local planted = {horizonPalm = true, nimbusTail = true}
-local poses = table.clone(rig.finish(clips, contacts, hits, skills, travel, {"sidestep"}, planted))
+local planted = {
+    horizonPalm = true, nimbusTail = true, zephyrKnuckle = true, thunderheadDrop = true, cirrusBreaker = true,
+}
+local standard = rig.finish(clips, contacts, hits, skills, travel, {"sidestep"}, planted)
+local poses = table.clone(standard)
+local leftSupport = ready.RootJoint * ready["Left Hip"]
+
+function poses.sample(action, age, direction)
+    local offsets = standard.sample(action, age, direction)
+    if action == "cloudbankToe" then
+        offsets["Left Hip"] = offsets.RootJoint:ToObjectSpace(leftSupport)
+    end
+    return offsets
+end
+
+poses.UltimateSkill = table.freeze({
+    thunderheadDrop = table.freeze({damage = 33, radius = .55}),
+    cirrusBreaker = table.freeze({damage = table.freeze({13, 22}), radius = table.freeze({.47, .50})}),
+})
 function poses.muzzleAt(age)
     local offsets = poses.sample("tempestRoar", age)
     local head = offsets.RootJoint * offsets.Neck

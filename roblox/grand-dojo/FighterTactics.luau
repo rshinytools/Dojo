@@ -223,7 +223,8 @@ local byFighter = {
     ["magma-grizzly-bear"] = {
         kit = "grizzly", attribute = "GrizzlyTactical", default = "basaltBackhand",
         options = {
-            {id = "basaltBackhand", name = "Basalt Backhand", compact = "Backhand", level = 1, action = "secondary"},
+            {id = "basaltBackhand", name = "Basalt Backhand", compact = "Backhand", level = 1, action = "secondary",
+                description = "Turn through a backhand that pushes the opponent back."},
             {id = "pumiceKnuckle", name = "Pumice Knuckle", compact = "Knuckle", level = 5, action = "secondary", planted = true,
                 description = "A short, quick strike with the padded forepaw."},
             {id = "forgeShoulder", name = "Forge Shoulder", compact = "Shoulder", level = 10, action = "secondary", planted = true,
@@ -233,7 +234,8 @@ local byFighter = {
     ["obsidian-hellhound"] = {
         kit = "hellhound", attribute = "HellhoundTactical", default = "cinderLunge",
         options = {
-            {id = "cinderLunge", name = "Cinder Lunge", compact = "Lunge", level = 1, action = "secondary"},
+            {id = "cinderLunge", name = "Cinder Lunge", compact = "Lunge", level = 1, action = "secondary",
+                description = "Step forward into a padded paw strike."},
             {id = "emberKnuckle", name = "Ember Knuckle", compact = "Knuckle", level = 5, action = "secondary", planted = true,
                 description = "A compact strike that snaps out of a narrow guard."},
             {id = "blackglassSweep", name = "Blackglass Sweep", compact = "Sweep", level = 10, action = "secondary", planted = true,
@@ -243,7 +245,8 @@ local byFighter = {
     ["golden-eagle"] = {
         kit = "eagle", attribute = "EagleTactical", default = "galeRake",
         options = {
-            {id = "galeRake", name = "Gale Rake", compact = "Rake", level = 1, action = "secondary"},
+            {id = "galeRake", name = "Gale Rake", compact = "Rake", level = 1, action = "secondary",
+                description = "Sweep the padded wing across the opponent and push them back."},
             {id = "gildedFlick", name = "Gilded Flick", compact = "Flick", level = 5, action = "secondary", planted = true,
                 description = "A quick strike with the edge of the leading feathers."},
             {id = "crosswindWing", name = "Crosswind Wing", compact = "Crosswind", level = 10, action = "secondary", planted = true,
@@ -253,7 +256,8 @@ local byFighter = {
     ["celestial-storm-dragon"] = {
         kit = "dragon", attribute = "DragonTactical", default = "stormClaw",
         options = {
-            {id = "stormClaw", name = "Storm Claw", compact = "Claw", level = 1, action = "secondary"},
+            {id = "stormClaw", name = "Storm Claw", compact = "Claw", level = 1, action = "secondary",
+                description = "Step forward with a heavy padded forepaw strike."},
             {id = "horizonPalm", name = "Horizon Palm", compact = "Palm", level = 5, action = "secondary", planted = true,
                 description = "A short foreclaw strike from a steady guard."},
             {id = "nimbusTail", name = "Nimbus Tail", compact = "Tail", level = 10, action = "secondary", planted = true,

@@ -210,8 +210,121 @@ local skills = {
 }
 local travel = {galeRake = table.freeze({axis = "forward", distance = .26, startsAt = .16, endsAt = .28})}
 
-local poses = table.clone(rig.finish(clips, contacts, hits, skills, travel, {"sidestep"},
-    {gildedFlick = true, crosswindWing = true}))
+local standard = rig.finish(clips, contacts, hits, skills, travel, {"sidestep"},
+    {gildedFlick = true, crosswindWing = true})
+local leftHip, rightHip = "Left Hip", "Right Hip"
+local leftPlant = CFrame.new(0, -.009, 0) * ready.RootJoint * ready[leftHip]
+local rightPlant = CFrame.new(0, -.009, 0) * ready.RootJoint * ready[rightHip]
+
+local function plantTalons(offsets, both)
+    local root = offsets.RootJoint
+    offsets[leftHip] = root:ToObjectSpace(leftPlant)
+    if both then
+        offsets[rightHip] = root:ToObjectSpace(rightPlant)
+    end
+    return offsets
+end
+
+local function fitted(core, right, left, head, tail, kick)
+    return plantTalons(pose(core, right, left, kick or rear, lead, head, tail), kick == nil)
+end
+
+local variantReady = plantTalons(table.clone(ready), true)
+local tapFold = fitted({-.033, -.146, .072, -7, 21, 3}, rightGuard,
+    {46, -11, -22, .058, .050, .112}, {8, -17, -4}, {-8, -20, -2})
+local tapHit = fitted({-.025, -.220, -.071, -11, -27, 4}, {52, 14, 25, -.071, .063, .024},
+    {63, -22, 10, .136, .018, -.102}, {13, 25, -3}, {-7, 26, -4})
+local tapEase = fitted({-.023, -.167, -.022, -9, -14, 3}, rightGuard,
+    {61, -20, -7, .103, .044, -.039}, {10, 13, -3}, {-8, 16, -3})
+
+local toeSet = fitted({-.079, -.180, .049, -6, -9, 7}, {47, 13, 29, -.036, .074, .083},
+    {62, -20, -20, .102, .112, -.031}, {8, 9, -5}, {-8, 13, -6})
+local toeTuck = fitted({-.116, -.192, .019, -8, -5, 8}, {44, 15, 32, -.055, .075, .070},
+    {65, -19, -17, .108, .113, .025}, {8, 6, -5}, {-7, 9, -7},
+    {32, -15, 5, .110, .036, .023, .25})
+local toeHit = fitted({-.083, -.223, -.189, -11, 15, 8}, {47, 18, 31, -.067, .078, -.009},
+    {65, -21, -21, .117, .113, .033}, {11, -13, -4}, {-9, -14, -7},
+    {64, -6, 0, -.026, .060, -.289, .56})
+local toeEase = fitted({-.064, -.184, -.072, -8, 10, 5}, {49, 16, 28, -.052, .073, -.016},
+    {64, -20, -23, .093, .088, -.004}, {9, -9, -3}, {-8, -11, -5},
+    {28, -15, 4, .071, .048, -.112, .205})
+
+local fanBrace = fitted({.015, -.227, .083, -11, -4, 1}, {39, -8, 48, -.114, .071, .090},
+    {41, 9, -50, .104, .069, .083}, {10, 4, 0}, {-12, 5, 1})
+local fanRaise = fitted({.012, -.055, .092, 1, -2, 0}, {93, -13, 81, -.245, .109, .025},
+    {94, 11, -84, .235, .107, .023}, {-2, 2, 0}, {-5, 2, 0})
+local fanFold = fitted({.015, -.238, -.087, -13, 2, 1}, {70, 12, 27, -.16, .070, -.103},
+    {71, -14, -28, .151, .090, -.093}, {13, -2, -1}, {-8, -3, -1})
+local fanHit = fitted({.021, -.385, -.332, -24, 4, -1}, {51, 23, -10, -.320, -.084, -.273},
+    {50, -21, 10, .29, -.065, -.253}, {18, -3, 0}, {-9, -5, 2})
+local fanBrake = fitted({.016, -.36, -.192, -19, 2, 0}, {53, 18, -3, -.193, -.018, -.135},
+    {54, -16, 4, .181, -.010, -.127}, {15, -2, -1}, {-8, -4, 1})
+local fanEase = fitted({.013, -.224, -.053, -12, 3, -1}, rightGuard, leftGuard,
+    {11, -1, 0}, {-8, -4, 1})
+
+local arcLeftLoad = fitted({-.069, -.233, .114, -9, 33, 7}, {59, 14, 20, -.061, .082, .031},
+    {40, 14, -64, .138, .041, .141}, {8, -28, -6}, {-12, -34, -6})
+local arcLeft = fitted({-.059, -.172, -.186, -12, -33, 4}, {54, 14, 29, -.080, .077, .053},
+    {77, -23, 10, .171, .126, -.217}, {10, 29, -3}, {-5, 36, -4})
+local arcRightLoad = fitted({.078, -.334, .024, -16, -42, -7}, {33, -16, 66, -.147, .047, .083},
+    {53, -18, -26, .095, .079, .040}, {15, 33, 6}, {-10, 39, 6})
+local arcRight = fitted({.047, -.316, -.294, -14, 37, -3}, {59, 26, -12, -.222, -.072, -.264},
+    {54, -18, -34, .107, .084, .064}, {15, -32, 3}, {-8, -39, 5})
+local arcFollow = fitted({.06, -.281, -.135, -15, 30, -4}, {58, 21, -8, -.147, .021, -.101},
+    {59, -17, -29, .088, .089, .026}, {13, -27, 3}, {-9, -31, 5})
+
+local toeLiftAt, toePlantAt = .075, .493
+local variantContact = {aerieTap = .139, ridgeTalon = .251, sunfanCrash = .63, crownArc = table.freeze({.35, .70})}
+local variantClips = {
+    aerieTap = {{0, variantReady}, {.054, tapFold}, {variantContact.aerieTap, tapHit},
+        {.235, tapEase}, {.375, variantReady}},
+    ridgeTalon = {{0, variantReady}, {toeLiftAt, toeSet}, {.15, toeTuck}, {variantContact.ridgeTalon, toeHit},
+        {.356, toeEase}, {toePlantAt, variantReady}, {.54, variantReady}},
+    sunfanCrash = {{0, variantReady}, {.165, fanBrace}, {.269, fanRaise}, {.387, fanRaise}, {.52, fanFold},
+        {variantContact.sunfanCrash, fanHit}, {.755, fanBrake}, {.984, fanEase}, {1.23, variantReady}},
+    crownArc = {{0, variantReady}, {.16, arcLeftLoad}, {variantContact.crownArc[1], arcLeft},
+        {.51, arcRightLoad}, {variantContact.crownArc[2], arcRight}, {.834, arcFollow}, {1.20, variantReady}},
+}
+-- Latch the new hits to the fitted feather pads and rounded talon.
+local variantHits = {
+    aerieTap = {{tapHit, "Left Shoulder", v(-1.533722983, 1.841856833, -.742815435)}},
+    ridgeTalon = {{toeHit, rightHip, v(.504152882, .097949048, -.824072211)}},
+    sunfanCrash = {{fanHit, "Right Shoulder", v(1.511594266, 1.846692098, -.766753850)}},
+    crownArc = {{arcLeft, "Left Shoulder", v(-1.532635011, 1.837074652, -.735892261)},
+        {arcRight, "Right Shoulder", v(1.554819913, 1.876090905, -.739465090)}},
+}
+local basicSkills = {
+    aerieTap = table.freeze({damage = 12, radius = .43}),
+    ridgeTalon = table.freeze({damage = 15, radius = .48, foot = true}),
+}
+local variants = rig.finish(variantClips, variantContact, variantHits, basicSkills, {}, {})
+local poses = table.clone(standard)
+poses.UltimateSkill = table.freeze({
+    sunfanCrash = table.freeze({damage = 32, radius = .56}),
+    crownArc = table.freeze({damage = table.freeze({13, 21}), radius = table.freeze({.48, .54})}),
+})
+for _, field in {"Duration", "Contact", "Impact", "Skill"} do
+    local values = table.clone(standard[field])
+    for move, value in variants[field] do
+        values[move] = value
+    end
+    poses[field] = table.freeze(values)
+end
+
+function poses.sample(action, age, direction)
+    if variantContact[action] then
+        local time = age or 0
+        local both = action ~= "ridgeTalon" or time <= toeLiftAt or time >= toePlantAt
+        return plantTalons(variants.sample(action, time, direction), both)
+    end
+    return standard.sample(action, age, direction)
+end
+
+function poses.impact(action, index, direction)
+    local source = if variantContact[action] then variants else standard
+    return source.impact(action, index, direction)
+end
+
 function poses.talonsAt(age)
     return talons(poses.sample("talonDrop", age))
 end

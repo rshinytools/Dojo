@@ -124,11 +124,67 @@ local bow = pose({0, -.32, -.15, -29, 0, 0}, {39, 12, -25, -.035, .04, .04},
 local roar = pose({0, -.075, .042, 7, 0, 0}, {80, -9, -47, .11, .11, -.043},
     {81, 11, 46, -.117, .115, -.045}, anchorRight, anchorLeft, {-16, 0, 0}, {-9, 8, 1})
 
+local cinderFold = pose({-.085, -.245, .074, -9, 21, 5}, rightGuard,
+    {33, -12, 29, .066, .073, .153}, rear, lead, {9, -19, -4}, {-13, -24, 6})
+local cinderHit = pose({-.045, -.244, -.024, -13, -26, 4}, rightGuard,
+    {62, -18, 13, .124, .067, -.041}, rear, lead, {12, 25, -3}, {-12, 22, -6})
+local cinderReset = pose({-.068, -.23, -.051, -10, -13, 4}, rightGuard,
+    {48, -18, 22, .081, .084, -.051}, rear, lead, {10, 12, -3}, {-10, 18, -4})
+
+local toeDraw = pose({.14, -.275, .090, -8, -8, -12}, rightGuard,
+    {56, -14, 33, .061, .088, .021}, rear, {26, 13, -1, -.084, .064, .055, .12},
+    {8, 8, 8}, {-10, 11, 7})
+local toeHit = pose({.13, -.268, -.150, -11, -12, -11}, rightGuard,
+    {58, -17, 37, .074, .089, .015}, rear, {49, 7, 4, -.02, .063, -.45, .24},
+    {9, 11, 8}, {-11, 20, 8})
+local toePull = pose({.10, -.29, -.07, -12, -10, -7}, rightGuard,
+    {53, -17, 34, .064, .087, .033}, rear, {27, 11, 2, -.075, .051, -.157, .16},
+    {10, 9, 5}, {-12, 14, 7})
+
+local furnaceSet = pose({0, -.34, .08, -13, -2, 0}, {37, 12, 42, .07, .072, .14},
+    {46, -14, -28, -.059, .084, .08}, rear, lead, {12, -1, 1}, {-20, 4, -6})
+local furnaceRaise = pose({.028, -.184, .045, -9, -17, -3}, {103, 19, 31, .073, .15, .102},
+    {66, -16, 30, .067, .10, -.13}, rear, lead, {8, 15, 2}, {-12, 20, -7})
+local furnaceHit = pose({.032, -.414, -.27, -21, 28, -3}, {61, 21, -15, -.17, -.035, -.245},
+    {62, -16, 33, .065, .10, -.041}, rear, lead, {18, -26, 3}, {-17, -36, 8})
+local furnaceEase = pose({.026, -.31, -.15, -14, 19, -3}, {54, 17, -22, -.115, .034, -.10},
+    leftGuard, rear, lead, {12, -17, 2}, {-15, -23, 6})
+
+local foundryLoad = pose({-.13, -.29, .091, -12, 32, 7}, rightGuard,
+    {39, -5, -43, -.094, .083, .21}, rear, lead, {11, -28, -6}, {-13, -35, 7})
+local foundryHigh = pose({-.035, -.19, -.32, -12, -31, 4}, rightGuard,
+    {75, -20, 11, .178, .123, -.267}, rear, lead, {9, 27, -3}, {-17, 34, -5})
+local foundryTurn = pose({.128, -.34, .026, -16, -37, -8}, {27, 13, 39, .10, .054, .19},
+    leftGuard, rear, lead, {16, 33, 7}, {-14, 43, -8})
+local foundryLow = pose({.048, -.423, -.28, -21, 26, -6}, {54, 20, -16, -.17, -.032, -.246},
+    leftGuard, rear, lead, {18, -25, 4}, {-19, -33, 7})
+local foundryOut = pose({.036, -.34, -.118, -15, 15, -4}, {48, 18, -22, -.112, .027, -.096},
+    leftGuard, rear, lead, {12, -14, 3}, {-13, -26, 7})
+
+local function forwardSurface(at, joint, center, radii)
+    local plate = at.RootJoint * at[joint] * CFrame.new(center - v(0, rootHeight, 0))
+    local view = plate:VectorToObjectSpace(v(0, 0, -1))
+    local offset = (view * radii * radii) / (view * radii).Magnitude
+    return plate:PointToWorldSpace(offset)
+end
+local function boxingGlove(at, side)
+    return forwardSurface(at, if side > 0 then "Right Shoulder" else "Left Shoulder",
+        v(side * 1.414, 1.915, -.642), v(.4825, .336, .276))
+end
+local toeSurface = forwardSurface(toeHit, "Left Hip", v(-.55, .221, -.816), v(.337, .1185, .081))
+
 local contact = {jab = .183, cross = .248, body = .294, heavy = .45, basaltBackhand = .32,
     pumiceKnuckle = .25, forgeShoulder = .53,
-    eruptionSlam = table.freeze({.52, .68, .84, 1.00})}
+    eruptionSlam = table.freeze({.52, .68, .84, 1.00}),
+    cinderTap = .166, smelterToe = .26, furnaceGate = .66, foundryTurn = table.freeze({.35, .71})}
 local beat = contact.eruptionSlam
 local clips = {
+    cinderTap = {{0, ready}, {.078, cinderFold}, {contact.cinderTap, cinderHit}, {.263, cinderReset}, {.43, ready}},
+    smelterToe = {{0, ready}, {.108, toeDraw}, {contact.smelterToe, toeHit}, {.369, toePull}, {.57, ready}},
+    furnaceGate = {{0, ready}, {.17, furnaceSet}, {.325, furnaceRaise}, {.455, furnaceRaise},
+        {contact.furnaceGate, furnaceHit}, {.743, furnaceHit}, {.91, furnaceEase}, {1.30, ready}},
+    foundryTurn = {{0, ready}, {.164, foundryLoad}, {contact.foundryTurn[1], foundryHigh}, {.483, foundryTurn},
+        {.571, foundryTurn}, {contact.foundryTurn[2], foundryLow}, {.85, foundryOut}, {1.24, ready}},
     stance = {{0, ready}, {.71, breathe}, {1.42, ready}},
     advance = {{0, ready}, {.192, forwardLead}, {.381, breathe}, {.574, forwardRear}, {.765, ready}},
     retreat = {{0, ready}, {.201, backRear}, {.399, breathe}, {.60, backLead}, {.802, ready}},
@@ -170,6 +226,8 @@ local rightPad, leftPad = v(1.40, 1.89, -.959), v(-1.40, 1.89, -.959)
 -- The first impact is the glove touching the mat. The other positions describe
 -- the consecutive rifts ahead of that strike, in coordinates relative to the root.
 local hits = {
+    cinderTap = {boxingGlove(cinderHit, -1)}, smelterToe = {toeSurface},
+    furnaceGate = {boxingGlove(furnaceHit, 1)}, foundryTurn = {boxingGlove(foundryHigh, -1), boxingGlove(foundryLow, 1)},
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     basaltBackhand = {{backhandHit, "Right Shoulder", rightPad}},
@@ -181,10 +239,27 @@ local hits = {
 }
 
 local skills = {
+    cinderTap = table.freeze({damage = 13, radius = .44}),
+    smelterToe = table.freeze({damage = 16, radius = .49, foot = true}),
     basaltBackhand = table.freeze({damage = 22, radius = .65, shove = .86}),
     pumiceKnuckle = table.freeze({damage = 16, radius = .47}),
     forgeShoulder = table.freeze({damage = 25, radius = .53}),
     eruptionSlam = table.freeze({damage = table.freeze({12, 12, 12, 12})}),
 }
 
-return rig.finish(clips, contact, hits, skills, {}, {"sidestep"}, {pumiceKnuckle = true, forgeShoulder = true})
+local poses = table.clone(rig.finish(clips, contact, hits, skills, {}, {"sidestep"},
+    {pumiceKnuckle = true, forgeShoulder = true, cinderTap = true, furnaceGate = true, foundryTurn = true}))
+local sample = poses.sample
+local rightPlant = ready.RootJoint * ready["Right Hip"]
+function poses.sample(action, age, direction)
+    local offsets = sample(action, age, direction)
+    if action == "smelterToe" then
+        offsets["Right Hip"] = offsets.RootJoint:ToObjectSpace(rightPlant)
+    end
+    return offsets
+end
+poses.UltimateSkill = table.freeze({
+    furnaceGate = table.freeze({damage = 35, radius = .55}),
+    foundryTurn = table.freeze({damage = table.freeze({15, 22}), radius = table.freeze({.48, .53})}),
+})
+return table.freeze(poses)

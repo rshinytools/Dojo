@@ -89,6 +89,67 @@ local glassFollow = pose({-.024, -.33, -.174, -21, -44, -6}, {54, 18, -24, -.03,
 local glassEase = pose({-.064, -.268, -.049, -15, -19, 5}, rightGuard,
     {55, -21, 23, .126, .072, -.03}, rear, lead, {15, 18, -4}, {-17, 18, -4})
 
+local loadoutRight, loadoutLeft = {55, 12, -25, .016, .079, -.032}, {59, -15, 29, .004, .073, -.045}
+local loadoutReady = pose({-.014, -.243, .016, -15, 5, 2}, loadoutRight,
+    loadoutLeft, rear, lead, {13, -4, -2}, {-17, 11, 6})
+local coalDraw = pose({-.014, -.282, .016, -14, 14, 5}, {59, 14, -29, -.04, .083, .035},
+    {39, -8, 20, .025, .071, .145}, rear, lead, {13, -13, -4}, {-17, -14, -5})
+local coalHit = pose({-.014, -.214, .016, -13, -21, 5}, {57, 15, -29, -.04, .083, .06},
+    {65, -24, 17, .085, .082, -.075}, rear, lead, {12, 18, -4, 0, 0, .059}, {-18, 23, 4})
+local coalFold = pose({-.014, -.247, .016, -15, -12, 3}, rightGuard,
+    {58, -17, 25, .065, .075, .045}, rear, lead, {14, 11, -2}, {-17, 15, 4})
+
+local toePivot = v(.435, 1.53 - rootHeight, .04)
+local toeRight = ready.RootJoint * ready["Right Hip"]
+local toeLeft = ready.RootJoint * ready["Left Hip"]
+local function toePose(core, right, left, boot, head, tail)
+    local offsets = pose(core, right, left, rear, lead, head, tail)
+    local swing = CFrame.new(toePivot + v(boot[4], boot[5], boot[6]))
+        * CFrame.Angles(math.rad(boot[1]), math.rad(boot[2]), math.rad(boot[3])) * CFrame.new(-toePivot)
+    offsets["Right Hip"] = offsets.RootJoint:ToObjectSpace(swing * toeRight)
+    return offsets
+end
+local toeLoad = toePose({-.014, -.285, .016, -10, 2, 10}, {58, 14, -23, .03, .089, .06},
+    {62, -16, 23, -.027, .095, .055}, {4, 3, -1, -.018, .070, .065}, {9, -2, -7}, {-19, 14, 6})
+local toeRaise = toePose({-.014, -.237, .016, -3, -1, 13}, {60, 16, -26, .045, .093, .065},
+    {60, -17, 24, -.04, .099, .03}, {11, 10, -4, -.025, .224, .065}, {5, 1, -9}, {-20, 16, 8})
+local toeHit = toePose({-.014, -.19, .016, -1, -8, 10}, {58, 16, -25, .04, .091, .075},
+    {61, -21, 24, -.031, .104, -.01}, {18, 27, -4, -.20, .061, -.55}, {4, 7, -7}, {-19, 22, 7})
+local toeTuck = toePose({-.014, -.24, .016, -6, -5, 8}, {57, 15, -24, .034, .09, .035},
+    {62, -19, 25, -.024, .092, .025}, {11, 10, -3, -.035, .158, -.04}, {8, 5, -5}, {-18, 16, 6})
+local toeRecover = toePose({-.014, -.264, .016, -12, 2, 4}, loadoutRight,
+    loadoutLeft, {4, 3, -1, -.012, .075, .025}, {11, -2, -3}, {-17, 13, 6})
+
+local crownBrace = pose({-.014, -.37, .016, -12, 5, 4}, {46, 12, -23, .016, .09, .155},
+    {50, -15, 24, -.014, .095, .15}, rear, lead, {15, -4, -3}, {-19, -7, -4})
+local crownShow = pose({-.014, -.17, .016, 10, 3, 1}, {45, 10, -20, .025, .11, .22},
+    {47, -10, 22, -.025, .105, .22}, rear, lead, {26, -3, -1}, {-27, -12, -3})
+local crownFold = pose({-.014, -.32, .016, -11, 2, 1}, {39, 12, -23, .02, .07, .245},
+    {42, -13, 24, -.02, .072, .225}, rear, lead, {-1, -2, -1, 0, .02, -.035}, {-20, -7, 3})
+local crownHit = pose({-.014, -.395, .016, -24, 0, 0}, {38, 14, -24, .017, .062, .275},
+    {40, -16, 26, -.011, .060, .265}, rear, lead, {-18, 0, 0, 0, .018, -.15}, {-12, -3, 5})
+local crownEase = pose({-.014, -.34, .016, -18, 2, 1}, {46, 12, -23, .02, .072, .17},
+    {48, -15, 24, -.018, .071, .175}, rear, lead, {2, -2, -1, 0, .01, -.02}, {-15, -4, 5})
+local crownRecover = pose({-.014, -.263, .016, -15, 4, 2}, loadoutRight,
+    {56, -16, 29, .004, .076, -.012}, rear, lead, {12, -4, -2}, {-17, 9, 5})
+
+local violetDraw = pose({-.014, -.37, .016, -19, 19, 8}, {58, 15, -31, -.045, .112, .09},
+    {36, -1, 25, .035, .064, .19}, rear, lead, {18, -17, -6}, {-18, -24, -6})
+local violetLow = pose({-.014, -.41, .016, -19, -28, 7}, {53, 13, -31, -.04, .094, .17},
+    {53, -25, 13, .085, -.045, -.26}, rear, lead, {17, 24, -5, 0, 0, .07}, {-17, 27, 6})
+local violetPeel = pose({-.014, -.324, .016, -16, -20, -3}, {41, 9, -29, -.043, .073, .17},
+    {57, -19, 22, .067, .057, .09}, rear, lead, {15, 17, 3}, {-17, 21, 5})
+local violetCoil = pose({-.014, -.308, .016, -15, -32, -9}, {32, 6, -28, -.037, .071, .225},
+    {61, -19, 30, .069, .091, .10}, rear, lead, {14, 25, 7}, {-18, 29, 7})
+local violetDrive = pose({-.014, -.244, .016, -13, 15, -6}, {62, 18, -18, -.075, .083, -.075},
+    {60, -19, 30, .066, .089, .12}, rear, lead, {13, -13, 5}, {-19, -14, 5})
+local violetHigh = pose({-.014, -.17, .016, -12, 31, -5}, {79, 27, -11, -.13, .082, -.255},
+    {58, -18, 28, .065, .092, .18}, rear, lead, {12, -27, 4}, {-19, -31, 7})
+local violetUnwind = pose({-.014, -.24, .016, -15, 25, -4}, {68, 23, -15, -.088, .104, -.105},
+    {58, -17, 27, .065, .088, .13}, rear, lead, {14, -21, 3}, {-18, -24, 6})
+local violetRecover = pose({-.014, -.255, .016, -15, 9, 1}, loadoutRight,
+    loadoutLeft, rear, lead, {14, -8, -1}, {-17, 8, 5})
+
 local anchorRight = {6, -24, 0, .19, 0, .15, .018}
 local anchorLeft = {9, 22, 0, -.18, 0, -.18, .018}
 local inhale = pose({0, -.425, .119, -20, -7, 0}, {36, 8, -42, .09, .05, .117},
@@ -120,7 +181,8 @@ local victory = pose({0, -.08, .048, 8, 1, 0}, {67, -7, -45, .084, .092, .089},
     {67, 11, 47, -.083, .096, .086}, anchorRight, anchorLeft, {27, -1, 0}, {-30, 3, 0})
 
 local contact = {jab = .161, cross = .224, body = .27, heavy = .411, cinderLunge = .28,
-    emberKnuckle = .235, blackglassSweep = .50, hellfireStampede = table.freeze({.38, .57})}
+    emberKnuckle = .235, blackglassSweep = .50, hellfireStampede = table.freeze({.38, .57}),
+    coalFlick = .16, slateToe = .25, cinderCrown = .62, violetCross = table.freeze({.32, .69})}
 local beat = contact.hellfireStampede
 local clips = {
     stance = {{0, ready}, {.56, breathe}, {1.12, ready}},
@@ -137,6 +199,14 @@ local clips = {
     emberKnuckle = {{0, ready}, {.098, emberDraw}, {contact.emberKnuckle, emberHit}, {.344, emberRecover}, {.60, ready}},
     blackglassSweep = {{0, ready}, {.178, glassDraw}, {.341, glassHold}, {contact.blackglassSweep, glassHit},
         {.63, glassFollow}, {.786, glassEase}, {.96, ready}},
+    coalFlick = {{0, loadoutReady}, {.064, coalDraw}, {contact.coalFlick, coalHit}, {.253, coalFold}, {.41, loadoutReady}},
+    slateToe = {{0, loadoutReady}, {.086, toeLoad}, {.158, toeRaise}, {contact.slateToe, toeHit},
+        {.340, toeTuck}, {.442, toeRecover}, {.53, loadoutReady}},
+    cinderCrown = {{0, loadoutReady}, {.154, crownBrace}, {.326, crownShow}, {.425, crownShow}, {.524, crownFold},
+        {contact.cinderCrown, crownHit}, {.68, crownHit}, {.798, crownEase}, {1.015, crownRecover}, {1.25, loadoutReady}},
+    violetCross = {{0, loadoutReady}, {.154, violetDraw}, {contact.violetCross[1], violetLow}, {.431, violetPeel},
+        {.548, violetCoil}, {.622, violetDrive}, {contact.violetCross[2], violetHigh}, {.798, violetUnwind},
+        {.958, violetRecover}, {1.20, loadoutReady}},
     hellfireStampede = {{0, ready}, {.135, inhale}, {.216, inhale}, {.307, howl}, {beat[1], howl},
         {.432, howl}, {beat[2], release}, {.645, release}, {.775, callHold}, {1.13, watch}, {1.27, ready}},
     guard = {{0, cover}},
@@ -160,8 +230,17 @@ local hits = {
     emberKnuckle = {{emberHit, "Right Shoulder", rightPad}},
     blackglassSweep = {{glassHit, "Left Shoulder", leftPad}},
     hellfireStampede = {{howl, "Neck", mouth}, {release, "Right Shoulder", rightPad}},
+    coalFlick = {{coalHit, "Left Shoulder", v(-1.338901321, 1.853055438, -.633285762)}},
+    slateToe = {{toeHit, "Right Hip", v(.606801305, .146702356, -.818818919)}},
+    cinderCrown = {{crownHit, "Neck", v(0, 3.882864105, -1.411880157)}},
+    violetCross = {
+        {violetLow, "Left Shoulder", v(-1.354742481, 1.907144376, -.652577559)},
+        {violetHigh, "Right Shoulder", v(1.339137994, 1.831034300, -.587903711)},
+    },
 }
 local skills = {
+    coalFlick = table.freeze({damage = 13, radius = .44}),
+    slateToe = table.freeze({damage = 16, radius = .47, foot = true}),
     cinderLunge = table.freeze({damage = 22, radius = .58, shove = .96}),
     emberKnuckle = table.freeze({damage = 15, radius = .46}),
     blackglassSweep = table.freeze({damage = 23, radius = .53}),
@@ -169,4 +248,19 @@ local skills = {
 }
 local travel = {cinderLunge = table.freeze({axis = "forward", distance = .40, startsAt = .14, endsAt = .27})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {emberKnuckle = true, blackglassSweep = true})
+local planted = {emberKnuckle = true, blackglassSweep = true, coalFlick = true, cinderCrown = true, violetCross = true}
+local moves = table.clone(rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, planted))
+moves.UltimateSkill = table.freeze({
+    cinderCrown = table.freeze({damage = 33, radius = .50}),
+    violetCross = table.freeze({damage = table.freeze({14, 23}), radius = table.freeze({.46, .49})}),
+})
+local sample = moves.sample
+function moves.sample(action, age, direction)
+    local offsets = sample(action, age, direction)
+    if action == "slateToe" then
+        offsets["Left Hip"] = offsets.RootJoint:ToObjectSpace(toeLeft)
+    end
+    return offsets
+end
+
+return table.freeze(moves)

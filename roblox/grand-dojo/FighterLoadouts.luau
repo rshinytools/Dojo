@@ -566,6 +566,122 @@ local byFighter = {
             },
         },
     },
+    ["magma-grizzly-bear"] = {
+        kit = "grizzly",
+        basic = {
+            attribute = "GrizzlyBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Open with a padded jab, then follow with a cross and a low strike."},
+                {id = "cinderTap", name = "Cinder Tap", compact = "Tap", action = "strike", level = 5,
+                    planted = true,
+                    description = "Snap a short left glove out of guard."},
+                {id = "smelterToe", name = "Smelter Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the left toe while the right boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "GrizzlyUltimate", default = "eruptionSlam",
+            options = {
+                {id = "eruptionSlam", name = "Eruption Slam", compact = "Eruption", action = "signature", level = 1,
+                    description = "Send four molten pillars forward. A fighter can take up to two hits."},
+                {id = "furnaceGate", name = "Furnace Gate", compact = "Gate", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Raise both gloves, then bring the right glove down for one heavy hit."},
+                {id = "foundryTurn", name = "Foundry Turn", compact = "Turn", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Strike high with the left glove, then turn into a low right strike."},
+            },
+        },
+    },
+    ["obsidian-hellhound"] = {
+        kit = "hellhound",
+        basic = {
+            attribute = "HellhoundBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Open with a quick paw, then follow with a cross and a low strike."},
+                {id = "coalFlick", name = "Coal Flick", compact = "Flick", action = "strike", level = 5,
+                    planted = true,
+                    description = "Snap a short left glove forward from a narrow guard."},
+                {id = "slateToe", name = "Slate Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Check with the right toe while the left boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "HellhoundUltimate", default = "hellfireStampede",
+            options = {
+                {id = "hellfireStampede", name = "Hellfire Stampede", compact = "Stampede", action = "signature", level = 1,
+                    description = "Send two spectral hounds across the ring on marked routes."},
+                {id = "cinderCrown", name = "Cinder Crown", compact = "Crown", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Lift the muzzle, then dip into one heavy body strike."},
+                {id = "violetCross", name = "Violet Cross", compact = "Cross", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Lead with a low left glove and finish high with the right."},
+            },
+        },
+    },
+    ["golden-eagle"] = {
+        kit = "eagle",
+        basic = {
+            attribute = "EagleBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Lead with a padded wing jab, then follow with a cross and a low strike."},
+                {id = "aerieTap", name = "Aerie Tap", compact = "Tap", action = "strike", level = 5,
+                    planted = true,
+                    description = "Flick the left padded wing forward for a quick opening hit."},
+                {id = "ridgeTalon", name = "Ridge Talon", compact = "Talon", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the right talon while the left foot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "EagleUltimate", default = "talonDrop",
+            options = {
+                {id = "talonDrop", name = "Talon Drop", compact = "Drop", action = "signature", level = 1,
+                    description = "Catch an opponent, carry them briefly, then land for one hit."},
+                {id = "sunfanCrash", name = "Sunfan Crash", compact = "Crash", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Spread both wings, then bring them down for one close strike."},
+                {id = "crownArc", name = "Crown Arc", compact = "Arc", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Bring the left wing down from high guard, then follow with a low right wing strike."},
+            },
+        },
+    },
+    ["celestial-storm-dragon"] = {
+        kit = "dragon",
+        basic = {
+            attribute = "DragonBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Open with a short forepaw jab, then follow with a cross and a low strike."},
+                {id = "zephyrKnuckle", name = "Zephyr Knuckle", compact = "Zephyr", action = "strike", level = 5,
+                    planted = true,
+                    description = "Fold the near wing inward and tap with the left forepaw."},
+                {id = "cloudbankToe", name = "Cloudbank Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Tap low with the right toe while the left boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "DragonUltimate", default = "tempestRoar",
+            options = {
+                {id = "tempestRoar", name = "Tempest Roar", compact = "Roar", action = "signature", level = 1,
+                    description = "Hover and steer a storm beam while a marked thunder strike builds."},
+                {id = "thunderheadDrop", name = "Thunderhead Drop", compact = "Drop", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Raise both wings and bring the right forepaw down for one direct hit."},
+                {id = "cirrusBreaker", name = "Cirrus Breaker", compact = "Cirrus", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Sweep low with the rounded tail, then strike high with the left forepaw."},
+            },
+        },
+    },
 }
 
 local byMove, byKit = {}, {}

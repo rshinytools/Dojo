@@ -27,6 +27,10 @@ local groundPitch = {
     pulse = .87, sweep = .98, undertow = .90, cataclysm = .82, solarFlare = 1.13,
 }
 local heavyPitch = {
+    furnaceGate = 0.76, foundryTurn = 0.88,
+    cinderCrown = 0.87, violetCross = 1.02,
+    sunfanCrash = 0.98, crownArc = 1.13,
+    thunderheadDrop = 0.93, cirrusBreaker = 1.12,
     festivalCross = 1.05,
     frostwake = 1.17, cedarCrash = .92, forestClamp = .84, crucibleArc = 1.06,
     lilyCrash = .96, marshBarrage = 1.09, riverRush = 1.16, roostHammer = .88,
@@ -52,6 +56,10 @@ local heavyPitch = {
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {
+    cinderTap = 0.96, smelterToe = 0.83,
+    coalFlick = 1.07, slateToe = 0.94,
+    aerieTap = 1.27, ridgeTalon = 1.10,
+    zephyrKnuckle = 1.21, cloudbankToe = 1.07,
     reedCheck = 1.09, courtyardToe = .97,
     rimeTap = 1.24, skateToe = 1.11, fernCheck = .99, timberToe = .89, sootPalm = 1.12, kilnToe = 1.00,
     pondTap = 1.08, bankKick = 1.01, runnelTap = 1.15, currentHeel = .96,
