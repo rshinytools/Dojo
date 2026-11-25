@@ -1571,6 +1571,7 @@ local matchPresentation = {
 }
 matchPresentation.contacts = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 matchPresentation.windup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
+matchPresentation.touchDock = require(ReplicatedStorage:WaitForChild("CombatTouchDock"))
 function matchPresentation.playImpact(cue, point, attack)
     combatEffects.play(cue, point, attack)
     combatAudio.impact(cue, point, attack)
@@ -1894,40 +1895,47 @@ layoutMatchControls = function()
     local hasTechnique = showcase and matchPresentation.kit.techniqueAction ~= nil
     local ready = sparringActive and not matchPresentation.inIntro and matchPresentation.phase ~= "outro"
     sparControls.Visible = ready
-    local touch = UserInputService.TouchEnabled
+    local touch = UserInputService.TouchEnabled and UserInputService.PreferredInput == Enum.PreferredInput.Touch
     local safe = gui.AbsoluteSize
     local touchCombat = showcase and touch
-    local landscape = touchCombat and safe.X >= safe.Y
     local compact = touchCombat and safe.Y <= 430
-    local stacked = showcase and (touch or safe.X < 504)
-    local rows = if stacked then 2 else 1
-    local height = rows * 48 + (rows - 1) * 6
     championshipHud:Layout(safe.Y <= 430 or safe.X <= 570, duelUi.hasRounds(matchPresentation.format))
     local exitTop = if safe.X < 1240 and not matchPresentation.inIntro
         then sparHud.Position.Y.Offset + sparHud.Size.Y.Offset + 4 else 12
-    local width = if landscape then math.clamp(math.floor(safe.X * .40), 144, 204)
-        elseif stacked then 328 elseif showcase then 540 else 394
-    controlSize.MaxSize = Vector2.new(width, height)
-    sparControls.Size = UDim2.new(if showcase then .94 else .82, 0, 0, height)
-    -- The native movement area covers the left in landscape and the bottom in portrait.
-    local bottom = if landscape then math.clamp(math.round(safe.Y * .23), 66, 116)
-        elseif touchCombat then math.ceil(safe.Y * .44) + 8 else 64
-    if showcase then
-        local reservedTop = math.max(122, exitTop + combatButtons.exit.Size.Y.Offset + 4)
-        bottom = math.min(bottom, math.max(0, safe.Y - height - reservedTop))
-    end
-    sparControls.Position = UDim2.new(if landscape then .72 else .5, 0, 1, -bottom)
     local controls = if showcase then {strikeButton, combatButtons.heavy, guardButton, combatButtons.dodge,
         combatButtons.signature} else {strikeButton, guardButton, leaveButton}
     if hasTechnique then
         table.insert(controls, 2, combatButtons.technique)
     end
+    local stacked = showcase and safe.X < 504
     local columns = if stacked then 3 else #controls
+    local rowHeight, rowGap = 48, 6
+    if touchCombat and ready and safe.X > 0 and safe.Y > 0 then
+        local inset = GuiService:GetInsetArea(Enum.ScreenInsets.CoreUISafeInsets)
+        local board = matchPresentation.touchDock.layout(gui.Parent, inset.Min, safe.X, safe.Y, {
+            count = #controls, columns = 3, rowHeight = 48, cellWidth = if safe.X >= safe.Y then 72 else 94,
+            top = sparHud.Position.Y.Offset + sparHud.Size.Y.Offset + 4, bottom = safe.Y - 12,
+            extra = {left = safe.X - 92, top = exitTop, right = safe.X - 10, bottom = exitTop + 44},
+        })
+        columns, rowHeight, rowGap = board.columns, board.rowHeight, board.gap
+        controlSize.MaxSize = Vector2.new(board.w, board.h)
+        sparControls.Size = UDim2.fromOffset(board.w, board.h)
+        sparControls.Position = UDim2.fromOffset(board.x + board.w * .5, board.y + board.h)
+    else
+        local height = if stacked then 102 else 48
+        local width = if stacked then 328 elseif showcase then 540 else 394
+        local reservedTop = math.max(122, exitTop + combatButtons.exit.Size.Y.Offset + 4)
+        local bottom = if showcase then math.min(64, math.max(0, safe.Y - height - reservedTop)) else 64
+        controlSize.MaxSize = Vector2.new(width, height)
+        sparControls.Size = UDim2.new(if showcase then .94 else .82, 0, 0, height)
+        sparControls.Position = UDim2.new(.5, 0, 1, -bottom)
+    end
     for index, control in controls do
-        control.Position = UDim2.new(((index - 1) % columns) / columns, 0, 0, math.floor((index - 1) / columns) * 54)
-        control.Size = UDim2.new(1 / columns, -4, 0, 48)
+        control.Position = UDim2.new(((index - 1) % columns) / columns, 0, 0, math.floor((index - 1) / columns) * (rowHeight + rowGap))
+        control.Size = UDim2.new(1 / columns, -math.min(4, rowGap), 0, rowHeight)
         control.TextSize = if compact then 12 elseif showcase then 13 else 14
     end
+    combatButtons.dodge.TextWrapped = touchCombat
     leaveButton.Visible = not showcase
     combatButtons.technique.Visible = hasTechnique
     combatButtons.heavy.Visible = showcase
@@ -1939,6 +1947,11 @@ layoutMatchControls = function()
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(layoutMatchControls)
 gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutMatchControls)
+matchPresentation.touchDock.observe(gui.Parent, function()
+    if UserInputService.PreferredInput == Enum.PreferredInput.Touch and sparringActive then
+        layoutMatchControls()
+    end
+end)
 
 local function sendSparAction(action, direction)
     if not sparringActive or matchPresentation.phase == "outro" then

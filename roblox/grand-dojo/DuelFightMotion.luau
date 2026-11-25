@@ -1911,7 +1911,8 @@ function Motion.raidThreatHits(raid, _attack, strike, at, origin, direction)
             end
         end
         if hit then
-            table.insert(hits, {index = index, facing = facing, point = hit})
+            table.insert(hits, {index = index, facing = facing, point = hit,
+                impactOrigin = if strike.centerX then radialCenter else nil})
         end
     end
     return hits

@@ -310,7 +310,7 @@ local function advanceBoss(round, at, chooseTarget, checkBoss, hits)
             end
             local damage = if kind == "hit" then strike.damage elseif kind == "blocked" then math.ceil(strike.damage * .28) else 0
             table.insert(hits, {source = "boss", kind = kind, attack = attack.id, index = strike.index,
-                at = at, defender = index, point = contact.point, damage = damage})
+                at = at, defender = index, point = contact.point, damage = damage, impactOrigin = contact.impactOrigin})
         end
     end
 end

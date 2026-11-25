@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.354 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.355 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -227,7 +227,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v354-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v355-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -239,6 +239,10 @@ Run `python3 -B tools/verify_cross_server_duel.py luau` from the repository root
 The exact v0.346 Tag run verified four player entries, the Grizzly reserve and its 41-damage Heavy. Cinder Tap was attempted after knockback pushed the defender outside its reach. An updated test approaches again before attempting the move. The v0.346 eight-client Brawl test lost its local connection before recording match evidence. Staggered startup is prepared for the rerun. Latest-build full Tag and Brawl replays remain open.
 
 ## Grand Dojo Tag Team
+
+V0.355 fits combat controls around Roblox’s stock movement and Jump areas in Bot Spar, Duel, Tag Team, Brawl and all three Raids. The full attack set stays visible without paging. Exact layouts checked the recorded Galaxy A06 safe areas in both orientations and synthetic 480 × 248 and 320 × 570 frames, with targets at least 44 px in both dimensions. Exact client fixtures dispatched the controls. Native touch priority, text readability and older-phone performance remain open.
+
+V0.355 sends fighters outward from the Solar Phoenix Sunspot they actually touch. The mounted replay confirmed the original 1.15-stud recoil, damage and chip, with zero recoil on parry. Native multiplayer playback remains open.
 
 V0.351 gives Technique and Heavy separate touch targets for Penguin, Silverback and Fire Salamander in Tag Team and Raids. Exact layout checks covered 390 × 760 portrait and 682 × 380 landscape, including Tag In, both action wires and controller D-pad Up. Physical device verification remains open.
 
@@ -423,6 +427,8 @@ The intro names the actual fighters and warms their mesh textures while it plays
 Desktop Studio entered all 16 pairings through the native ring prompts, checked each resident intro and each starter's signature control, landed a starter technique, and observed a resident attack. All 16 ended with the normal player camera and movement restored. Fire Salamander defeated Juniper for 60 XP. The other 15 rounds ended after contact without a reward. Galaxy A06 landscape Studio separately completed Penguin versus Sablecrest for 60 XP after activating Belly-Slide Blitz with touch. Both test profiles used temporary activity XP to open the higher rings. Physical devices and published play remain open.
 
 ## Reedguard and Juniper combat
+
+V0.355 eases Juniper’s last moving pose into a planted stance over 75 ms before he guards or starts Palm. Offline samples of the original fighter mesh measured a previous foot snap of up to 0.382 studs. The revised transition preserves the moving poses and the authored Palm and Shell Set contact frames. Studio playback remains open.
 
 V0.354 joins Reedguard’s Cross directly to the Body Kick stance and holds his lead boot on the canvas through the kick. The largest hand jump at the transition was 0.435 studs. Offline checks sampled 561 kick poses from the original mesh. The right boot still meets the original contact point 0.30 seconds into the kick. Studio playback remains open.
 

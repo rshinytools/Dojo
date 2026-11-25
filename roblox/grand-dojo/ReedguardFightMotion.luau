@@ -1760,7 +1760,7 @@ local function updateFootworkPose(bout, action, moved, now)
     local poses = bout.motion.botPoses
     local distances = poses.StepDistance
     if action ~= previous then
-        bout.footworkSettle = if not action and previous and distances and distances[previous]
+        bout.footworkSettle = if not action and previous and (bout.botId == "juniper" or (distances and distances[previous]))
             and bout.round.botPhase == "ready"
             then {action = previous, age = bout.footworkAge, at = now}
             else nil
@@ -1773,6 +1773,8 @@ local function updateFootworkPose(bout, action, moved, now)
     if distance then
         local duration = poses.Duration[action]
         bout.footworkAge = (bout.footworkAge + moved * duration / distance) % duration
+    elseif action and bout.botId == "juniper" then
+        bout.footworkAge = now - bout.footworkAt
     end
 end
 
@@ -1872,7 +1874,10 @@ local function botPose(bout, now)
     local poses = bout.motion.botPoses
     local pose = poses.sample(action, age, duration)
     local settle = bout.footworkSettle
-    if action == "idle" and settle and now >= settle.at and bout.round.botPhase == "ready" and not bout.outroAt then
+    -- Juniper can start his windup before the short footwork settle finishes.
+    local settling = (action == "idle" and bout.round.botPhase == "ready")
+        or (bout.botId == "juniper" and (action == "palm" or action == "brace"))
+    if settle and settling and now >= settle.at and not bout.outroAt then
         local progress = math.clamp((now - settle.at) / residentPlantTime, 0, 1)
         if progress < 1 then
             local from = poses.sample(settle.action, settle.age)

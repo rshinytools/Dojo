@@ -15,6 +15,7 @@ local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
 local CombatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
 local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
+local CombatTouchDock = require(ReplicatedStorage:WaitForChild("CombatTouchDock"))
 local CombatWindup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
 local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
@@ -373,14 +374,31 @@ local function layout()
     local controlHeight = if stacked then targetHeight * 2 + 4 else targetHeight
     local bottom = if touch then (if stacked then math.min(108, math.floor(height * .19)) else 16) else 28
     bottom = math.max(0, math.min(bottom, height - headerBottom - cardHeight - controlHeight - 8))
-    controls.Position, controls.Size = UDim2.new(.5, 0, 1, -bottom), UDim2.new(if touch and not stacked then .81 else .94, 0, 0, controlHeight)
-    controlsLimit.MaxSize = Vector2.new(if stacked then 390 elseif touch and compact then 398
-        elseif compact then 574 else 694, controlHeight)
+    local board
+    if touch then
+        local portrait = height > width
+        local inset = GuiService:GetInsetArea(Enum.ScreenInsets.CoreUISafeInsets)
+        board = CombatTouchDock.layout(playerGui, inset.Min, width, height, {
+            count = #order, columns = 4, rowHeight = targetHeight, cellWidth = if portrait then 86 else 64,
+            top = headerBottom + cardHeight + 8, bottom = if portrait then math.floor(height * .56) - 8 else height - 16,
+        })
+    end
+    if board then
+        columns = board.columns
+        controls.Position = UDim2.fromOffset(board.x + board.w * .5, board.y + board.h)
+        controls.Size = UDim2.fromOffset(board.w, board.h)
+        controlsLimit.MaxSize = Vector2.new(board.w, board.h)
+    else
+        controls.Position, controls.Size = UDim2.new(.5, 0, 1, -bottom), UDim2.new(if touch and not stacked then .81 else .94, 0, 0, controlHeight)
+        controlsLimit.MaxSize = Vector2.new(if stacked then 390 elseif touch and compact then 398
+            elseif compact then 574 else 694, controlHeight)
+    end
     actions.technique.Visible = actions.strike.Visible and hasTechnique
     for index, action in order do
         local i, node = index - 1, actions[action]
-        node.Position = UDim2.new((i % columns) / columns, 2, 0, math.floor(i / columns) * (targetHeight + 4))
-        node.Size = UDim2.new(1 / columns, -4, 0, targetHeight)
+        local rowHeight, gap = if board then board.rowHeight else targetHeight, if board then board.gap else 4
+        node.Position = UDim2.new((i % columns) / columns, gap * .5, 0, math.floor(i / columns) * (rowHeight + gap))
+        node.Size = UDim2.new(1 / columns, -gap, 0, rowHeight)
         node.TextSize = if compact then 12 else 13
     end
     local queueBottom = if touch then math.min(112, math.floor(height * .25)) else 24
@@ -791,6 +809,11 @@ RunService.Heartbeat:Connect(function(dt)
     if elapsed >= .10 then
         elapsed = 0
         if offer or waiting or match or notice.Visible then refresh() end
+    end
+end)
+CombatTouchDock.observe(playerGui, function()
+    if controls.Visible and UserInputService.TouchEnabled and UserInputService.PreferredInput ~= Enum.PreferredInput.Gamepad then
+        layout()
     end
 end)
 resize()

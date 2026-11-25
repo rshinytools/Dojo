@@ -394,7 +394,7 @@ local function mount(encounter)
             elseif event.source == "boss" then
                 cue(match.actors[event.defender], if event.frenzyResist then "frenzyResist" else event.kind, now)
                 if (event.damage or 0) > 0 and not event.frenzyResist then
-                    Motion.raidImpact(match, event.defender, origin, event.at, 1.15)
+                    Motion.raidImpact(match, event.defender, event.impactOrigin or origin, event.at, 1.15)
                 end
             elseif event.source == "player" then
                 local actor, side = match.actors[event.attacker], round.sides[event.attacker]
