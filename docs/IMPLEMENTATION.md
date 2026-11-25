@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.352 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.353 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -223,7 +223,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v352-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v353-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -404,7 +404,7 @@ The intro and active fight camera fit both fighters to the current viewport. VR 
 
 Studio ran Reedguard against Juniper through a knockout and the 60 XP recap on desktop and in Galaxy A06 landscape and portrait simulation. All three runs watched the gold trail separate and settle after actual damage. Both portraits rendered and the top HUD cleared the action controls. Landscape used a real simulated tap on the 56 × 48 Uppercut button. Portrait used a scripted gameplay input. A desktop Ranked series replayed both round HUDs, with a fitted opponent stand-in, and displayed the 2–0 result. The Brawl test displayed the remaining fighter count, one portrait and the floor warning. Physical-device and live multiplayer verification remain open.
 
-V0.284 routes server-confirmed light and heavy strikes, guard and parry to a distance-limited spatial mixer. Boss hazard steps emit once at their authored position, including a room-wide dodge and Phoenix touchdown. Hit visuals stay separate from the hazard sound. Guards and parries keep their own cues. All four modes and Bot Spar route the local three-count and lower start bell. Nearby playback briefly dips the existing music by up to 17% and the playlist keeps playing. The six original WAVs are ready in the repository. Their Roblox upload, moderation, and experience access remain open. The Studio release map keeps a cue silent until it has a usable ID. A desktop Studio Reedguard–Juniper win used temporary sounds bundled with Studio to verify one start bell, two parries, two guard-family cues and confirmed strikes. The music dipped from 0.55 to 0.4565 and returned to its normal level. A separate direct playback probe measured positive engine output for all six cue families. Galaxy A06 landscape simulation measured the four-spatial-voice limit during a six-impact burst. [Source audio and import details](../roblox/grand-dojo/art/combat-audio/README.md)
+V0.284 routes server-confirmed light and heavy strikes, guard and parry to a distance-limited spatial mixer. Boss hazard steps emit once at their authored position, including a room-wide dodge and Phoenix touchdown. Hit visuals stay separate from the hazard sound. Guards and parries keep their own cues. All four modes and Bot Spar route the local three-count and lower start bell. Nearby playback briefly dips the existing music by up to 17% and the playlist keeps playing. The six original combat WAVs are already in ApexGameD’s creator inventory and mapped in the mixer. Their local hashes match the upload record. Desktop Studio previously loaded all six. Playback in the published experience remains open. A desktop Studio Reedguard–Juniper win used temporary sounds bundled with Studio to verify one start bell, two parries, two guard-family cues and confirmed strikes. The music dipped from 0.55 to 0.4565 and returned to its normal level. A separate direct playback probe measured positive engine output for all six cue families. Galaxy A06 landscape simulation measured the four-spatial-voice limit during a six-impact burst. [Source audio and import details](../roblox/grand-dojo/art/combat-audio/README.md)
 
 ## Starter kits across all four rings
 
@@ -417,6 +417,12 @@ The intro names the actual fighters and warms their mesh textures while it plays
 Desktop Studio entered all 16 pairings through the native ring prompts, checked each resident intro and each starter's signature control, landed a starter technique, and observed a resident attack. All 16 ended with the normal player camera and movement restored. Fire Salamander defeated Juniper for 60 XP. The other 15 rounds ended after contact without a reward. Galaxy A06 landscape Studio separately completed Penguin versus Sablecrest for 60 XP after activating Belly-Slide Blitz with touch. Both test profiles used temporary activity XP to open the higher rings. Physical devices and published play remain open.
 
 ## Reedguard and Juniper combat
+
+V0.353 keeps both of Reedguard’s boots planted during a grounded sidestep. With the original fighter mesh, the previous pose put the sole up to 0.209 studs through the canvas. The revised pose holds the soles about 0.003 studs above the canvas in 405 offline samples, with the same lateral movement and upper-body timing. Studio playback remains open.
+
+V0.353 resolves a scheduled Bot Spar contact before processing a new input at or after its impact time. A late Guard can no longer erase a committed Heavy that had already reached Juniper. Fitted replays verify earlier and tied contacts, one 60-XP win, a miss, and preserved Leave and disconnect behavior. Studio playback and published reconnect remain open.
+
+V0.353 checks 24 fighter kits, 216 move choices, 648 three-slot loadouts, 287 timelines, and 469 scheduled contact beats. Simulated contacts selected the expected audio cue family across all 216 move choices. Compare outliers, matchups and progression under live play. Verify the save and input contract on supported devices.
 
 V0.352 lets Juniper complete the authored return to guard after his Palm. The earlier 0.52-second cutoff moved the torso suddenly by up to 0.60 studs after a parry. Exact pose sampling confirms continuous playback at that cutoff. Later confirmed hits still interrupt the return. The configured hit and recovery deadlines keep their prior values. Native animation playback remains open. V0.352 resolves a scheduled Bot Spar hit before a player exits when the original fighter is still valid and on the mat. The exit has priority at the exact same timestamp. The fitted replay covered a lethal Heavy due 17 ms before disconnect, a lethal resident attack due first, a real miss, a reset, and one 60-XP receipt. An in-game Leave still presents an earlier confirmed hit before its recap. Published reconnect remains open.
 

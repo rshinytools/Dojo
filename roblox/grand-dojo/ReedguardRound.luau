@@ -756,19 +756,20 @@ local function advanceBot(round, at, distance, check)
     end
 end
 
-function Round.step(round, now, distance, checkPlayer, checkBot, beforeExit)
+function Round.step(round, now, distance, checkPlayer, checkBot, beforeExit, committedOnly)
     if round.result or now < round.startsAt then
         return
     end
     local limit = math.min(now, round.endsAt)
-    if not beforeExit and round.botPhase == "ready" and round.botAt < now - .2 and distance > round.resident.startRange then
+    local allowNewBotAttack = not beforeExit and not committedOnly
+    if allowNewBotAttack and round.botPhase == "ready" and round.botAt < now - .2 and distance > round.resident.startRange then
         round.botAt = now + .1
     end
     while not round.result do
         local contactAt, trailAt, completeAt = nextContacts(round)
         local burnAt = Magma.nextBurn(round)
-        -- A closing round can finish scheduled attacks, including a committed setup.
-        local botAt = if beforeExit and round.botPhase == "ready" then math.huge else round.botAt
+        -- Input and exit handlers settle scheduled contacts. Heartbeat starts new bot attacks.
+        local botAt = if not allowNewBotAttack and round.botPhase == "ready" then math.huge else round.botAt
         local eventAt = math.min(contactAt, trailAt, completeAt, botAt, burnAt)
         if eventAt > limit or (beforeExit and eventAt == now) then
             break

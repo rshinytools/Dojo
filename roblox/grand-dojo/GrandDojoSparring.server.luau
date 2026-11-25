@@ -285,12 +285,12 @@ for _, id in progression.Order do
     end)
 end
 
-local function stepShowcase(bout, now, distance, beforeExit)
+local function stepShowcase(bout, now, distance, beforeExit, committedOnly)
     FeaturedRound.step(bout.round, now, distance, function(action, move, time, index, castStartedAt)
         return Motion.strike(bout, action, move, time, index, castStartedAt)
     end, function(time)
         return Motion.palm(bout, time)
-    end, beforeExit)
+    end, beforeExit, committedOnly)
 end
 
 local function settleShowcaseExit(bout, now)
@@ -384,12 +384,22 @@ remote.OnServerEvent:Connect(function(player, action, direction, windupToken)
             return
         end
         local round = bout.round
+        local before, previousResult = round.botPhase, round.result
+        stepShowcase(bout, now, distanceFacing(bout), false, true)
+        local hadImpact = presentShowcaseContacts(bout, now)
+        if round.result then
+            bout.outroAt = bout.outroAt or now
+        end
         local previousClip = round.clip
-        local feedback = FeaturedRound.act(round, action, now, direction)
+        local feedback = if not round.result and Motion.canAct(bout, action)
+            then FeaturedRound.act(round, action, now, direction) else nil
         Windup.decide(bout, round, round.startsAt, windupToken, previousClip, now, action)
         if feedback then
             bout.message, bout.messageUntil = feedback, now + .74
+        end
+        if feedback or hadImpact or before ~= round.botPhase or previousResult ~= round.result then
             publish(bout, "state", now)
+            bout.lastPublish = now
         end
     elseif (action == "strike" or action == "guard") and Match.root(player) == bout.root
         and Match.inside(bout.arena.bounds, bout.root.Position) then

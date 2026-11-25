@@ -350,6 +350,7 @@ local planted = {
 	stance = true, guard = true, block = true, parry = true,
 	hitHead = true, hitBody = true, stagger = true,
 	jab = true, cross = true, uppercut = true, heavy = true, reedstep = true,
+	sidestep = true,
 	salute = true, intro = true, win = true,
 }
 local durations = {body = floorClips.Duration.body, reedSweep = floorClips.Duration.reedSweep,
