@@ -107,6 +107,45 @@ local heavyHit = pose({-.01, -.06, -.43, -13, 37, -5}, {77, 22, -9, .025, .12, -
 local heavyFollow = pose({-.08, -.19, -.29, -18, 52, -8}, {68, 19, -13, -.045, .11, -.19},
     leftGuard, rearFoot, frontFoot, {14, -36, 5})
 
+-- The native boot ellipsoids extend just below the old sampled sole points.
+-- Lift each planted stance foot to clear the deck for these grounded clips.
+local groundedReady = table.clone(ready)
+local plantedRight = CFrame.new(0, .012, 0) * ready.RootJoint * ready["Right Hip"]
+local plantedLeft = CFrame.new(0, .022, 0) * ready.RootJoint * ready["Left Hip"]
+groundedReady["Right Hip"] = ready.RootJoint:ToObjectSpace(plantedRight)
+groundedReady["Left Hip"] = ready.RootJoint:ToObjectSpace(plantedLeft)
+
+-- The palm turns over two planted feet. The heel keeps weight on the right
+-- foot while the left foot rises, rolls heel-first, and returns to its mark.
+local mudLoad = pose({.095, -.31, .08, -12, -30, -6}, {30, 6, -12, .025, .10, .20},
+    {62, -19, 18, .02, .12, .075}, rearFoot, frontFoot, {8, 25, 4})
+local mudHit = pose({.045, -.29, -.29, -14, 24, -5}, {61, 16, -14, .015, .035, -.11},
+    {64, -21, 21, .015, .18, .10}, rearFoot, frontFoot, {10, -21, 4})
+local mudFold = pose({.055, -.26, -.065, -11, 9, -4}, {56, 17, -11, 0, .09, -.035},
+    leftGuard, rearFoot, frontFoot, {8, -8, 3})
+
+local mountedLeftHip = leftHip + Vector3.yAxis * (2.60 - 2.132)
+local function heelPose(core, right, left, swing, head)
+    local offsets = pose(core, right, left, rearFoot, frontFoot, head)
+    offsets["Left Hip"] = around(mountedLeftHip, swing)
+    return offsets
+end
+
+local heelLoad = heelPose({.11, -.29, .06, -11, -9, -9}, {56, 18, -13, -.03, .15, .08},
+    {58, -19, 16, .10, .08, .10}, {17, 11, -7, -.04, .162, .055}, {9, 7, 5})
+local heelLift = heelPose({.16, -.25, .095, -6, -7, -13}, {63, 21, -13, -.02, .13, .12},
+    {48, -17, 23, .025, .10, .14}, {53, 13, -11, -.13, .13, .10}, {6, 7, 9})
+local heelCoil = heelPose({.17, -.19, .215, -1, 7, -12}, {65, 19, -14, -.045, .12, .08},
+    {36, -12, 25, -.035, .11, .09}, {84, 14, -13, -.11, .12, .035}, {1, -9, 8})
+local heelHit = heelPose({.14, -.12, -.49, -10, -10, -11}, {64, 20, -16, -.06, .15, .08},
+    {27, -13, 29, -.075, .08, -.03}, {126, 7, 9, .025, .035, -.34}, {8, 12, 7})
+local heelFollow = heelPose({.145, -.17, -.235, -9, -6, -10}, {58, 20, -14, -.04, .15, .065},
+    {32, -15, 26, -.055, .08, .02}, {120, 6, 7, .035, .025, -.15}, {7, 7, 7})
+local heelFold = heelPose({.14, -.26, .015, -9, -7, -11}, {53, 19, -12, -.035, .15, .08},
+    {50, -13, 20, -.03, .10, .10}, {60, 12, -10, -.10, .14, .035}, {8, 7, 7})
+local heelSettle = heelPose({.055, -.23, -.02, -9, -13, -3}, rightGuard,
+    leftGuard, {13, 8, -2, -.09, .218, -.12}, {7, 10, 2})
+
 local stepRight = pose({.12, -.12, -.10, -10, -18, -4}, {50, 17, -9, 0, .15, .04},
     leftGuard, {13, -13, -4, .07, 0, -.23, .15}, {3, 4, 2, -.12, 0, .12, 0}, {9, 16, 3})
 local stepLeft = pose({-.10, -.13, -.08, -10, -9, 5}, rightGuard,
@@ -166,7 +205,7 @@ local victory = pose({.04, -.09, -.06, -8, -8, -6}, {98, -4, -20, .11, .08, -.08
     {43, -4, 7, .035, .04, .11}, rearFoot, frontFoot, {5, 7, 4})
 
 local contact = table.freeze({jab = .158, cross = .218, body = .252, heavy = .418,
-    lilyVault = .34, tadpoleTornado = .53})
+    lilyVault = .34, mudPalm = .23, pondboundHeel = .48, tadpoleTornado = .53})
 local clips = {
     stance = {{0, ready}, {.48, breathe}, {1.04, ready}},
     advance = {{0, ready}, {.135, stepRight}, {.27, ready}, {.405, stepLeft}, {.54, ready}},
@@ -178,6 +217,9 @@ local clips = {
     heavy = {{0, ready}, {.20, heavyGather}, {.32, jabLoad}, {contact.heavy, heavyHit}, {.52, heavyFollow}, {.78, ready}},
     lilyVault = {{0, ready}, {.15, vaultCrouch}, {.252, vaultTuck}, {contact.lilyVault, vaultExtend},
         {.426, vaultFold}, {.54, vaultLand}, {.72, ready}},
+    mudPalm = {{0, groundedReady}, {.10, mudLoad}, {contact.mudPalm, mudHit}, {.35, mudFold}, {.58, groundedReady}},
+    pondboundHeel = {{0, groundedReady}, {.13, heelLoad}, {.255, heelLift}, {.354, heelCoil},
+        {contact.pondboundHeel, heelHit}, {.55, heelFollow}, {.67, heelFold}, {.79, heelSettle}, {.91, groundedReady}},
     tadpoleTornado = {{0, ready}, {.18, coil}, {.267, coil}, {.36, firstTurn}, {.438, fanTurn},
         {contact.tadpoleTornado, spinHit}, {.63, spinFollow}, {.75, spinBrake}, {.892, breathe}, {1.03, ready}},
     guard = {{0, cover}},
@@ -204,6 +246,10 @@ local function point(poseAtContact, joint, position)
 end
 
 local vaultToes = point(vaultExtend, "Right Hip", rightToe):Lerp(point(vaultExtend, "Left Hip", leftToe), .5)
+-- The pads are on the existing native shell: the right hand's knuckle
+-- ellipsoid and the rear of the left webbed foot, relative to the mounted root.
+local mudPalmPad = Vector3.new(1.112025884, -.389241579, -.603075659)
+local pondboundHeelPad = Vector3.new(-.434351223, -2.080000000, -.085192073)
 local tornadoCenter = Vector3.new(0, floorY, 0)
 Poses.Impact = table.freeze({
     jab = table.freeze({point(jabHit, "Left Shoulder", leftFist)}),
@@ -211,6 +257,8 @@ Poses.Impact = table.freeze({
     body = table.freeze({point(bodyHit, "Left Shoulder", leftFist)}),
     heavy = table.freeze({point(heavyHit, "Right Shoulder", rightFist)}),
     lilyVault = table.freeze({vaultToes}),
+    mudPalm = table.freeze({point(mudHit, "Right Shoulder", mudPalmPad)}),
+    pondboundHeel = table.freeze({point(heelHit, "Left Hip", pondboundHeelPad)}),
     tadpoleTornado = table.freeze({tornadoCenter}),
 })
 
@@ -272,18 +320,25 @@ function Poses.sample(action, age, direction)
         end
     end
     local root = before[2].RootJoint:Lerp(after[2].RootJoint, weight)
+    local isPalm, isHeel = action == "mudPalm", action == "pondboundHeel"
     local result = {RootJoint = root}
     for name, previous in before[2] do
         if name ~= "RootJoint" then
             local following = after[2][name]
             local offset = previous:Lerp(following, weight)
             local solePoints = feet[name]
-            if solePoints then
+            if solePoints and not (isPalm or isHeel) then
                 local oldY, newY = soleHeights[before[2]][name], soleHeights[after[2]][name]
                 local shift = oldY + (newY - oldY) * weight - lowest(root * offset, solePoints)
                 offset = CFrame.new(root:VectorToObjectSpace(Vector3.new(0, shift, 0))) * offset
             end
             result[name] = offset
+        end
+    end
+    if isPalm or isHeel then
+        result["Right Hip"] = root:ToObjectSpace(plantedRight)
+        if isPalm then
+            result["Left Hip"] = root:ToObjectSpace(plantedLeft)
         end
     end
     return result

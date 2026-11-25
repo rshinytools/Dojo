@@ -10,12 +10,13 @@ local function sole(side)
     }
 end
 
-local rig = Choreography.new(2.60, {
+local pivots = {
     Neck = v(0, 3.16, -.03),
     ["Right Shoulder"] = v(.83, 3.02, .03), ["Left Shoulder"] = v(-.83, 3.02, .03),
     ["Right Hip"] = v(.45, 1.54, .02), ["Left Hip"] = v(-.45, 1.54, .02),
     TailJoint = v(0, 1.87, .44),
-}, sole(1), sole(-1))
+}
+local rig = Choreography.new(2.60, pivots, sole(1), sole(-1))
 local pose = rig.pose
 
 local rightGuard, leftGuard = {62, 23, -13, -.04, .13, .04}, {55, -19, 15, .03, .15, .03}
@@ -165,4 +166,99 @@ local travel = {
     featherFlurry = table.freeze({distance = 1.46, startsAt = .18, endsAt = .62, axis = "forward"}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+
+-- The additional strikes use the fitted character's 2.132-stud root as
+-- their reference. Keep the original pose basis for the existing repertoire.
+local mountedRig = Choreography.new(2.132, pivots, sole(1), sole(-1))
+local leftHip, rightHip = "Left Hip", "Right Hip"
+-- Lift the guard stance just enough for the visible rounded soles to clear the mat.
+local leftPlant = CFrame.new(0, .018, 0) * ready.RootJoint * ready[leftHip]
+local rightPlant = CFrame.new(0, .023, 0) * ready.RootJoint * ready[rightHip]
+
+local function plantTalons(offsets, both)
+    local root = offsets.RootJoint
+    offsets[leftHip] = root:ToObjectSpace(leftPlant)
+    if both then
+        offsets[rightHip] = root:ToObjectSpace(rightPlant)
+    end
+    return offsets
+end
+
+local function fitted(core, right, left, kick, head, tail)
+    return plantTalons(mountedRig.pose(core, right, left, kick or rearFoot, leadFoot, head, tail), kick == nil)
+end
+
+local tacticalReady = plantTalons(table.clone(ready), true)
+local peckGather = fitted({.035, -.18, .052, -4, -12, 4}, {51, 15, -16, -.03, .16, .10},
+    leftGuard, nil, {8, 10, -5}, {-5, 16, -3})
+local peckDip = fitted({.019, -.245, -.054, -11, -6, 2}, {48, 16, -20, -.015, .12, .13},
+    {56, -16, 18, .03, .13, .08}, nil, {-10, 7, -3, 0, -.02, -.03}, {-11, 12, -4})
+local peckHit = fitted({0, -.28, -.17, -16, -2, 0}, {41, 18, -22, -.05, .09, .16},
+    {47, -15, 19, .04, .105, .14}, nil, {-17, 3, -1, 0, -.03, -.06}, {-16, 9, -3})
+local peckRecoil = fitted({.025, -.14, -.095, -8, -6, 3}, rightGuard, leftGuard,
+    nil, {4, 7, -1}, {-5, 12, -5})
+
+local wheelCoil = fitted({-.095, -.23, .105, -8, -31, 8}, {42, 16, -21, .025, .12, .17},
+    {51, -19, 20, .02, .12, .11}, nil, {3, 23, -6}, {-10, 33, -12})
+local wheelChamber = fitted({-.14, -.19, .06, -3, -38, 11}, {35, 25, -27, .05, .13, .14},
+    {49, -12, 26, -.015, .14, .12}, {35, -10, 25, .16, .03, .14, .62},
+    {0, 27, -7}, {-4, 38, -14})
+local wheelSwing = fitted({-.06, -.115, -.055, 0, -19, 9}, {38, 27, -33, .07, .14, .02},
+    {48, -17, 21, -.02, .125, .13}, {55, -17, 17, .10, .03, -.12, .96},
+    {-2, 14, -6}, {8, 21, -11})
+local wheelHit = fitted({.055, -.06, -.24, 2, 12, 6}, {46, 25, -29, .075, .13, .07},
+    {59, -15, 13, -.025, .13, .10}, {63, -5, 12, -.045, .06, -.24, 1.26},
+    {-3, -9, -4}, {13, -12, -9})
+local wheelThrough = fitted({.12, -.10, -.17, 5, 35, 5}, {49, 23, -24, .065, .15, .13},
+    {57, -19, 14, .01, .12, .13}, {54, 6, 4, -.10, .08, -.16, 1.04},
+    {-4, -28, -3}, {11, -37, -9})
+local wheelWithdraw = fitted({-.07, -.16, -.05, -1, 10, 4}, rightGuard, leftGuard,
+    {27, -7, 9, -.015, .06, -.04, .49}, {0, -8, -2}, {5, -13, -6})
+
+local wheelSettle = fitted({-.025, -.125, -.02, -4, -6, 3}, rightGuard, leftGuard,
+    nil, {2, 8, -3}, {-3, 9, -4})
+
+local wheelLoadEnd, wheelReplantAt = .13, .885
+local tacticalContact = {perchPeck = .23, crestWheel = .48}
+local tacticalClips = {
+    perchPeck = {{0, tacticalReady}, {.083, peckGather}, {.155, peckDip},
+        {tacticalContact.perchPeck, peckHit}, {.33, peckRecoil}, {.60, tacticalReady}},
+    crestWheel = {{0, tacticalReady}, {wheelLoadEnd, wheelCoil}, {.26, wheelChamber}, {.37, wheelSwing},
+        {tacticalContact.crestWheel, wheelHit}, {.58, wheelThrough}, {.73, wheelWithdraw},
+        {wheelReplantAt, wheelSettle}, {.94, tacticalReady}},
+}
+-- Forward-most surface samples of the upper beak and striking toe in their contact poses.
+local tacticalHits = {
+    perchPeck = {{peckHit, "Neck", v(.000208800, 4.052779859, -1.061329187)}},
+    crestWheel = {{wheelHit, rightHip, v(.478121938, .030394700, -.848528346)}},
+}
+local tacticalSkills = {
+    perchPeck = table.freeze({damage = 13, radius = .47}),
+    crestWheel = table.freeze({damage = 21, radius = .49}),
+}
+local tactical = mountedRig.finish(tacticalClips, tacticalContact, tacticalHits, tacticalSkills, {}, {})
+local poses = table.clone(standard)
+for _, field in {"Duration", "Contact", "Impact", "Skill"} do
+    local values = table.clone(standard[field])
+    for move, value in tactical[field] do
+        values[move] = value
+    end
+    poses[field] = table.freeze(values)
+end
+
+function poses.sample(action, age, direction)
+    if tacticalContact[action] then
+        local time = age or 0
+        return plantTalons(tactical.sample(action, time, direction),
+            action == "perchPeck" or time <= wheelLoadEnd or time >= wheelReplantAt)
+    end
+    return standard.sample(action, age, direction)
+end
+
+function poses.impact(action, index, direction)
+    local source = if tacticalContact[action] then tactical else standard
+    return source.impact(action, index, direction)
+end
+
+return table.freeze(poses)

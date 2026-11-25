@@ -76,6 +76,10 @@ local rightGuard, leftGuard = {56, 17, -6, -.045, .18, .04}, {41, -14, 11, .015,
 local rightFoot, leftFoot = {5, -5, 0, .07, 0, -.11, 0}, {2, 11, 0, -.055, 0, .19, 0}
 local watch, tailReady = {4, -11, -1}, {-5, -10, 2}
 local ready = pose({.025, -.105, -.02, -6, 10, -3}, rightGuard, leftGuard, rightFoot, leftFoot, watch, tailReady)
+local plantedFeet = {
+    ["Right Hip"] = ready.RootJoint * ready["Right Hip"],
+    ["Left Hip"] = ready.RootJoint * ready["Left Hip"],
+}
 local breathe = pose({.02, -.075, -.035, -4, 8, -2}, {59, 14, -7, -.045, .19, .04}, leftGuard,
     rightFoot, leftFoot, {2, -7, -2}, {-3, -5, 1})
 local cover = pose({-.04, -.19, .055, -12, -3, 2}, {66, 19, -14, -.07, .23, -.04},
@@ -130,6 +134,35 @@ local eddyHit = pose({.17, -.18, -.275, -12, 37, -6}, {72, 27, 2, -.085, .14, -.
 local eddyFollow = pose({.11, -.24, -.15, -15, 49, -10}, {63, 30, 0, -.125, .12, -.16},
     leftGuard, {7, -20, 0, .155, 0, -.04, 0}, leftFoot, {11, -37, 6}, {2, -42, 9})
 
+local mountedRootHeight = 2.132
+local mountPivot = Vector3.new(0, -floorY - mountedRootHeight, 0)
+local function techniquePose(core, right, left, head, rudder)
+    local authored = pose(core, right, left, rightFoot, leftFoot, head, rudder)
+    authored["Right Shoulder"] = around(rightShoulder + mountPivot, right)
+    authored["Left Shoulder"] = around(leftShoulder + mountPivot, left)
+    authored.Neck = around(neck + mountPivot, head)
+    authored.TailJoint = around(tail + mountPivot, rudder)
+    return authored
+end
+
+local brookLoad = techniquePose({.09, -.23, .055, -11, -26, -9}, {37, -19, -25, .12, .105, .145},
+    {51, -16, 12, .055, .20, -.02}, {10, 23, 7}, {-7, 35, 8})
+local brookHit = techniquePose({.03, -.19, -.155, -13, 21, -6}, {69, 38, 12, -.14, .11, -.19},
+    leftGuard, {9, -18, 3}, {6, -22, -5})
+local brookFold = techniquePose({-.04, -.22, -.105, -14, 34, 3}, {57, 44, 23, -.23, .15, -.10},
+    leftGuard, {12, -28, -2}, {2, -32, -4})
+
+local breakwaterCrouch = techniquePose({-.025, -.28, .085, -12, -4, 2}, {45, 11, -15, .04, .105, .12},
+    {43, -11, 15, -.04, .115, .12}, {10, 4, -1}, {-8, 3, 3})
+local breakwaterLoad = techniquePose({-.025, -.45, .16, -12, -5, 1}, {28, -7, -22, .07, .11, .22},
+    {27, 8, 22, -.07, .11, .22}, {13, 5, 1}, {-13, 5, 2})
+local breakwaterDrive = techniquePose({0, -.34, -.09, -15, -1, 0}, {52, 17, -5, -.06, .05, .025},
+    {51, -16, 5, .06, .05, .025}, {11, 1}, {-3, 1})
+local breakwaterHit = techniquePose({.015, -.21, -.43, -15, 2, 0}, {76, 35, -12, -.20, .065, -.37},
+    {76, -35, 12, .20, .065, -.37}, {12, -2}, {9, -2})
+local breakwaterFold = techniquePose({.01, -.255, -.20, -13, 2, 1}, {53, 9, -9, .05, .15, -.04},
+    {54, -8, 9, -.04, .14, -.04}, {11, -3, -1}, {4, -6, 2})
+
 local scoop = pose({0, -.34, .06, -19, 6, 2}, {19, 23, -5, -.06, -.07, -.03},
     {25, -22, 5, .07, -.085, -.035}, {7, -8, 0, .07, 0, -.09, 0}, leftFoot,
     {15, -7, -2}, {-12, -5, 4})
@@ -164,7 +197,7 @@ local flourish = pose({.01, -.045, -.05, -5, 4, -3}, {97, 6, 20, .085, .095, -.0
 
 local releases = table.freeze({.38, .53, .68})
 local contact = table.freeze({jab = .163, cross = .223, body = .265, heavy = .427,
-    eddyPalm = .31, pebbleBarrage = releases})
+    eddyPalm = .31, brookHook = .24, breakwaterPalm = .49, pebbleBarrage = releases})
 local clips = {
     stance = {{0, ready}, {.53, breathe}, {1.14, ready}},
     advance = {{0, ready}, {.146, stepRight}, {.292, ready}, {.436, stepLeft}, {.584, ready}},
@@ -175,6 +208,9 @@ local clips = {
     body = {{0, ready}, {.127, bodyLoad}, {contact.body, bodyHit}, {.366, bodyLoad}, {.55, ready}},
     heavy = {{0, ready}, {.19, heavyLoad}, {.29, heavyLoad}, {contact.heavy, heavyHit}, {.53, heavyFollow}, {.80, ready}},
     eddyPalm = {{0, ready}, {.13, eddySlip}, {.23, brake}, {contact.eddyPalm, eddyHit}, {.398, eddyFollow}, {.62, ready}},
+    brookHook = {{0, ready}, {.10, brookLoad}, {contact.brookHook, brookHit}, {.345, brookFold}, {.57, ready}},
+    breakwaterPalm = {{0, ready}, {.15, breakwaterCrouch}, {.25, breakwaterLoad}, {.31, breakwaterLoad},
+        {.405, breakwaterDrive}, {contact.breakwaterPalm, breakwaterHit}, {.64, breakwaterFold}, {.92, ready}},
     pebbleBarrage = {{0, ready}, {.18, scoop}, {.29, gather}, {releases[1], skipLeft}, {.443, bankLeft},
         {releases[2], skipCenter}, {.594, bankRight}, {releases[3], skipRight}, {.775, rockFollow}, {1.08, ready}},
     guard = {{0, cover}},
@@ -199,12 +235,23 @@ local function point(poseAtContact, joint, position)
     return (poseAtContact.RootJoint * poseAtContact[joint]):PointToWorldSpace(position)
 end
 
+-- A point on the rounded hand in the incoming direction, rather than its center.
+local function palmSurface(poseAtContact)
+    local frame = poseAtContact.RootJoint * poseAtContact["Right Shoulder"]
+    local normal = frame:VectorToObjectSpace(Vector3.new(0, 0, -1))
+    local radii = Vector3.new(.315, .24, .305)
+    local extension = (normal * radii * radii) / (normal * radii).Magnitude
+    return frame:PointToWorldSpace(Vector3.new(1.15, 1.99 - mountedRootHeight, -.34) + extension)
+end
+
 Poses.Impact = table.freeze({
     jab = table.freeze({point(jabHit, "Right Shoulder", rightPalm)}),
     cross = table.freeze({point(crossHit, "Left Shoulder", leftPalm)}),
     body = table.freeze({point(bodyHit, "Right Shoulder", rightPalm)}),
     heavy = table.freeze({point(heavyHit, "Left Shoulder", leftPalm)}),
     eddyPalm = table.freeze({point(eddyHit, "Right Shoulder", rightPalm)}),
+    brookHook = table.freeze({palmSurface(brookHit)}),
+    breakwaterPalm = table.freeze({palmSurface(breakwaterHit)}),
     pebbleBarrage = table.freeze({point(skipLeft, "Left Shoulder", leftPalm),
         point(skipCenter, "Right Shoulder", rightPalm), point(skipRight, "Left Shoulder", leftPalm)}),
 })
@@ -285,12 +332,15 @@ function Poses.sample(action, age, direction)
     end
     local root = before[2].RootJoint:Lerp(after[2].RootJoint, weight)
     local result = {RootJoint = root}
+    local planted = action == "brookHook" or action == "breakwaterPalm"
     for name, previous in before[2] do
         if name ~= "RootJoint" then
             local following = after[2][name]
             local offset = previous:Lerp(following, weight)
             local solePoints = feet[name]
-            if solePoints then
+            if solePoints and planted then
+                offset = root:ToObjectSpace(plantedFeet[name])
+            elseif solePoints then
                 local oldY, newY = soleHeights[before[2]][name], soleHeights[after[2]][name]
                 local shift = oldY + (newY - oldY) * weight - lowest(root * offset, solePoints)
                 offset = CFrame.new(root:VectorToObjectSpace(Vector3.new(0, shift, 0))) * offset

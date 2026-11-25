@@ -111,6 +111,8 @@ local frogClips = {
     body = {{at = Frog.Contact.body, damage = 14, zone = "body"}},
     heavy = {{at = Frog.Contact.heavy, damage = 20, zone = "body"}},
     lilyVault = {{at = Frog.Contact.lilyVault, damage = lily.damage, radius = lily.radius, zone = "body"}},
+    mudPalm = {{at = Frog.Contact.mudPalm, damage = 13, radius = .48, zone = "body"}},
+    pondboundHeel = {{at = Frog.Contact.pondboundHeel, damage = 21, radius = .49, zone = "body", foot = true}},
     tadpoleTornado = {{at = Frog.Contact.tadpoleTornado, damage = tornado.damage, shape = "radial",
         center = tornado.center, radius = tornado.radius, zone = "body"}},
 }
@@ -120,6 +122,8 @@ local otterClips = {
     body = {{at = Otter.Contact.body, damage = 14, zone = "body"}},
     heavy = {{at = Otter.Contact.heavy, damage = 21, zone = "body"}},
     eddyPalm = {{at = Otter.Contact.eddyPalm, damage = eddy.damage, radius = eddy.radius, zone = "body"}},
+    brookHook = {{at = Otter.Contact.brookHook, damage = 13, radius = .38, zone = "body"}},
+    breakwaterPalm = {{at = Otter.Contact.breakwaterPalm, damage = 21, radius = .47, zone = "body", poseHold = .04}},
     pebbleBarrage = {},
 }
 local SAMPLES_PER_PEBBLE, PEBBLE_FLIGHT = 5, .20
@@ -166,13 +170,13 @@ local kits = {
         poses = Frog, clips = frogClips,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .76,
         signature = "tadpoleTornado", signatureCooldown = 7, signatureCooling = "tornadoCooling",
-        secondary = "lilyVault", secondaryCooldown = 3.1, secondaryCooling = "lilyCooling",
+        secondaryCooldown = 3.1, secondaryCooling = "lilyCooling",
     },
     otter = {
         poses = Otter, clips = otterClips,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .8,
         signature = "pebbleBarrage", signatureCooldown = 7.2, signatureCooling = "pebbleCooling",
-        secondary = "eddyPalm", secondaryCooldown = 3, secondaryCooling = "eddyCooling",
+        secondaryCooldown = 3, secondaryCooling = "eddyCooling",
     },
 }
 for id, kit in Sky.kits do

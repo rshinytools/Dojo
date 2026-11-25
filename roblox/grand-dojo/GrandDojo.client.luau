@@ -1791,7 +1791,9 @@ for _, fighter in fighterCatalog.ById do
         end
         cues[combat.signatureCue], priorityCues[combat.signatureCue] = combat.signature, true
         if combat.techniqueCoolingCue then
-            cooldownCues[combat.techniqueCoolingCue] = {label = combat.technique, field = "nextSecondary"}
+            cooldownCues[combat.techniqueCoolingCue] = {
+                label = if fighterTactics.ByKit[combat.kit] then nil else combat.technique, field = "nextSecondary",
+            }
         end
         if combat.signatureCoolingCue then
             cooldownCues[combat.signatureCoolingCue] = {label = combat.signature, field = "nextSignature"}

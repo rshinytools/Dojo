@@ -151,8 +151,15 @@ function Choreography.new(rootHeight, pivots, rightSole, leftSole)
         return offsets
     end
 
-    local function finish(clips, contacts, latches, skills, travel, mirrored)
+    local function finish(clips, contacts, latches, skills, travel, mirrored, plantedActions)
         local durations, leftClips, impact, soleHeights = {}, {}, {}, {}
+        local plantedFeet = {}
+        if plantedActions then
+            local stance = clips.stance[1][2]
+            for joint in feet do
+                plantedFeet[joint] = stance.RootJoint * stance[joint]
+            end
+        end
         for _, name in mirrored do
             leftClips[name] = reflectedFrames(clips[name])
         end
@@ -228,7 +235,9 @@ function Choreography.new(rootHeight, pivots, rightSole, leftSole)
                 end
                 local offset = previous:Lerp(after[2][name], weight)
                 local points = feet[name]
-                if points then
+                if plantedFeet[name] and plantedActions[action] then
+                    offset = root:ToObjectSpace(plantedFeet[name])
+                elseif points then
                     local startY, endY = soleHeights[before[2]][name], soleHeights[after[2]][name]
                     local targetY = startY + (endY - startY) * weight
                     offset = moveVertically(root, offset, targetY - lowest(root * offset, points))

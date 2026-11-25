@@ -15,6 +15,8 @@ local spur, flurry = Rooster.Skill.spurLift, Rooster.Skill.featherFlurry
 local canopy, gust = Glider.Skill.canopySlip, Glider.Skill.gustVortex
 local roosterClips = basicClips(Rooster, 14, 14, 15, 21)
 roosterClips.spurLift = {{at = Rooster.Contact.spurLift, damage = spur.damage, radius = spur.radius, zone = "body", foot = true}}
+roosterClips.perchPeck = {{at = Rooster.Contact.perchPeck, damage = 13, radius = .47, zone = "head"}}
+roosterClips.crestWheel = {{at = Rooster.Contact.crestWheel, damage = 21, radius = .49, zone = "body", foot = true}}
 roosterClips.featherFlurry = {}
 for index, time in Rooster.Contact.featherFlurry do
     roosterClips.featherFlurry[index] = {
@@ -24,6 +26,8 @@ end
 
 local gliderClips = basicClips(Glider, 12, 13, 14, 20)
 gliderClips.canopySlip = {{at = Glider.Contact.canopySlip, damage = canopy.damage, radius = canopy.radius, zone = "body"}}
+gliderClips.boughSnap = {{at = Glider.Contact.boughSnap, damage = 14, radius = .48, zone = "body"}}
+gliderClips.sailSwipe = {{at = Glider.Contact.sailSwipe, damage = 20, radius = .50, zone = "body", poseHold = .04}}
 gliderClips.gustVortex = {}
 for index, time in Glider.Contact.gustVortex do
     gliderClips.gustVortex[index] = {
@@ -37,13 +41,13 @@ Sky.kits = table.freeze({
         poses = Rooster, clips = roosterClips, mixedSpacing = 2.52,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .78,
         signature = "featherFlurry", signatureCooldown = 7.2, signatureCooling = "flurryCooling",
-        secondary = "spurLift", secondaryCooldown = 3.1, secondaryCooling = "spurCooling",
+        secondaryCooldown = 3.1, secondaryCooling = "spurCooling",
     },
     glider = {
         poses = Glider, clips = gliderClips, mixedSpacing = 2.52,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .74,
         signature = "gustVortex", signatureCooldown = 7.5, signatureCooling = "gustCooling",
-        secondary = "canopySlip", secondaryCooldown = 3, secondaryCooling = "canopyCooling",
+        secondaryCooldown = 3, secondaryCooling = "canopyCooling",
     },
 })
 
