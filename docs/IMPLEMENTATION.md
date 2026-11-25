@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.360 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.363 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -194,6 +194,24 @@ Three small pieces connect Reedguard's shoulders and neck to the torso. They add
 Native desktop Studio tests walked the five roads from Grand Dojo and the Harbor–Cinder and Lantern–Frostglass links in both directions. All 14 traversals reached their route checkpoints. Targeted tests reproduced the blocked Lantern Circuit sidewalk and four crossings through low rails at Reedfall, Cinder and Frostglass.
 
 V0.362 moves the Lantern Circuit tree off the sidewalk, installs continuous collision behind the existing railings and adds paved side lanes from Tideharbor and Lantern Circuit to their north roads. The map guides players around Harbor House, Night Market, and the Frostglass and Skywalk gate posts. In the rebuilt place, Reedguard passed all five targeted paths in both directions, and all four side-push tests stopped at the rail without dropping. The Tideharbor and Lantern main entrances passed a rebuilt-place retest in both directions. A Studio fall east of the map triggered the harbor return, and a separate fall west respawned Reedguard at the city spawn. Studio confirmed the v0.362 upload was ready for the existing private playtest audience. Additional optional trails, live streaming, and physical-device checks remain open.
+
+## Economy and the Dojo Wallet
+
+The next monetization work starts with the earned economy. The compact Wallet button shows the Coin balance beside Adventure in the city, and the Wallet panel shows Coins, Raid Tokens, Mythic Shards and fighter XP. Coins pay for apparel. XP advances the fighter’s levels, forms and earned moves. Raid rewards and trophies keep their existing progression roles.
+
+| Starting Coin source | Coins | Grant rule |
+| --- | --- | --- |
+| Lantern Relay | 60 | First official clear |
+| Dojo Ring | 30 | First saved bot sparring win |
+| District activity | 20 | First clear of each distinct activity |
+| District treasure cache | 45 | First opening of each district cache |
+| Cloudbreak Expert | 60 | First saved Expert finish |
+
+The Jade Festival Sash costs **50 Coins** and equips on purchase. Players can remove and re-equip it from the Wallet. It uses cosmetic geometry on the torso outside the fighter combat shell. Previously recorded qualifying clears count toward the same balance. The server derives earned Coins from saved completion records and stores the debit and ownership together in the protected profile. A retry leaves the purchase and the remaining balance intact.
+
+Desktop Studio v0.363 ran the official Relay through all seven gates in 7.9 seconds, showed 60 Coins, bought the sash for 50, and showed the remaining 10 Coins and the same 80 fighter XP. The regular buttons removed and re-equipped it for no further spend. The Galaxy A06 landscape simulator opened the Wallet and showed the price and full 44-pixel action without scrolling. The profile regression verifies previous rewards, repeat requests, insufficient funds, stale ownership, a lost completion reply and simulated reconnects. Published DataStore and real-device purchase checks remain open.
+
+Next, verify the Wallet and earned apparel in a published staging experience across reconnects. The first Robux offer is a permanent cosmetic bundle with server-verified pass ownership and buyer-specific pricing. Enable sale only after the entitlement and purchase flow pass staging checks. Earnable skill unlocks stay part of fighter progression. Optional paid perks can be tested in practice or PvE after the cosmetic launch, with competitive play and ranked records unaffected. Reserve repeatable Developer Products for later and verify their durable, idempotent receipt handling. Trading, paid random items, and eligible ads remain separate roadmap deliverables. [Roblox passes](https://create.roblox.com/docs/production/monetization/passes) · [Regional pricing](https://create.roblox.com/docs/production/monetization/regional-pricing) · [Player data and purchasing](https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing)
 
 ## Public release storefront and rights
 
@@ -571,6 +589,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | Co-op raids | [Queues and arena lifecycle](../roblox/grand-dojo/DojoRaids.server.luau), [raid rules](../roblox/grand-dojo/KilnbackRaidRound.luau), [raid HUD](../roblox/grand-dojo/KilnbackRaid.client.luau), [Kilnback animation](../roblox/grand-dojo/KilnbackRaidVisuals.luau) and [chamber](../roblox/grand-dojo/kilnback_raid.py), [Kraken animation](../roblox/grand-dojo/AbyssalRaidVisuals.luau) and [Storm Basin](../roblox/grand-dojo/abyssal_raid.py), [Phoenix animation](../roblox/grand-dojo/SolarRaidVisuals.luau) and [Dawn Observatory](../roblox/grand-dojo/solar_raid.py) |
 | Grand Dojo Brawl | [Court geometry](../roblox/grand-dojo/dojo_brawl.py), [Queue and floor](../roblox/grand-dojo/GrandDojoBrawl.server.luau), [Eight-way combat and placements](../roblox/grand-dojo/BrawlCombatRound.luau), [HUD](../roblox/grand-dojo/GrandDojoBrawl.client.luau) |
 | Ranked Duel | [Competitive stats, Elo and divisions](../roblox/grand-dojo/DuelRankRules.luau), [Rating transactions](../roblox/grand-dojo/DuelRankLedger.luau), [Lost-response regression](../tools/verify_ranked_ledger.py) |
+| Wallet, apparel and Coin transactions | [Wallet UI](../roblox/grand-dojo/DojoWallet.client.luau), [profile and transactions](../roblox/grand-dojo/PlayerProfiles.luau), [sash mounting](../roblox/grand-dojo/CloudbreakSash.server.luau), [profile regression](../tools/city_adventure_cases.luau) |
 | Progression and trophy state | [PlayerProfiles.luau](../roblox/grand-dojo/PlayerProfiles.luau), [TrophyJournal.luau](../roblox/grand-dojo/TrophyJournal.luau), [design data](../design/world-content.json) |
 | HUD, loading, input and local effects | [GrandDojo.client.luau](../roblox/grand-dojo/GrandDojo.client.luau), [GrandDojoSplash.client.luau](../roblox/grand-dojo/GrandDojoSplash.client.luau), [Town Life](../roblox/grand-dojo/GrandDojoTownLife.client.luau) |
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |

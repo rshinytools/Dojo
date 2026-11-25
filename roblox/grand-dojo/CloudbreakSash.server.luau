@@ -3,13 +3,17 @@ local Players = game:GetService("Players")
 local COSMETIC_ID = "cloudbreak-summit-sash"
 local COSMETIC_ATTRIBUTE = "CloudbreakCosmetic"
 local EQUIPPED_ATTRIBUTE = "CloudbreakSashEquipped"
+local MARKET_ATTRIBUTE = "DojoMarketSashEquipped"
 local SHELL_NAME = "Starter Fighter Shell"
 local SASH_NAME = "Cloudbreak Summit Sash"
+local MARKET_SASH_NAME = "Jade Festival Sash"
 local watches = {}
 
 local indigo = Color3.fromRGB(56, 66, 109)
 local brass = Color3.fromRGB(224, 177, 95)
 local wind = Color3.fromRGB(183, 233, 219)
+local jade = Color3.fromRGB(41, 113, 91)
+local mint = Color3.fromRGB(145, 228, 184)
 
 local function frontEdge(frame, size)
     local halfDepth = .5 * (math.abs(frame.RightVector.Z) * size.X + math.abs(frame.UpVector.Z) * size.Y
@@ -17,10 +21,10 @@ local function frontEdge(frame, size)
     return frame.Z - halfDepth
 end
 
-local function makeSash(torso, art, artFrame)
+local function makeSash(torso, art, artFrame, market)
     -- Mount beside the fighter shell so the sash cannot change contact or defeat bounds.
     local sash = Instance.new("Model")
-    sash.Name = SASH_NAME
+    sash.Name = if market then MARKET_SASH_NAME else SASH_NAME
     local half = art.Size * .5
     local right, up, forward = artFrame.RightVector, artFrame.UpVector, artFrame.LookVector
     local halfWidth = math.abs(right.X) * half.X + math.abs(up.X) * half.Y + math.abs(forward.X) * half.Z
@@ -38,13 +42,6 @@ local function makeSash(torso, art, artFrame)
         end
     end
     front -= .07
-    local shoulder = Vector3.new(center.X + width * .47, center.Y + height * .57, front)
-    local hip = Vector3.new(center.X - width * .52, center.Y - height * .22, front)
-    local across = shoulder - hip
-    local stripe = CFrame.new((shoulder + hip) * .5) * CFrame.Angles(0, 0, math.atan2(-across.X, across.Y))
-    local panelWidth = math.clamp(width * .47, .32, .49)
-    local panelLength = math.clamp(height * .64, .49, .75)
-    local panel = CFrame.new(hip + Vector3.new(-.025, -panelLength * .46, -.018)) * CFrame.Angles(0, 0, -.14)
 
     local function piece(name, localFrame, size, color, material)
         local part = Instance.new("Part")
@@ -56,6 +53,30 @@ local function makeSash(torso, art, artFrame)
         weld.Part0, weld.Part1 = torso, part
         weld.Parent, part.Parent = part, sash
     end
+
+    if market then
+        -- An offset waist wrap leaves the Cloudbreak shoulder strap and left pennant visible.
+        local fabric = Enum.Material.Fabric
+        local sashWidth = math.clamp(width * .96, .42, 1.10)
+        local belt = CFrame.new(center.X + width * .36, center.Y - height * .56, front)
+            * CFrame.Angles(0, 0, .10)
+        piece("Woven gold edge", belt, Vector3.new(sashWidth + .07, .24, .09), brass, fabric)
+        piece("Jade waist wrap", belt * CFrame.new(0, 0, -.042), Vector3.new(sashWidth, .17, .07), jade, fabric)
+        local fold = belt * CFrame.new(sashWidth * .27, -.19, -.047) * CFrame.Angles(0, 0, .18)
+        piece("Silk fold", fold, Vector3.new(.24, .46, .08), jade, fabric)
+        piece("Mint embroidery", fold * CFrame.new(0, -.145, -.044), Vector3.new(.20, .066, .03), mint, fabric)
+        piece("Jade clasp", belt * CFrame.new(sashWidth * .27, 0, -.08) * CFrame.Angles(0, 0, math.pi / 4),
+            Vector3.new(.17, .17, .08), mint, Enum.Material.SmoothPlastic)
+        return sash
+    end
+
+    local shoulder = Vector3.new(center.X + width * .47, center.Y + height * .57, front)
+    local hip = Vector3.new(center.X - width * .52, center.Y - height * .22, front)
+    local across = shoulder - hip
+    local stripe = CFrame.new((shoulder + hip) * .5) * CFrame.Angles(0, 0, math.atan2(-across.X, across.Y))
+    local panelWidth = math.clamp(width * .47, .32, .49)
+    local panelLength = math.clamp(height * .64, .49, .75)
+    local panel = CFrame.new(hip + Vector3.new(-.025, -panelLength * .46, -.018)) * CFrame.Angles(0, 0, -.14)
 
     piece("Gold selvage", stripe, Vector3.new(.25, across.Magnitude + .10, .09), brass, Enum.Material.Fabric)
     piece("Indigo cross strap", stripe + Vector3.new(0, 0, -.033),
@@ -78,19 +99,23 @@ local function watch(player)
     end
     local playerConnections, characterConnections = {}, {}
     local active, queued = true, false
-    local character, mountedArt, sash
+    local character, mountedArt
+    local mounted = {}
 
-    local function removeSash()
-        if sash then
+    local function removeSashes()
+        for name, sash in mounted do
             sash:Destroy()
+            mounted[name] = nil
         end
-        mountedArt, sash = nil, nil
+        mountedArt = nil
     end
 
     local function refresh()
-        if not character or character ~= player.Character or player:GetAttribute(COSMETIC_ATTRIBUTE) ~= COSMETIC_ID
-            or player:GetAttribute(EQUIPPED_ATTRIBUTE) == false then
-            removeSash()
+        local summit = player:GetAttribute(COSMETIC_ATTRIBUTE) == COSMETIC_ID
+            and player:GetAttribute(EQUIPPED_ATTRIBUTE) ~= false
+        local market = player:GetAttribute(MARKET_ATTRIBUTE) == true
+        if not character or character ~= player.Character or not (summit or market) then
+            removeSashes()
             return
         end
         local torso = character:FindFirstChild("Torso")
@@ -98,15 +123,24 @@ local function watch(player)
         local art = shell and shell:FindFirstChild("Torso")
         local weld = art and art:IsA("BasePart") and art:FindFirstChildOfClass("Weld")
         if not (torso and torso:IsA("BasePart") and weld and weld.Part0 == torso and weld.Part1 == art) then
-            removeSash()
+            removeSashes()
             return
         end
-        if mountedArt == art and sash and sash.Parent == character then
-            return
+        if mountedArt ~= art then
+            removeSashes()
+            mountedArt = art
         end
-        removeSash()
-        sash = makeSash(torso, art, weld.C0 * weld.C1:Inverse())
-        mountedArt, sash.Parent = art, character
+        for name, visible in {[SASH_NAME] = summit, [MARKET_SASH_NAME] = market} do
+            local sash = mounted[name]
+            if sash and (not visible or sash.Parent ~= character) then
+                sash:Destroy()
+                mounted[name] = nil
+            end
+            if visible and not mounted[name] then
+                local newSash = makeSash(torso, art, weld.C0 * weld.C1:Inverse(), name == MARKET_SASH_NAME)
+                mounted[name], newSash.Parent = newSash, character
+            end
+        end
     end
 
     local function schedule()
@@ -127,7 +161,7 @@ local function watch(player)
             connection:Disconnect()
         end
         table.clear(characterConnections)
-        removeSash()
+        removeSashes()
         character = nextCharacter
         if not character then
             return
@@ -144,6 +178,7 @@ local function watch(player)
 
     playerConnections[1] = player:GetAttributeChangedSignal(COSMETIC_ATTRIBUTE):Connect(schedule)
     playerConnections[2] = player:GetAttributeChangedSignal(EQUIPPED_ATTRIBUTE):Connect(schedule)
+    playerConnections[5] = player:GetAttributeChangedSignal(MARKET_ATTRIBUTE):Connect(schedule)
     playerConnections[3] = player.CharacterAdded:Connect(bindCharacter)
     playerConnections[4] = player.CharacterRemoving:Connect(function(oldCharacter)
         if character == oldCharacter then

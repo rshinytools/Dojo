@@ -215,7 +215,7 @@ Complete advanced modes, matchmaking and clans.
 
 ## P9 Economy, purchases and safe trading
 
-Add monetization and exchanges only after save correctness is demonstrated.
+Prioritize the earned Wallet and deterministic apparel, followed by the first Robux cosmetic offer after published staging verifies persistence.
 
 **Status** In progress
 
@@ -225,10 +225,10 @@ Add monetization and exchanges only after save correctness is demonstrated.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P9.1 | Progression economy, boosts and exact cosmetics | Prototype ready | Free browser simulation exercises duration and reward/combat effects. Native staging must verify exact price/effect and duration, no stacking or lost duplicate purchases, receipt retries, reconnect expiry, and boost isolation from PvP and competitive records. No paid level skips or exclusive competitive moves in the proposed first release. |
+| P9.1 | Progression economy, boosts and exact cosmetics | In progress | The native city Wallet shows Coins, raid balances and separate fighter XP. Buy the first 50-Coin cosmetic and keep it across rejoining. Verify exactly-once grants, reconnect expiry for any future boosts, and competitive isolation. Practice and PvE perks follow the cosmetic release. |
 | P9.2 | Random outcomes and eligibility | Planned | Unknown eligibility blocks restricted actions; published odds match the actual server distribution. |
 | P9.3 | Trading plaza transaction protocol | Planned | Crash/timeout/retry tests show no item loss/duplication; no assumption of multi-key atomicity. Account-bound awards are rejected in offers. |
-| P9.4 | Pass, season and rewarded ads | Planned | All grants commit once; only eligible accounts/devices receive ad or restricted offers. |
+| P9.4 | Pass, season and rewarded ads | Planned | Stage a permanent Robux cosmetic bundle first. Verify live regional prices, the official checkout prompt, server ownership and reconnect before turning sales on. Season and ad grants remain eligibility-gated and idempotent. |
 
 ## P10 Optional VPS operations
 

@@ -11,6 +11,7 @@ local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
+local walletRemote = ReplicatedStorage:WaitForChild("DojoWallet")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
 local trainingCompleted = script.Parent:WaitForChild("RingTrainingCompleted")
 local CombatHandoff = require(script.Parent:WaitForChild("CombatProfileHandoff"))
@@ -263,6 +264,11 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("FighterNewForm", progress.newForm)
     player:SetAttribute("RaidTokens", progress.raidTokens)
     player:SetAttribute("MythicShards", progress.mythicShards)
+    local wallet = PlayerProfiles.wallet(profile)
+    player:SetAttribute("DojoCoins", wallet.coins)
+    player:SetAttribute("DojoMarketSashCost", PlayerProfiles.MarketSashCost)
+    player:SetAttribute("DojoMarketSashOwned", wallet.marketSashOwned)
+    player:SetAttribute("DojoMarketSashEquipped", wallet.marketSashEquipped)
     player:SetAttribute("RelayBest", progress.relayBest)
     player:SetAttribute("FighterXp", progress.xp)
     player:SetAttribute("FighterLevel", progress.level)
@@ -284,7 +290,7 @@ end
 
 local function pendingProgress(data)
     return data.pendingStarterChoice or data.pendingRelay or data.pendingSparWin or data.pendingTraining
-        or data.pendingRaids[1] or (data.pendingAdventure and data.pendingAdventure[1])
+        or data.pendingRaids[1] or (data.pendingAdventure and data.pendingAdventure[1]) or data.pendingWallet
 end
 
 local function syncStarterAvatar(player, data, character)
@@ -496,6 +502,26 @@ local function saveAdventure(player, data, token)
     return profile
 end
 
+local walletRejections = {
+    ["insufficient coins"] = "Earn 50 Coins to buy the Jade Festival Sash.",
+    ["sash not owned"] = "Buy the Jade Festival Sash before equipping it.",
+    ["invalid wallet command"] = "That wallet action is unavailable.",
+}
+
+local function saveWallet(player, data, token)
+    local profile, reason, message = profiles:commitDojoWallet(player.UserId, token, data.pendingWallet)
+    local rejection = walletRejections[reason]
+    if not profile and not rejection then return nil end
+    data.pendingWallet = nil
+    profile = profile or data.profile
+    if not (data.departed or shuttingDown) then
+        projectProgress(player, data, profile)
+        player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
+        walletRemote:FireClient(player, rejection or message)
+    end
+    return profile
+end
+
 local function serveProgress(player, data)
     local token = HttpService:GenerateGUID(false)
     local attempted = false
@@ -557,6 +583,8 @@ local function serveProgress(player, data)
                 data.profile = saveRaid(player, data, token)
             elseif data.pendingAdventure[1] then
                 data.profile = saveAdventure(player, data, token)
+            elseif data.pendingWallet then
+                data.profile = saveWallet(player, data, token)
             else
                 data.profile = profiles:renew(player.UserId, token)
             end
@@ -574,6 +602,8 @@ local function serveProgress(player, data)
                     remote:FireClient(player, "notice", "Your training XP is pending. We'll retry while you're here.")
                 elseif data.pendingRaids[1] then
                     sendRaidReward(player, data.pendingRaids[1], {status = "pending"})
+                elseif data.pendingWallet then
+                    walletRemote:FireClient(player, "Your wallet change is still saving. It will retry while you play.")
                 end
             end
         end
@@ -614,6 +644,7 @@ local function serveProgress(player, data)
         while data.pendingAdventure and data.pendingAdventure[1] do
             if not saveAdventure(player, data, token) then break end
         end
+        if data.pendingWallet then saveWallet(player, data, token) end
     end
     if attempted and not outbound then
         profiles:release(player.UserId, token)
@@ -691,6 +722,27 @@ local function activeActivity(player, data)
         or player:GetAttribute("KilnbackRaidQueued")
         or (player:GetAttribute("ParcelStage") or 0) > 0
 end
+
+walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
+    if kind ~= "buy" and (kind ~= "equip" or type(equipped) ~= "boolean") then return end
+    local data = state[player]
+    if not data or data.departed or shuttingDown then return end
+    local now = os.clock()
+    if now - (data.lastWalletAction or -math.huge) < .5 then return end
+    data.lastWalletAction = now
+    if not data.profile or pendingProgress(data) then
+        walletRemote:FireClient(player, "Wait for your progress to finish saving.")
+        return
+    end
+    if not data.selectedStarter or activeActivity(player, data) or player:GetAttribute("FighterSelectOpen")
+        or player:GetAttribute("DuelTransferHold") or (transport and transport.profiles:ownsOutbound(player)) then
+        walletRemote:FireClient(player, "Open your wallet after returning to the city.")
+        return
+    end
+    data.pendingWallet = {kind = kind, equipped = if kind == "equip" then equipped else nil}
+    if transport then transport.profiles:receiptQueued(player) end
+    player:SetAttribute("ProgressStatus", "saving")
+end)
 
 cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).mount(city:WaitForChild("City Adventure"), {
     profile = function(player)

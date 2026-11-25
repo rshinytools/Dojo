@@ -7838,6 +7838,7 @@ build_city_adventure_scenery(scene, item=item, part=part, prop=prop, sign=sign,
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")
+item(storage,"RemoteEvent","DojoWallet")
 item(storage,"RemoteEvent","GrandDojoAction")
 item(storage,"RemoteEvent","GrandDojoSparring")
 item(storage,"RemoteEvent","GrandDojoDuel")
@@ -8204,6 +8205,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (opening,"LocalScript","GrandDojoSplash","GrandDojoSplash.client.luau"),
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
                                     (scripts,"LocalScript","CityAdventureClient","CityAdventure.client.luau"),
+                                    (scripts,"LocalScript","DojoWalletClient","DojoWallet.client.luau"),
                                     (scripts,"LocalScript","GrandDojoBrawlClient","GrandDojoBrawl.client.luau"),
                                     (scripts,"LocalScript","GrandDojoTagTeamClient","GrandDojoTagTeam.client.luau"),
                                     (scripts,"LocalScript","KilnbackRaidClient","KilnbackRaid.client.luau"),

@@ -13,6 +13,14 @@ local playerId, lease = 9744, "city-adventure"
 assert(profiles:open(playerId, lease))
 local profile = assert(profiles:commitStarterChoice(playerId, lease, "reedguard-kangaroo"))
 assert(profile.cityAdventure == nil, "Use the existing profile schema before the first city activity")
+local startingWallet = PlayerProfiles.wallet(profile)
+assert(startingWallet.coins == 0 and not startingWallet.marketSashOwned and not startingWallet.marketSashEquipped)
+local rejected, reason = profiles:commitDojoWallet(playerId, lease, {kind = "buy"})
+assert(not rejected and reason == "insufficient coins")
+rejected, reason = profiles:commitDojoWallet(playerId, lease, {kind = "equip", equipped = false})
+assert(not rejected and reason == "sash not owned")
+rejected, reason = profiles:commitDojoWallet(playerId, lease, {kind = "equip", equipped = "true"})
+assert(not rejected and reason == "invalid wallet command")
 
 local function result(kind, fields)
     count += 1
@@ -38,6 +46,7 @@ for i, id in firstThree do
     local definition = Catalog.activities[id]
     assert(result("activity", {district = definition.district, activity = id, tenths = 209}) == (if i == 3 then 95 else 30))
     assert(result("activity", {district = definition.district, activity = id, tenths = 310}) == 0)
+    assert(PlayerProfiles.wallet(profile).coins == i * 20)
 end
 assert(profile.trophies["world-05"])
 assert(Progress.count(profile.cityAdventure.festival.stamps) == 3 and profile.cityAdventure.festival.earned)
@@ -72,6 +81,7 @@ end
 local totals = Progress.totals(profile.cityAdventure)
 assert(totals.chapters == 6 and totals.seals == 18 and totals.caches == 6 and totals.visited == 6)
 assert(Progress.count(profile.cityAdventure.activities) == 12)
+assert(PlayerProfiles.wallet(profile).coins == 510)
 assert(result("graduate") == 85 and result("grand-cache") == 100)
 assert(result("graduate") == 0 and result("grand-cache") == 0)
 for _, id in {"journey-01", "journey-02", "journey-03", "journey-05", "journey-06"} do
@@ -99,6 +109,7 @@ assert(result("cloudbreak", {tenths = 281, clean = true}) == 0)
 assert(result("sash", {equipped = false}) == 0)
 assert(result("cloudbreak", {tenths = 309, clean = true}) == 0 and not profile.cityAdventure.cloudbreak.equipped)
 assert(profile.cityAdventure.cloudbreak.best == 265 and profile.cityAdventure.cloudbreak.cleanBest == 281)
+assert(PlayerProfiles.wallet(profile).coins == 570)
 
 assert(profiles:release(playerId, lease))
 now += Catalog.festivalDuration
@@ -126,3 +137,38 @@ local damaged = table.clone(restored.cityAdventure)
 damaged.districts = {valley = {step = 4}}
 assert(not Progress.valid(damaged))
 print("City adventure passed six chapters, 12 activities, 18 seals, seven caches, repeat festival windows, and an idempotent Cloudbreak reward across profile rejoin.")
+
+-- Existing achievements create a wallet on read. The purchase record owns the debit and the cosmetic.
+assert(restored.dojoWallet == nil and PlayerProfiles.wallet(restored).coins == 570)
+local firstRelay = assert(profiles:commitRelay(playerId, lease, 95, "wallet-relay"))
+assert(PlayerProfiles.wallet(firstRelay).coins == 630)
+local firstSpar = assert(profiles:commitSparWin(playerId, lease, "wallet-spar", "reedguard-kangaroo"))
+assert(PlayerProfiles.wallet(firstSpar).coins == 660)
+assert(profiles:commitRelay(playerId, lease, 92, "wallet-relay-repeat"))
+local beforeBuy = assert(profiles:commitSparWin(playerId, lease, "wallet-spar-repeat", "reedguard-kangaroo"))
+assert(PlayerProfiles.wallet(beforeBuy).coins == 660)
+local beforeBuyXp = beforeBuy.fighters["reedguard-kangaroo"].xp
+rejected, reason = profiles:commitDojoWallet(playerId, "stale-lease", {kind = "buy"})
+assert(not rejected and reason == "ownership")
+
+loseReply = true
+local purchase, purchaseError, status = profiles:commitDojoWallet(playerId, lease, {kind = "buy", coins = 0})
+assert(purchase and purchaseError == nil and status == "You already own the Jade Festival Sash.")
+local bought = PlayerProfiles.wallet(purchase)
+assert(bought.coins == 610 and bought.marketSashOwned and bought.marketSashEquipped)
+assert(purchase.fighters["reedguard-kangaroo"].xp == beforeBuyXp)
+local removed = assert(profiles:commitDojoWallet(playerId, lease, {kind = "equip", equipped = false}))
+assert(not PlayerProfiles.wallet(removed).marketSashEquipped and purchase.dojoWallet.marketSashEquipped)
+local retry = assert(profiles:commitDojoWallet(playerId, lease, {kind = "buy"}))
+local afterRetry = PlayerProfiles.wallet(retry)
+assert(afterRetry.coins == 610 and afterRetry.marketSashOwned and not afterRetry.marketSashEquipped)
+
+assert(profiles:release(playerId, lease))
+local walletLease = "new-server-wallet"
+local afterReconnect = assert(profiles:open(playerId, walletLease))
+local rejoined = PlayerProfiles.wallet(afterReconnect)
+assert(rejoined.coins == 610 and rejoined.marketSashOwned and not rejoined.marketSashEquipped)
+local equipped = assert(profiles:commitDojoWallet(playerId, walletLease, {kind = "equip", equipped = true}))
+assert(PlayerProfiles.wallet(equipped).marketSashEquipped and PlayerProfiles.wallet(equipped).coins == 610)
+assert(PlayerProfiles.wallet(other).coins == 0 and not PlayerProfiles.wallet(other).marketSashOwned)
+print("Dojo wallet passed legacy credits, repeat rewards, stale ownership, insufficient funds, lost purchase reply, duplicate purchase, equip and rejoin.")

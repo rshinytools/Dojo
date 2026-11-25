@@ -46,10 +46,12 @@ local DAWN_RETURN = "world-03"
 local NEW_FORM = "journey-04"
 local RAID_TROPHIES = {kilnback = KILN_KEEPER, kraken = DEEPWATER_TEAM, phoenix = DAWN_RETURN}
 local RAID_TOKENS, RAID_SHARDS = 20, 2
+local MARKET_SASH_COST = 50
 local LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
 PlayerProfiles.FirstRelayXp = FIRST_RELAY_XP
 PlayerProfiles.FirstDojoPracticeXp = FIRST_DOJO_PRACTICE_XP
 PlayerProfiles.FirstSparWinXp = FIRST_SPAR_WIN_XP
+PlayerProfiles.MarketSashCost = MARKET_SASH_COST
 
 local function whole(value, minimum, maximum)
     return type(value) == "number" and value >= minimum and value <= maximum and value % 1 == 0
@@ -194,6 +196,7 @@ local function valid(profile)
         return false
     end
     local trophy = profile.trophies[LANTERN_KEEPER]
+    local wallet = profile.dojoWallet
     for _, id in RAID_TROPHIES do
         local award = profile.trophies[id]
         if award ~= nil and not validRaidTrophy(award) then
@@ -221,6 +224,8 @@ local function valid(profile)
             and whole(trophy.criterionVersion, 1, 1e6))
         and (profile.kilnback == nil or validRaidReceipt(profile.kilnback))
         and CityAdventureProgress.valid(profile.cityAdventure)
+        and (wallet == nil or type(wallet) == "table" and whole(wallet.spent, 1, 1e12)
+            and type(wallet.marketSashEquipped) == "boolean")
         and (profile.cityAdventureReceipt == nil or type(profile.cityAdventureReceipt) == "table"
             and validCompletionId(profile.cityAdventureReceipt.id) and whole(profile.cityAdventureReceipt.xp, 0, 200))
         and validLease(profile.lease)
@@ -336,6 +341,24 @@ function PlayerProfiles.ultimateFor(profile, fighterId)
     return loadoutFor(profile, fighterId, "ultimate", "equippedUltimate")
 end
 
+function PlayerProfiles.wallet(profile)
+    local world = CityAdventureProgress.world(profile)
+    -- Permanent completion facts also credit players who cleared these activities before the market opened.
+    local coins = (if profile.trophies[LANTERN_KEEPER] then 60 else 0)
+        + (if profile.firstSparWinId then 30 else 0)
+        + (if world.cloudbreak then 60 else 0)
+        + CityAdventureProgress.count(world.activities) * 20
+    for _, district in world.districts do
+        if district.cache then coins += 45 end
+    end
+    local purchase = profile.dojoWallet
+    return {
+        coins = math.max(0, coins - (if purchase then purchase.spent else 0)),
+        marketSashOwned = purchase ~= nil,
+        marketSashEquipped = purchase ~= nil and purchase.marketSashEquipped,
+    }
+end
+
 function PlayerProfiles.summary(profile, fighterId)
     fighterId = fighterId or REEDGUARD
     local fighter = profile.fighters[fighterId]
@@ -449,6 +472,34 @@ end
 
 function PlayerProfiles:release(userId, token)
     return self:_owned(userId, token, nil, true)
+end
+
+function PlayerProfiles:commitDojoWallet(userId, token, command)
+    if type(command) ~= "table" or (command.kind ~= "buy"
+        and not (command.kind == "equip" and type(command.equipped) == "boolean")) then
+        return nil, "invalid wallet command"
+    end
+    local status
+    local saved, reason = self:_owned(userId, token, function(profile)
+        local purchase = profile.dojoWallet
+        if command.kind == "buy" then
+            if purchase then
+                status = "You already own the Jade Festival Sash."
+                return
+            end
+            if PlayerProfiles.wallet(profile).coins < MARKET_SASH_COST then
+                return "insufficient coins"
+            end
+            profile.dojoWallet = {spent = MARKET_SASH_COST, marketSashEquipped = true}
+            status = "Jade Festival Sash purchased and equipped."
+        else
+            if not purchase then return "sash not owned" end
+            profile.dojoWallet = table.clone(purchase)
+            profile.dojoWallet.marketSashEquipped = command.equipped
+            status = if command.equipped then "Jade Festival Sash equipped." else "Jade Festival Sash removed."
+        end
+    end)
+    return saved, reason, if saved then status else nil
 end
 
 local function validHandoffRequest(userId, token, id, destination)
