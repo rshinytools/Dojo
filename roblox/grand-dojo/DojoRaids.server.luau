@@ -185,7 +185,7 @@ local function mount(encounter)
                     revive = revive and {targetIndex = revive.target, startedAt = revive.startedAt, endsAt = revive.endsAt},
                     reviveTarget = if not round.result and now >= round.startsAt then nearestRevive(match, index, now) else nil})
                 if not round.result and not side.downed and not side.left then
-                    Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt, now)
+                    Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
                 end
             end
         end
@@ -369,7 +369,7 @@ local function mount(encounter)
             elseif event.source == "player" then
                 local actor, side = match.actors[event.attacker], round.sides[event.attacker]
                 if actor and side.playerHealth > 0 and not side.downed then
-                    Match.queueHitStop(actor, side.kitId, side.kit, event, actor.motors)
+                    Match.queueHitStop(actor, side.kitId, side.kit, event, actor.motors, side.reaction)
                 end
                 cue(match.actors[event.attacker], Match.stormFeedback(event)
                     or (if event.shockDuration then "shockLanded" elseif event.core then "core" else event.kind), now)

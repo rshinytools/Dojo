@@ -170,7 +170,7 @@ local function publish(duel, kind, now)
             elementEffect = if now < challenger.feedbackUntil then challenger.elementEffect else nil,
         }))
         if not round.result then
-            Windup.profile(challenger, side, challenger.motors, round.startsAt, round.endsAt, now)
+            Windup.profile(challenger, side, challenger.motors, round.startsAt, round.endsAt)
         end
     end
     Presentation.broadcast(effects, snapshot, recipients)
@@ -320,7 +320,7 @@ local function resolve(duel, now)
         local a, b = duel.actors[event.attacker], duel.actors[event.defender]
         local side = round.sides[event.attacker]
         if a and side.playerHealth > 0 then
-            Match.queueHitStop(a, a.kit, side.kit, event, a.motors)
+            Match.queueHitStop(a, a.kit, side.kit, event, a.motors, side.reaction)
         end
         local kind = event.kind
         local stormCue = Match.stormFeedback(event)

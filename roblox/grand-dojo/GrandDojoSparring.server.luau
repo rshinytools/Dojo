@@ -39,7 +39,7 @@ local function publish(bout, kind, now)
         round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature, round.nextSecondary,
         Match.takeHitStop(bout))
     if bout.motion and not round.result then
-        Windup.profile(bout, round, bout.motion.motors, round.startsAt, round.endsAt, now)
+        Windup.profile(bout, round, bout.motion.motors, round.startsAt, round.endsAt)
     end
 end
 
@@ -348,7 +348,7 @@ local function tickShowcase(bout, now, dt)
     for _, event in round.notices do
         Motion.impact(bout, event)
         if event.source ~= "bot" and round.playerHealth > 0 then
-            Match.queueHitStop(bout, bout.kit, round.kit, event, bout.motion.motors)
+            Match.queueHitStop(bout, bout.kit, round.kit, event, bout.motion.motors, round.reaction)
         end
         local cue = Match.contactCue(event)
         if cue then

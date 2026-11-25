@@ -151,7 +151,7 @@ local function publish(match, event, now)
                 tagReadyAt = seat.nextTagAt, nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                 feedback = if now < actor.feedbackUntil then actor.feedback else nil})
             if not round.result and not seat.out and not seat.entryAt then
-                Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt, now)
+                Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
             end
             table.insert(recipients, player.UserId)
         end
@@ -350,7 +350,7 @@ local function advance(match, now)
         local attacker = match.actors[event.attacker]
         local side = match.round.sides[event.attacker]
         if attacker and side.playerHealth > 0 and not side.eliminated then
-            Match.queueHitStop(attacker, side.kitId, side.kit, event, attacker.motors)
+            Match.queueHitStop(attacker, side.kitId, side.kit, event, attacker.motors, side.reaction)
         end
         if event.defender and event.kind ~= "miss" and event.kind ~= "burn" then
             attacker.lastTarget = event.defender

@@ -126,13 +126,15 @@ local function contactPose(kit, event, motors)
     return pose
 end
 
-function Match.queueHitStop(actor, kitId, kit, event, motors)
+function Match.queueHitStop(actor, kitId, kit, event, motors, reaction)
     if not actor or (event.kind ~= "strike" and event.kind ~= "counter")
         or (event.damage or 0) <= 0 or not event.point then
         return
     end
     local pulse = event.signatureCast ~= nil and event.signatureCast > (actor.lastSignatureImpactCast or -math.huge)
-    local hold = event.poseHold == .04 or (event.poseHold == .08 and pulse)
+    -- A reaction from the same server step owns the fighter's pose during a trade.
+    local hold = (not reaction or reaction.endsAt <= event.at)
+        and (event.poseHold == .04 or (event.poseHold == .08 and pulse))
     if not (pulse or hold) then return end
     local last = actor.pendingHitStop
     if last and (last.at >= event.at or (last.pulse and not pulse)) then

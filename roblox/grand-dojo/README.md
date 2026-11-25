@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.327, look for visible recoil if both fighters land a strike together. In Tag Team, switch to a backup and try Heavy or an opening Jab once the backup reaches a ready stance.
+
 In v0.326, press **E** from a ready stance to start Jab. Press **E** again near the end of Jab and Cross to buffer the rest of the three-strike combo.
 
 In v0.325, press **R** in a bout to start your fighter’s Heavy preparation. Time Guard and press Heavy during the opponent’s recovery to see the windup, contact, and follow-through.

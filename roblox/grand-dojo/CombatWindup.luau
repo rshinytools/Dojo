@@ -20,8 +20,14 @@ local handoffTime = .055
 local contactLead = .012
 local lightChainTime = .55
 local lightBufferTime = .19
+local generationAttribute = "CombatWindupGeneration"
+local profileWaitTime = 1
+local profileRetryTime = .05
 local token = 0
+local latestGeneration = 0
+local closedThrough = -math.huge
 local profile
+local pending
 local active
 
 local function finite(value)
@@ -131,15 +137,40 @@ local function step()
     end
 end
 
+local function bindPending(candidate)
+    if pending ~= candidate then return end
+    if os.clock() >= candidate.expiresAt or workspace:GetServerTimeNow() >= candidate.endsAt
+        or player.Character ~= candidate.character then
+        pending = nil
+        return
+    end
+    local shell = candidate.character:FindFirstChild("Starter Fighter Shell")
+    if player:GetAttribute("SparringActive") and shell and (not candidate.shell or shell == candidate.shell)
+        and shell:GetAttribute(generationAttribute) == candidate.generation then
+        candidate.shell = shell
+        profile, pending = candidate, nil
+    end
+end
+
+local function awaitProfile(candidate)
+    bindPending(candidate)
+    if pending == candidate then
+        task.delay(profileRetryTime, awaitProfile, candidate)
+    end
+end
+
 function Windup.begin(action)
-    if (action ~= "heavy" and action ~= "strike") or not profile or not player:GetAttribute("SparringActive") then
+    if (action ~= "heavy" and action ~= "strike") or not player:GetAttribute("SparringActive") then
         return nil
     end
+    if pending then bindPending(pending) end
+    local current = profile or pending
+    if not current then return nil end
     local serverNow = workspace:GetServerTimeNow()
-    if serverNow < profile.startsAt or serverNow >= profile.endsAt then
+    if serverNow < current.startsAt or serverNow >= current.endsAt then
         return nil
     end
-    local jab = if action == "strike" then profile.jab else nil
+    local jab = if action == "strike" then current.jab else nil
     if action == "strike" then
         if not jab then return nil end
         local ready = serverNow >= math.max(jab.readyAt, jab.localReadyAt)
@@ -147,7 +178,7 @@ function Windup.begin(action)
         jab.localReadyAt = serverNow + jab.duration + lightChainTime + lightBufferTime + previewTime
         if not ready then return nil end
     end
-    if active or reducedMotion() or HitStop.isActive() or serverNow < profile.busyUntil then
+    if not profile or active or reducedMotion() or HitStop.isActive() or serverNow < profile.busyUntil then
         return nil
     end
     local character = player.Character
@@ -195,17 +226,16 @@ end
 
 local function receiveProfile(packet, serverNow)
     local character = player.Character
-    if not (packet.shell and character and packet.shell == character:FindFirstChild("Starter Fighter Shell"))
+    if not character or not (finite(packet.generation) and packet.generation % 1 == 0 and packet.generation > latestGeneration)
         or not (finite(packet.startsAt) and finite(packet.endsAt) and finite(packet.contact))
+        or packet.startsAt <= closedThrough
         or packet.endsAt <= serverNow or packet.contact <= contactLead or packet.contact >= packet.endsAt - packet.startsAt
         or not hasShoulderPose(packet.pose) then
         return
     end
-    if profile and (packet.startsAt < profile.startsAt
-        or packet.startsAt == profile.startsAt and packet.shell == profile.shell) then
-        return
-    end
+    latestGeneration = packet.generation
     Windup.clear()
+    profile = nil
     local jabPacket, jab = packet.jab, nil
     if type(jabPacket) == "table" and finite(jabPacket.contact) and finite(jabPacket.duration)
         and finite(jabPacket.readyAt) and jabPacket.contact > contactLead and jabPacket.duration >= jabPacket.contact
@@ -213,14 +243,18 @@ local function receiveProfile(packet, serverNow)
         jab = {pose = jabPacket.pose, contact = jabPacket.contact, duration = jabPacket.duration,
             readyAt = jabPacket.readyAt, localReadyAt = -math.huge}
     end
-    profile = {shell = packet.shell, startsAt = packet.startsAt, endsAt = packet.endsAt, contact = packet.contact,
-        pose = packet.pose, busyUntil = -math.huge, jab = jab}
+    pending = {character = character, shell = packet.shell, generation = packet.generation,
+        startsAt = packet.startsAt, endsAt = packet.endsAt, expiresAt = os.clock() + profileWaitTime,
+        contact = packet.contact, pose = packet.pose, busyUntil = -math.huge, jab = jab}
+    awaitProfile(pending)
 end
 
 local function receiveReadiness(packet)
-    if profile and profile.jab and packet.shell == profile.shell and packet.startsAt == profile.startsAt
+    local candidate = pending or profile
+    if candidate and candidate.jab and packet.generation == candidate.generation and packet.startsAt == candidate.startsAt
+        and (not packet.shell or not candidate.shell or packet.shell == candidate.shell)
         and finite(packet.jabReadyAt) then
-        profile.jab.readyAt = packet.jabReadyAt
+        candidate.jab.readyAt = packet.jabReadyAt
     end
 end
 
@@ -228,7 +262,8 @@ local function receiveDecision(packet, serverNow)
     local preview = active
     local now = os.clock()
     if not preview or preview.decided or packet.token ~= preview.token or packet.shell ~= preview.shell
-        or packet.action ~= preview.action or packet.startsAt ~= preview.profile.startsAt or now >= preview.expiresAt
+        or packet.generation ~= preview.profile.generation or packet.action ~= preview.action
+        or packet.startsAt ~= preview.profile.startsAt or now >= preview.expiresAt
         or serverNow >= preview.cutoff then
         return
     end
@@ -275,7 +310,8 @@ end)
 
 local function clearRound()
     Windup.clear()
-    profile = nil
+    closedThrough = math.max(closedThrough, workspace:GetServerTimeNow())
+    profile, pending = nil, nil
 end
 
 player.CharacterRemoving:Connect(clearRound)

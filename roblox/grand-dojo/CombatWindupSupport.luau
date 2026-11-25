@@ -5,7 +5,8 @@ local Combatant = require(script.Parent.ReedguardRound).Combatant
 local Windup = {}
 local shoulders = {"Left Shoulder", "Right Shoulder"}
 local maximumToken = 2147483647
-local shellSwapGrace = .06
+local generationAttribute = "CombatWindupGeneration"
+local generation = 0
 
 local function fighterShell(actor)
     local character = actor.root.Parent
@@ -29,28 +30,21 @@ local function poseSample(kit, motors, action, age)
     return {contact = contact, pose = pose}
 end
 
-function Windup.profile(actor, side, motors, startsAt, endsAt, now)
+function Windup.profile(actor, side, motors, startsAt, endsAt)
     if side.playerHealth <= 0 or not motors then return end
     local shell = fighterShell(actor)
     if not shell then return end
     local previous = actor.windupProfile
-    if previous and previous.startsAt == startsAt then
-        if previous.shell ~= shell then
-            -- Let the newly mounted Tag Team shell replicate before sending its profile.
-            actor.windupProfile = {shell = shell, startsAt = startsAt, sendAfter = now + shellSwapGrace}
-            return
-        elseif not previous.sendAfter then
-            if previous.jabReadyAt ~= nil then
-                local readyAt = math.max(startsAt, Combatant.jabReadyAt(side))
-                if readyAt ~= previous.jabReadyAt then
-                    previous.jabReadyAt = readyAt
-                    remote:FireClient(actor.player, "readiness", {shell = shell, startsAt = startsAt, jabReadyAt = readyAt})
-                end
+    if previous and previous.startsAt == startsAt and previous.shell == shell then
+        if previous.jabReadyAt ~= nil then
+            local readyAt = math.max(startsAt, Combatant.jabReadyAt(side))
+            if readyAt ~= previous.jabReadyAt then
+                previous.jabReadyAt = readyAt
+                remote:FireClient(actor.player, "readiness", {shell = shell, startsAt = startsAt,
+                    generation = previous.generation, jabReadyAt = readyAt})
             end
-            return
-        elseif now < previous.sendAfter then
-            return
         end
+        return
     end
 
     local heavy = poseSample(side.kit, motors, "heavy", .14)
@@ -61,8 +55,11 @@ function Windup.profile(actor, side, motors, startsAt, endsAt, now)
         jab.duration = side.kit.poses.Duration.jab
     end
 
-    actor.windupProfile = {shell = shell, startsAt = startsAt, jabReadyAt = jab and jab.readyAt}
-    remote:FireClient(actor.player, "profile", {shell = shell, startsAt = startsAt,
+    -- The marker identifies the intended shell even when Roblox delivers a nil Instance reference.
+    generation += 1
+    shell:SetAttribute(generationAttribute, generation)
+    actor.windupProfile = {shell = shell, startsAt = startsAt, generation = generation, jabReadyAt = jab and jab.readyAt}
+    remote:FireClient(actor.player, "profile", {shell = shell, startsAt = startsAt, generation = generation,
         endsAt = endsAt, contact = heavy.contact, pose = heavy.pose, jab = jab})
 end
 
@@ -72,13 +69,14 @@ function Windup.decide(actor, side, startsAt, token, previousClip, now, action)
     if not expected then return end
     local shell = fighterShell(actor)
     local profile = actor.windupProfile
-    if not shell or not profile or profile.shell ~= shell or profile.startsAt ~= startsAt or profile.sendAfter then return end
+    if not shell or not profile or profile.shell ~= shell or profile.startsAt ~= startsAt then return end
 
     local clip = side.clip
     local accepted = clip and clip ~= previousClip and clip.action == expected and clip.startedAt == now
     local busyUntil = math.max(side.playerStunUntil or 0, if clip then clip.endsAt else 0)
-    remote:FireClient(actor.player, "decision", {shell = shell, startsAt = startsAt, token = token, action = expected,
-        acceptedAt = if accepted then clip.startedAt else nil, busyUntil = if busyUntil > now then busyUntil else nil})
+    remote:FireClient(actor.player, "decision", {shell = shell, startsAt = startsAt, generation = profile.generation,
+        token = token, action = expected, acceptedAt = if accepted then clip.startedAt else nil,
+        busyUntil = if busyUntil > now then busyUntil else nil})
 end
 
 return table.freeze(Windup)
