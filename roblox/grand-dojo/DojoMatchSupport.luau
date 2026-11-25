@@ -83,22 +83,27 @@ function Match.contactCue(event)
         return nil
     end
     local kind = event.kind
-    if event.attack == "talonDrop" and (event.damage or 0) == 0 and kind ~= "parried" and kind ~= "blocked" then
-        return nil
-    end
     if event.deflected then
         return "deflected"
     end
+    -- A blocked strike can still deal chip damage. Report the defense before
+    -- choosing any move-specific effect based on positive damage.
+    if kind == "parried" or kind == "blocked" or kind == "braced" or kind == "guardBroken" then
+        return kind
+    end
+    if event.attack == "talonDrop" and (event.damage or 0) == 0 then
+        return nil
+    end
     if event.controlOnly then
         if event.rootDuration then
-            return if kind == "snare" then "snared" elseif kind == "blocked" or kind == "braced" then kind else nil
+            return if kind == "snare" then "snared" else nil
         end
         return if kind == "pull" or kind == "miss" then "gustPull" else kind
     end
     if event.attack == "featherFlurry" and event.index == 3 and (event.damage or 0) > 0 then
         return "diveKick"
     end
-    if kind == "parried" or kind == "blocked" or (event.damage or 0) > 0 then
+    if (event.damage or 0) > 0 then
         return kind
     end
     if Match.floorAttack(event.attack) then

@@ -174,6 +174,8 @@ function CombatAudio.impact(kind, point, attack)
         play("ground", point, .78, false)
     elseif kind == "diveKick" then
         play("heavy", point, .86, duck)
+    elseif kind == "guardBroken" then
+        play("heavy", point, .74, duck)
     elseif kind == "snared" then
         play("guard", point, .80, false)
     elseif kind == "blocked" or kind == "braced" then

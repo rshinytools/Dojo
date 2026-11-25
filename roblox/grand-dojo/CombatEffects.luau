@@ -5,6 +5,7 @@ local Debris = game:GetService("Debris")
 local GuiService = game:GetService("GuiService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Marks = require(script.Parent.CombatContactMarks)
 
 local CombatEffects = {}
 local hitTexture = "rbxassetid://18140248952"
@@ -20,6 +21,7 @@ local tint = {
     diveKick = Color3.fromRGB(255, 152, 105),
     snared = Color3.fromRGB(255, 166, 103),
     braced = Color3.fromRGB(174, 211, 180),
+    guardBroken = Color3.fromRGB(255, 161, 120),
     burst = Color3.fromRGB(255, 143, 75),
 }
 local groundPulses = {
@@ -60,7 +62,7 @@ local moveContactTint = {
 local folder
 local prepared = false
 function CombatEffects.prepare()
-    if prepared then
+    if prepared or UserInputService.TouchEnabled or UserInputService.VREnabled or GuiService.ReducedMotionEnabled then
         return
     end
     prepared = true
@@ -108,6 +110,7 @@ local snareMark = {name = "Cinder Snare hold", color = tint.snared,
     initial = 1.88, width = .78, compact = .88, life = .72}
 local waveHit = {name = "Cavitation Cannon impact", color = Color3.fromRGB(126, 226, 255),
     initial = .7, width = 2.7, compact = 2.0, life = .23}
+local floorBurst = {name = "Ground contact pulse", color = tint.burst, initial = .7, width = 3.2, compact = 2.2, life = .25}
 
 local function funnel(point, compact)
     local count = if compact then 6 else 10
@@ -161,7 +164,7 @@ function CombatEffects.play(kind, point, attack)
     if distance > 64 or not visible then
         return
     end
-    local parry = kind == "parried" or kind == "deflected"
+    local defense = Marks.defenseFamily(kind)
     local reduced = GuiService.ReducedMotionEnabled or UserInputService.VREnabled
     local mobile = UserInputService.TouchEnabled
     local compact = reduced or mobile or distance > 32
@@ -177,29 +180,28 @@ function CombatEffects.play(kind, point, attack)
         return
     end
     local pulse = if attack == "cavitationCannon" then waveHit else groundPulses[attack]
-    if pulse and not parry and kind ~= "blocked" then
-        groundPulse(point, pulse, compact, reduced)
+    if not defense and (pulse or kind == "burst") then
+        groundPulse(point, pulse or floorBurst, compact, reduced)
         if attack == "tidalBellyFlop" and not reduced then
             tidalCrests(point, compact)
         end
-        return
+        if kind == "burst" then return end
     end
-    if attack == "emberSweep" or attack == "volcanicBreath" or attack == "meteorRoll" then
-        color = tint.burst
-    elseif attack == "canopySlip" then
-        color = tint.gustPull
-    elseif not parry and kind ~= "blocked" and kind ~= "braced" then
-        color = moveContactTint[attack] or color
+    if not defense then
+        if attack == "emberSweep" or attack == "volcanicBreath" or attack == "meteorRoll" then
+            color = tint.burst
+        elseif attack == "canopySlip" then
+            color = tint.gustPull
+        else
+            color = moveContactTint[attack] or color
+        end
     end
-    local diameter = if parry then (if compact then 1.28 else 1.72)
-        elseif kind == "diveKick" then (if compact then 1.08 else 1.44) else (if compact then .93 else 1.2)
-    local life = if parry then .27 else .21
+    local anchor = Marks.show(worldFolder(), point, defense or "strike", color, compact, reduced or mobile)
+    local parry = defense == "parry"
+    if not anchor or compact or (defense and not parry) then return end
 
-    local anchor = Instance.new("Part")
-    anchor.Name = if parry then "Parry contact" else "Strike contact"
-    anchor.Anchored, anchor.CanCollide, anchor.CanTouch, anchor.CanQuery = true, false, false, false
-    anchor.CastShadow, anchor.Massless, anchor.Transparency = false, true, 1
-    anchor.CFrame, anchor.Size = CFrame.new(point), Vector3.one * .05
+    local diameter = if parry then 1.16 elseif kind == "diveKick" then 1.20 else 1.02
+    local life = if parry then .23 else .18
     local attachment = Instance.new("Attachment")
     attachment.Parent = anchor
     local ring = Instance.new("ParticleEmitter")
@@ -208,11 +210,11 @@ function CombatEffects.play(kind, point, attack)
     ring.Texture = if parry then parryTexture else hitTexture
     ring.FlipbookLayout = Enum.ParticleFlipbookLayout.Grid4x4
     ring.FlipbookMode = Enum.ParticleFlipbookMode.OneShot
-    ring.LightEmission, ring.LightInfluence, ring.ZOffset = .65, 0, .05
+    ring.LightEmission, ring.LightInfluence, ring.ZOffset = .55, 0, .02
     ring.Color, ring.Lifetime = ColorSequence.new(color), NumberRange.new(life)
     ring.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, if reduced then .32 else .12),
-        NumberSequenceKeypoint.new(.63, .44),
+        NumberSequenceKeypoint.new(0, .30),
+        NumberSequenceKeypoint.new(.63, .55),
         NumberSequenceKeypoint.new(1, 1),
     })
     ring.Size = NumberSequence.new({
@@ -221,21 +223,7 @@ function CombatEffects.play(kind, point, attack)
         NumberSequenceKeypoint.new(1, diameter * 1.15),
     })
     ring.Parent = attachment
-    anchor.Parent = worldFolder()
     ring:Emit(1)
-    Debris:AddItem(anchor, life + .11)
-
-    -- Keep a small visible contact cue if a published place cannot load the
-    -- texture or the device disables the animated particle.
-    local spark = Instance.new("Part")
-    spark.Name = "Contact glint"
-    spark.Anchored, spark.CanCollide, spark.CanTouch, spark.CanQuery = true, false, false, false
-    spark.CastShadow, spark.Material, spark.Color = false, Enum.Material.Neon, color
-    spark.Transparency = if reduced then .42 else .14
-    spark.CFrame = CFrame.new(point) * CFrame.Angles(0, math.rad(32), math.rad(45))
-    spark.Size = Vector3.new(.085, if parry then .38 else .24, .085)
-    spark.Parent = anchor
-    TweenService:Create(spark, TweenInfo.new(.12, Enum.EasingStyle.Quad), {Transparency = 1}):Play()
 end
 
 return CombatEffects

@@ -9,14 +9,23 @@ local opacity = {.12, .17, .27, .41}
 local soleClearance = .003
 local fighterId = "reedguard-kangaroo"
 local source = ReplicatedStorage:WaitForChild("StarterFighterVisuals"):WaitForChild(fighterId)
+-- The eight corners of the flat sole in the fighter's fitted art space.
+local outline = {{.118, -.59139, .13339}, {.21332, -.767, .309},
+    {.64868, -.767, .309}, {.744, -.59139, .13339}}
 local soles = {}
 for _, side in {"Left", "Right"} do
     local name = side .. " Leg"
     local rest = source:WaitForChild(name).CFrame
-    local x = if side == "Left" then -.43 else .43
+    local sign = if side == "Left" then -1 else 1
+    local footprint = {}
+    for _, edge in outline do
+        table.insert(footprint, rest:PointToObjectSpace(Vector3.new(sign * edge[1], 0, edge[2])))
+        table.insert(footprint, rest:PointToObjectSpace(Vector3.new(sign * edge[1], 0, edge[3])))
+    end
     soles[name] = {
-        point = rest:PointToObjectSpace(Vector3.new(x, 0, -.23)),
+        point = rest:PointToObjectSpace(Vector3.new(sign * .43, 0, -.23)),
         forward = rest:VectorToObjectSpace(-Vector3.zAxis),
+        footprint = footprint,
     }
 end
 
@@ -76,6 +85,8 @@ local trackedCharacter
 local idleWeight = 0
 local plantedFeet = {}
 local elapsed = 0
+local lastPlantAt = -math.huge
+local lastPlantFrame
 
 local function idleJoint(character, humanoid, root)
     local animate = character and character:FindFirstChild("Animate")
@@ -134,6 +145,42 @@ local function footFloor(probe, center)
     return floor, center - Vector3.yAxis * distance
 end
 
+local function supportPlane(foot, sole, point)
+    local centerFloor, center = footFloor(point, point)
+    local highestFloor, highest, highestProbe = centerFloor, center, point
+    -- A boot can overlap a raised stone while its center is over the lower bed.
+    -- An adjacent high stair should still remain a stair until the player steps onto it.
+    local ceiling = if center then center.Y + .17 else math.huge
+    local supports = if centerFloor then {centerFloor.Position} else {}
+    for _, localPoint in sole.footprint do
+        local probe = foot:PointToWorldSpace(localPoint)
+        local cornerFloor, cornerCenter = footFloor(probe, point)
+        if cornerCenter and cornerCenter.Y <= ceiling then
+            table.insert(supports, cornerFloor.Position)
+            if not highest or cornerCenter.Y > highest.Y + .001 then
+                highestFloor, highest, highestProbe = cornerFloor, cornerCenter, probe
+            end
+        end
+    end
+    if not highest then
+        return nil
+    end
+    if not center or highest.Y - center.Y <= .025 then
+        return highestFloor.Normal, highest
+    end
+
+    -- Tilt toward a shallow lip so the sole can share support with the lower paving.
+    local rise = highest.Y - center.Y
+    local run = (highestProbe - point) * Vector3.new(1, 0, 1)
+    local normal = (centerFloor.Normal - run.Unit * math.min(.30, rise / run.Magnitude)).Unit
+    local height = -math.huge
+    for _, support in supports do
+        local offset = support - point
+        height = math.max(height, point.Y + offset:Dot(normal) / normal.Y)
+    end
+    return normal, Vector3.new(point.X, height, point.Z)
+end
+
 local function footTarget(hip, foot, sole, torsoRest)
     local weld = foot and foot:FindFirstChildOfClass("Weld")
     if not (hip and weld and weld.Part0 == hip.Part1) then
@@ -144,18 +191,10 @@ local function footTarget(hip, foot, sole, torsoRest)
     local footRest = hipRest * hip.C1:Inverse() * weld.C0 * weld.C1:Inverse()
     local point = footRest:PointToWorldSpace(sole.point)
     local forward = footRest:VectorToWorldSpace(sole.forward)
-    local floor, center = footFloor(point, point)
-    if not floor then
-        -- The toe or heel can still carry weight when the sole center is over a gap.
-        floor, center = footFloor(point + forward * .38, point)
-        if not floor then
-            floor, center = footFloor(point - forward * .36, point)
-        end
-        if not floor then
-            return nil
-        end
+    local normal, center = supportPlane(footRest, sole, point)
+    if not normal then
+        return nil
     end
-    local normal = floor.Normal
     local tangent = forward - normal * forward:Dot(normal)
     local restSole = CFrame.lookAt(point, point + forward)
     local contact = center + normal * soleClearance
@@ -207,16 +246,23 @@ RunService.Heartbeat:Connect(function(dt)
     local character = player.Character
     if character ~= trackedCharacter then
         trackedCharacter = character
+        lastPlantFrame = nil
         ray.FilterDescendantsInstances = if character then {character} else {}
     end
     local shell = character and character:FindFirstChild("Starter Fighter Shell")
     local isReedguard = shell and shell:GetAttribute("FighterId") == fighterId
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
     local root = humanoid and humanoid.RootPart
-    table.clear(plantedFeet)
     local joint = isReedguard and idleJoint(character, humanoid, root)
-    if joint and joint.Part1 then
-        local torsoRest = root.CFrame * joint.C0 * joint.C1:Inverse()
+    if not joint or not joint.Part1 then
+        table.clear(plantedFeet)
+        lastPlantFrame = nil
+    elseif not lastPlantFrame or os.clock() - lastPlantAt >= .12
+        or (root.Position - lastPlantFrame.Position).Magnitude > .02
+        or root.CFrame.LookVector:Dot(lastPlantFrame.LookVector) < .9999 then
+        lastPlantAt, lastPlantFrame = os.clock(), root.CFrame
+        table.clear(plantedFeet)
+        local torsoRest = lastPlantFrame * joint.C0 * joint.C1:Inverse()
         for name, sole in soles do
             local side = if name == "Left Leg" then "Left" else "Right"
             local hip = joint.Part1:FindFirstChild(side .. " Hip")

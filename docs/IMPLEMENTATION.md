@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.320 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.321 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -262,6 +262,10 @@ Exact-source tests covered 16 ranked and 16 casual contact pairings, the element
 
 ## Combat presentation
 
+V0.321 shortens Reedguard’s tail from 0.865 to 0.778 studs across all three forms. The local standing pose checks the full boot outline and tilts at shallow edges. Desktop Studio sampled the fitted boots at spawn, around the promenade edge and in live Juniper Bot Spar. The adjustment applies to the visible boots. Published Roblox and physical-device verification remain open.
+
+V0.321 adds a shield for blocks, crossed cyan chevrons for parries, a golden strike mark and distinct guard-break and deflect cues. Desktop Bot Spar verified a zero-damage block, zero-damage parry and a 22-HP Heavy counter. Exact-source checks verified the effect caps for touch and Reduce Motion. Uploaded all six original WAVs to ApexGameD. Desktop Studio decoded and played every cue family. Live Reedguard–Juniper practice matched the four bell notes and the guard, parry and Heavy sounds to their native cues. Published Roblox and physical-device verification remain open.
+
 V0.320 makes Bracken, Sablecrest and Granite react to a confirmed hit during a committed attack. Their fitted head poses briefly recoil while the rest of the body follows the original windup. Desktop Studio used staged positions and scripted inputs in the three native rings. Each resident took 16 HP from Reedguard’s Uppercut and visibly recoiled once. Kiln Rush, Wind Court Return and Harbor Sweep landed at their scheduled contact times. A subsequent attempt for each resident remained parryable. Juniper’s separate 22-HP Heavy and 22-HP Stillwater Palm replay also passed. Exact Luau covered all eight resident head and body reactions, lift exclusions, knockout cleanup and the original Juniper timing. Published play and physical-device checks remain open.
 
 V0.319 gives a normal arena jump a takeoff, tucked boots in the air, an extension on descent, and a brief shoulder brace at touchdown. Each client poses the fitted shell against the root it sees. The original combat motors, hit volumes, and jump settings retain their existing behavior. A physical deck check prevents a missing Brawl tile from posing as a landing. Exact Luau exercised 312 samples from 24 fitted fighters, including a short jump, an unsupported fall and return to stance. Desktop Studio checked real Space input in Reedguard versus Juniper and from both sides of a Casual Duel. The two Duel clients showed a grounded Penguin jab taking the opponent from 98 to 88 HP after the jump, followed by the recaps. Physical devices, published play and live Brawl jump coverage remain open.
@@ -348,7 +352,7 @@ The [closed-alpha starter fighter package](../design/fighters/starter-fighters/R
 | District music | [GrandDojoMusic.client.luau](../roblox/grand-dojo/GrandDojoMusic.client.luau), [MusicPlaylist.luau](../roblox/grand-dojo/MusicPlaylist.luau) |
 | Combat presentation | [Championship HUD](../roblox/grand-dojo/ChampionshipHud.luau), [original portraits](../roblox/grand-dojo/ChampionshipPortraits.luau), [Health bars](../roblox/grand-dojo/CombatHealth.luau), [Camera and intro](../roblox/grand-dojo/CombatIntro.luau), [Contact effects](../roblox/grand-dojo/CombatEffects.luau) |
 | Arena takeoff and landing | [Jump phases](../roblox/grand-dojo/ArenaJumpMotion.luau), [fitted shell presentation](../roblox/grand-dojo/ArenaJumpPresenter.client.luau) |
-| Original combat audio | [Sound sources and trigger plan](../roblox/grand-dojo/art/combat-audio/README.md), [Mixer](../roblox/grand-dojo/CombatAudio.luau), [creator asset map](../roblox/grand-dojo/CombatCueAssets.luau). The Luau fixtures verified the routing, timing and voice limits. Studio measured playback in every cue family using temporary bundled test sounds. The original uploads and published experience mix remain open. |
+| Original combat audio | [Sound sources and trigger plan](../roblox/grand-dojo/art/combat-audio/README.md), [Mixer](../roblox/grand-dojo/CombatAudio.luau), [creator asset map](../roblox/grand-dojo/CombatCueAssets.luau). The Luau fixtures verified the routing, timing and voice limits. Studio measured playback in every cue family using temporary bundled test sounds. Uploaded all six original WAVs to ApexGameD. Desktop Studio decoded and played every cue family. Live Reedguard–Juniper practice matched the four bell notes and the guard, parry and Heavy sounds to their native cues. Published experience playback and mix remain open. |
 | Browser rules, UI and art | [engine.js](../browser-game/engine.js), [game.js](../browser-game/game.js), [art.js](../browser-game/art.js) |
 | Original meshes, baked textures and art exporters | [Art directory](../roblox/grand-dojo/art/) and [Studio walkthrough](../roblox/grand-dojo/README.md) |
 
