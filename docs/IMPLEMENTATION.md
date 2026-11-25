@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.321 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.322 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -261,6 +261,8 @@ The separate ranked store claims each player’s rating before the match. It rec
 Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
+
+V0.322 fits Reedguard’s local ground stride to the visible paving. Each boot follows the stock step timing with a softer roll, alternating support and swing, and a contact shadow under the low edge. Desktop keyboard and Galaxy A06 landscape thumbstick checks retained one supporting boot in every sampled moving frame. Desktop reduced deepest sampled clipping from 0.499 to 0.009 studs and showed 0.179 studs of swing clearance. The native Space jump and live Juniper stance and sidestep passed the regression. Published Roblox and physical-device verification remain open.
 
 V0.321 shortens Reedguard’s tail from 0.865 to 0.778 studs across all three forms. The local standing pose checks the full boot outline and tilts at shallow edges. Desktop Studio sampled the fitted boots at spawn, around the promenade edge and in live Juniper Bot Spar. The adjustment applies to the visible boots. Published Roblox and physical-device verification remain open.
 

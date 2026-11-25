@@ -1,4 +1,4 @@
--- Keep the local Reedguard's boots level at rest and shade their floor contact.
+-- Fit the local Reedguard's boots to the city pavement and shade their contact.
 -- All contact presentation stays local and needs no shadow lights.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,6 +23,7 @@ for _, side in {"Left", "Right"} do
         table.insert(footprint, rest:PointToObjectSpace(Vector3.new(sign * edge[1], 0, edge[3])))
     end
     soles[name] = {
+        hip = side .. " Hip",
         point = rest:PointToObjectSpace(Vector3.new(sign * .43, 0, -.23)),
         forward = rest:VectorToObjectSpace(-Vector3.zAxis),
         footprint = footprint,
@@ -87,18 +88,25 @@ local plantedFeet = {}
 local elapsed = 0
 local lastPlantAt = -math.huge
 local lastPlantFrame
+local walkTrack
+local supportByFoot = {}
+local soleStepLift = .18
+-- The stock R6 cycle carries each foot forward during these phase intervals.
+local swingPhases = { ["Left Leg"] = .16, ["Right Leg"] = .57 }
 
-local function idleJoint(character, humanoid, root)
+local function cityJoint(character, humanoid, root)
     local animate = character and character:FindFirstChild("Animate")
-    -- The ring owns its own poses. Defer to locomotion as soon as the player moves.
     if not root or root.Anchored
         or not animate or animate.Disabled or player:GetAttribute("SparringActive")
         or humanoid.FloorMaterial == Enum.Material.Air
-        or humanoid:GetState() ~= Enum.HumanoidStateType.Running or humanoid.Sit
-        or humanoid.MoveDirection.Magnitude > .01 or root.AssemblyLinearVelocity.Magnitude > .5 then
+        or humanoid:GetState() ~= Enum.HumanoidStateType.Running or humanoid.Sit then
         return nil
     end
     return root:FindFirstChild("RootJoint")
+end
+
+local function moving(humanoid, root)
+    return humanoid.MoveDirection.Magnitude > .01 or root.AssemblyLinearVelocity.Magnitude > .5
 end
 
 local function visibleFloor(floor, probe)
@@ -202,6 +210,73 @@ local function footTarget(hip, foot, sole, torsoRest)
     return planted * restSole:ToObjectSpace(hipRest)
 end
 
+local function walkPhase(humanoid)
+    if not walkTrack or not walkTrack.IsPlaying then
+        local animator = humanoid:FindFirstChildOfClass("Animator")
+        if animator then
+            for _, track in animator:GetPlayingAnimationTracks() do
+                if track.Animation and track.Animation.Name == "WalkAnim" then
+                    walkTrack = track
+                    break
+                end
+            end
+        end
+    end
+    if walkTrack and walkTrack.IsPlaying and walkTrack.Length > 0 then
+        return walkTrack.TimePosition / walkTrack.Length, walkTrack.WeightCurrent
+    end
+    return 0, 0
+end
+
+local function lowestSole(frame, sole, normal)
+    local localNormal = frame:VectorToObjectSpace(normal)
+    local nearest, depth = sole.point, math.huge
+    for _, point in sole.footprint do
+        local projection = point:Dot(localNormal)
+        if projection < depth then nearest, depth = point, projection end
+    end
+    return nearest, depth
+end
+
+local function fitMovingBoot(name, sole, hip, foot, torso, root, lift, now)
+    local weld = foot and foot:FindFirstChildOfClass("Weld")
+    if not (hip and weld and weld.Part0 == hip.Part1) then
+        return
+    end
+    local joint = torso * hip.C0
+    local frame = joint * hip.Transform * hip.C1:Inverse() * weld.C0 * weld.C1:Inverse()
+    local center = frame:PointToWorldSpace(sole.point)
+    local contact = lowestSole(frame, sole, Vector3.yAxis)
+    local lowest = frame:PointToWorldSpace(contact)
+
+    local support = supportByFoot[name]
+    if not support or now - support.at >= 1 / 30
+        or (center - support.center).Magnitude > .65 or (lowest - support.lowest).Magnitude > .70 then
+        local base = root.Position.Y - 2.1326
+        local function floorBelow(point)
+            local probe = Vector3.new(point.X, base, point.Z)
+            local hit = floorAt(probe, .43, .86)
+            return if hit and hit.Normal.Y >= .82 then hit else nil
+        end
+        support = {at = now, center = center, lowest = lowest, floor = floorBelow(center), edge = floorBelow(lowest)}
+        supportByFoot[name] = support
+    end
+    local rise = -math.huge
+    for _, floor in {support.floor, support.edge} do
+        if floor.Instance.Parent then
+            local _, depth = lowestSole(frame, sole, floor.Normal)
+            local offset = ((floor.Position - frame.Position):Dot(floor.Normal) - depth) / floor.Normal.Y
+            -- A ray through a grout seam sees the hidden bed. The boot is wide enough to bridge the surrounding stones.
+            if floor.Instance.Name == "Promenade mortar bed" then offset += .067 end
+            rise = math.max(rise, offset)
+        end
+    end
+    if rise > -math.huge then
+        local vertical = math.clamp(rise + soleClearance + lift, -.11, .60)
+        hip.Transform += joint:VectorToObjectSpace(Vector3.yAxis * vertical)
+    end
+end
+
 RunService.PreSimulation:Connect(function(dt)
     local character = player.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -221,18 +296,52 @@ RunService.PreSimulation:Connect(function(dt)
             end
         end
         idleWeight = 0
+        table.clear(supportByFoot)
         return
     end
-    local joint = character == trackedCharacter and next(plantedFeet) and idleJoint(character, humanoid, root)
+    local joint = character == trackedCharacter and shell and shell:GetAttribute("FighterId") == fighterId
+        and cityJoint(character, humanoid, root)
     if not joint or not joint.Part1 then
         idleWeight = 0
+        table.clear(supportByFoot)
+        return
+    end
+    local torsoAnimated = root.CFrame * joint.C0 * joint.Transform * joint.C1:Inverse()
+    if moving(humanoid, root) then
+        idleWeight = 0
+        if not player:GetAttribute("SkywalkTrialMode") then
+            local phase, weight = walkPhase(humanoid)
+            local now = os.clock()
+            for name, sole in soles do
+                local progress = math.min(1, ((phase - swingPhases[name]) % 1) / .40)
+                local swing = weight * math.sin(math.pi * progress) ^ 2
+                local hip = joint.Part1:FindFirstChild(sole.hip)
+                if hip then
+                    -- The stock angles expect square R6 feet. Soften the roll of Reedguard's long boots.
+                    local animated = hip.Transform
+                    local angle = CFrame.identity:Lerp(animated.Rotation, .57 + .18 * swing)
+                    hip.Transform = CFrame.new(animated.Position) * angle
+                    fitMovingBoot(name, sole, hip, shell:FindFirstChild(name), torsoAnimated, root, soleStepLift * swing, now)
+                end
+            end
+        else
+            table.clear(supportByFoot)
+        end
         return
     end
     idleWeight = math.min(1, idleWeight + dt / .12)
-    local torsoAnimated = root.CFrame * joint.C0 * joint.Transform * joint.C1:Inverse()
     for hip, target in plantedFeet do
         local planted = (torsoAnimated * hip.C0):ToObjectSpace(target)
         hip.Transform = hip.Transform:Lerp(planted, idleWeight)
+    end
+    if idleWeight < 1 and next(supportByFoot) then
+        local now = os.clock()
+        for name, sole in soles do
+            local hip = joint.Part1:FindFirstChild(sole.hip)
+            fitMovingBoot(name, sole, hip, shell:FindFirstChild(name), torsoAnimated, root, 0, now)
+        end
+    else
+        table.clear(supportByFoot)
     end
 end)
 
@@ -247,14 +356,16 @@ RunService.Heartbeat:Connect(function(dt)
     if character ~= trackedCharacter then
         trackedCharacter = character
         lastPlantFrame = nil
+        walkTrack = nil
+        table.clear(supportByFoot)
         ray.FilterDescendantsInstances = if character then {character} else {}
     end
     local shell = character and character:FindFirstChild("Starter Fighter Shell")
     local isReedguard = shell and shell:GetAttribute("FighterId") == fighterId
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
     local root = humanoid and humanoid.RootPart
-    local joint = isReedguard and idleJoint(character, humanoid, root)
-    if not joint or not joint.Part1 then
+    local joint = isReedguard and cityJoint(character, humanoid, root)
+    if not joint or not joint.Part1 or moving(humanoid, root) then
         table.clear(plantedFeet)
         lastPlantFrame = nil
     elseif not lastPlantFrame or os.clock() - lastPlantAt >= .12
@@ -264,8 +375,7 @@ RunService.Heartbeat:Connect(function(dt)
         table.clear(plantedFeet)
         local torsoRest = lastPlantFrame * joint.C0 * joint.C1:Inverse()
         for name, sole in soles do
-            local side = if name == "Left Leg" then "Left" else "Right"
-            local hip = joint.Part1:FindFirstChild(side .. " Hip")
+            local hip = joint.Part1:FindFirstChild(sole.hip)
             if hip then
                 plantedFeet[hip] = footTarget(hip, shell:FindFirstChild(name), sole, torsoRest)
             end
@@ -280,8 +390,15 @@ RunService.Heartbeat:Connect(function(dt)
         local foot = active and shell:FindFirstChild(name)
         local sole = soles[name]
         local position = foot and foot.CFrame:PointToWorldSpace(sole.point)
+        local soleHeight = position and position.Y
+        if position and supportByFoot[name] then
+            local contact = lowestSole(foot.CFrame, sole, Vector3.yAxis)
+            local edge = foot.CFrame:PointToWorldSpace(contact)
+            position = position:Lerp(edge, .60)
+            soleHeight = edge.Y
+        end
         local floor = position and floorAt(position, .18, .54)
-        local floorGap = if floor then position.Y - floor.Position.Y else math.huge
+        local floorGap = if floor then soleHeight - floor.Position.Y else math.huge
         local fade = if floor and floor.Normal.Y >= .65
             then math.clamp(1 - floorGap / .26, 0, 1)
             else 0
