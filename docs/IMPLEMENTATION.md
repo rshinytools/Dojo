@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.303 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.304 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -42,6 +42,12 @@ Brawl displays Element edge and Element resisted. The v0.301 Galaxy A06 Studio t
 ### Confirmed multiplayer combat feedback
 
 In v0.303, Duel, Tag Team and Brawl now package server-confirmed HP and impacts together. Clients apply health first and reject stale, duplicate or closed match updates. Spectators receive a separate relay. Match clients keep receiving nearby impacts after their local HUD closes, including after respawn. Tag Team publishes the outgoing fighter’s hit before the backup takes over. Two local Studio clients joined Casual Duel through the normal prompt. Two jabs dealt 13 damage at 180 ms from cast, and a heavy was parried for zero at 420 ms. Effect instances were created 5–36 ms after server contact. The sampled health text and impact differed by 1–34 ms on the jabs. The nearest defender pose match was 67–110 ms after contact. This sample tracks a later reference pose. Flinch onset still needs its own timing measurement. Four managed Studio clients joined Tag Team through the normal sign, selected Penguin as backup, and saw the same 20-damage jab and updated health. A manual tag replaced Reedguard with Penguin and updated all four roster HUDs. Two voluntary exits ended the match and all four clients displayed a recap and returned to the city. A Galaxy A06 Brawl simulation used one player and seven stand-ins. Three Ridge Palm contacts each delivered one packet and one visible contact effect. The HUD retained the advantage, resistance and floor-drop warnings, then displayed the result. Original audio asset playback, network delay and real hardware remain open.
+
+### Brawl floor transitions
+
+Dojo Brawl resolves scheduled contacts on the outgoing deck before each floor drop. Contacts at the exact cutoff use the new floor. Late inputs and exits use the same ordering, and a match already decided keeps its result.
+
+Exact-source checks covered contacts before, at and after a drop, an update crossing three drops, an incoming guard after a stall, and a knockout that ended the match before the tiles fell. In Galaxy A06 Studio, one player and seven fitted stand-ins tested a deliberately delayed first floor update. A 25-damage Ridge Palm arrived after the stall with its original timestamp and one contact effect. The attacker then fell through the missing band and saw the eighth-place recap. An eight-client match and device checks remain open.
 
 ### Two-client Duel timing baseline
 

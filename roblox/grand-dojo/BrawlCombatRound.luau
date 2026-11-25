@@ -341,7 +341,7 @@ local function timeout(round)
     finish(round, round.endsAt, "timeout", leaders)
 end
 
-function Brawl.step(round, now, check, eliminateMany, resolveTimeout)
+function Brawl.step(round, now, check, eliminateMany, resolveTimeout, beforeBoundary)
     if round.result or now < round.startsAt then
         return
     end
@@ -353,7 +353,7 @@ function Brawl.step(round, now, check, eliminateMany, resolveTimeout)
                 at = math.min(at, Combatant.nextContacts(side))
             end
         end
-        if at > limit then
+        if at > limit or (beforeBoundary and at == now) then
             break
         end
         local notices, finishedClips = Magma.burnsAt(round, at), {}
@@ -373,7 +373,7 @@ function Brawl.step(round, now, check, eliminateMany, resolveTimeout)
             resolveBatch(round, at, notices, eliminateMany or Brawl.eliminateMany)
         end
     end
-    if not round.result and now >= round.endsAt then
+    if not round.result and (now > round.endsAt or (now == round.endsAt and not beforeBoundary)) then
         local finishOnTime = resolveTimeout or timeout
         finishOnTime(round)
     end

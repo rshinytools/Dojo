@@ -41,10 +41,23 @@ for index, band in shrinkBands do
     end
 end
 
+local function floorStageAt(round, at)
+    for stage = #deckState, 1, -1 do
+        if at >= round.startsAt + stage * SHRINK_STEP then
+            return stage
+        end
+    end
+    return 0
+end
+
+local function nextDropAt(round, stage)
+    return if stage < #deckState then round.startsAt + (stage + 1) * SHRINK_STEP else nil
+end
+
 local function syncDeck(match, now)
-    local age = math.max(0, now - match.round.startsAt)
-    local stage = math.clamp(math.floor(age / SHRINK_STEP), 0, #deckState)
-    local warning = if stage < #deckState and age >= (stage + 1) * SHRINK_STEP - WARNING_SECONDS then stage + 1 else nil
+    local stage = floorStageAt(match.round, now)
+    local nextDrop = nextDropAt(match.round, stage)
+    local warning = if nextDrop and now >= nextDrop - WARNING_SECONDS then stage + 1 else nil
     if stage == match.stage and warning == match.warning then
         return false
     end
@@ -135,7 +148,7 @@ end
 
 local function publish(match, kind, now)
     local round = match.round
-    local nextShrink = if match.stage < #deckState then round.startsAt + (match.stage + 1) * SHRINK_STEP else nil
+    local nextShrink = nextDropAt(round, match.stage)
     local snapshot = CombatPresentation.snapshot(match)
     local recipients = {}
     for index, actor in match.actors do
@@ -190,7 +203,7 @@ local function start(now)
     local match = {id = matchId, round = round, actors = actors, sideFor = sideFor, bounds = bounds, floor = floor,
         telegraph = telegraph, stage = 0, lastPublish = now}
     function match.floorActive(point, at)
-        local stage = if at then math.clamp(math.floor((at - round.startsAt) / SHRINK_STEP), 0, #deckState) else match.stage
+        local stage = if at and at ~= match.outgoingFloorAt then floorStageAt(round, at) else match.stage
         return onFloor(point, bounds.Position, stage)
     end
     active = match
@@ -266,11 +279,14 @@ local function setFeedback(actor, notice, now)
     actor.feedback, actor.feedbackUntil = notice, now + .75
 end
 
-local function advance(match, now)
+local function advance(match, now, beforeBoundary)
+    -- Preparing an outgoing cast at the cutoff still uses the physical deck that exists at that moment.
+    match.outgoingFloorAt = if beforeBoundary then now else nil
     Motion.move(match, now)
+    match.outgoingFloorAt = nil
     Round.step(match.round, now, function(attacker, action, move, at, index, castAt)
         return Motion.strike(match, attacker, action, move, at, index, castAt)
-    end)
+    end, nil, nil, beforeBoundary)
     local changed = #match.round.notices > 0
     local playedFloor = {}
     for _, event in match.round.notices do
@@ -326,7 +342,7 @@ local function advance(match, now)
     return changed
 end
 
-local function processExits(match, now)
+local function processExits(match, now, previousStage)
     local exits = {}
     local round = match.round
     for index, actor in match.actors do
@@ -335,17 +351,20 @@ local function processExits(match, now)
         end
         local side = round.sides[index]
         if side.eliminated then
-            if Match.root(actor.player) ~= actor.root or not Motion.holdsKnockout(match, index, now) then
+            if previousStage == nil and (Match.root(actor.player) ~= actor.root
+                or not Motion.holdsKnockout(match, index, now)) then
                 placeSpectator(match, index)
             end
         elseif not round.result then
             local root = Match.root(actor.player)
-            if root ~= actor.root then
+            if root ~= actor.root and previousStage == nil then
                 table.insert(exits, {index = index, reason = "left"})
-            elseif now >= round.startsAt then
+            elseif root == actor.root and now >= round.startsAt then
                 local position = root.Position
-                if not onFloor(position, bounds.Position, 0) or position.Y < floor - 1.8
-                    or (position.Y < floor + 1.12 and not match.floorActive(position)) then
+                local unsupported = position.Y < floor + 1.12 and not match.floorActive(position)
+                local ringout = if previousStage ~= nil then unsupported and onFloor(position, bounds.Position, previousStage)
+                    else unsupported or position.Y < floor - 1.8 or not onFloor(position, bounds.Position, 0)
+                if ringout then
                     table.insert(exits, {index = index, reason = "ringout"})
                 end
             end
@@ -357,13 +376,48 @@ local function processExits(match, now)
     return #exits > 0
 end
 
+local function advanceTimeline(match, now)
+    local round = match.round
+    local deckChanged = false
+    local dropAt = nextDropAt(round, match.stage)
+    while not round.result and dropAt and dropAt <= now do
+        -- Resolve committed contacts on the outgoing deck. The new floor owns the exact boundary.
+        if advance(match, dropAt, true) then
+            Motion.render(match, dropAt)
+            publish(match, "update", dropAt)
+        end
+        if round.result then
+            break
+        end
+        local previousStage = match.stage
+        syncDeck(match, dropAt)
+        processExits(match, dropAt, previousStage)
+        deckChanged = true
+        dropAt = nextDropAt(round, match.stage)
+    end
+    if not round.result and syncDeck(match, now) then
+        deckChanged = true
+    end
+    local exits = processExits(match, now)
+    local hits = advance(match, now)
+    return deckChanged or exits or hits, hits
+end
+
 local function leave(player, departing)
     unqueue(player, "You left the Brawl queue.")
     local match = active
     local index = match and match.sideFor[player]
     if index then
-        Round.eliminate(match.round, index, "left", workspace:GetServerTimeNow())
-        sendResult(match, index, "left", departing)
+        local now = workspace:GetServerTimeNow()
+        if advanceTimeline(match, now) then
+            Motion.render(match, now)
+            publish(match, "update", now)
+        end
+        local result = match.round.result
+        if not result then
+            Round.eliminate(match.round, index, "left", now)
+        end
+        sendResult(match, index, if result then result.outcomes[index] else "left", departing)
     end
 end
 
@@ -405,15 +459,16 @@ remote.OnServerEvent:Connect(function(player, action, direction, id)
     local now = workspace:GetServerTimeNow()
     local round, actor = match.round, match.actors[index]
     if round.result or round.sides[index].eliminated or now < round.startsAt
-        or Match.root(player) ~= actor.root or not Motion.canAct(match, index, action, now)
+        or Match.root(player) ~= actor.root
         or not Match.takeCombatInput(actor, action, direction, now, .08) then
         return
     end
-    local changed = advance(match, now)
+    local changed = advanceTimeline(match, now)
     if changed then
         Motion.render(match, now)
     end
-    local feedback = Round.act(round, index, action, now, Match.combatDirection(action, direction))
+    local feedback = if not round.result and Motion.canAct(match, index, action, now)
+        then Round.act(round, index, action, now, Match.combatDirection(action, direction)) else nil
     if feedback then
         setFeedback(actor, feedback, now)
     end
@@ -445,9 +500,7 @@ RunService.Heartbeat:Connect(function()
         return
     end
     local round = match.round
-    local deckChanged = not round.result and syncDeck(match, now)
-    local exits = processExits(match, now)
-    local hits = advance(match, now)
+    local changed, hits = advanceTimeline(match, now)
     if round.result and now >= round.outroAt then
         if hits then
             Motion.render(match, now)
@@ -457,7 +510,7 @@ RunService.Heartbeat:Connect(function()
         return
     end
     Motion.render(match, now)
-    if deckChanged or exits or hits or now - match.lastPublish >= .13 then
+    if changed or now - match.lastPublish >= .13 then
         match.lastPublish = now
         publish(match, "update", now)
     end
