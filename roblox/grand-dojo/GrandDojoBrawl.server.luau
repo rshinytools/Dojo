@@ -162,6 +162,7 @@ local function publish(match, kind, now)
             playerHealth = side.playerHealth, maxHealth = side.playerMaxHealth, kitId = actor.kit, alive = round.remaining,
             total = SIZE, stage = match.stage, nextShrinkAt = nextShrink,
             warningAt = nextShrink and nextShrink - WARNING_SECONDS, eliminated = side.eliminated,
+            spectatorRoot = actor.spectatorRoot,
             placement = side.placement, feedback = if now < actor.feedbackUntil then actor.feedback else nil,
             nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
             presentationSequence = snapshot.sequence, impacts = snapshot.impacts})

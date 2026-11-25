@@ -419,6 +419,11 @@ remote.OnClientEvent:Connect(function(kind, data)
             stageCueUntil = workspace:GetServerTimeNow() + 1.2
         end
         local detached = kind == "update" and match and match.detached
+        if detached and data.eliminated and data.spectatorRoot and player:GetAttribute("BrawlActive") then
+            local character = player.Character
+            -- A new character can watch once the server has seated that exact root on the viewing deck.
+            detached = not (character and character:FindFirstChild("HumanoidRootPart") == data.spectatorRoot)
+        end
         match = data
         match.detached = detached
         local kit = kits[match.kitId] or kits.reedguard

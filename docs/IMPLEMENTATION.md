@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.307 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.308 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -229,6 +229,10 @@ Desktop Studio used one client and three fitted stand-ins. The fixture set Pengu
 When published, the place is configured to rotate Kilnback Custodian, Abyssal Kraken and Solar Phoenix on UTC-aligned 20-minute bells. Each bell opens one entrance for two minutes. All three entrances open immediately in Studio. Every eligible clear saves 20 Raid Tokens and 2 Mythic Capsule shards, once per event window. A fighter qualifies with at least 48 boss damage or a completed revive. The boss’s first-clear trophy and shared currency balance use the same profile write. Studio assigns a distinct receipt window to each test run. Exact-source checks verified that the previous checkpoint can reopen a profile after a Phoenix grant and preserve its balances and awards.
 
 ## Grand Dojo Brawl
+
+V0.308 restores the spectator HUD after a respawn. The server identifies the new character it placed on the viewing deck. That client can resume watching with combat controls hidden and keeps its placement. The result still closes the match and restores city movement.
+
+Eight managed Roblox Studio clients joined through the real city prompt and spawned in eight distinct native seats. Scripted local movement took them to their fighting positions on the intact deck. All eight received the same 13-damage jab and zero-damage parry. The floor lost 32, 24 and 16 tiles in sequence. Two fighters fell in each drop. After the first ring-out, one spectator respawned and saw **WATCHING BRAWL** again with their place preserved. The full 60-second run ended with one winner on remaining health. All eight saw their personal result and regained city movement. All 81 tiles reset. A second eight-client run ended with a last-fighter-standing win. A 22-damage heavy pushed the second finalist off the last mat and the other seven clients saw the placement and result. Published matches and physical hardware remain open.
 
 Join at the **Dojo Brawl** sign by the Grand Dojo stairs. Eight players in one server start a 10-second introduction at the mountain court. The 60-second free-for-all uses each fighter’s authored moves and earned level. The server checks fitted hit volumes, facing, guards, parries and multi-target abilities. The 9 × 9 floor warns in amber for three seconds before its outer bands drop at 15, 30 and 45 seconds. The last band leaves a 3 × 3 mat. Ring-outs and knockouts move the contestant to the viewing deck. The last fighter standing wins. At the time limit, remaining fighters place by HP percentage and equal scores share a place. The recap shows placement and returns players to the city.
 
