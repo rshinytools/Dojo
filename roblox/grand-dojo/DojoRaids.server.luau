@@ -185,7 +185,7 @@ local function mount(encounter)
                     revive = revive and {targetIndex = revive.target, startedAt = revive.startedAt, endsAt = revive.endsAt},
                     reviveTarget = if not round.result and now >= round.startsAt then nearestRevive(match, index, now) else nil})
                 if not round.result and not side.downed and not side.left then
-                    Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
+                    Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt, now)
                 end
             end
         end
@@ -478,9 +478,7 @@ local function mount(encounter)
             local side = round.sides[index]
             local previousClip = side.clip
             local result = Round.act(round, index, action, now, Match.combatDirection(action, value))
-            if action == "heavy" then
-                Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now)
-            end
+            Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now, action)
             if result then
                 cue(actor, result, now)
                 changed = true

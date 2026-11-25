@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.326, press **E** from a ready stance to start Jab. Press **E** again near the end of Jab and Cross to buffer the rest of the three-strike combo.
+
 In v0.325, press **R** in a bout to start your fighter’s Heavy preparation. Time Guard and press Heavy during the opponent’s recovery to see the windup, contact, and follow-through.
 
 In v0.324, try the third basic strike with any fighter, then use a signature when it’s ready. As Silverback, press **F** close to Juniper to test the Seismic Chest-Pound impact. The pulse is reduced on touch and skipped with Reduce Motion or VR.

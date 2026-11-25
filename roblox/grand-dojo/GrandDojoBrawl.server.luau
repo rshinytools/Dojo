@@ -178,7 +178,7 @@ local function publish(match, kind, now)
             nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
             presentationSequence = snapshot.sequence, impacts = snapshot.impacts, hitStop = Match.takeHitStop(actor)})
         if not round.result and not side.eliminated then
-            Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
+            Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt, now)
         end
         table.insert(recipients, actor.player.UserId)
     end
@@ -514,9 +514,7 @@ remote.OnServerEvent:Connect(function(player, action, direction, id, windupToken
     local previousClip = side.clip
     local feedback = if not round.result and Motion.canAct(match, index, action, now)
         then Round.act(round, index, action, now, Match.combatDirection(action, direction)) else nil
-    if action == "heavy" then
-        Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now)
-    end
+    Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now, action)
     if feedback then
         setFeedback(actor, feedback, now)
     end

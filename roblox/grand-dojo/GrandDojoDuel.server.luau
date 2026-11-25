@@ -170,7 +170,7 @@ local function publish(duel, kind, now)
             elementEffect = if now < challenger.feedbackUntil then challenger.elementEffect else nil,
         }))
         if not round.result then
-            Windup.profile(challenger, side, challenger.motors, round.startsAt, round.endsAt)
+            Windup.profile(challenger, side, challenger.motors, round.startsAt, round.endsAt, now)
         end
     end
     Presentation.broadcast(effects, snapshot, recipients)
@@ -580,9 +580,7 @@ remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundI
     local previousClip = combatant.clip
     local feedback = if not round.result
         then Round.act(round, index, action, now, Match.combatDirection(action, direction)) else nil
-    if action == "heavy" then
-        Windup.decide(side, combatant, round.startsAt, windupToken, previousClip, now)
-    end
+    Windup.decide(side, combatant, round.startsAt, windupToken, previousClip, now, action)
     if feedback then
         setFeedback(side, feedback, now)
     end

@@ -287,6 +287,15 @@ local function nextLight(round, at)
     return action
 end
 
+local function jabReadyAt(round)
+    local clipEnd = if round.clip then round.clip.endsAt else 0
+    -- The continuation remains eligible on the exact expiry tick.
+    local comboEnd = if combo[round.lastLight] then round.comboUntil + .001 else 0
+    local ready = math.max(round.playerStunUntil, clipEnd, comboEnd)
+    local hold = Storm.held(round, ready)
+    return if hold then hold.endsAt + .001 else ready
+end
+
 local function inMotion(side, action)
     local travel = side.kit.poses.Travel
     return action == side.kit.dodge or action == "fortressRicochet" or action == "meteorRoll"
@@ -711,6 +720,7 @@ end
 Round.Combatant = table.freeze({
     new = newCombatant,
     play = play,
+    jabReadyAt = jabReadyAt,
     complete = completeClip,
     nextContacts = nextContacts,
     nextThreat = nextThreat,

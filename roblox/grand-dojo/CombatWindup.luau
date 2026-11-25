@@ -1,4 +1,4 @@
--- Preview the authored Heavy preparation on the local shell while the server decides the action.
+-- Preview the authored Heavy or opening Jab preparation while the server decides the action.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,12 +18,19 @@ local seamSample = Vector3.new(.23, 0, .17)
 local previewTime = .30
 local handoffTime = .055
 local contactLead = .012
+local lightChainTime = .55
+local lightBufferTime = .19
 local token = 0
 local profile
 local active
 
 local function finite(value)
     return type(value) == "number" and math.abs(value) < math.huge
+end
+
+local function hasShoulderPose(pose)
+    return type(pose) == "table" and typeof(pose["Left Shoulder"]) == "CFrame"
+        and typeof(pose["Right Shoulder"]) == "CFrame"
 end
 
 local function reducedMotion()
@@ -114,7 +121,7 @@ local function step()
         end
         preview.weight = preview.releaseWeight * (1 - ease(release))
     else
-        preview.weight = ease((now - preview.started + .016) / .115)
+        preview.weight = ease((now - preview.started + .016) / preview.easeTime)
     end
     for _, binding in preview.bindings do
         local motor, weld = binding.motor, binding.weld
@@ -125,12 +132,22 @@ local function step()
 end
 
 function Windup.begin(action)
-    if action ~= "heavy" or active or not profile or not player:GetAttribute("SparringActive")
-        or reducedMotion() or HitStop.isActive() then
+    if (action ~= "heavy" and action ~= "strike") or not profile or not player:GetAttribute("SparringActive") then
         return nil
     end
     local serverNow = workspace:GetServerTimeNow()
-    if serverNow < profile.startsAt or serverNow >= profile.endsAt or serverNow < profile.busyUntil then
+    if serverNow < profile.startsAt or serverNow >= profile.endsAt then
+        return nil
+    end
+    local jab = if action == "strike" then profile.jab else nil
+    if action == "strike" then
+        if not jab then return nil end
+        local ready = serverNow >= math.max(jab.readyAt, jab.localReadyAt)
+        -- Even an unpreviewed strike can start or buffer the next light on the server.
+        jab.localReadyAt = serverNow + jab.duration + lightChainTime + lightBufferTime + previewTime
+        if not ready then return nil end
+    end
+    if active or reducedMotion() or HitStop.isActive() or serverNow < profile.busyUntil then
         return nil
     end
     local character = player.Character
@@ -143,6 +160,7 @@ function Windup.begin(action)
         and animate and animate.Disabled) then
         return nil
     end
+    local pose = if jab then jab.pose else profile.pose
     local bindings = {}
     for joint, meshName in shoulderMeshes do
         local mesh = shell:FindFirstChild(meshName)
@@ -153,14 +171,18 @@ function Windup.begin(action)
         end
         local rest = weld.C0
         table.insert(bindings, {motor = motor, weld = weld, rest = rest,
-            target = profile.pose[joint] * motor.C1:Inverse() * rest * weld.C1:Inverse()})
+            target = pose[joint] * motor.C1:Inverse() * rest * weld.C1:Inverse()})
     end
     ray.FilterDescendantsInstances = {character}
     local now = os.clock()
     token = token % 2147483647 + 1
-    active = {token = token, character = character, shell = shell, root = root, humanoid = humanoid,
+    active = {token = token, action = if jab then "jab" else "heavy", character = character,
+        shell = shell, root = root, humanoid = humanoid,
         animate = animate, profile = profile, bindings = bindings, started = now, requestedAt = serverNow,
-        expiresAt = now + previewTime, cutoff = math.min(serverNow + profile.contact - contactLead, profile.endsAt),
+        expiresAt = now + previewTime,
+        cutoff = if jab then profile.endsAt else math.min(serverNow + profile.contact - contactLead, profile.endsAt),
+        easeTime = if jab then .070 else .115, contact = if jab then jab.contact else profile.contact,
+        localReadyAt = if jab then jab.localReadyAt else nil,
         simulation = RunService.PreSimulation:Connect(step)}
     step()
     if not active then return nil end
@@ -176,8 +198,7 @@ local function receiveProfile(packet, serverNow)
     if not (packet.shell and character and packet.shell == character:FindFirstChild("Starter Fighter Shell"))
         or not (finite(packet.startsAt) and finite(packet.endsAt) and finite(packet.contact))
         or packet.endsAt <= serverNow or packet.contact <= contactLead or packet.contact >= packet.endsAt - packet.startsAt
-        or type(packet.pose) ~= "table" or typeof(packet.pose["Left Shoulder"]) ~= "CFrame"
-        or typeof(packet.pose["Right Shoulder"]) ~= "CFrame" then
+        or not hasShoulderPose(packet.pose) then
         return
     end
     if profile and (packet.startsAt < profile.startsAt
@@ -185,15 +206,29 @@ local function receiveProfile(packet, serverNow)
         return
     end
     Windup.clear()
+    local jabPacket, jab = packet.jab, nil
+    if type(jabPacket) == "table" and finite(jabPacket.contact) and finite(jabPacket.duration)
+        and finite(jabPacket.readyAt) and jabPacket.contact > contactLead and jabPacket.duration >= jabPacket.contact
+        and hasShoulderPose(jabPacket.pose) then
+        jab = {pose = jabPacket.pose, contact = jabPacket.contact, duration = jabPacket.duration,
+            readyAt = jabPacket.readyAt, localReadyAt = -math.huge}
+    end
     profile = {shell = packet.shell, startsAt = packet.startsAt, endsAt = packet.endsAt, contact = packet.contact,
-        pose = packet.pose, busyUntil = -math.huge}
+        pose = packet.pose, busyUntil = -math.huge, jab = jab}
+end
+
+local function receiveReadiness(packet)
+    if profile and profile.jab and packet.shell == profile.shell and packet.startsAt == profile.startsAt
+        and finite(packet.jabReadyAt) then
+        profile.jab.readyAt = packet.jabReadyAt
+    end
 end
 
 local function receiveDecision(packet, serverNow)
     local preview = active
     local now = os.clock()
     if not preview or preview.decided or packet.token ~= preview.token or packet.shell ~= preview.shell
-        or packet.startsAt ~= preview.profile.startsAt or now >= preview.expiresAt
+        or packet.action ~= preview.action or packet.startsAt ~= preview.profile.startsAt or now >= preview.expiresAt
         or serverNow >= preview.cutoff then
         return
     end
@@ -204,9 +239,13 @@ local function receiveDecision(packet, serverNow)
             or acceptedAt > serverNow + .10 or acceptedAt >= preview.profile.endsAt then
             return
         end
-        local contactAt = acceptedAt + preview.profile.contact
+        local contactAt = acceptedAt + preview.contact
         preview.cutoff = math.min(preview.cutoff, contactAt - contactLead)
         busyUntil = math.max(contactAt, busyUntil)
+        local jab = preview.profile.jab
+        if preview.action == "jab" and jab.localReadyAt == preview.localReadyAt then
+            jab.localReadyAt = acceptedAt + jab.duration + lightChainTime
+        end
         if studio then
             player:SetAttribute("CombatWindupAcceptedAt", acceptedAt)
             player:SetAttribute("CombatWindupAcceptedToken", preview.token)
@@ -227,6 +266,8 @@ remote.OnClientEvent:Connect(function(kind, packet)
     if type(packet) ~= "table" then return end
     if kind == "profile" then
         receiveProfile(packet, workspace:GetServerTimeNow())
+    elseif kind == "readiness" then
+        receiveReadiness(packet)
     elseif kind == "decision" then
         receiveDecision(packet, workspace:GetServerTimeNow())
     end

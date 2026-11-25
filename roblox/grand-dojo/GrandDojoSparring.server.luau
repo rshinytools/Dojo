@@ -39,7 +39,7 @@ local function publish(bout, kind, now)
         round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature, round.nextSecondary,
         Match.takeHitStop(bout))
     if bout.motion and not round.result then
-        Windup.profile(bout, round, bout.motion.motors, round.startsAt, round.endsAt)
+        Windup.profile(bout, round, bout.motion.motors, round.startsAt, round.endsAt, now)
     end
 end
 
@@ -316,9 +316,7 @@ remote.OnServerEvent:Connect(function(player, action, direction, windupToken)
         local round = bout.round
         local previousClip = round.clip
         local feedback = FeaturedRound.act(round, action, now, direction)
-        if action == "heavy" then
-            Windup.decide(bout, round, round.startsAt, windupToken, previousClip, now)
-        end
+        Windup.decide(bout, round, round.startsAt, windupToken, previousClip, now, action)
         if feedback then
             bout.message, bout.messageUntil = feedback, now + .74
             publish(bout, "state", now)

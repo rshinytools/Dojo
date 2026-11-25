@@ -151,7 +151,7 @@ local function publish(match, event, now)
                 tagReadyAt = seat.nextTagAt, nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                 feedback = if now < actor.feedbackUntil then actor.feedback else nil})
             if not round.result and not seat.out and not seat.entryAt then
-                Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
+                Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt, now)
             end
             table.insert(recipients, player.UserId)
         end
@@ -531,9 +531,7 @@ remote.OnServerEvent:Connect(function(player, action, value, id, windupToken)
         local side = round.sides[index]
         local previousClip = side.clip
         local cue = Round.act(round, index, action, now, Match.combatDirection(action, value))
-        if action == "heavy" then
-            Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now)
-        end
+        Windup.decide(actor, side, round.startsAt, windupToken, previousClip, now, action)
         if cue then
             feedback(actor, cue, now)
             changed = true
