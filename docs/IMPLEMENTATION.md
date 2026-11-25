@@ -163,6 +163,8 @@ The prepared Beast Dojo artwork includes an opaque 512 × 512 experience icon an
 
 Published v0.240 to the existing Beast Dojo - Private Beta start place as Roblox place version 3. Creator Dashboard confirmed version 3 under Show published only. Studio and Creator Dashboard confirmed private access. The owner joined Festival Plaza in macOS Roblox Player, walked to the board and opened the City Map. The listing now displays v0.240. A second-account join, the live Eagle Eye image and older-phone profiling remain separate verification checks. In the published experience, open File → Invite early testers in Studio and select an eligible Roblox friend. The Collaborate → Early testers panel can also copy the preview link. Keep release access private and have the tester accept while signed in. Roblox limits this preview to eligible age-checked friends or Trusted Friends. [Roblox early testers](https://create.roblox.com/docs/production/publishing/publish-games-and-places#invite-early-testers)
 
+When the v0.322 combat rehearsal ran, Creator Dashboard still showed v0.240 as published place version 3. The current v0.322 build is available for Studio playtesting.
+
 A second Roblox account was invited through Early testers. The invitation was verified in Roblox Studio. Its first live join is pending.
 
 ## Shared city and personal trophy rooms
@@ -261,6 +263,8 @@ The separate ranked store claims each player’s rating before the match. It rec
 Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
+
+A fresh v0.322 desktop Studio profile selected Reedguard, walked to the Grand Dojo Ring and opened Juniper’s native challenge. The ten-second intro gave way to one block, three timed parries, two Heavy hits, Uppercut and all three Reedstep Rising hits, using automated keyboard input. Juniper reached zero health 13.32 seconds after the bell with Reedguard at 100 HP. The recap confirmed the first-win award of 60 XP and Close restored the city camera and interaction prompts. Studio used its local test profile. Published Roblox Player playback and a live reconnect still require a beta update.
 
 V0.322 fits Reedguard’s local ground stride to the visible paving. Each boot follows the stock step timing with a softer roll, alternating support and swing, and a contact shadow under the low edge. Desktop keyboard and Galaxy A06 landscape thumbstick checks retained one supporting boot in every sampled moving frame. Desktop reduced deepest sampled clipping from 0.499 to 0.009 studs and showed 0.179 studs of swing clearance. The native Space jump and live Juniper stance and sidestep passed the regression. Published Roblox and physical-device verification remain open.
 
