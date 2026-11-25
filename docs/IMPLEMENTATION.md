@@ -183,6 +183,30 @@ V0.357 discarded a validated 228.1-second clear because the reward handler cappe
 
 The v0.359 baseline completed all 24 stones with a 25.2-second clean result in isolated Studio using native character movement and jumps. A separate Studio edge reproduction held Reedguard on the first stone for 28 frames with the root center 0.12 studs outside. The center ray missed and the server credited no landing. V0.360 adds a tight grounded-edge fallback with height, vertical velocity, and support checks, and reports the missing stone at the bell. A replay of the exact recorded contact passed in the standalone landing regression, alongside rejection of wider gaps, airborne passes, wrong-height support and falls. The owner-only test runner drove native movement and jumps in published Roblox Player and the server accepted all 24 stones and the summit bell with no falls or recovery. The Adventure Journal recorded a clean 26.4-second personal best. The continuous Roblox recording runs 27.37 seconds including the start and summit. The regular v0.360 checkpoint was then republished without the temporary test runner. After a full leave and rejoin, the regular private beta still showed the clean 26.4-second record, Skywalk Peaks Master earned, and the Summit Sash equipped.
 
+## Trophy Hall approach and Reedguard fit
+
+The v0.361 checkpoint closes the gap along the waterfall side of the Trophy Hall garden ramp and upper forecourt. Continuous collision sits behind the visible rail, and four low rock cores shore up the bank. In desktop Studio, Reedguard walked up and down the ramp and was stopped when pushed toward the waterfall. Studio confirmed the update was ready for the existing private beta audience. The remaining streets, bridges, gates and respawn paths still need a six-district traversal pass in Roblox Player.
+
+Three small pieces connect Reedguard's shoulders and neck to the torso. They add no collision or physics mass. The city walk now swings the arms forward and back and returns to the original idle pose. In Studio the fitted pieces stayed attached through a 14-stud walk. The city adjustments leave the ring animation system and Cloudbreak movement settings alone.
+
+## Public beta storefront and rights
+
+Keep the current invite-only build for team testing. A public beta can follow the walkability, first-session combat, reward rejoin, low-end device, and Creator Hub release checks. Excluding the game from recommendations limits discovery during the initial public period. Keep marketing separate from the beta switch so the team can fix reported blockers first. Preserve the full v1 scope. Under-16 access remains subject to the separate Roblox Kids and Select eligibility and evaluation process. [Roblox publishing requirements](https://create.roblox.com/docs/production/publishing/publish-games-and-places) · [Kids and Select eligibility](https://create.roblox.com/docs/production/publishing/kids-and-select)
+
+Use the Reedguard face icon and 16:9 illustrations already in `roblox/grand-dojo/art/experience-media/`. Check the cover against the approved build at phone size. Lead the supporting images with an actual Dojo Ring parry with Juniper, a wide look at the festival plaza, and a Cloudbreak jump. Open the 20–25 second gameplay preview on the parry and counter. Then show the city, the Lantern Relay and a Cloudbreak summit jump. End with the earned trophy and the Beast Dojo title. Capture the ring and Relay shots in the approved launch build. The Cloudbreak private-beta clip supplies usable gameplay footage now. [Roblox thumbnails and video previews](https://create.roblox.com/docs/production/publishing/thumbnails)
+
+### Game description draft
+
+Spar as an animal fighter in a lantern-lit mountain city. Step into the Dojo Ring, learn to parry, and level up your fighter. Between bouts, race the Lantern Relay, hunt for hidden treasure, or take on Cloudbreak’s 24-stone climb. See the trophies you earn in Trophy Hall.
+
+Beast Dojo is in beta. We’re tuning combat and improving the city as we test across devices.
+
+### Evidence for rights enforcement
+
+Keep a dated ownership ledger of original source code, Blender files, editable art and audio, publish versions, contributor grants, and third-party licenses. Mark purchased packs as licensed and record which parts were AI-generated and which were human-authored. A U.S. copyright registration can cover eligible authored code and audiovisual content. A trademark clearance search should precede any filing for the Beast Dojo name or logo as a source identifier. Shared ideas such as animal sparring, floating platforms, and trophy collecting remain available to other creators. [U.S. Copyright Office videogame guidance](https://www.copyright.gov/circs/circ61.pdf) · [U.S. Copyright Office AI authorship report](https://copyright.gov/newsnet/2025/1060.html) · [USPTO trademark clearance](https://www.uspto.gov/trademarks/search/federal-trademark-searching)
+
+For an apparent copy, capture the original and reported game or asset URLs, dated screenshots, and a side-by-side comparison of the specific owned material. Verify the rights holder in Roblox Rights Manager and use the applicable copyright or registered trademark notice. Roblox evaluates each report and accepts counter notices where applicable. [Roblox Rights Manager](https://create.roblox.com/docs/production/publishing/rights-manager) · [Roblox intellectual property guidelines](https://create.roblox.com/docs/production/publishing/ip-guidelines)
+
 ## Shared city and personal trophy rooms
 
 All six districts belong to one walkable Roblox city place. Players in the same server see each other and share the city and its events. Roblox can run multiple copies of the city at once. The district roads keep a group together in the same server. Roblox's Join Experience action can bring a player into a friend's session when account settings, experience access, and server capacity allow it. [Roblox friend joining](https://en.help.roblox.com/hc/en-us/articles/203314220-How-to-follow-or-join-another-player-in-experiences)

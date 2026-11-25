@@ -1,4 +1,4 @@
--- Fit the local Reedguard's boots to the city pavement and shade their contact.
+-- Fit the local Reedguard's city walk and shade the boots' contact with the pavement.
 -- All contact presentation stays local and needs no shadow lights.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -93,6 +93,9 @@ local supportByFoot = {}
 local soleStepLift = .18
 -- The stock R6 cycle carries each foot forward during these phase intervals.
 local swingPhases = { ["Left Leg"] = .16, ["Right Leg"] = .57 }
+local armWelds = {}
+local armShell
+local armWeight, armPhase = 0, 0
 
 local function cityJoint(character, humanoid, root)
     local animate = character and character:FindFirstChild("Animate")
@@ -228,6 +231,54 @@ local function walkPhase(humanoid)
     return 0, 0
 end
 
+local function releaseArmFit()
+    for _, arm in armWelds do
+        if arm.weld.Parent and arm.weld.C0 == arm.applied then
+            arm.weld.C0 = arm.rest
+        end
+    end
+    table.clear(armWelds)
+    armShell, armWeight = nil, 0
+end
+
+local function fitWalkingArms(shell, torso, phase, walkWeight, dt)
+    if armShell ~= shell then
+        releaseArmFit()
+        armShell = shell
+    end
+    if walkWeight > .001 then
+        armPhase = phase
+    end
+    armWeight += math.clamp(walkWeight - armWeight, -dt / .14, dt / .14)
+    if armWeight <= .001 then
+        if next(armWelds) then releaseArmFit() end
+        return
+    end
+
+    local stride = math.cos((armPhase - .36) * 2 * math.pi)
+    for _, side in {"Left", "Right"} do
+        local arm = armWelds[side]
+        if not arm then
+            local mesh = shell:FindFirstChild(side .. " Arm")
+            local weld = mesh and mesh:FindFirstChildOfClass("Weld")
+            local shoulder = torso:FindFirstChild(side .. " Shoulder")
+            if not (weld and shoulder and shoulder.Part1 and weld.Part0 == shoulder.Part1) then continue end
+            arm = {weld = weld, shoulder = shoulder, rest = weld.C0, sign = if side == "Right" then 1 else -1}
+            armWelds[side] = arm
+        end
+        local shoulder = arm.shoulder
+        local stock = shoulder.Transform
+        local foreAft = CFrame.Angles(math.rad(3 + arm.sign * 15 * stride), 0, math.rad(arm.sign * 3))
+        local axes = shoulder.C0.Rotation
+        local fitted = stock:Lerp(axes:ToObjectSpace(foreAft * axes), armWeight)
+        -- Replace the stock angles on the visible shell around the authored
+        -- pivot. The character's Motor6D and contact physics remain untouched.
+        local attachment = shoulder.C1
+        arm.weld.C0 = attachment * stock:Inverse() * fitted * attachment:Inverse() * arm.rest
+        arm.applied = arm.weld.C0
+    end
+end
+
 local function lowestSole(frame, sole, normal)
     local localNormal = frame:VectorToObjectSpace(normal)
     local nearest, depth = sole.point, math.huge
@@ -284,6 +335,7 @@ RunService.PreSimulation:Connect(function(dt)
     local shell = character and character:FindFirstChild("Starter Fighter Shell")
     local animate = character and character:FindFirstChild("Animate")
     if shell and shell:GetAttribute("FighterId") == fighterId and animate and animate.Disabled then
+        releaseArmFit()
         -- Arena poses are authored in C0. The local Animator can still supply
         -- a hip Transform after Animate stops, lifting the planted boots.
         local torso = character:FindFirstChild("Torso")
@@ -302,15 +354,26 @@ RunService.PreSimulation:Connect(function(dt)
     local joint = character == trackedCharacter and shell and shell:GetAttribute("FighterId") == fighterId
         and cityJoint(character, humanoid, root)
     if not joint or not joint.Part1 then
+        releaseArmFit()
         idleWeight = 0
         table.clear(supportByFoot)
         return
     end
     local torsoAnimated = root.CFrame * joint.C0 * joint.Transform * joint.C1:Inverse()
-    if moving(humanoid, root) then
+    local walking = moving(humanoid, root)
+    local onCourse = player:GetAttribute("SkywalkTrialMode")
+    local phase, weight = 0, 0
+    if walking and not onCourse then
+        phase, weight = walkPhase(humanoid)
+    end
+    if onCourse or character:GetAttribute("ArenaJumpEnabled") then
+        releaseArmFit()
+    else
+        fitWalkingArms(shell, joint.Part1, phase, weight, dt)
+    end
+    if walking then
         idleWeight = 0
-        if not player:GetAttribute("SkywalkTrialMode") then
-            local phase, weight = walkPhase(humanoid)
+        if not onCourse then
             local now = os.clock()
             for name, sole in soles do
                 local progress = math.min(1, ((phase - swingPhases[name]) % 1) / .40)

@@ -220,6 +220,18 @@ def build_fighter_visual_models(library, visual_assets, *, item, part, prop, ass
                 asset(group, "TextureContent", texture_id)
             anchor = item(group, "Attachment", "ArtPivot")
             vector(anchor, "CoordinateFrame", "CFrame", FRAME, pivot)
+            if fighter_id == "reedguard-kangaroo" and name == "Torso":
+                # The rigid body meshes taper away from their joints. Keep the
+                # overlap inside the silhouette as the head and arms turn.
+                contacts = (
+                    ("Left shoulder seam", (-.77, 2.70, .025), (.44, .42, .46)),
+                    ("Right shoulder seam", (.77, 2.70, .025), (.44, .42, .46)),
+                    ("Neck seam", (0, 2.94, .075), (.56, .51, .47)),
+                )
+                for label, position, dimensions in contacts:
+                    lining = part(group, label, position, dimensions, "D19948", shape=0, collide=False)
+                    prop(lining, "bool", "Massless", True)
+                    prop(lining, "bool", "CastShadow", False)
 
 
 if __name__ == "__main__":

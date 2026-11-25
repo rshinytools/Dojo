@@ -3307,8 +3307,14 @@ garden_prop(falls,"meadowCover",(upper_x+upper_width*.45,upper_top-.15,upper_z-3
 for x,z,top,bottom,width,basin_reach in reedfall_drops:
     rock_height=top-.90-bottom
     reedfall_buttress(falls,x+.93,z-4.72,width*.70,4.2,max(0,bottom-9),top-.54,-.30,0)
-    garden_shelf(falls,x,bottom+rock_height*.47,z-3.0,width*1.77,4.9,
-                 max(1.05,rock_height*.93),"827784",SLATE,collide=False)
+    shelf_top=bottom+rock_height*.47
+    shelf_height=max(1.05,rock_height*.93)
+    garden_shelf(falls,x,shelf_top,z-3.0,width*1.77,4.9,shelf_height,"827784",SLATE,collide=False)
+    if bottom<1:
+        # Keep the water and faceted cliff dressing light. The low stone shelf is the solid body.
+        core=part(falls,"Reedfall lower rock support",(x,shelf_top-shelf_height/2,z-3.0),
+                  (width*.95,shelf_height,2.64),"827784",material=SLATE,transparency=1)
+        prop(core,"bool","CastShadow",False)
     if bottom>1:
         garden_shelf(falls,x-.28,bottom-.028,z+basin_reach*.40,width*1.79,basin_reach*.97,
                      2.10,"907F88",SLATE,collide=False)
@@ -4330,13 +4336,24 @@ def trophy_hall_approach(parent):
               (ramp_x,ramp_top,-28.92),(ramp_x,ramp_top,-31.33)]
     route(terrace,"Trophy Hall garden ramp",approach,5.57,"9F898F",surface=LIMESTONE,
           stone_footings=False,join_overlap=.34,railings=False)
+
+    def spill_side_guard(a,b):
+        # Keep the walking capsule on the ramp without changing the visible railing.
+        dy,dz=b[1]-a[1],b[2]-a[2]
+        center=(a[0],(a[1]+b[1])/2+1.09,(a[2]+b[2])/2)
+        guard=part(terrace,"Hall spill-side railing support",center,(.28,2.55,hypot(dy,dz)+.20),
+                   rail,pitch=degrees(atan2(dy,-dz)),transparency=1)
+        prop(guard,"bool","CastShadow",False)
+
     for side in (-1,1):
         x=ramp_x+side*2.60
         edge=[(x,y,z) for _,y,z in approach[1:-1]]+[(x,ramp_top,-30.19)]
         for a,b in zip(edge,edge[1:]):
+            if side==1:
+                spill_side_guard(a,b)
             for lift in (.61,1.37):
                 beam(terrace,"Garden ramp rail",(x,a[1]+lift,a[2]),(x,b[1]+lift,b[2]),
-                     .23,rail,collide=True)
+                     .23,rail,collide=side<0)
             for fraction in (.05,.43,.81):
                 y,z=(a[i]+(b[i]-a[i])*fraction for i in (1,2))
                 part(terrace,"Garden ramp baluster",(x,y+.68,z),(.31,1.38,.31),rail)
@@ -4372,8 +4389,11 @@ def trophy_hall_approach(parent):
                         (west+.23,north+.24,west+.23,south-.14),
                         (east-.24,north+.24,east-.24,south-.14),
                         (16.10,north+.24,east-.24,north+.24)):
+        spill_side=ax==east-.24 and bx==east-.24
+        if spill_side:
+            spill_side_guard((ax,top,bz),(bx,top,az))
         for lift in (.58,1.31):
-            beam(terrace,"Upper forecourt rail",(ax,top+lift,az),(bx,top+lift,bz),.23,rail,collide=True)
+            beam(terrace,"Upper forecourt rail",(ax,top+lift,az),(bx,top+lift,bz),.23,rail,collide=not spill_side)
         for t in (0,.5,1):
             x,z=ax+(bx-ax)*t,az+(bz-az)*t
             part(terrace,"Forecourt baluster",(x,top+.68,z),(.30,1.40,.30),rail)
@@ -4430,6 +4450,10 @@ def trophy_hall_approach(parent):
         (25.18,-31.45,2.49,7.49,3.71,3.46,14),
     ):
         shoreline_slate(garden,x,z,base,width,depth,crest-base,yaw,shadow=False)
+        body_height=(crest-base)*.70
+        core=part(garden,"Reedfall garden bank support",(x,base+body_height/2,z),
+                  (width*.57,body_height,depth*.49),"8F7B85",yaw=yaw,material=SLATE,transparency=1)
+        prop(core,"bool","CastShadow",False)
         shelf=base+(crest-base)*.82
         garden_shelf(garden,x-.07,shelf+.11,z-.06,width*.68,depth*.67,.30,
                      "758958",GRASS_MAT,collide=False)
