@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.310 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.311 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -231,6 +231,8 @@ Desktop Studio used one client and three fitted stand-ins. The fixture set Pengu
 When published, the place is configured to rotate Kilnback Custodian, Abyssal Kraken and Solar Phoenix on UTC-aligned 20-minute bells. Each bell opens one entrance for two minutes. All three entrances open immediately in Studio. Every eligible clear saves 20 Raid Tokens and 2 Mythic Capsule shards, once per event window. A fighter qualifies with at least 48 boss damage or a completed revive. The boss’s first-clear trophy and shared currency balance use the same profile write. Studio assigns a distinct receipt window to each test run. Exact-source checks verified that the previous checkpoint can reopen a profile after a Phoenix grant and preserve its balances and awards.
 
 ## Grand Dojo Brawl
+
+V0.311 grounds surviving Brawl fighters for the outro. A fighter off the edge or carrying a lift is set at the fitted standing height within the remaining deck. The two-stud inset for repositioned fighters covers the fitted sole reach measured across all 24 fighters’ standing and win poses. Grounded fighters keep their positions. The outro clears any previous knockback and lift. The knockout pose remains on the defeated fighter. In desktop Studio, a staged Ridge Palm decided the match 107 ms before the champion was observed off the mat. V0.310 awarded the win and held the fighter outside the deck. V0.311 displayed the victory pose on the canvas, with the earlier hit and first-place recap intact. Exact checks exercised the placement rule at all four deck sizes.
 
 V0.310 resolves scheduled contacts before a later observed live-floor exit. At an exact tie, the exit removes the fighter before contact. Geometry from an off-floor cast survives only through the earlier contacts. An earlier knockout can decide the round, and an exit observed after the bell cannot replace the timeout result.
 

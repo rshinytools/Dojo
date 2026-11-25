@@ -878,6 +878,11 @@ function Motion.render(duel, now, historical)
         elseif duel.round.resolvedAt then
             clearCast(actor)
             clearMarks(actor)
+            if duel.resultStand then
+                actor.knock, actor.lift = nil, nil
+                local stand = duel.resultStand(actor.root.CFrame)
+                if stand then Match.move(actor.root, stand) end
+            end
             setHeld(actor, true)
         else
             if actor.cast and actor.cast.clip ~= state.clip then

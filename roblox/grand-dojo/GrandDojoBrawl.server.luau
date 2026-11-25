@@ -26,6 +26,7 @@ local marks = court:WaitForChild("Spawn Marks")
 local SIZE, QUEUE_SECONDS = 8, 70
 local SHRINK_STEP, WARNING_SECONDS = 15, 3
 local PLAYABLE_HALVES = {22.5, 17.5, 12.5, 7.5}
+local RESULT_EDGE_CLEARANCE = 2
 local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true, stormSteer = true,
     dodge = true, signature = true}
 local breaking = Color3.fromRGB(235, 155, 81)
@@ -206,6 +207,18 @@ local function start(now)
     function match.floorActive(point, at)
         local stage = if at and at ~= match.outgoingFloorAt then floorStageAt(round, at) else match.stage
         return onFloor(point, bounds.Position, stage)
+    end
+    function match.resultStand(frame)
+        local center, position = bounds.Position, frame.Position
+        local standingY = marks["Seat 1"].Position.Y
+        if onFloor(position, center, match.stage) and math.abs(position.Y - standingY) <= .02 then
+            return nil
+        end
+        local half = PLAYABLE_HALVES[match.stage + 1] - RESULT_EDGE_CLEARANCE
+        local planted = Vector3.new(math.clamp(position.X, center.X - half, center.X + half),
+            standingY, math.clamp(position.Z, center.Z - half, center.Z + half))
+        local forward = Match.flat(frame.LookVector)
+        return if forward.Magnitude > .01 then CFrame.lookAlong(planted, forward) else CFrame.new(planted)
     end
     active = match
     table.clear(queue)
