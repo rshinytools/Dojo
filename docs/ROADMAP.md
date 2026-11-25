@@ -279,13 +279,13 @@ Review the actual release, not only its concept names.
 | P12.1 | Title and brand clearance | Planned | Record evidence and review outcome before public branding or creator promotion; the current web screen is not a legal clearance. |
 | P12.2 | Complete asset and dependency audit | Planned | Record original assets and rights, purchased pack licenses, and human and AI contributions in the ownership ledger. Retain required licenses and attributions. Unresolved material risk is replaced or resolved. |
 | P12.3 | Final expression and marketing review | In progress | No retired names or identifiable franchise expression; assess any material patent issue with qualified advice if needed. Prepare a real gameplay thumbnail and 20–25 second preview for the approved build. The exploration-first description and Open World Action genre are saved in Creator Hub. Final storefront media review remains open. |
-| P12.4 | Roblox publishing and launch approval | In progress | Creator Hub saved the game details and assigned v0.362 a global Mild rating for repeated mild fantasy violence. Identity, 2-Step Verification and the 1,000 Robux fee are complete. The standard evaluation showed 0 of 100 qualifying players. Verify Kids and Select access and the regional rating rollout before the all-ages announcement. |
+| P12.4 | Roblox publishing and launch approval | In progress | Creator Hub saved the game details and assigned v0.362 a global Mild rating for repeated mild fantasy violence. Identity, 2-Step Verification and the 1,000 Robux fee are complete. The public age-checked 16+ evaluation started November 25, 2026, with 0 of 100 qualifying players shown at launch. Verify Kids and Select access and the regional rating rollout before the all-ages announcement. |
 
 ## P13 Controlled production and maintenance
 
 Launch gradually and maintain within solo capacity.
 
-**Status** Planned
+**Status** In progress
 
 **Dependencies** P12
 
@@ -293,7 +293,7 @@ Launch gradually and maintain within solo capacity.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P13.1 | Staged launch | Planned | Use Beast Dojo for the public title. Announce all-ages access after Roblox enables Kids and Select. Stop rollout if saving, purchases, crashes or any device core flow regress. |
+| P13.1 | Staged launch | In progress | Creator Hub verified public 16+ access for Beast Dojo on November 25, 2026. Track genuine qualifying players during evaluation. Announce all-ages access after Roblox enables Kids and Select. Stop rollout if saving, purchases, crashes or any device core flow regress. |
 | P13.2 | Measure before optional marketing | Planned | Compare source/device cohorts with matched Creator Analytics benchmarks. Validate actual cost per retained player before scaling; no assumed revenue, guaranteed 1–2k CCU or universal retention threshold. |
 | P13.3 | Sustainable updates | Planned | Every update rechecks affected devices, policy and asset/IP provenance. |
 | P13.4 | Living implementation record | Planned | Local source and this same private site remain synchronized; no invented completion or background monitoring. |
