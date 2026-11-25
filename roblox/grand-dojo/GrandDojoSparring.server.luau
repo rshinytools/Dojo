@@ -35,7 +35,8 @@ local function publish(bout, kind, now)
     remote:FireClient(bout.player, kind, round.playerHealth, round.botHealth, round.startsAt, round.endsAt,
         if bout.outroAt then "outro" else round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt,
         (if bout.featured then FeaturedRound else Round).parryOpensAt(round), bout.arena.config.botId,
-        round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature, round.nextSecondary)
+        round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature, round.nextSecondary,
+        Match.takeHitStop(bout))
 end
 
 local function finish(bout, result, now, disconnected)
@@ -339,6 +340,9 @@ local function tickShowcase(bout, now, dt)
     local hadImpact = #round.notices > 0
     for _, event in round.notices do
         Motion.impact(bout, event)
+        if event.source ~= "bot" and round.playerHealth > 0 then
+            Match.queueHitStop(bout, bout.kit, event, bout.motion.motors)
+        end
         local cue = Match.contactCue(event)
         if cue then
             remote:FireAllClients("impact", cue, event.point, Match.effectAttack(event))

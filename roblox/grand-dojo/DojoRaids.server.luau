@@ -178,7 +178,7 @@ local function mount(encounter)
                     endsAt = round.endsAt, resolvedAt = round.resolvedAt, bossHealth = round.bossHealth,
                     bossMaxHealth = round.bossMaxHealth, phase = round.bossPhase, attack = packetAttack,
                     bossAirborne = round.bossAirborne == true,
-                    vulnerableUntil = round.cooldownUntil, selfIndex = index, slots = slots,
+                    vulnerableUntil = round.cooldownUntil, selfIndex = index, slots = slots, hitStop = Match.takeHitStop(actor),
                     nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                     feedback = if now < actor.feedbackUntil then actor.feedback else nil,
                     revive = revive and {targetIndex = revive.target, startedAt = revive.startedAt, endsAt = revive.endsAt},
@@ -363,6 +363,10 @@ local function mount(encounter)
                     Motion.raidImpact(match, event.defender, origin, event.at, 1.15)
                 end
             elseif event.source == "player" then
+                local actor, side = match.actors[event.attacker], round.sides[event.attacker]
+                if actor and side.playerHealth > 0 and not side.downed then
+                    Match.queueHitStop(actor, side.kitId, event, actor.motors)
+                end
                 cue(match.actors[event.attacker], Match.stormFeedback(event)
                     or (if event.shockDuration then "shockLanded" elseif event.core then "core" else event.kind), now)
             elseif event.source == "team" then

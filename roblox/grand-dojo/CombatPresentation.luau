@@ -60,6 +60,10 @@ function Presentation.accept(state, kind, data)
 end
 
 function Presentation.play(data, now, play)
+    if data.hitStop then
+        local storage = game:GetService("ReplicatedStorage")
+        require(storage:WaitForChild("CombatHitStop")).play(data.hitStop, now)
+    end
     if type(data.impacts) ~= "table" then
         return
     end

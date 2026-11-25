@@ -175,7 +175,7 @@ local function publish(match, kind, now)
             spectatorRoot = actor.spectatorRoot,
             placement = side.placement, feedback = if now < actor.feedbackUntil then actor.feedback else nil,
             nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
-            presentationSequence = snapshot.sequence, impacts = snapshot.impacts})
+            presentationSequence = snapshot.sequence, impacts = snapshot.impacts, hitStop = Match.takeHitStop(actor)})
         table.insert(recipients, actor.player.UserId)
     end
     CombatPresentation.broadcast(effects, snapshot, recipients)
@@ -314,6 +314,10 @@ local function resolveContacts(match, now, beforeBoundary)
     for _, event in match.round.notices do
         Motion.impact(match, event)
         local attacker = match.actors[event.attacker]
+        local side = match.round.sides[event.attacker]
+        if attacker and side.playerHealth > 0 and not side.eliminated then
+            Match.queueHitStop(attacker, attacker.kit, event, attacker.motors)
+        end
         local stormCue = Match.stormFeedback(event)
         if stormCue then
             setFeedback(attacker, stormCue, now)

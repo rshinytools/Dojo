@@ -156,6 +156,7 @@ local function publish(duel, kind, now)
         local opensAt, attackAt, attack = Round.parryOpensAt(round, i)
         remote:FireClient(challenger.player, kind, score(duel, i, {
             presentationSequence = snapshot.sequence, impacts = snapshot.impacts,
+            hitStop = Match.takeHitStop(challenger),
             playerHealth = side.playerHealth, playerMaxHealth = side.playerMaxHealth,
             opponentHealth = rival.playerHealth, opponentMaxHealth = rival.playerMaxHealth,
             opponentName = opponent.player.DisplayName, opponentUserId = opponent.player.UserId, sideIndex = i,
@@ -313,6 +314,9 @@ local function resolve(duel, now)
     for _, event in round.notices do
         Motion.impact(duel, event)
         local a, b = duel.actors[event.attacker], duel.actors[event.defender]
+        if a and round.sides[event.attacker].playerHealth > 0 then
+            Match.queueHitStop(a, a.kit, event, a.motors)
+        end
         local kind = event.kind
         local stormCue = Match.stormFeedback(event)
         if stormCue then

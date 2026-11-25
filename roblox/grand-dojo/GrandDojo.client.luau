@@ -2178,7 +2178,7 @@ player:GetAttributeChangedSignal("SparringActive"):Connect(function()
 end)
 
 sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt,
-    id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary)
+    id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary, hitStop)
     if kind == "spectatorImpacts" then
         if type(b) == "table" and not table.find(b, player.UserId) then
             matchPresentation.contacts.play({impacts = a}, workspace:GetServerTimeNow(), matchPresentation.playImpact)
@@ -2268,6 +2268,9 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
     local shortName = if showcase then resident else opponent.name
     playerHealth:Set(a, playerMaxHealth, kit and kit.challengerShort, kind == "begin")
     botHealth:Set(b, opponent.health, shortName, kind == "begin")
+    if hitStop then
+        matchPresentation.contacts.play({hitStop = hitStop}, workspace:GetServerTimeNow(), matchPresentation.playImpact)
+    end
     updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, botAt, parryOpensAt,
         nextSignature, nextSecondary, opponent.tint, resident)
 end)

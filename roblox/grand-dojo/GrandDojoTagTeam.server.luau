@@ -144,6 +144,7 @@ local function publish(match, event, now)
             remote:FireClient(player, event, {matchId = match.id, introAt = round.introAt, startsAt = round.startsAt,
                 endsAt = round.endsAt, resolvedAt = round.resolvedAt, slots = slots, selfIndex = index,
                 presentationSequence = snapshot.sequence, impacts = snapshot.impacts,
+                hitStop = Match.takeHitStop(actor),
                 focusIndex = actor.lastTarget,
                 canTag = Round.planTag(round, index, now) ~= nil and not seat.entryAt,
                 tagReadyAt = seat.nextTagAt, nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
@@ -343,6 +344,10 @@ local function advance(match, now)
     for _, event in match.round.notices do
         Motion.impact(match, event)
         local attacker = match.actors[event.attacker]
+        local side = match.round.sides[event.attacker]
+        if attacker and side.playerHealth > 0 and not side.eliminated then
+            Match.queueHitStop(attacker, side.kitId, event, attacker.motors)
+        end
         if event.defender and event.kind ~= "miss" and event.kind ~= "burn" then
             attacker.lastTarget = event.defender
             match.actors[event.defender].lastTarget = event.attacker

@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.323, open Juniper Bot Spar as Reedguard. Press **E** three times to land the combo kick and press **F** when Reedstep Rising is ready. On confirmed hits, the combo kick and the final Rising strike briefly hold their contact pose.
+
 In v0.322, walk across Festival Plaza as Reedguard and watch the supporting boot and the next step. Jump once and stop on the promenade to see the boots settle back onto the paving.
 
 In v0.321, stop on the Festival Plaza paving and look at Reedguard’s shorter tail and both boots. In Juniper Bot Spar, try Guard early to see the shield and time Guard at contact to see the cyan parry mark.

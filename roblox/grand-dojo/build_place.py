@@ -8099,6 +8099,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","CombatCueAssets","CombatCueAssets.luau"),
                                     (storage,"ModuleScript","CombatAudio","CombatAudio.luau"),
                                     (storage,"ModuleScript","CombatPresentation","CombatPresentation.luau"),
+                                    (storage,"ModuleScript","CombatHitStop","CombatHitStop.luau"),
                                     (storage,"ModuleScript","StormSteering","StormSteering.luau"),
                                     (storage,"ModuleScript","CombatHealth","CombatHealth.luau"),
                                     (storage,"ModuleScript","ChampionshipHud","ChampionshipHud.luau"),
