@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.328, start a server with two Studio clients. Choose **Ranked** at the 1v1 sign on both clients, then play through the series to see the Rank Points recap. Studio ratings use the current test server’s memory.
+
 In v0.327, look for visible recoil if both fighters land a strike together. In Tag Team, switch to a backup and try Heavy or an opening Jab once the backup reaches a ready stance.
 
 In v0.326, press **E** from a ready stance to start Jab. Press **E** again near the end of Jab and Cross to buffer the rest of the three-strike combo.

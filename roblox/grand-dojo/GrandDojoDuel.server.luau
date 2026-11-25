@@ -12,7 +12,8 @@ local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
 local RankRules = require(script.Parent:WaitForChild("DuelRankRules"))
 local RankLedger = require(script.Parent:WaitForChild("DuelRankLedger"))
 local Presentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
-local rankStore = if RunService:IsStudio() then RankLedger.memoryStore()
+local studio = RunService:IsStudio()
+local rankStore = if studio then RankLedger.memoryStore()
     else DataStoreService:GetDataStore("BeastDojoDuelRatingsV1")
 local ledger = RankLedger.new(rankStore, os.time, task.wait)
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
@@ -48,6 +49,7 @@ local resultMessages = {
 
 local offers, queues, joins = {}, {}, {}
 local rankOperations = {}
+local studioRankIds, nextStudioRankId = {}, 0
 local pendingSettlements, shuttingDown = 0, false
 local active, preparing
 local nextMatchId, nextSearchAt = 0, 0
@@ -95,13 +97,25 @@ local function rankStatus(player, status, points)
     end
 end
 
+local function rankUserId(player)
+    local userId = player.UserId
+    if not studio then return userId end
+
+    -- Local Studio users include negative IDs. Keep stable, unique keys in this server's memory ledger.
+    if not studioRankIds[userId] then
+        nextStudioRankId += 1
+        studioRankIds[userId] = nextStudioRankId
+    end
+    return studioRankIds[userId]
+end
+
 local function readRank(player)
     if rankOperations[player.UserId] then
         return nil
     end
     rankOperations[player.UserId] = true
     rankStatus(player, "loading")
-    local profile, reason = ledger:read(player.UserId)
+    local profile, reason = ledger:read(rankUserId(player))
     rankOperations[player.UserId] = nil
     rankStatus(player, if profile then "ready" elseif reason == "pending" then "pending" else "unavailable",
         profile and profile.points)
@@ -390,7 +404,7 @@ local function prepareRanked(first, second, now)
     end
     updateQueues()
     task.spawn(function()
-        local firstId, secondId = first.player.UserId, second.player.UserId
+        local firstId, secondId = rankUserId(first.player), rankUserId(second.player)
         local ticket = ledger:reserve(HttpService:GenerateGUID(false), firstId, secondId)
         local currentTime = workspace:GetServerTimeNow()
         local allowed = preparing == attempt and not shuttingDown and currentTime < attempt.expiresAt

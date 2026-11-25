@@ -1,4 +1,4 @@
-"""Exercise the checked-in ranked ledger with the standalone Luau runner."""
+"""Exercise ranked ledger recovery and the Studio player-ID adapter with Luau."""
 
 import argparse
 from pathlib import Path
@@ -68,6 +68,43 @@ expectProfile(server(), 8, updatedPoints, 2)
 print("Ranked ledger passed lost journal/profile replies, reconnect, stale replay and lease expiry.")
 """
 
+STUDIO_FIXTURE = r"""
+local liveId = makeRankIdentity(false)
+local studioId = makeRankIdentity(true)
+assert(liveId({UserId = 1}) == 1)
+assert(liveId({UserId = -1}) == -1)
+local first = studioId({UserId = -1})
+local second = studioId({UserId = -2})
+local sameNumberPositive = studioId({UserId = 1})
+assert(first ~= second and first ~= sameNumberPositive and second ~= sameNumberPositive)
+assert(studioId({UserId = -1}) == first)
+
+local isolated = Ledger.new(Ledger.memoryStore(), function() return clock end, function() end)
+assert(isolated:read(liveId({UserId = -1})) == nil)
+local studioTicket = assert(isolated:reserve("studio-duel", first, second))
+assert(isolated:commit(studioTicket, 1))
+expectProfile(isolated, studioId({UserId = -1}), 1216, 1)
+expectProfile(isolated, studioId({UserId = -2}), 1184, 1)
+expectProfile(isolated, sameNumberPositive, 1200, 0)
+print("Studio ranked identities stayed distinct and stable, and the ledger kept its live ID validation.")
+"""
+
+
+def identity_adapter(server):
+    # Extract the small adapter without booting the rest of the game in standalone Luau.
+    declarations = [
+        line for line in server.splitlines()
+        if line.startswith(("local studio =", "local studioRankIds,"))
+    ]
+    assert len(declarations) == 2
+    start = server.index("local function rankUserId(")
+    end = server.index("\nlocal function readRank(", start)
+    return "\n".join((
+        "local function makeRankIdentity(isStudio)",
+        "local RunService = { IsStudio = function() return isStudio end }",
+        *declarations, server[start:end], "return rankUserId", "end",
+    ))
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -76,12 +113,13 @@ def main():
 
     rules = (GRAND_DOJO / "DuelRankRules.luau").read_text(encoding="utf-8")
     ledger = (GRAND_DOJO / "DuelRankLedger.luau").read_text(encoding="utf-8")
+    server = (GRAND_DOJO / "GrandDojoDuel.server.luau").read_text(encoding="utf-8")
     source = "\n".join((
         "local Rules = (function()", rules, "end)()",
         "local Ledger = (function()",
         'local script = {Parent = {WaitForChild = function(_, name) return name end}}',
         'local require = function(name) assert(name == "DuelRankRules"); return Rules end',
-        ledger, "end)()", FIXTURE,
+        ledger, "end)()", FIXTURE, identity_adapter(server), STUDIO_FIXTURE,
     ))
     with TemporaryDirectory() as temporary:
         combined = Path(temporary) / "ranked_ledger.luau"
