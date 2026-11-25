@@ -225,6 +225,7 @@ local function registerLoadoutClips(kit, group, isUltimate)
             local sequence = {}
             for index, at in timing do
                 sequence[index] = {at = at, damage = skill.damage[index], radius = skill.radius[index], zone = "body",
+                    foot = skill.feet and skill.feet[index] or nil,
                     loadoutFinish = if isUltimate then index == #timing else nil}
             end
             kit.clips[id] = sequence
@@ -531,7 +532,10 @@ local function contactPresentation(round, clip, move, index, fields)
         and (not signatureBeat[attack] or signatureBeat[attack] == index)
         and (attack ~= "tempestRoar" or move.shape == "stormThunder") then
         fields.signatureCast = clip.startedAt
-        if move.loadoutFinish or groundedSignature[attack] then fields.poseHold = .08 end
+        if move.loadoutFinish or groundedSignature[attack] then
+            fields.poseHold = .08
+            if move.loadoutFinish and move.foot then fields.holdKick = true end
+        end
     end
     if fields.poseHold then
         fields.poseAt, fields.poseDirection = move.at, clip.direction

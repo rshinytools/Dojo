@@ -111,9 +111,69 @@ local hornSalute = pose({.038, -.095, -.015, 5, -15, 5}, {76, 4, -22, -.045, .13
 local chestRaise = pose({0, -.05, -.04, 5, 0, 0}, {78, -6, -32, .14, .16, -.08},
     {77, 6, 32, -.13, .15, -.07}, rear, lead, {-6, 0, 0}, {-14, 0, 0})
 
+local slateWind = pose({-.075, -.24, .065, -8, 19, 5}, rightGuard,
+    {36, -11, 20, .07, .075, .13}, rear, lead, {10, -18, -3}, {-8, -23, 5})
+local slateHit = pose({-.048, -.19, -.11, -12, -20, 5}, rightGuard,
+    {61, -16, 12, .11, .07, -.14}, rear, lead, {10, 18, -3}, {-5, 23, -5})
+local slateOut = pose({-.065, -.218, -.022, -10, -13, 4}, rightGuard,
+    {50, -17, 12, .09, .08, -.045}, rear, lead, {10, 13, -3}, {-5, 13, -4})
+
+local cragWind = pose({.12, -.29, .081, -8, -6, -13}, rightGuard, leftGuard,
+    rear, {21, 16, -2, -.085, .04, .075, .11}, {8, 5, 7}, {-10, 16, 8})
+local cragHit = pose({.126, -.26, -.125, -12, -11, -11}, rightGuard,
+    {56, -19, 24, .09, .083, .055}, rear, {54, 12, 5, -.026, .065, -.40, .24},
+    {10, 10, 5}, {-4, 19, 6})
+local cragReturn = pose({.104, -.28, -.038, -11, -12, -8}, rightGuard,
+    {53, -18, 22, .085, .08, .035}, rear, {31, 15, 4, -.047, .05, -.16, .16},
+    {10, 10, 5}, {-4, 14, 5})
+local cragPlant = pose({.035, -.24, -.016, -11, -11, -2}, rightGuard, leftGuard,
+    rear, lead, {10, 12, 0}, {-6, 12, 1})
+
+local summitLow = pose({0, -.33, .10, -14, 0, 0}, {39, 9, 49, .08, .105, .13},
+    {39, -9, -49, -.08, .105, .13}, rear, lead, {12, 0, 0}, {-10, 3, -5})
+local summitHigh = pose({0, -.22, .035, -7, 0, 0}, {94, 11, 42, .065, .10, .11},
+    {94, -11, -42, -.065, .10, .11}, rear, lead, {6, 0, 0}, {-6, 0, 0})
+local summitHit = pose({0, -.38, -.30, -17, 0, 0}, {64, 26, -15, -.24, .048, -.23},
+    {64, -26, 15, .24, .048, -.23}, rear, lead, {16, 0, 0}, {-11, 0, 0})
+local summitOut = pose({0, -.30, -.15, -12, 0, 0}, {55, 20, -14, -.14, .06, -.10},
+    {55, -20, 14, .14, .06, -.10}, rear, lead, {13, 0, 0}, {-9, 0, 0})
+
+local switchDraw = pose({.11, -.31, .12, -15, -33, -7}, {30, 13, 41, .075, .042, .18},
+    leftGuard, rear, lead, {16, 32, 5}, {-12, 38, -8})
+local switchLow = pose({.032, -.40, -.24, -16, 27, -4}, {52, 17, -13, -.155, -.02, -.22},
+    leftGuard, rear, lead, {16, -26, 3}, {-11, -31, 5})
+local switchTurn = pose({-.12, -.31, .055, -13, 39, 8}, rightGuard,
+    {36, -11, -36, -.12, .075, .21}, rear, lead, {14, -36, -5}, {-12, -45, 10})
+local switchHigh = pose({-.066, -.16, -.33, -10, -29, 5}, rightGuard,
+    {73, -18, 13, .162, .11, -.24}, rear, lead, {9, 28, -3}, {-5, 35, -5})
+local switchOut = pose({-.075, -.27, -.145, -12, -20, 6}, rightGuard,
+    {56, -18, 15, .115, .07, -.09}, rear, lead, {10, 20, -4}, {-8, 21, -4})
+
+local function forwardSurface(at, joint, center, radii, rotation)
+    local plate = at.RootJoint * at[joint] * CFrame.new(center - v(0, rootHeight, 0)) * (rotation or CFrame.identity)
+    local view = plate:VectorToObjectSpace(v(0, 0, -1))
+    local offset = (view * radii * radii) / (view * radii).Magnitude
+    return plate:PointToWorldSpace(offset)
+end
+local function mitt(at, side)
+    return forwardSurface(at, if side > 0 then "Right Shoulder" else "Left Shoulder",
+        v(side * 1.25, 1.879, -.774), v(.2255, .098, .057))
+end
+local cragSurface = forwardSurface(cragHit, "Left Hip", v(-.373, .23, -.744), v(.1665, .1145, .1235),
+    CFrame.Angles(0, math.asin(.07407368), 0))
+local summitCenter = mitt(summitHit, 1):Lerp(mitt(summitHit, -1), .5)
+
 local contact = {jab = .173, cross = .237, body = .283, heavy = .439, hornCheck = .31, staticCharge = .68,
-    stoneTap = .26, ridgelineDrive = .51}
+    stoneTap = .26, ridgelineDrive = .51,
+    slateJab = .16, cragToe = .26, summitPress = .65, switchback = table.freeze({.34, .70})}
 local clips = {
+    slateJab = {{0, ready}, {.077, slateWind}, {contact.slateJab, slateHit}, {.263, slateOut}, {.42, ready}},
+    cragToe = {{0, ready}, {.114, cragWind}, {contact.cragToe, cragHit}, {.362, cragReturn},
+        {.472, cragPlant}, {.56, ready}},
+    summitPress = {{0, ready}, {.172, summitLow}, {.329, summitHigh}, {.448, summitHigh},
+        {contact.summitPress, summitHit}, {.735, summitHit}, {.895, summitOut}, {1.27, ready}},
+    switchback = {{0, ready}, {.169, switchDraw}, {contact.switchback[1], switchLow}, {.482, switchTurn},
+        {.566, switchTurn}, {contact.switchback[2], switchHigh}, {.826, switchOut}, {1.20, ready}},
     stance = {{0, ready}, {.61, breathe}, {1.22, ready}},
     advance = {{0, ready}, {.17, stepLead}, {.34, breathe}, {.52, stepRear}, {.69, ready}},
     retreat = {{0, ready}, {.19, backRear}, {.38, ready}, {.55, backLead}, {.73, ready}},
@@ -148,6 +208,8 @@ local hornFront = v(-1.173, 4.162, -.732)
 local tapSurface = v(1.461488234, 1.848089717, -.782245873)
 local driveSurface = v(-1.172631842, 4.184012159, -.706066774)
 local hits = {
+    slateJab = {mitt(slateHit, -1)}, cragToe = {cragSurface},
+    summitPress = {summitCenter}, switchback = {mitt(switchLow, 1), mitt(switchHigh, -1)},
     jab = {{jabHit, "Right Shoulder", rightGlove}}, cross = {{crossHit, "Left Shoulder", leftGlove}},
     body = {{bodyHit, "Right Shoulder", rightGlove}}, heavy = {{heavyHit, "Left Shoulder", leftGlove}},
     hornCheck = {{hornHit, "Neck", hornFront}},
@@ -156,6 +218,8 @@ local hits = {
     ridgelineDrive = {{driveHit, "Neck", driveSurface}},
 }
 local skills = {
+    slateJab = table.freeze({damage = 12, radius = .43}),
+    cragToe = table.freeze({damage = 15, radius = .47, foot = true}),
     hornCheck = table.freeze({damage = 20, radius = .60, shove = .96}),
     staticCharge = table.freeze({damage = 29, shove = 1.35}),
     stoneTap = table.freeze({damage = 15, radius = .48}),
@@ -166,4 +230,19 @@ local travel = {
     staticCharge = table.freeze({axis = "forward", distance = 6.85, startsAt = .20, endsAt = .68}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {stoneTap = true, ridgelineDrive = true})
+local poses = table.clone(rig.finish(clips, contact, hits, skills, travel, {"sidestep"},
+    {stoneTap = true, ridgelineDrive = true, slateJab = true, summitPress = true, switchback = true}))
+local sample = poses.sample
+local rearPlant = ready.RootJoint * ready["Right Hip"]
+function poses.sample(action, age, direction)
+    local offsets = sample(action, age, direction)
+    if action == "cragToe" then
+        offsets["Right Hip"] = offsets.RootJoint:ToObjectSpace(rearPlant)
+    end
+    return offsets
+end
+poses.UltimateSkill = table.freeze({
+    summitPress = table.freeze({damage = 33, radius = .55}),
+    switchback = table.freeze({damage = table.freeze({14, 21}), radius = table.freeze({.46, .51})}),
+})
+return table.freeze(poses)

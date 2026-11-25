@@ -84,6 +84,62 @@ local kilnFollow = pose({.095, -.29, -.355, -14, 77, -6}, {-28, 14, -21, -.04, .
 local kilnEase = pose({.045, -.31, -.065, -13, 24, -2}, {27, 13, -18, -.04, .08, .055},
     leftGuard, rear, lead, {12, -16, 2}, {13, -20, 4})
 
+local tileDraw = pose({.02, -.24, .04, -9, 4, 5}, {52, 15, -17, -.025, .115, .08},
+    {37, -7, 13, .035, .07, .135}, rear, lead, {10, -3, -2}, {10, -6, 4})
+local tileHit = pose({.02, -.20, .04, -9, -23, 4}, {53, 15, -19, -.025, .105, .10},
+    {61, -23, 15, .09, .08, -.105}, rear, lead, {11, 20, -3}, {13, 24, -2})
+local tileFold = pose({.02, -.21, .04, -9, -16, 3}, rightGuard,
+    {53, -21, 16, .075, .082, .07}, rear, lead, {10, 16, -2}, {11, 17, 1})
+
+local cobblePivot = v(.53, 1.43 - rootHeight, .03)
+local cobbleRight = ready.RootJoint * ready["Right Hip"]
+local cobbleLeft = ready.RootJoint * ready["Left Hip"]
+local function cobblePose(core, right, left, boot, head, tail)
+    local offsets = pose(core, right, left, rear, lead, head, tail)
+    local swing = CFrame.new(cobblePivot + v(boot[4], boot[5], boot[6]))
+        * CFrame.Angles(math.rad(boot[1]), math.rad(boot[2]), math.rad(boot[3])) * CFrame.new(-cobblePivot)
+    offsets["Right Hip"] = offsets.RootJoint:ToObjectSpace(swing * cobbleRight)
+    return offsets
+end
+local cobbleLoad = cobblePose({.02, -.26, .04, -7, -17, 9}, {52, 15, -25, -.04, .11, .13},
+    {50, -18, 20, .065, .115, .075}, {3, 4, 0, -.005, .075, .05}, {11, 16, -5}, {8, 22, 6})
+local cobbleRaise = cobblePose({.02, -.22, .04, -2, -16, 12}, {56, 18, -26, -.045, .115, .13},
+    {52, -17, 21, .07, .11, .025}, {11, 10, -4, -.035, .24, .025}, {8, 15, -8}, {11, 23, 8})
+local cobbleHit = cobblePose({.02, -.15, .04, 1, -7, 9}, {56, 16, -24, -.045, .11, .135},
+    {54, -18, 22, .075, .125, -.065}, {19, 28, -5, -.225, .115, -.58}, {6, 7, -5}, {12, 14, 4})
+local cobbleTuck = cobblePose({.02, -.20, .04, -4, -12, 7}, {54, 16, -23, -.04, .115, .10},
+    {50, -18, 19, .07, .115, .015}, {11, 8, -3, -.04, .18, -.08}, {9, 11, -4}, {11, 17, 4})
+local cobbleSettle = cobblePose({.02, -.21, .04, -8, -14, 4}, rightGuard,
+    leftGuard, {3, 3, 0, -.01, .075, .015}, {10, 13, -2}, {9, 15, 3})
+
+local bastionBrace = pose({.02, -.29, .04, -13, 14, 9}, {58, 17, -22, -.045, .14, .08},
+    {36, -9, 22, .095, .10, .15}, rear, lead, {12, -10, -5}, {11, -12, 1})
+local bastionShow = pose({.02, -.20, .04, -7, 32, 13}, {57, 13, -27, -.03, .147, .15},
+    {96, -6, 30, .055, .11, .095}, rear, lead, {8, -25, -7}, {8, -29, -3})
+local bastionFold = pose({.02, -.35, .04, -12, -24, 3}, {49, 13, -27, -.04, .105, .20},
+    {29, -11, 26, .095, .058, -.12}, rear, lead, {13, 17, -3}, {13, 19, 3})
+local bastionHit = pose({.02, -.35, .04, -15, -55, -2}, {43, 11, -23, -.065, .095, .23},
+    {9, -11, 21, -.04, .02, -.30}, rear, lead, {16, 23, -5, -.035, -.04, .065}, {18, 32, 2})
+local bastionEase = pose({.02, -.32, .04, -15, -49, 0}, {47, 14, -23, -.04, .105, .20},
+    {17, -12, 20, .015, .045, -.095}, rear, lead, {15, 27, -3}, {17, 31, 4})
+local bastionRecover = pose({.02, -.23, .04, -10, -21, 3}, rightGuard,
+    {42, -16, 18, .075, .085, .04}, rear, lead, {11, 18, -2}, {12, 20, 3})
+
+local cadenceDraw = pose({.02, -.35, .04, -13, 20, 10}, {56, 19, -27, -.05, .14, .12},
+    {23, -5, 15, .05, .045, .16}, rear, lead, {13, -16, -5}, {9, -20, -6})
+local cadenceLow = pose({.02, -.43, .04, -17, -31, 5}, {51, 16, -25, -.03, .12, .16},
+    {48, -26, 13, .09, -.04, -.27}, rear, lead, {17, 23, -4}, {19, 29, 3})
+local cadenceTurn = pose({.02, -.31, .04, -12, -24, -4}, {29, 8, -22, -.045, .07, .18},
+    {55, -17, 18, .065, .075, .04}, rear, lead, {13, 20, 3}, {14, 21, 5})
+local cadenceCoil = pose({.02, -.29, .04, -9, -34, -10}, {28, 8, -22, -.055, .065, .21},
+    {56, -15, 18, .065, .105, .13}, rear, lead, {10, 28, 6}, {11, 31, 5})
+local cadenceHigh = pose({.02, -.16, .04, -10, 34, -6}, {72, 22, -14, -.11, .12, -.32},
+    {45, -17, 24, .035, .09, .18}, rear, lead, {12, -26, 4}, {17, -35, 3})
+local cadenceFold = pose({.02, -.24, .04, -12, 31, -5}, {63, 19, -17, -.08, .12, -.14},
+    {46, -17, 20, .055, .10, .16}, rear, lead, {12, -24, 3}, {15, -31, 2})
+local cadenceEnd = pose({.02, -.22, .04, -9, -2, 1}, {54, 15, -17, -.04, .112, .045},
+    leftGuard, rear, lead, {11, 2, -1}, {10, 3, 3})
+
 local fold = pose({0, -.43, .07, 4, 0, 0}, {47, 15, -24, -.17, -.05, .24},
     {47, -15, 24, .17, -.05, .24}, {27, -17, 0, .07, .045, .22, .023},
     {27, 17, 0, -.07, .045, .22, .023}, {-27, 0, 0, 0, -.20, .26}, {-24, 0, 0, 0, .21, -.14})
@@ -112,7 +168,8 @@ local bow = pose({0, -.33, -.11, -27, 0, 0}, {34, 16, -16, -.035, .04, .08},
 local raised = pose({0, -.08, -.065, -5, 1, 0}, {74, 7, -31, .11, .11, -.10},
     {73, -7, 31, -.11, .11, -.10}, rear, lead, {4, -1, 0}, {12, 1, 0})
 
-local contact = {jab = .174, cross = .237, body = .29, heavy = .46, plateCheck = .33, rivetPalm = .25, kilnShoulder = .52, meteorRoll = .39}
+local contact = {jab = .174, cross = .237, body = .29, heavy = .46, plateCheck = .33, rivetPalm = .25, kilnShoulder = .52,
+    meteorRoll = .39, tileJab = .17, cobbleToe = .26, bastionPress = .64, forgeCadence = table.freeze({.33, .70})}
 local rollSeconds = .95
 local rollEnds = contact.meteorRoll + rollSeconds
 local clips = {
@@ -129,6 +186,13 @@ local clips = {
     rivetPalm = {{0, ready}, {.10, rivetLoad}, {contact.rivetPalm, rivetHit}, {.37, rivetFold}, {.62, ready}},
     kilnShoulder = {{0, ready}, {.15, kilnLoad}, {.29, kilnCoil}, {.40, kilnTuck}, {contact.kilnShoulder, kilnHit},
         {.64, kilnFollow}, {.81, kilnEase}, {.98, ready}},
+    tileJab = {{0, ready}, {.068, tileDraw}, {contact.tileJab, tileHit}, {.268, tileFold}, {.44, ready}},
+    cobbleToe = {{0, ready}, {.09, cobbleLoad}, {.168, cobbleRaise}, {contact.cobbleToe, cobbleHit},
+        {.355, cobbleTuck}, {.453, cobbleSettle}, {.55, ready}},
+    bastionPress = {{0, ready}, {.16, bastionBrace}, {.35, bastionShow}, {.44, bastionShow}, {.535, bastionFold},
+        {contact.bastionPress, bastionHit}, {.693, bastionHit}, {.813, bastionEase}, {1.05, bastionRecover}, {1.26, ready}},
+    forgeCadence = {{0, ready}, {.15, cadenceDraw}, {contact.forgeCadence[1], cadenceLow}, {.447, cadenceTurn},
+        {.553, cadenceCoil}, {contact.forgeCadence[2], cadenceHigh}, {.814, cadenceFold}, {1, cadenceEnd}, {1.22, ready}},
     meteorRoll = {{0, ready}, {.20, fold}, {contact.meteorRoll, tucked}, {rollEnds, tucked},
         {rollEnds + .30, tucked}, {rollEnds + .44, unroll}, {rollEnds + .61, ready}},
     guard = {{0, cover}},
@@ -161,16 +225,39 @@ local hits = {
     rivetPalm = {{rivetHit, "Left Shoulder", v(-1.542710051, 1.738834120, -.663426084)}},
     kilnShoulder = {{kilnHit, "Right Shoulder", v(1.499209984, 3.050060771, .027655620)}},
     meteorRoll = {tucked.RootJoint:PointToWorldSpace(shellCenter)},
+    tileJab = {{tileHit, "Left Shoulder", v(-1.548591103, 1.731026299, -.646319338)}},
+    cobbleToe = {{cobbleHit, "Right Hip", v(.315257423, .185823067, -.845449692)}},
+    bastionPress = {{bastionHit, "Left Shoulder", v(-1.521924521, 2.984272632, -.221595117)}},
+    forgeCadence = {
+        {cadenceLow, "Left Shoulder", v(-1.564813573, 1.775380007, -.654595364)},
+        {cadenceHigh, "Right Shoulder", v(1.560716410, 1.736160145, -.625603521)},
+    },
 }
 local skills = {
     rivetPalm = table.freeze({damage = 15, radius = .46}),
     kilnShoulder = table.freeze({damage = 24, radius = .51}),
     plateCheck = table.freeze({damage = 21, radius = .52, shove = .95}),
+    tileJab = table.freeze({damage = 13, radius = .44}),
+    cobbleToe = table.freeze({damage = 16, radius = .47, foot = true}),
     meteorRoll = table.freeze({windup = contact.meteorRoll, rollSeconds = rollSeconds, rootHeight = rootHeight,
         speed = 10.55, wheelRadius = 1.12, radius = 1.05, damage = 30, shove = 1.65,
         shellCenter = shellCenter, supportHeights = supportHeights, groundRecovery = true,
         reflect = false, guideName = "Meteor Roll guide"}),
 }
 local travel = {plateCheck = table.freeze({axis = "forward", distance = .47, startsAt = .16, endsAt = .31})}
+local planted = {rivetPalm = true, kilnShoulder = true, tileJab = true, bastionPress = true, forgeCadence = true}
+local moves = table.clone(rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, planted))
+moves.UltimateSkill = table.freeze({
+    bastionPress = table.freeze({damage = 34, radius = .51}),
+    forgeCadence = table.freeze({damage = table.freeze({14, 23}), radius = table.freeze({.46, .49})}),
+})
+local sample = moves.sample
+function moves.sample(action, age, direction)
+    local offsets = sample(action, age, direction)
+    if action == "cobbleToe" then
+        offsets["Left Hip"] = offsets.RootJoint:ToObjectSpace(cobbleLeft)
+    end
+    return offsets
+end
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {rivetPalm = true, kilnShoulder = true})
+return table.freeze(moves)

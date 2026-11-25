@@ -334,6 +334,122 @@ local byFighter = {
             },
         },
     },
+    ["armadillo-striker"] = {
+        kit = "armadillo",
+        basic = {
+            attribute = "ArmadilloBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Open with a padded jab, then cross and finish low."},
+                {id = "tileJab", name = "Tile Jab", compact = "Tile", action = "strike", level = 5,
+                    planted = true,
+                    description = "Start the combo with a short left glove strike."},
+                {id = "cobbleToe", name = "Cobble Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the right toe while the left boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "ArmadilloUltimate", default = "meteorRoll",
+            options = {
+                {id = "meteorRoll", name = "Meteor Roll", compact = "Roll", action = "signature", level = 1,
+                    description = "Curl into a quick roll to hit along a straight path."},
+                {id = "bastionPress", name = "Bastion Press", compact = "Press", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Show the shoulder plate, then turn it into one heavy body hit."},
+                {id = "forgeCadence", name = "Forge Cadence", compact = "Cadence", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Lead with a low left glove and follow with a higher right."},
+            },
+        },
+    },
+    ["komodo-dragon"] = {
+        kit = "komodo",
+        basic = {
+            attribute = "KomodoBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start with a quick glove before two follow-up strikes."},
+                {id = "kilnKnuckle", name = "Kiln Knuckle", compact = "Kiln", action = "strike", level = 5,
+                    planted = true,
+                    description = "Snap a short left glove forward from guard."},
+                {id = "sootstep", name = "Sootstep", compact = "Soot", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick with the right toe while the left boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "KomodoUltimate", default = "volcanicBreath",
+            options = {
+                {id = "volcanicBreath", name = "Volcanic Breath", compact = "Breath", action = "signature", level = 1,
+                    description = "Turn into a short cone of heat directly ahead."},
+                {id = "obsidianDrop", name = "Obsidian Drop", compact = "Drop", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Bring a raised right mitt down for one close body hit."},
+                {id = "ashlineTurn", name = "Ashline Turn", compact = "Turn", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Lead with a left glove and finish with a low tail sweep."},
+            },
+        },
+    },
+    ["electric-owl"] = {
+        kit = "owl",
+        basic = {
+            attribute = "OwlBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Open with a wing strike, then cross and follow up low."},
+                {id = "skyFletch", name = "Sky Fletch", compact = "Fletch", action = "strike", level = 5,
+                    planted = true,
+                    description = "Snap a short padded left wing out of guard."},
+                {id = "perchHook", name = "Perch Hook", compact = "Hook", action = "strike", level = 10,
+                    planted = true,
+                    description = "Open with a low right talon while the left foot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "OwlUltimate", default = "thunderDive",
+            options = {
+                {id = "thunderDive", name = "Thunder Dive", compact = "Dive", action = "signature", level = 1,
+                    description = "Rise, then land on the marked mat to send out a pulse."},
+                {id = "staticPerch", name = "Static Perch", compact = "Perch", action = "signature", level = 5,
+                    planted = true, cooldown = 20, floorPulse = true,
+                    description = "Warn nearby fighters, then bring both wings down to send out a pulse."},
+                {id = "splitGale", name = "Split Gale", compact = "Gale", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Strike with the left wing, then follow with a low right talon."},
+            },
+        },
+    },
+    ["bighorn-ram"] = {
+        kit = "ram",
+        basic = {
+            attribute = "RamBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Lead with a padded glove, then cross and finish low."},
+                {id = "slateJab", name = "Slate Jab", compact = "Slate", action = "strike", level = 5,
+                    planted = true,
+                    description = "Start a combo with a quick left glove from a braced stance."},
+                {id = "cragToe", name = "Crag Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the left hoof while the right foot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "RamUltimate", default = "staticCharge",
+            options = {
+                {id = "staticCharge", name = "Static Charge", compact = "Charge", action = "signature", level = 1,
+                    description = "Lower the horns and run along the marked path."},
+                {id = "summitPress", name = "Summit Press", compact = "Press", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Raise both gloves and bring them down for one direct hit."},
+                {id = "switchback", name = "Switchback", compact = "Switch", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Start with a low right glove, then turn into a high left strike."},
+            },
+        },
+    },
 }
 
 local byMove, byKit = {}, {}

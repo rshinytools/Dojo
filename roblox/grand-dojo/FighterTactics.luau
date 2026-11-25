@@ -135,7 +135,8 @@ local byFighter = {
     ["armadillo-striker"] = {
         kit = "armadillo", attribute = "ArmadilloTactical", default = "plateCheck",
         options = {
-            {id = "plateCheck", name = "Plate Check", compact = "Plate", level = 1, action = "secondary"},
+            {id = "plateCheck", name = "Plate Check", compact = "Plate", level = 1, action = "secondary",
+                description = "Turn the plated shoulder into a short pushing strike."},
             {id = "rivetPalm", name = "Rivet Palm", compact = "Rivet", level = 5, action = "secondary", planted = true,
                 description = "A quick strike with a reinforced glove."},
             {id = "kilnShoulder", name = "Kiln Shoulder", compact = "Shoulder", level = 10, action = "secondary", planted = true,
@@ -145,7 +146,8 @@ local byFighter = {
     ["komodo-dragon"] = {
         kit = "komodo", attribute = "KomodoTactical", default = "tailRake",
         options = {
-            {id = "tailRake", name = "Tail Rake", compact = "Rake", level = 1, action = "secondary"},
+            {id = "tailRake", name = "Tail Rake", compact = "Rake", level = 1, action = "secondary",
+                description = "Turn through a low sweep with the rounded tail."},
             {id = "ashenSnap", name = "Ashen Snap", compact = "Snap", level = 5, action = "secondary", planted = true,
                 description = "A quick muzzle strike for close openings."},
             {id = "cinderHeel", name = "Cinder Heel", compact = "Heel", level = 10, action = "secondary", planted = true,
@@ -155,7 +157,8 @@ local byFighter = {
     ["electric-owl"] = {
         kit = "owl", attribute = "OwlTactical", default = "wingSweep",
         options = {
-            {id = "wingSweep", name = "Wing Sweep", compact = "Sweep", level = 1, action = "secondary"},
+            {id = "wingSweep", name = "Wing Sweep", compact = "Sweep", level = 1, action = "secondary",
+                description = "Sweep the padded wing across the space in front."},
             {id = "quillFlick", name = "Quill Flick", compact = "Quill", level = 5, action = "secondary", planted = true,
                 description = "A quick close-range strike with the leading feather."},
             {id = "thunderclapWing", name = "Thunderclap Wing", compact = "Clap", level = 10, action = "secondary", planted = true,
@@ -165,7 +168,8 @@ local byFighter = {
     ["bighorn-ram"] = {
         kit = "ram", attribute = "RamTactical", default = "hornCheck",
         options = {
-            {id = "hornCheck", name = "Horn Check", compact = "Horn", level = 1, action = "secondary"},
+            {id = "hornCheck", name = "Horn Check", compact = "Horn", level = 1, action = "secondary",
+                description = "Lower the horns and step into a short forward strike."},
             {id = "stoneTap", name = "Stone Tap", compact = "Tap", level = 5, action = "secondary", planted = true,
                 description = "A quick glove strike from a braced stance."},
             {id = "ridgelineDrive", name = "Ridgeline Drive", compact = "Drive", level = 10, action = "secondary", planted = true,

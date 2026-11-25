@@ -430,6 +430,9 @@ local function updateWarning(duel, actor, cast, age)
     elseif pulse then
         skill = pulse
         start, finish = pulse.warningAt, cast.poses.Contact[action]
+        if not floorActive(duel, cast.fieldCenter, duel.motion.at) then
+            finish = 0
+        end
     elseif action == "tadpoleTornado" then
         skill = Frog.Skill.tadpoleTornado
         start, finish = skill.warningAt, Frog.Contact.tadpoleTornado
@@ -462,9 +465,8 @@ local function updateWarning(duel, actor, cast, age)
         local gust = action == "gustVortex"
         local flop = action == "tidalBellyFlop"
         local center = if gust then cast.fieldCenter elseif flop then floorPoint(duel, cast.landing)
-            elseif pulse then Match.clampFloor(duel.bounds, origin:PointToWorldSpace(pulse.center), duel.floor)
+            elseif pulse then cast.fieldCenter
             else floorPoint(duel, origin:PointToWorldSpace(skill.center))
-        if pulse and not floorActive(duel, center, duel.motion.at) then return end
         local fan = action == "emberSweep"
         local tornado = action == "tadpoleTornado"
         local name = if fan then "Ember Sweep warning" elseif tornado then "Tadpole Tornado warning"
@@ -721,7 +723,10 @@ local function updateActor(duel, index, now, deferredCasts)
             local origin = CFrame.lookAlong(root.Position, orientation)
             actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId, poses = state.kit.poses}
             local targeted = targetedSkills[clip.action]
-            if targeted then
+            local pulse = Match.loadoutFloorPulse(actor.cast.poses, clip.action)
+            if pulse then
+                actor.cast.fieldCenter = Match.clampFloor(duel.bounds, origin:PointToWorldSpace(pulse.center), duel.floor)
+            elseif targeted then
                 local target = nearestGroundTarget(duel, index, origin, now)
                 local desired = Apex.destination(origin.Position, target, targeted.gap)
                 local landing = thunderTravel(duel, actor, other, origin, desired, now)
@@ -1817,7 +1822,8 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
         elseif center then
             local near = Geometry.nearestPoint(frame, size, center + Vector3.new(0, .45, 0))
             local delta = Match.flat(near - center)
-            if delta.Magnitude <= radius and (not fan or delta.Magnitude <= .03
+            local grounded = not move.loadoutFinish or move.shape ~= "radial" or near.Y <= raid.floor + .78
+            if grounded and delta.Magnitude <= radius and (not fan or delta.Magnitude <= .03
                 or delta.Unit:Dot(root.LookVector) >= math.cos(move.halfAngle)) then
                 hit = near
             end

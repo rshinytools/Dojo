@@ -171,5 +171,133 @@ local travel = {
     thunderDive = table.freeze({axis = "forward", distance = 5.60, startsAt = .24, endsAt = .66}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"},
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"},
     {quillFlick = true, thunderclapWing = true})
+
+local leftHip, rightHip = "Left Hip", "Right Hip"
+local leftPlant = CFrame.new(0, -.009, 0) * ready.RootJoint * ready[leftHip]
+local rightPlant = CFrame.new(0, -.009, 0) * ready.RootJoint * ready[rightHip]
+
+local function plantTalons(offsets, both)
+    local root = offsets.RootJoint
+    offsets[leftHip] = root:ToObjectSpace(leftPlant)
+    if both then
+        offsets[rightHip] = root:ToObjectSpace(rightPlant)
+    end
+    return offsets
+end
+
+local function fitted(core, right, left, head, tail, kick)
+    return plantTalons(pose(core, right, left, kick or rear, lead, head, tail), kick == nil)
+end
+
+local variantReady = plantTalons(table.clone(ready), true)
+local fletchTuck = fitted({-.031, -.16, .075, -7, 20, 3}, rightGuard,
+    {47, -9, -10, .043, .061, .10}, {9, -18, -2}, {-8, -18, -3})
+local fletchHit = fitted({-.031, -.23, -.075, -13, -29, 5}, {48, 18, 18, -.06, .073, .02},
+    {63, -18, 15, .143, .001, -.106}, {13, 23, -3}, {-8, 30, -4})
+local fletchEase = fitted({-.035, -.16, -.022, -8, -13, 3}, rightGuard,
+    {60, -17, 2, .111, .043, -.040}, {10, 11, -2}, {-8, 13, -3})
+
+local hookGather = fitted({-.095, -.195, .04, -7, -3, 7}, {44, 18, 25, -.015, .086, .05},
+    {61, -17, -22, .108, .082, .01}, {9, 5, -5}, {-6, 7, -6})
+local hookTuck = fitted({-.13, -.194, .003, -8, 6, 9}, {42, 21, 27, -.03, .072, .06},
+    {62, -21, -20, .124, .095, .04}, {10, -6, -5}, {-9, -7, -6},
+    {34, -16, 5, .091, .05, .012, .24})
+local hookHit = fitted({-.102, -.20, -.172, -10, 19, 8}, {43, 18, 26, -.033, .071, -.02},
+    {62, -20, -16, .109, .095, .015}, {12, -16, -4}, {-8, -20, -6},
+    {62, -5, 0, -.037, .06, -.264, .53})
+local hookEase = fitted({-.062, -.19, -.064, -7, 12, 6}, {46, 18, 24, -.027, .077, -.012},
+    {62, -19, -17, .086, .077, -.005}, {8, -11, -3}, {-8, -14, -4},
+    {29, -14, 4, .06, .052, -.10, .19})
+
+local perchBrace = fitted({0, -.28, .082, -12, 0, 0}, {28, -9, 34, -.055, .05, .105},
+    {30, 10, -36, .055, .058, .115}, {11, 0, 0}, {-13, 0, 0})
+local perchFan = fitted({.004, -.11, .082, -2, 1, 0}, {62, -16, 87, -.247, .102, .027},
+    {64, 15, -89, .247, .104, .031}, {2, 0, 0}, {-9, 0, 0})
+local perchFall = fitted({.005, -.50, -.048, -16, 1, 0}, {21, -8, 43, -.09, -.06, -.043},
+    {22, 7, -42, .09, -.065, -.049}, {15, 1, -1}, {1, -1, 0})
+local perchMat = fitted({.009, -.88, -.17, -28, 1, 0}, {8, -8, 12, -.138, -.585, -.205},
+    {7, 8, -11, .145, -.585, -.205}, {20, -1, -1}, {8, 0, 0})
+local perchRebound = fitted({.006, -.55, -.089, -15, 1, 0}, {13, -2, 38, -.079, -.055, -.108},
+    {14, 1, -39, .078, -.057, -.11}, {17, -1, 0}, {0, 0, 0})
+local perchEase = fitted({.01, -.255, -.037, -10, 5, -1}, {38, 14, 35, -.055, .059, -.038},
+    {48, -16, -35, .069, .061, -.038}, {11, -4, 1}, {-6, -4, 1})
+
+local galeWide = fitted({-.072, -.21, .123, -9, 32, 7}, {49, 20, 13, -.024, .088, .04},
+    {23, 16, -67, .129, .074, .08}, {8, -29, -5}, {-10, -28, -5})
+local galeWing = fitted({-.044, -.29, -.243, -16, -35, 4}, {50, 16, 27, -.054, .084, .056},
+    {68, -24, 16, .164, .062, -.204}, {16, 30, -3}, {1, 35, -4})
+local galeSwap = fitted({-.125, -.249, -.015, -7, -16, 9}, {46, 18, 35, -.129, .076, .052},
+    {59, -24, 23, .092, .077, -.028}, {10, 15, -5}, {-7, 15, -7})
+local galeCoil = fitted({-.143, -.252, -.022, -6, -12, 10}, {40, 20, 43, -.152, .079, .052},
+    {54, -21, 13, .117, .079, .068}, {8, 11, -6}, {-6, 13, -7},
+    {33, -10, 4, .114, .04, .097, .28})
+local galeKick = fitted({-.085, -.208, -.256, -11, 19, 7}, {37, 20, 53, -.166, .082, .035},
+    {48, -23, -22, .088, .086, .111}, {12, -16, -5}, {-4, -19, -7},
+    {68, -9, 3, -.021, .07, -.34, .74})
+local galeWithdraw = fitted({-.079, -.212, -.15, -10, 11, 6}, {48, 20, 33, -.106, .079, .034},
+    {54, -19, -12, .078, .075, .039}, {10, -9, -4}, {-5, -10, -5},
+    {43, -12, 4, .043, .045, -.135, .42})
+local galeEase = fitted({-.043, -.175, -.049, -8, 7, 4}, rightGuard, leftGuard,
+    {9, -6, -2}, {-8, -7, -3})
+
+local hookLiftAt, hookPlantAt = .071, .478
+local galeLiftAt, galePlantAt = .456, 1.02
+local perchCenter = v(0, -rootHeight, -.545)
+local variantContact = {skyFletch = .138, perchHook = .247, staticPerch = .67, splitGale = table.freeze({.34, .70})}
+local variantClips = {
+    skyFletch = {{0, variantReady}, {.051, fletchTuck}, {variantContact.skyFletch, fletchHit},
+        {.233, fletchEase}, {.37, variantReady}},
+    perchHook = {{0, variantReady}, {hookLiftAt, hookGather}, {.142, hookTuck}, {variantContact.perchHook, hookHit},
+        {.343, hookEase}, {hookPlantAt, variantReady}, {.52, variantReady}},
+    staticPerch = {{0, variantReady}, {.194, perchBrace}, {.348, perchFan}, {.434, perchFan},
+        {.574, perchFall}, {variantContact.staticPerch, perchMat}, {.708, perchMat},
+        {.798, perchRebound}, {1.05, perchEase}, {1.31, variantReady}},
+    splitGale = {{0, variantReady}, {.149, galeWide}, {variantContact.splitGale[1], galeWing},
+        {galeLiftAt, galeSwap}, {.569, galeCoil}, {variantContact.splitGale[2], galeKick},
+        {.823, galeWithdraw}, {galePlantAt, galeEase}, {1.19, variantReady}},
+}
+-- Latch each direct hit to its visible padded wing or blunt toe cap.
+local variantHits = {
+    skyFletch = {{fletchHit, "Left Shoulder", v(-1.443219632, 1.890857345, -.575199370)}},
+    perchHook = {{hookHit, rightHip, v(.498905074, .103169735, -.773073884)}},
+    staticPerch = {perchCenter},
+    splitGale = {{galeWing, "Left Shoulder", v(-1.464886828, 1.909588554, -.550228012)},
+        {galeKick, rightHip, v(.493949945, .098623919, -.768893407)}},
+}
+local basicSkills = {
+    skyFletch = table.freeze({damage = 11, radius = .43}),
+    perchHook = table.freeze({damage = 14, radius = .48, foot = true}),
+}
+local variants = rig.finish(variantClips, variantContact, variantHits, basicSkills, {}, {})
+local poses = table.clone(standard)
+poses.UltimateSkill = table.freeze({
+    staticPerch = table.freeze({damage = 28, center = perchCenter, radius = 2.55, warningAt = .24}),
+    splitGale = table.freeze({damage = table.freeze({13, 20}), radius = table.freeze({.47, .54}), feet = table.freeze({false, true})}),
+})
+for _, field in {"Duration", "Contact", "Impact", "Skill"} do
+    local values = table.clone(standard[field])
+    for move, value in variants[field] do
+        values[move] = value
+    end
+    poses[field] = table.freeze(values)
+end
+
+function poses.sample(action, age, direction)
+    if variantContact[action] then
+        local time = age or 0
+        local both = if action == "perchHook" then time <= hookLiftAt or time >= hookPlantAt
+            elseif action == "splitGale" then time <= galeLiftAt or time >= galePlantAt
+            else true
+        return plantTalons(variants.sample(action, time, direction), both)
+    end
+    return standard.sample(action, age, direction)
+end
+
+function poses.impact(action, index, direction)
+    local source = if variantContact[action] then variants else standard
+    return source.impact(action, index, direction)
+end
+
+return table.freeze(poses)
