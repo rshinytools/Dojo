@@ -345,10 +345,11 @@ local clips = {
 }
 
 local looping = { stance = true, advance = true, retreat = true }
--- Grounded reactions shift the torso and gloves without levering the boots through the mat.
+-- Keep the boots level with the mat through grounded reactions and the Heavy windup.
 local planted = {
 	stance = true, guard = true, block = true, parry = true,
 	hitHead = true, hitBody = true, stagger = true,
+	heavy = true,
 	salute = true, intro = true, win = true,
 }
 local durations = {body = floorClips.Duration.body, reedSweep = floorClips.Duration.reedSweep,
