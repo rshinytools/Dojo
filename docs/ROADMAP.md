@@ -164,7 +164,7 @@ Validate fun, pacing and saving with a small complete game.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P6.1 | Four complete fighters | Prototype ready | All 16 starter Bot Spar pairings passed desktop technique checks. Galaxy landscape simulation completed a mixed bout with touch. All four starter kits are wired into casual Duel. Verify live two-client play, progression and published rejoin. |
-| P6.2 | Duel and brawl alpha | Prototype ready | V0.300 verifies the new Brawl elemental HUD labels with Galaxy A06 Studio packet replay. V0.278 adds an eight-seat Grand Dojo Brawl with three timed floor drops, ring-outs, spectating and final placement. Verify live Duel and eight-player Brawl, disconnects, repeated matches, rewards and older-phone performance. |
+| P6.2 | Duel and brawl alpha | Prototype ready | V0.301 verifies 25 and 16 damage, both elemental HUD labels and floor-warning priority in Galaxy A06 Studio with seven practice stand-ins. V0.278 adds an eight-seat Grand Dojo Brawl with three timed floor drops, ring-outs, spectating and final placement. Verify live Duel and eight-player Brawl, disconnects, repeated matches, rewards and older-phone performance. |
 | P6.3 | Alpha playtests and measurement | Planned | Players find an activity, finish a quest, earn/display a trophy and return to an arena. Record findings; no invented retention data. |
 | P6.4 | Alpha exit review | Planned | No unresolved defect threatens data or makes the world/combat loop unusable. |
 
@@ -190,7 +190,7 @@ Frostglass Gardens and Lantern Circuit remain activity districts. The four theme
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P7.1 | Playable roster expansion | Prototype ready | All twenty-four base fighters are available in v0.298. Golden Eagle and Celestial Storm Dragon complete the base roster. Finish the evolution forms and validate final unlocks, balance, live multiplayer and physical devices. |
-| P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | Seven fighters have three visual forms in v0.300. Warrior and Grandmaster use each fighter’s own level 5 and 10 milestones. A New Form saves with the first evolved equip. Implement forms for the other 17 fighters, settle breeds, mutations and move variants, and verify published rejoin. |
+| P7.2 | Fighter XP, evolution, breeds and mutations | Prototype ready | Thirteen fighters have three visual forms in v0.301. Warrior and Grandmaster use each fighter’s own Level 5 and 10 milestones. A New Form saves with the first evolved equip. Implement forms for the other 11 fighters, settle breeds, mutations and move variants, and verify published rejoin. |
 | P7.3 | Four combat rings and original bosses | In progress | All four rings support the four authored starter kits in Studio. Kilnback Custodian, Abyssal Kraken and Solar Phoenix have original animated rigs and separate co-op arenas in Studio. Verify published access, boss audio and device play. |
 | P7.4 | Content balance and regression | Planned | Fix outliers and ensure content additions do not regress the alpha save/input contract. |
 | P7.5 | Six connected world districts | Planned | All six three-step chapters, twelve activity variants and eighteen secrets have original content, valid earning paths, usable routes and persistent progress. |

@@ -112,6 +112,8 @@ from starter_fighter_assets import build_starter_fighter_visuals
 from reedguard_forms_art import build_reedguard_forms, compact_form_visuals
 from starter_evolution_art import build_starter_evolutions
 from early_roster_evolution_art import build_early_roster_evolutions
+from mid_roster_evolution_art import build_mid_roster_evolutions
+from heavy_evolution_art import build_heavy_evolutions
 from roster_fighter_art import build_expansion_visuals
 from sky_fighter_art import build_sky_visuals
 from ember_aqua_art import build_ember_aqua_visuals
@@ -7810,6 +7812,8 @@ build_storm_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vec
 form_visuals = build_reedguard_forms(storage, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_starter_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_early_roster_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_mid_roster_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_heavy_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 compact_form_visuals(form_visuals, fighter_visuals, item=item)
 server_storage=item(root,"ServerStorage","ServerStorage")
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)

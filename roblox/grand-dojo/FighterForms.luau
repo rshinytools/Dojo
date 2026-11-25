@@ -4,7 +4,8 @@ local rookie = table.freeze({id = Forms.BaseId, name = "Rookie", level = 1})
 local base = table.freeze({rookie})
 local roster = {}
 for _, id in {"reedguard-kangaroo", "penguin-brawler", "silverback-gorilla", "fire-salamander",
-    "karate-frog", "river-otter", "rooster-kickboxer"} do
+    "karate-frog", "river-otter", "rooster-kickboxer", "sugar-glider", "desert-scorpion", "pistol-shrimp",
+    "walrus-sumo", "snapping-tortoise", "armadillo-striker"} do
     roster[id] = table.freeze({
         rookie,
         table.freeze({id = "warrior", name = "Warrior", level = 5, visual = id .. "-warrior"}),

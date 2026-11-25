@@ -62,6 +62,8 @@ def verify_place():
                 "FighterForms", "FighterFormVisuals", "reedguard-kangaroo-warrior", "reedguard-kangaroo-grandmaster",
                 "penguin-brawler-grandmaster", "silverback-gorilla-grandmaster", "fire-salamander-grandmaster",
                 "karate-frog-grandmaster", "river-otter-grandmaster", "rooster-kickboxer-grandmaster",
+                "sugar-glider-grandmaster", "desert-scorpion-grandmaster", "pistol-shrimp-grandmaster",
+                "walrus-sumo-grandmaster", "snapping-tortoise-grandmaster", "armadillo-striker-grandmaster",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander", "karate-frog", "river-otter",
                 "rooster-kickboxer", "sugar-glider",
