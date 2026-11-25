@@ -201,6 +201,19 @@ local presentationState = {}
 local noticeUntil, stageCueUntil = 0, 0
 local sendingLeave = false
 
+local function focusModal()
+    local selected = GuiService.SelectedObject
+    local ownsSelection = selected and selected:IsDescendantOf(gui)
+    local gamepad = UserInputService.PreferredInput == Enum.PreferredInput.Gamepad
+    if gamepad and recap.Visible then
+        if selected ~= close then GuiService.SelectedObject = close end
+    elseif gamepad and queue.Visible and (not selected or ownsSelection) then
+        if selected ~= cancel then GuiService.SelectedObject = cancel end
+    elseif ownsSelection then
+        GuiService.SelectedObject = nil
+    end
+end
+
 local function menuOpen()
     local main = playerGui:FindFirstChild("GrandDojo")
     if main and main.Enabled then
@@ -294,7 +307,9 @@ local function refresh()
     local playerBusy = player:GetAttribute("SparringActive") or player:GetAttribute("BrawlActive")
         or player:GetAttribute("SkywalkTrialMode") or player:GetAttribute("StarterSelectionRequired")
     local worldOverlay = not current and not recap.Visible and not playerBusy and not menuOpen()
+    local wasQueued = queue.Visible
     queue.Visible = worldOverlay and waiting ~= nil
+    if wasQueued ~= queue.Visible then focusModal() end
     notice.Visible = worldOverlay and not waiting and now < noticeUntil
     if queue.Visible then
         queueTitle.Text = string.format("Brawl queue · %d/%d", waiting.count, waiting.required)
@@ -488,9 +503,7 @@ remote.OnClientEvent:Connect(function(kind, data)
         winner.Text = if data.winnerName and data.result ~= "win" then "Winner · " .. data.winnerName else ""
         recap.Visible = true
         player:SetAttribute("BrawlRecapOpen", true)
-        if UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
-            GuiService.SelectedObject = close
-        end
+        focusModal()
     end
     refresh()
 end)
@@ -516,7 +529,10 @@ local function resize()
     refresh()
 end
 gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
-UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(resize)
+UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(function()
+    resize()
+    focusModal()
+end)
 GuiService:GetPropertyChangedSignal("ReducedMotionEnabled"):Connect(function() health:Snap() end)
 UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(function() health:Snap() end)
 

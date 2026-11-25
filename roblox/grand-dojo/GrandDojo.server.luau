@@ -13,7 +13,7 @@ local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
 local trainingCompleted = script.Parent:WaitForChild("RingTrainingCompleted")
-local raidCompleted = script.Parent:WaitForChild("DojoRaidCompleted")
+local RaidHandoff = require(script.Parent:WaitForChild("RaidProfileHandoff"))
 local raidRemotes = {
     kilnback = ReplicatedStorage:WaitForChild("KilnbackRaid"),
     kraken = ReplicatedStorage:WaitForChild("AbyssalRaid"),
@@ -465,9 +465,9 @@ end
 
 local function saveRaid(player, data, token)
     local pending = data.pendingRaids[1]
-    local profile, _, grant = profiles:commitRaid(player.UserId, token, pending.raidId, pending.window, pending.id)
+    local profile, reason, grant = profiles:commitRaid(player.UserId, token, pending.raidId, pending.window, pending.id)
     if not profile then
-        return nil
+        return nil, reason
     end
     table.remove(data.pendingRaids, 1)
     if not (data.departed or shuttingDown) then
@@ -578,9 +578,18 @@ local function serveProgress(player, data)
         if data.pendingTraining then
             saveTraining(player, data, token)
         end
+        local retriedRaid = false
         while data.pendingRaids[1] do
-            if not saveRaid(player, data, token) then
-                break
+            local saved, reason = saveRaid(player, data, token)
+            if not saved then
+                if retriedRaid or (reason ~= "unavailable" and reason ~= "ownership") then
+                    break
+                end
+                retriedRaid = true
+                -- Reopen only through the usual lease check after an expired local token.
+                if reason == "ownership" and not profiles:open(player.UserId, token) then
+                    break
+                end
             end
         end
     end
@@ -591,19 +600,23 @@ local function serveProgress(player, data)
     profileWorkers -= 1
 end
 
-raidCompleted.Event:Connect(function(player, window, id, matchId, raidId)
+RaidHandoff.setReceiptReceiver(function(player, window, id, matchId, raidId)
     local data = state[player]
-    if not data or data.departed or shuttingDown or not raidRemotes[raidId] then
-        return
+    if not data or data.departed or shuttingDown or not raidRemotes[raidId]
+        or (transport and transport.profiles:ownsOutbound(player)) then
+        return false
     end
     for _, pending in data.pendingRaids do
         if pending.id == id then
-            return
+            return true
         end
     end
     table.insert(data.pendingRaids, {window = window, id = id, matchId = matchId, raidId = raidId})
     if transport then transport.profiles:receiptQueued(player) end
-    player:SetAttribute("ProgressStatus", "saving")
+    if player.Parent == Players then
+        player:SetAttribute("ProgressStatus", "saving")
+    end
+    return true
 end)
 
 sparringWon.Event:Connect(function(player, fighterId)
@@ -793,14 +806,19 @@ Players.PlayerAdded:Connect(addPlayer)
 Players.PlayerRemoving:Connect(function(player)
     local data = state[player]
     if data then
+        RaidHandoff.close(player, workspace:GetServerTimeNow())
         data.departed = true
+        state[player] = nil
     end
-    state[player] = nil
 end)
 for _, player in Players:GetPlayers() do
     addPlayer(player)
 end
 game:BindToClose(function()
+    local now = workspace:GetServerTimeNow()
+    for player in state do
+        RaidHandoff.close(player, now)
+    end
     shuttingDown = true
     local limit = os.clock() + 25
     while profileWorkers > 0 and os.clock() < limit do

@@ -7,6 +7,7 @@ local Match = require(script.Parent.DojoMatchSupport)
 local Motion = require(script.Parent.DuelFightMotion)
 local Windup = require(script.Parent.CombatWindupSupport)
 local Round = require(script.Parent.KilnbackRaidRound)
+local RaidHandoff = require(script.Parent.RaidProfileHandoff)
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local completed = script.Parent:WaitForChild("DojoRaidCompleted")
@@ -100,10 +101,12 @@ local function mount(encounter)
         end
     end
 
-    local function cancel(player, now, message)
+    local function cancel(player, now, message, departing)
         if queue[player] then
             queue[player] = nil
-            queuePacket(player, "queue", now, message)
+            if not departing then
+                queuePacket(player, "queue", now, message)
+            end
             updateQueue(now)
         end
     end
@@ -298,7 +301,7 @@ local function mount(encounter)
     end
 
     local function leave(player, now, departing)
-        cancel(player, now, "You left the raid queue.")
+        cancel(player, now, "You left the raid queue.", departing)
         local match = active
         local index = match and match.byPlayer[player]
         if index and not match.actors[index].returned then
@@ -341,9 +344,30 @@ local function mount(encounter)
         return origin + direction * (strike.offset or 0)
     end
 
-    local function advance(match, now)
+    local function queueClearRewards(match)
+        for index, qualified in match.round.result.eligible or {} do
+            local actor = match.actors[index]
+            if qualified and not actor.returned and not actor.reward
+                and RaidHandoff.queueReceipt(actor.player, match.window, match.clearId, match.id, raidId) then
+                actor.reward = true
+                completed:Fire(actor.player, match.window, match.clearId, match.id, raidId)
+            end
+        end
+    end
+
+    local function advance(match, now, historical)
         local round = match.round
-        Motion.move(match, now)
+        -- A missing rig cannot supply a strike or count as surviving a due hazard.
+        if not round.result then
+            for index, actor in match.actors do
+                if not actor.returned and not round.sides[index].eliminated and not liveSide(match, index) then
+                    return nil
+                end
+            end
+        end
+        if not historical then
+            Motion.move(match, now)
+        end
         Round.step(round, now,
             function(index, action, move, at, contactIndex, castAt)
                 return Motion.strikeRaid(match, index, action, move, at, contactIndex, castAt)
@@ -359,6 +383,9 @@ local function mount(encounter)
                 local reachable, position = canReachForRevive(match, index, target, at)
                 return home and reachable and (position - home).Magnitude <= 1.15
             end)
+        if round.result then
+            queueClearRewards(match)
+        end
         local changed = #round.notices > 0
         for _, event in round.notices do
             local code = Match.contactCue(event)
@@ -396,16 +423,6 @@ local function mount(encounter)
             end
             if not round.revives[index] then
                 match.reviveStarts[index] = nil
-            end
-        end
-        if round.result and not match.granted then
-            match.granted = true
-            for index, qualified in round.result.eligible or {} do
-                local actor = match.actors[index]
-                if qualified and not actor.returned and actor.player.Parent == Players then
-                    actor.reward = true
-                    completed:Fire(actor.player, match.window, match.clearId, match.id, raidId)
-                end
             end
         end
         return changed
@@ -474,6 +491,9 @@ local function mount(encounter)
             return
         end
         local changed = advance(match, now)
+        if changed == nil then
+            return
+        end
         if action == "revive" then
             if type(value) == "number" and value % 1 == 0 and value >= 1 and value <= SEATS and canReachForRevive(match, index, value)
                 and Round.beginRevive(round, index, value, now) then
@@ -518,6 +538,7 @@ local function mount(encounter)
         end
         for index, actor in match.actors do
             if not actor.returned and Match.root(actor.player) ~= actor.root then
+                advance(match, now, true)
                 leave(actor.player, now)
             elseif liveSide(match, index) and not match.round.result and not Match.inside(bounds, actor.root.Position) then
                 local position = Match.clampFloor(bounds, actor.root.Position, floor + 2.3)
@@ -538,9 +559,14 @@ local function mount(encounter)
         end
     end)
 
-    Players.PlayerRemoving:Connect(function(player)
+    RaidHandoff.onProfileClose(function(player, now)
         statusAt[player] = nil
-        leave(player, workspace:GetServerTimeNow(), true)
+        local match = active
+        local index = match and match.byPlayer[player]
+        if index and not match.actors[index].returned then
+            advance(match, now, true)
+        end
+        leave(player, now, true)
     end)
 
     Visuals.reset(visuals)

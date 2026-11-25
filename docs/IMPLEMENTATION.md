@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.349 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.350 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -10,6 +10,8 @@ The v0.349 Studio checkpoint is the starting point for new work. This repository
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
 
 ## Reedguard footing
+
+V0.350 plants Reedguard’s boots during Jab, Cross, Uppercut and Reedstep Rising. The previous Rising windup clipped 0.327 studs through the floor and both boots lifted at its final hit. The offline check sampled 1,302 frames of the four adjusted moves. Both soles stayed about 0.003 studs above the canvas. All 2,390 sampled glove positions and the authored hit times were unchanged. The 12,227 unrelated samples matched the previous build, including the Heavy and deliberate kick lifts. Native animation replays remain open.
 
 V0.318 keeps Roblox’s idle hip animation from lifting Reedguard during the authored combat stance. The plaza boots and their contact shadows follow the visible sandstone surface. The tail is 0.865 studs deep, down from 0.951, with the same attachment and thickness on Rookie, Warrior and Grandmaster. Desktop Studio measured the ring sole centers within 0.006 studs of the collision mat during Juniper’s intro and live stance. The previous maximum was 0.037 studs. The plaza test sampled 25 authored points on each boot and both boots made contact on every sampled frame. Published play and physical-device checks remain open.
 
@@ -219,7 +221,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v349-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v350-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -247,6 +249,8 @@ Four desktop Studio clients in the exact v0.327 build chose Penguin backups thro
 V0.330 binds Tag Team combat input to the current fighter entry. An action sent before a swap can no longer execute on the incoming fighter or spend their input allowance. Each entry gets a new identifier, including when the prior fighter returns. Exact Luau covered old techniques, the return to the original fighter, a transition during the server update, valid attacks, aim steering, leave and queue cancellation. Four desktop Studio clients verified a Reedguard-to-Penguin swap. The fixture delayed one outgoing Heavy until after the swap and confirmed that the server received it. All four clients recorded eight further updates with the defender still at 136 HP and no Heavy feedback or contact. Actual Penguin Heavy input then dealt 25 damage at 430 ms. The test staged the fighters near the queue and on the mat.
 
 ## Kilnback Custodian co-op raid
+
+V0.350 queues a confirmed raid receipt synchronously before the player profile closes on disconnect or server shutdown. The existing profile worker still owns the save. It retries an unavailable final raid save once after the existing retries and checks lease ownership before reopening an expired profile. Due contacts can settle before departure when the standing rigs are available. An already settled clear can enqueue its receipt after the avatar is gone. Standalone checks cover deferred notification, normal closure, lost replies and duplicate prevention. Published reconnect remains open.
 
 V0.349 settles due raid strikes before an in-game Leave while the fighter root is still current. A qualifying clear triggers one completion event per eligible player. Roblox disconnect and published profile recovery remain separate checks.
 
@@ -281,6 +285,8 @@ Desktop Studio used one client and three fitted stand-ins. The fixture set Pengu
 When published, the place is configured to rotate Kilnback Custodian, Abyssal Kraken and Solar Phoenix on UTC-aligned 20-minute bells. Each bell opens one entrance for two minutes. All three entrances open immediately in Studio. Every eligible clear saves 20 Raid Tokens and 2 Mythic Capsule shards, once per event window. A fighter qualifies with at least 48 boss damage or a completed revive. The boss’s first-clear trophy and shared currency balance use the same profile write. Studio assigns a distinct receipt window to each test run. Exact-source checks verified that the previous checkpoint can reopen a profile after a Phoenix grant and preserve its balances and awards.
 
 ## Grand Dojo Brawl
+
+V0.350 focuses Brawl Cancel while queued and Close on the recap when a controller is in use, including handoff from touch. Standalone checks exercised controller confirmation and existing combat and spectator inputs. Physical controller verification remains open.
 
 V0.349 applies the same contact timing to Brawl Leave and character reset. A Leave observed with the same deck loss shares the placement batch. Earlier confirmed contacts and placements remain authoritative.
 
