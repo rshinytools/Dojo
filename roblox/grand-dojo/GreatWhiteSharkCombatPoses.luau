@@ -170,16 +170,124 @@ local skills = {
 local travel = {reefHook = table.freeze({axis = "forward", distance = .33, startsAt = .16, endsAt = .28})}
 
 local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {shoalPalm = true})
-local poses = table.clone(standard)
-local leftHip = "Left Hip"
+local leftHip, rightHip = "Left Hip", "Right Hip"
 local support = ready.RootJoint * ready[leftHip]
 
+local leftPlant = CFrame.new(0, -.009, 0) * support
+local rightPlant = CFrame.new(0, -.009, 0) * ready.RootJoint * ready[rightHip]
+
+local function plantBoots(offsets, both)
+    local root = offsets.RootJoint
+    offsets[rightHip] = root:ToObjectSpace(rightPlant)
+    if both then
+        offsets[leftHip] = root:ToObjectSpace(leftPlant)
+    end
+    return offsets
+end
+
+local function fitted(core, right, left, head, tail, kick)
+    return plantBoots(pose(core, right, left, rear, kick or lead, head, tail), kick == nil)
+end
+
+local variantReady = plantBoots(table.clone(ready), true)
+local tapFold = fitted({-.024, -.224, .055, -13, 20, 4}, rightGuard, {45, -8, 20, .067, .07, .12},
+    {13, -17, -4}, {-8, -23, -3})
+local tapHit = fitted({-.014, -.27, -.079, -14, -26, 4}, {46, 15, -20, -.031, .065, .027},
+    {66, -17, 10, .132, .058, -.075}, {15, 22, -3}, {-6, 24, -4})
+local tapEase = fitted({-.027, -.232, -.025, -13, -11, 4}, rightGuard, {57, -18, 15, .112, .062, -.043},
+    {14, 9, -4}, {-7, 14, -4})
+
+local toeSet = fitted({.084, -.222, .042, -9, 10, -7}, {63, 16, -20, -.073, .101, -.02},
+    {48, -18, 31, .06, .074, .077}, {10, -8, 5}, {-8, -13, 6})
+local toeTuck = fitted({.116, -.226, .019, -7, 9, -10}, {65, 22, -23, -.102, .112, -.014},
+    {42, -13, 37, .04, .069, .072}, {8, -8, 7}, {-6, -11, 8},
+    {34, 14, -4, -.081, .05, .037, .245})
+local toeHit = fitted({.083, -.244, -.175, -12, -13, -9}, {62, 19, -19, -.08, .104, -.025},
+    {44, -16, 33, .028, .084, -.002}, {14, 11, 6}, {-7, 13, 8},
+    {64, 8, -3, .017, .06, -.264, .55})
+local toeEase = fitted({.061, -.236, -.069, -11, -8, -6}, {56, 18, -22, -.064, .091, -.022},
+    {48, -17, 26, .062, .077, -.014}, {13, 7, 4}, {-7, 8, 5},
+    {29, 10, -3, -.057, .042, -.115, .21})
+
+local capGather = fitted({.09, -.32, .12, -20, -33, -10}, {30, -14, -35, -.013, -.015, .163},
+    {68, -21, 20, .107, .127, .038}, {20, 28, 7}, {-8, 33, 8})
+local capCurl = fitted({.065, -.36, .12, -23, -45, -9}, {26, -29, -47, -.017, .035, .226},
+    {68, -17, 35, .111, .116, -.005}, {24, 36, 7}, {-11, 47, 6})
+local capTurn = fitted({-.025, -.30, -.096, -14, 25, 2}, {44, 5, -28, -.115, .040, -.113},
+    {57, -20, 24, .073, .091, .098}, {13, -13, -2, -.027, .019, .067}, {-9, -26, -3})
+local capHit = fitted({-.12, -.345, -.295, -9, 60, 3}, {58, -37, -23, -.088, -.012, -.285},
+    {46, -15, 20, .072, .066, .17}, {3, -36, -4, -.115, .036, .195}, {-8, -43, 4})
+local capCarry = fitted({-.081, -.35, -.177, -13, 57, 5}, {53, -32, -27, -.094, .015, -.175},
+    {51, -18, 23, .056, .089, .123}, {11, -35, -5, -.081, .034, .133}, {-8, -37, 3})
+local capEase = fitted({-.049, -.244, -.053, -13, 17, 5}, rightGuard, leftGuard,
+    {15, -13, -4}, {-7, -19, -2})
+
+local surgeHighWind = fitted({.081, -.227, .095, -11, -35, -7}, {48, -14, -57, .038, .142, .145},
+    {58, -21, 24, .076, .081, -.006}, {10, 29, 5}, {-11, 38, 7})
+local surgeHigh = fitted({.038, -.210, -.183, -11, 32, -4}, {74, 18, -14, -.109, .135, -.222},
+    {50, -17, 31, .066, .07, .093}, {11, -26, 3}, {-6, -38, 6})
+local surgeLowWind = fitted({-.101, -.37, .04, -19, 49, 9}, {52, 22, -23, -.061, .049, .065},
+    {23, 6, 57, -.022, .09, .121}, {17, -36, -6}, {-9, -31, -8})
+local surgeLow = fitted({-.035, -.409, -.324, -16, -38, 5}, {47, 18, -27, -.029, .077, .107},
+    {52, -27, 11, .157, -.11, -.274}, {19, 30, -4}, {-8, 33, 7})
+local surgeCarry = fitted({-.045, -.333, -.175, -17, -28, 6}, {49, 15, -26, -.039, .082, .075},
+    {52, -24, 16, .123, -.029, -.136}, {17, 23, -5}, {-9, 29, -6})
+
+local toeLiftAt, toePlantAt = .079, .498
+local variantContact = {saltTap = .137, sandbarToe = .252, whitecapBreak = .61, surgeCross = table.freeze({.34, .70})}
+local variantClips = {
+    saltTap = {{0, variantReady}, {.056, tapFold}, {variantContact.saltTap, tapHit},
+        {.234, tapEase}, {.37, variantReady}},
+    sandbarToe = {{0, variantReady}, {toeLiftAt, toeSet}, {.152, toeTuck}, {variantContact.sandbarToe, toeHit},
+        {.357, toeEase}, {toePlantAt, variantReady}, {.54, variantReady}},
+    whitecapBreak = {{0, variantReady}, {.18, capGather}, {.295, capCurl}, {.402, capCurl},
+        {.531, capTurn}, {variantContact.whitecapBreak, capHit}, {.734, capCarry}, {.954, capEase},
+        {1.21, variantReady}},
+    surgeCross = {{0, variantReady}, {.148, surgeHighWind}, {variantContact.surgeCross[1], surgeHigh},
+        {.507, surgeLowWind}, {variantContact.surgeCross[2], surgeLow}, {.817, surgeCarry}, {1.18, variantReady}},
+}
+-- Contact is sampled on the shipped glove, boot, and rounded fin, in the matching contact pose.
+local variantHits = {
+    saltTap = {{tapHit, "Left Shoulder", v(-1.478045109, 1.834013588, -.834205969)}},
+    sandbarToe = {{toeHit, leftHip, v(-.591308623, .112491897, -.885837212)}},
+    whitecapBreak = {{capHit, "Right Shoulder", v(1.687789595, 2.428722232, -.047027889)}},
+    surgeCross = {{surgeHigh, "Right Shoulder", v(1.485560841, 1.841029951, -.830316768)},
+        {surgeLow, "Left Shoulder", v(-1.499923829, 1.871708326, -.831716905)}},
+}
+local basicSkills = {
+    saltTap = table.freeze({damage = 12, radius = .43}),
+    sandbarToe = table.freeze({damage = 15, radius = .48, foot = true}),
+}
+local variants = rig.finish(variantClips, variantContact, variantHits, basicSkills, {}, {})
+local poses = table.clone(standard)
+poses.UltimateSkill = table.freeze({
+    whitecapBreak = table.freeze({damage = 32, radius = .56}),
+    surgeCross = table.freeze({damage = table.freeze({13, 21}), radius = table.freeze({.48, .54})}),
+})
+for _, field in {"Duration", "Contact", "Impact", "Skill"} do
+    local values = table.clone(standard[field])
+    for move, value in variants[field] do
+        values[move] = value
+    end
+    poses[field] = table.freeze(values)
+end
+
 function poses.sample(action, age, direction)
+    if variantContact[action] then
+        local time = age or 0
+        local both = action ~= "sandbarToe" or time <= toeLiftAt or time >= toePlantAt
+        return plantBoots(variants.sample(action, time, direction), both)
+    end
     local offsets = standard.sample(action, age, direction)
     if action == "undertowHeel" then
         offsets[leftHip] = offsets.RootJoint:ToObjectSpace(support)
     end
     return offsets
+end
+
+function poses.impact(action, index, direction)
+    local source = if variantContact[action] then variants else standard
+    return source.impact(action, index, direction)
 end
 
 return table.freeze(poses)

@@ -450,6 +450,122 @@ local byFighter = {
             },
         },
     },
+    ["honey-badger"] = {
+        kit = "badger",
+        basic = {
+            attribute = "BadgerBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Open with a straight paw, then cross and follow up low."},
+                {id = "brambleCheck", name = "Bramble Check", compact = "Bramble", action = "strike", level = 5,
+                    planted = true,
+                    description = "Start the combo with a short left glove."},
+                {id = "thicketToe", name = "Thicket Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the left toe while the right boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "BadgerUltimate", default = "unstoppableFrenzy",
+            options = {
+                {id = "unstoppableFrenzy", name = "Unstoppable Frenzy", compact = "Frenzy", action = "signature", level = 1,
+                    description = "Sweep four times and briefly resist stagger and knockback."},
+                {id = "honeycombCrush", name = "Honeycomb Crush", compact = "Crush", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Spread both paws, then bring them together for one heavy hit."},
+                {id = "hollowHammer", name = "Hollow Hammer", compact = "Hammer", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Strike low with the right paw, then turn into a high left hit."},
+            },
+        },
+    },
+    ["emerald-saber-tooth"] = {
+        kit = "sabertooth",
+        basic = {
+            attribute = "SaberBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start the combo with a straight strike from the jade gauntlet."},
+                {id = "vineFlick", name = "Vine Flick", compact = "Vine", action = "strike", level = 5,
+                    planted = true,
+                    description = "Flick the left gauntlet forward to start the combo."},
+                {id = "briarStep", name = "Briar Step", compact = "Briar", action = "strike", level = 10,
+                    planted = true,
+                    description = "Open with a low left toe strike while the right boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "SaberUltimate", default = "apexPounce",
+            options = {
+                {id = "apexPounce", name = "Apex Pounce", compact = "Pounce", action = "signature", level = 1,
+                    description = "Leap to the marked area and hit nearby fighters on landing."},
+                {id = "groveBreak", name = "Grove Break", compact = "Grove", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Load the right shoulder plate, then drive it into one hit."},
+                {id = "verdantCross", name = "Verdant Cross", compact = "Verdant", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Hit low with the left gauntlet, then follow with a higher right."},
+            },
+        },
+    },
+    ["great-white-shark"] = {
+        kit = "shark",
+        basic = {
+            attribute = "SharkBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start with a straight glove, then cross and finish low."},
+                {id = "saltTap", name = "Salt Tap", compact = "Salt", action = "strike", level = 5,
+                    planted = true,
+                    description = "Snap the left glove forward from a compact guard."},
+                {id = "sandbarToe", name = "Sandbar Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Lift the left toe for a short kick while the right boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "SharkUltimate", default = "jawsOfTheDeep",
+            options = {
+                {id = "jawsOfTheDeep", name = "Jaws of the Deep", compact = "Jaws", action = "signature", level = 1,
+                    description = "Dive below the mat, then resurface near the marked fighter."},
+                {id = "whitecapBreak", name = "Whitecap Break", compact = "Whitecap", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Turn the rounded right fin into one close body hit."},
+                {id = "surgeCross", name = "Surge Cross", compact = "Surge", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Strike high with the right glove and follow low with the left."},
+            },
+        },
+    },
+    ["abyssal-kraken"] = {
+        kit = "kraken",
+        basic = {
+            attribute = "KrakenBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Open with a padded strike, then cross and follow up low."},
+                {id = "reefCurl", name = "Reef Curl", compact = "Curl", action = "strike", level = 5,
+                    planted = true,
+                    description = "Snap the folded left tentacle forward to start the combo."},
+                {id = "tidepoolToe", name = "Tidepool Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the right toe while the left boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "KrakenUltimate", default = "tentacleCataclysm",
+            options = {
+                {id = "tentacleCataclysm", name = "Tentacle Cataclysm", compact = "Cataclysm", action = "signature", level = 1,
+                    description = "Warn the ring as four tentacles sweep in from marked lanes."},
+                {id = "trenchRing", name = "Trench Ring", compact = "Trench", action = "signature", level = 5,
+                    planted = true, cooldown = 20, floorPulse = true,
+                    description = "Raise the tentacles, then strike the mat to send out a short pulse."},
+                {id = "reefbreakerCross", name = "Reefbreaker Cross", compact = "Breaker", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Strike high with the left tentacle, then follow low with the right."},
+            },
+        },
+    },
 }
 
 local byMove, byKit = {}, {}

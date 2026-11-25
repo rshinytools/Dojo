@@ -116,7 +116,60 @@ local palmSalute = pose({.069, -.118, -.033, -7, 16, -5}, {79, 18, -18, -.127, .
 local currentCall = pose({0, -.057, -.04, 1, 0, 0}, {81, -23, -54, .083, .15, -.088},
     {80, 24, 54, -.075, .15, -.091}, rear, lead, {0, 0, 0}, {-19, 0, 0})
 
+-- The short left hook coils inward while the opposite guard stays visible.
+local reefDraw = pose({-.058, -.225, .062, -10, 23, 7}, {54, 16, -28, -.055, .07, .06},
+    {36, 6, 41, -.07, .055, .145}, rear, lead, {9, -21, -5}, {-12, -23, -6})
+local reefHit = pose({-.056, -.197, -.14, -13, -21, 5}, {58, 19, -29, -.065, .09, .055},
+    {55, -26, 13, .135, .068, -.12}, rear, lead, {12, 20, -4}, {-15, 25, 5})
+local reefFold = pose({-.031, -.218, -.037, -11, -9, 3}, rightGuard,
+    {50, -20, 27, .10, .065, -.025}, rear, lead, {11, 8, -3}, {-14, 10, 3})
+
+-- Low toe check. The left support frame stays fixed as the right tentacle boot lifts.
+local poolLoad = pose({-.16, -.232, .048, -8, -9, 11}, {55, 16, -34, -.05, .077, .042},
+    {62, -20, 35, .06, .082, .01}, {27, -8, 1, .10, .013, -.10, .265}, lead,
+    {8, 8, -7}, {-14, 14, 9})
+local poolHit = pose({-.14, -.169, -.22, -2, 9, 10}, {57, 13, -33, -.05, .075, .038},
+    {65, -21, 33, .065, .09, .035}, {44, 13, 1, -.05, .025, -.32, .49}, lead,
+    {2, -8, -7}, {-10, -15, 8})
+local poolFold = pose({-.147, -.216, -.085, -7, -4, 10}, {53, 15, -34, -.045, .065, .039},
+    leftGuard, {29, -3, 0, .06, .015, -.125, .315}, lead, {8, 4, -6}, {-14, 7, 7})
+local poolSettle = pose({-.05, -.199, .012, -9, 0, 3}, rightGuard,
+    leftGuard, {10, -16, 0, .15, 0, .105, .070}, lead, {10, -2, -2}, {-13, 10, 3})
+
+-- Trench Ring raises both wrapped tentacles. The right plants on the mat
+-- while the left opens for balance and the mantle turns through the crouch.
+local trenchBrace = pose({.04, -.246, .075, -9, 1, -3}, {69, 17, -10, -.03, .12, .075},
+    {57, -12, 10, -.022, .10, .095}, rear, lead, {9, -1, 2}, {-14, 9, 3})
+local trenchRaise = pose({.065, -.16, .09, 2, 3, -5}, {145, 8, 20, .12, .085, .035},
+    {106, -9, -28, -.145, .115, .085}, rear, lead, {-3, -2, 4}, {-15, -7, 6})
+local trenchFold = pose({.088, -.62, -.115, 29, 4, -8}, {65, 14, 5, .04, -.01, -.055},
+    {89, -12, -23, -.105, .095, .065}, rear, lead, {-17, -4, 7}, {-66, -6, 7})
+local trenchHit = pose({.09, -1.19, -.49, 68, 7, -8}, {-54, 14, -11, -.08, .005, .065},
+    {85, -12, -27, -.11, .095, .075}, rear, lead, {-37, -7, 7}, {-110, -8, 3, 0, .04, -.125})
+local trenchRise = pose({.071, -.69, -.24, 36, 6, -7}, {10, 18, -14, -.055, .019, -.11},
+    {74, -19, -18, -.095, .07, .09}, rear, lead, {-20, -5, 6}, {-71, -2, 5, 0, .015, -.06})
+local trenchRecover = pose({.027, -.27, -.055, 4, 6, -3}, {48, 15, -29, -.045, .075, .025},
+    {58, -17, 31, .065, .075, -.022}, rear, lead, {-2, -5, 3}, {-26, 6, 3})
+
+-- Reefbreaker Cross drops the left wrap from above and then turns the
+-- opposite forearm low through the torso line from the same stance.
+local breakerRaise = pose({-.11, -.195, .085, -6, 27, 8}, {57, 16, -29, -.055, .093, .041},
+    {111, -7, 17, -.025, .12, .11}, rear, lead, {5, -23, -5}, {-10, -30, -8})
+local breakerHigh = pose({-.075, -.167, -.215, -13, -28, 5}, {59, 21, -32, -.065, .10, .055},
+    {66, -24, 13, .155, .123, -.215}, rear, lead, {12, 25, -4}, {-14, 34, 8})
+local breakerShift = pose({.048, -.287, -.08, -17, -13, -6}, {37, 3, -38, .025, .028, .115},
+    {53, -21, 29, .095, .092, -.015}, rear, lead, {16, 12, 5}, {-17, 18, 8})
+local breakerLoad = pose({.13, -.344, .052, -19, -31, -9}, {29, -5, -43, .085, -.015, .18},
+    {56, -23, 33, .073, .096, .045}, rear, lead, {17, 27, 6}, {-17, 36, 11})
+local breakerLow = pose({.091, -.337, -.315, -23, 35, -6}, {48, 28, -13, -.16, -.065, -.23},
+    {59, -21, 35, .065, .094, .025}, rear, lead, {22, -30, 5}, {-15, -38, 7})
+local breakerCarry = pose({.047, -.382, -.205, -24, 43, -4}, {37, 30, -16, -.147, -.041, -.165},
+    leftGuard, rear, lead, {23, -36, 3}, {-14, -46, 8})
+local breakerRecover = pose({.035, -.259, -.048, -14, 12, -3}, {49, 15, -31, -.05, .057, -.013},
+    leftGuard, rear, lead, {14, -12, 2}, {-19, -17, 5})
+
 local contact = {jab = .171, cross = .237, body = .285, heavy = .438, tideGrip = .31,
+    reefCurl = .17, tidepoolToe = .26, trenchRing = .65, reefbreakerCross = table.freeze({.33, .70}),
     currentTap = .25, maelstromPalm = .51,
     tentacleCataclysm = table.freeze({.47, .62, .77, .92})}
 local beat = contact.tentacleCataclysm
@@ -126,6 +179,13 @@ local clips = {
     retreat = {{0, ready}, {.178, retreatRear}, {.355, ready}, {.534, retreatLead}, {.71, ready}},
     sidestep = {{0, ready}, {.131, glide}, {.251, catch}, {.481, ready}},
     jab = {{0, ready}, {.079, jabLoad}, {contact.jab, jabHit}, {.227, jabHit}, {.439, ready}},
+    reefCurl = {{0, ready}, {.075, reefDraw}, {contact.reefCurl, reefHit}, {.28, reefFold}, {.42, ready}},
+    tidepoolToe = {{0, ready}, {.115, poolLoad}, {contact.tidepoolToe, poolHit}, {.361, poolFold}, {.448, poolSettle}, {.54, ready}},
+    trenchRing = {{0, ready}, {.151, trenchBrace}, {.335, trenchRaise}, {.434, trenchRaise}, {.544, trenchFold},
+        {contact.trenchRing, trenchHit}, {.693, trenchHit}, {.794, trenchRise}, {1.052, trenchRecover}, {1.29, ready}},
+    reefbreakerCross = {{0, ready}, {.162, breakerRaise}, {.211, breakerRaise}, {contact.reefbreakerCross[1], breakerHigh},
+        {.464, breakerShift}, {.566, breakerLoad}, {contact.reefbreakerCross[2], breakerLow},
+        {.804, breakerCarry}, {.982, breakerRecover}, {1.20, ready}},
     cross = {{0, ready}, {.101, crossLoad}, {contact.cross, crossHit}, {.306, crossHit}, {.525, ready}},
     body = {{0, ready}, {.12, bodyLoad}, {contact.body, bodyHit}, {.391, breathe}, {.583, ready}},
     heavy = {{0, ready}, {.175, heavyLoad}, {.283, heavyLoad}, {contact.heavy, heavyHit},
@@ -153,7 +213,26 @@ local clips = {
 }
 
 local rightPad, leftPad = v(1.265, 1.923, -.918), v(-1.265, 1.923, -.918)
+-- The fitted native shell points follow each padding surface to its contact frame.
+local function mountedSurface(key, joint, rest)
+    return (key.RootJoint * key[joint]):PointToWorldSpace(rest)
+end
+
+local reefPad = v(-1.532502106, -.256102961, -.867787665)
+local poolPad = v(.729337205, -2.011924674, -.850178846)
+local trenchPad = v(1.301971266, -.484110899, -.550531824)
+local breakerHighPad = v(-1.593844219, -.327266151, -.699737339)
+local breakerLowPad = v(1.658205565, .068239606, -.464707525)
+local trenchHand = mountedSurface(trenchHit, "Right Shoulder", trenchPad)
+local trenchCenter = v(trenchHand.X, -2.132, trenchHand.Z)
 local hits = {
+    reefCurl = {mountedSurface(reefHit, "Left Shoulder", reefPad)},
+    tidepoolToe = {mountedSurface(poolHit, "Right Hip", poolPad)},
+    trenchRing = {trenchCenter},
+    reefbreakerCross = {
+        mountedSurface(breakerHigh, "Left Shoulder", breakerHighPad),
+        mountedSurface(breakerLow, "Right Shoulder", breakerLowPad),
+    },
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     tideGrip = {{gripHit, "Left Shoulder", leftPad}},
@@ -163,6 +242,8 @@ local hits = {
         {thirdCall, "Right Shoulder", rightPad}, {finalCall, "Left Shoulder", leftPad}},
 }
 local skills = {
+    reefCurl = table.freeze({damage = 12, radius = .44}),
+    tidepoolToe = table.freeze({damage = 15, radius = .47, foot = true}),
     tideGrip = table.freeze({damage = 20, radius = .63, shove = .99}),
     currentTap = table.freeze({damage = 15, radius = .48}),
     maelstromPalm = table.freeze({damage = 24, radius = .56}),
@@ -170,5 +251,23 @@ local skills = {
 }
 local travel = {tideGrip = table.freeze({axis = "forward", distance = .29, startsAt = .18, endsAt = .29})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"},
-    {currentTap = true, maelstromPalm = true})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {
+    currentTap = true, maelstromPalm = true, reefCurl = true, trenchRing = true, reefbreakerCross = true,
+})
+local poses = table.clone(standard)
+local leftSupport = ready.RootJoint * ready["Left Hip"]
+
+function poses.sample(action, age, direction)
+    local offsets = standard.sample(action, age, direction)
+    if action == "tidepoolToe" then
+        offsets["Left Hip"] = offsets.RootJoint:ToObjectSpace(leftSupport)
+    end
+    return offsets
+end
+
+poses.TrenchRingHand = trenchHand
+poses.UltimateSkill = table.freeze({
+    trenchRing = table.freeze({damage = 31, radius = 2.48, center = trenchCenter, warningAt = .24}),
+    reefbreakerCross = table.freeze({damage = table.freeze({13, 22}), radius = table.freeze({.46, .50})}),
+})
+return table.freeze(poses)

@@ -883,6 +883,10 @@ local function plantStrike(bout, clip)
         state.plantedStrikeClip = clip
         local forward = directionTo(root.Position, bout.position, root.CFrame.LookVector)
         Match.move(root, CFrame.lookAlong(root.Position, forward))
+        local pulse = Match.loadoutFloorPulse(state.playerPoses, clip.action)
+        state.loadoutFloorCast = if pulse then {startedAt = clip.startedAt,
+            center = Match.clampFloor(bout.arena.bounds, root.CFrame:PointToWorldSpace(pulse.center), bout.arena.floor)}
+            else nil
     elseif not planted then
         state.plantedStrikeClip = nil
     end
@@ -1922,6 +1926,15 @@ local function actorRootAt(bout, time)
     return bout.root.CFrame
 end
 
+local function loadoutFloorCenter(bout, offset, startedAt)
+    local cast = bout.motion.loadoutFloorCast
+    if cast and cast.startedAt == startedAt then
+        return cast.center
+    end
+    local origin = actorRootAt(bout, startedAt)
+    return Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(offset), bout.arena.floor)
+end
+
 local function slideContact(bout, time, index)
     local travel = bout.motion.playerTravel
     local tip = Penguin.Impact.bellySlide[index]
@@ -2097,8 +2110,7 @@ end
 
 function Motion.strike(bout, action, move, time, index, castStartedAt)
     if move.shape == "radial" and move.loadoutFinish then
-        local origin = actorRootAt(bout, castStartedAt)
-        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(move.center), bout.arena.floor)
+        local center = loadoutFloorCenter(bout, move.center, castStartedAt)
         local frame, groups = botPose(bout, time)
         return ringSupport(bout, center) and botFloorContact(bout, frame, groups, center, move.radius), center, "body"
     elseif salamander(bout) then
@@ -2591,8 +2603,7 @@ function Motion.render(bout, now)
     local showPulse = not bout.outroAt and pulse
         and now >= clip.startedAt + pulse.warningAt and now < clip.startedAt + state.playerPoses.Contact[clip.action]
     if showPulse and not state.loadoutFloorWarning then
-        local origin = actorRootAt(bout, clip.startedAt)
-        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(pulse.center), bout.arena.floor)
+        local center = loadoutFloorCenter(bout, pulse.center, clip.startedAt)
         if ringSupport(bout, center) then
             state.loadoutFloorWarning = galleonContour(bout, "Ultimate floor warning", center,
                 pulse.radius, nil, nil, Color3.fromRGB(255, 209, 120))

@@ -120,7 +120,59 @@ local clawSalute = pose({-.035, -.115, -.031, -2, -18, 5}, rightGuard,
 local crestRaise = pose({.048, -.055, -.08, 3, -3, 1}, {68, 8, -51, .04, .15, -.04},
     {75, -6, 50, -.04, .15, -.07}, rear, lead, {-3, 3, -1}, {-10, 11, 3})
 
+-- Vine Flick checks from the outside edge of the left glove with the right guard raised.
+local vineDraw = pose({-.065, -.235, .055, -8, 14, 7}, {47, 16, -22, .015, .095, .045},
+    {37, -3, 29, -.06, .105, .14}, rear, lead, {8, -13, -4}, {-8, -12, -4})
+local vineHit = pose({-.07, -.16, -.13, -9, -22, 5}, {47, 16, -23, .015, .095, .045},
+    {55, -25, 12, .135, .085, -.075}, rear, lead, {9, 21, -4}, {-6, 29, 5})
+local vineFold = pose({-.02, -.21, -.032, -9, -17, 4}, rightGuard,
+    {49, -22, 22, .09, .085, .04}, rear, lead, {9, 17, -3}, {-8, 20, 2})
+
+-- Briar Step leaves the right sole in place and flicks the lead boot forward below the guard.
+local briarLoad = pose({.155, -.21, .065, -5, -9, -11}, {45, 18, -25, .035, .09, .06},
+    {60, -24, 24, .125, .12, .025}, rear, {23, 12, -3, -.025, .02, -.29, .29},
+    {5, 9, 7}, {-9, 15, 9})
+local briarHit = pose({.15, -.175, -.23, -2, 3, -9}, {46, 18, -23, .035, .09, .075},
+    {58, -23, 26, .126, .12, .035}, rear, {42, -12, -4, .060, .025, -.47, .48},
+    {4, -3, 6}, {-6, -11, 10})
+local briarFold = pose({.13, -.21, -.075, -4, -4, -9}, {44, 16, -23, .04, .095, .065},
+    {57, -22, 25, .124, .12, .005}, rear, {27, 3, -3, .005, .015, -.29, .315},
+    {6, 4, 6}, {-8, 7, 8})
+local briarSettle = pose({.075, -.209, .014, -8, -11, -2}, rightGuard,
+    leftGuard, rear, {14, 13, 0, -.07, 0, -.24, .068}, {9, 10, 2}, {-9, 17, 3})
+
+-- Grove Break turns the broad shoulder plate into the contact while both soles stay fixed.
+local groveBrace = pose({.095, -.28, .085, -11, -27, -6}, {36, 18, -26, .065, .065, .14},
+    {66, -28, 20, .14, .145, .045}, rear, lead, {10, 23, 5}, {-10, 26, 8})
+local groveShow = pose({.12, -.22, .115, -7, -38, -6}, {60, 0, -15, .105, .145, .12},
+    {74, -25, 22, .12, .155, -.025}, rear, lead, {7, 33, 4}, {-7, 39, 10})
+local groveTurn = pose({.05, -.355, -.04, -18, 9, -3}, {47, 17, -28, -.015, .045, -.045},
+    {70, -27, 28, .135, .15, .06}, rear, lead, {16, -7, 5}, {-13, -12, 7})
+local groveHit = pose({-.09, -.40, -.475, -21, 49, -8}, {34, 16, -44, -.10, -.075, -.16},
+    {66, -28, 26, .12, .12, .035}, rear, lead, {14, -40, 8}, {-14, -46, 12})
+local groveEase = pose({-.08, -.405, -.28, -19, 58, -7}, {34, 14, -43, -.095, -.06, -.115},
+    {60, -27, 29, .122, .115, .075}, rear, lead, {14, -46, 7}, {-12, -54, 12})
+local groveRecover = pose({.035, -.28, -.04, -13, 9, -3}, {40, 15, -26, .015, .08, .045},
+    leftGuard, rear, lead, {11, -8, 1}, {-10, -9, 4})
+
+-- Verdant Cross places a low left paw before the opposite glove climbs through the torso line.
+local verdantDraw = pose({-.095, -.32, .07, -16, 27, 8}, {52, 20, -24, .015, .105, .07},
+    {26, -3, 31, -.06, .025, .175}, rear, lead, {15, -23, -5}, {-12, -29, -8})
+local verdantLow = pose({-.095, -.355, -.205, -17, -25, 6}, {51, 21, -23, .015, .13, .09},
+    {46, -23, 14, .105, -.025, -.23}, rear, lead, {16, 23, -5}, {-8, 29, 4})
+local verdantShift = pose({.045, -.28, -.085, -10, -13, -5}, {29, 6, -29, .04, .08, .045},
+    {57, -22, 23, .135, .115, .015}, rear, lead, {10, 12, 4}, {-12, 15, -8})
+local verdantLoad = pose({.095, -.32, .035, -13, -29, -8}, {25, 8, -31, .055, .08, .145},
+    {59, -23, 25, .135, .13, .06}, rear, lead, {12, 25, 6}, {-13, 34, 6})
+local verdantHigh = pose({.08, -.11, -.285, -4, 26, -5}, {83, 19, -17, -.145, .125, -.225},
+    {61, -24, 29, .115, .135, .025}, rear, lead, {4, -23, 3}, {-8, -32, 6})
+local verdantCarry = pose({.055, -.145, -.17, -6, 35, -6}, {74, 20, -24, -.115, .13, -.125},
+    {58, -22, 27, .10, .125, .06}, rear, lead, {6, -30, 4}, {-8, -40, 8})
+local verdantRecover = pose({.05, -.225, -.033, -10, 3, -1}, {47, 16, -26, .015, .09, .015},
+    leftGuard, rear, lead, {9, -3, 1}, {-10, -6, 4})
+
 local contact = {jab = .155, cross = .218, body = .268, heavy = .413, jadeRake = .31,
+    vineFlick = .155, briarStep = .24, groveBreak = .64, verdantCross = table.freeze({.30, .65}),
     mossPalm = .24, emeraldProwl = .48, apexPounce = .54}
 local teleportAt = .41
 local clips = {
@@ -129,6 +181,12 @@ local clips = {
     retreat = {{0, ready}, {.154, backRear}, {.31, ready}, {.461, backLead}, {.617, ready}},
     sidestep = {{0, ready}, {.102, slip}, {.219, set}, {.44, ready}},
     jab = {{0, ready}, {.067, jabWind}, {contact.jab, jabHit}, {.211, jabHit}, {.411, ready}},
+    vineFlick = {{0, ready}, {.067, vineDraw}, {contact.vineFlick, vineHit}, {.257, vineFold}, {.39, ready}},
+    briarStep = {{0, ready}, {.104, briarLoad}, {contact.briarStep, briarHit}, {.345, briarFold}, {.438, briarSettle}, {.52, ready}},
+    groveBreak = {{0, ready}, {.165, groveBrace}, {.34, groveShow}, {.425, groveShow}, {.536, groveTurn},
+        {contact.groveBreak, groveHit}, {.694, groveHit}, {.81, groveEase}, {1.042, groveRecover}, {1.25, ready}},
+    verdantCross = {{0, ready}, {.142, verdantDraw}, {contact.verdantCross[1], verdantLow}, {.434, verdantShift},
+        {.52, verdantLoad}, {contact.verdantCross[2], verdantHigh}, {.76, verdantCarry}, {.945, verdantRecover}, {1.14, ready}},
     cross = {{0, ready}, {.09, crossWind}, {contact.cross, crossHit}, {.302, crossHit}, {.498, ready}},
     body = {{0, ready}, {.118, bodyWind}, {contact.body, bodyHit}, {.377, breathe}, {.550, ready}},
     heavy = {{0, ready}, {.18, heavyWind}, {.266, heavyWind}, {contact.heavy, heavyHit},
@@ -161,7 +219,24 @@ local function gauntletContact(authored, joint, side)
     return frame:PointToWorldSpace(v(side * 1.255, 1.865 - rootHeight, -.858) + front * radii / front.Magnitude)
 end
 
+-- Contact points are defined on the fitted pads, armor and lead boot.
+local function mountedSurface(key, joint, rest)
+    return (key.RootJoint * key[joint]):PointToWorldSpace(rest)
+end
+
+local vinePad = v(-1.488144442, -.313754413, -.865680121)
+local briarPad = v(-.555178188, -2.037314512, -.900615586)
+local grovePlate = v(1.593382877, .930644420, -.473482031)
+local verdantLowPad = v(-1.610769435, -.307554646, -.746906292)
+local verdantHighPad = v(1.612287009, -.410812590, -.602435819)
 local hits = {
+    vineFlick = {mountedSurface(vineHit, "Left Shoulder", vinePad)},
+    briarStep = {mountedSurface(briarHit, "Left Hip", briarPad)},
+    groveBreak = {mountedSurface(groveHit, "Right Shoulder", grovePlate)},
+    verdantCross = {
+        mountedSurface(verdantLow, "Left Shoulder", verdantLowPad),
+        mountedSurface(verdantHigh, "Right Shoulder", verdantHighPad),
+    },
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     jadeRake = {{rakeHit, "Left Shoulder", leftPad}}, apexPounce = {{land, "Right Shoulder", rightPad}},
@@ -169,6 +244,8 @@ local hits = {
     emeraldProwl = {gauntletContact(prowlHit, "Right Shoulder", 1)},
 }
 local skills = {
+    vineFlick = table.freeze({damage = 12, radius = .43}),
+    briarStep = table.freeze({damage = 14, radius = .47, foot = true}),
     jadeRake = table.freeze({damage = 21, radius = .61, shove = .96}),
     mossPalm = table.freeze({damage = 15, radius = .40}),
     emeraldProwl = table.freeze({damage = 23, radius = .49}),
@@ -178,4 +255,22 @@ local travel = {
     jadeRake = table.freeze({axis = "forward", distance = .33, startsAt = .18, endsAt = .30}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {mossPalm = true, emeraldProwl = true})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {
+    mossPalm = true, emeraldProwl = true, vineFlick = true, groveBreak = true, verdantCross = true,
+})
+local poses = table.clone(standard)
+local fixedRear = ready.RootJoint * ready["Right Hip"]
+
+function poses.sample(action, age, direction)
+    local offsets = standard.sample(action, age, direction)
+    if action == "briarStep" then
+        offsets["Right Hip"] = offsets.RootJoint:ToObjectSpace(fixedRear)
+    end
+    return offsets
+end
+
+poses.UltimateSkill = table.freeze({
+    groveBreak = table.freeze({damage = 32, radius = .56}),
+    verdantCross = table.freeze({damage = table.freeze({12, 22}), radius = table.freeze({.45, .49})}),
+})
+return table.freeze(poses)
