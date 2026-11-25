@@ -379,6 +379,8 @@ local function applyBossHit(round, event)
         report(round, {source = "team", kind = "down", defender = event.defender, at = event.at})
     elseif event.kind == "blocked" then
         Fighter.play(side, "block", event.at)
+    elseif Fighter.unstoppable(side, event.at) then
+        event.frenzyResist = true
     else
         side.playerStunUntil = math.max(side.playerStunUntil, event.at + .28)
         Fighter.play(side, "hitBody", event.at)

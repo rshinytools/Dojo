@@ -118,10 +118,15 @@ local function resolveBatch(duel, time, batch)
             defender.damage += event.damage
             local head = event.zone == "head"
             if event.kind ~= "burn" then
-                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4,
-                    event.shockDuration or HIT_STUN)
-                if event.shockDuration then
-                    defender.shock = math.max(defender.shock or 0, event.shockDuration)
+                event.frenzyResist = Combatant.unstoppable(duel.sides[event.defender], time)
+                if not event.frenzyResist then
+                    reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4,
+                        event.shockDuration or HIT_STUN)
+                    if event.shockDuration then
+                        defender.shock = math.max(defender.shock or 0, event.shockDuration)
+                    end
+                else
+                    event.shockDuration = nil
                 end
                 if event.burnDamage then
                     Magma.ignite(duel, event.attacker, event.defender, duel.sides[event.defender], time, event.burnDamage)
@@ -130,14 +135,15 @@ local function resolveBatch(duel, time, batch)
         elseif event.kind == "parried" then
             reaction(defender, "parry", 3, 0)
             defender.parried = true
-            if impact.direct then
+            if impact.direct and not Combatant.unstoppable(duel.sides[event.attacker], time) then
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = time + PARRY_STUN
             end
         elseif event.kind == "snare" then
             defender.rootTime = math.max(defender.rootTime or 0, event.rootDuration)
         elseif event.kind == "pull" then
-            defender.interruptedTravel = true
+            event.frenzyResist = Combatant.unstoppable(duel.sides[event.defender], time)
+            defender.interruptedTravel = not event.frenzyResist or defender.interruptedTravel
         elseif event.kind == "blocked" and not event.deflected and not event.controlOnly then
             reaction(defender, "block", 1, 0)
         end

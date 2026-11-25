@@ -339,7 +339,9 @@ local function tickShowcase(bout, now, dt)
             remote:FireAllClients("impact", cue, event.point, event.attack)
         end
         if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
-            local kind = if event.kind == "pull" then "gustPull" elseif event.kind == "snare" then "snareCaught" else event.kind
+            local kind = if event.frenzyResist then "frenzyResist" elseif event.kind == "pull" then "gustPull"
+                elseif event.kind == "snare" then (if event.attack == "apexPounce" then "apexRootCaught" else "snareCaught")
+                else event.kind
             bout.message, bout.messageUntil = if event.shockDuration then "shockLanded" else kind, now + .86
         end
         if RunService:IsStudio() then

@@ -560,7 +560,8 @@ local function layout()
     local columns = if tall then 2 else 4
     if switching then
         local count = #order
-        local limit = if contentWidth >= 8 * 77 + 7 * gap then 8 elseif contentWidth >= 7 * 84 + 6 * gap then 7
+        local limit = if contentWidth >= 9 * 68 + 8 * gap then 9
+            elseif contentWidth >= 8 * 77 + 7 * gap then 8 elseif contentWidth >= 7 * 84 + 6 * gap then 7
             elseif contentWidth >= 604 then 6
             elseif contentWidth >= 530 then 5 elseif contentWidth >= 450 then 4
             elseif contentWidth >= 300 then 3 else 2
@@ -593,7 +594,8 @@ local function layout()
         control.Position = UDim2.fromOffset(column * (slot + gap), row * (cardHeight + gap))
         control.Size = UDim2.fromOffset(slot, cardHeight)
         local nameLabel = card.name or control
-        nameLabel.TextSize = if slot < 84 then 12 elseif slot < 108 then 14 else 16
+        nameLabel.TextSize = if slot < 75 then 11 elseif slot < 84 then 12 elseif slot < 108 then 14 else 16
+        nameLabel.TextWrapped = slot < 84
         control.NextSelectionLeft = if column > 0 then cardById[order[index - 1]].control else control
         control.NextSelectionRight = if column < columns - 1 and order[index + 1]
             then cardById[order[index + 1]].control else control

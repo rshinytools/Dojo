@@ -228,10 +228,15 @@ local function resolveBatch(round, at, notices, eliminateMany)
             defender.damage += event.damage
             local head = event.zone == "head"
             if event.kind ~= "burn" then
-                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4,
-                    event.shockDuration or HIT_STUN)
-                if event.shockDuration then
-                    defender.shock = math.max(defender.shock or 0, event.shockDuration)
+                event.frenzyResist = Combatant.unstoppable(round.sides[event.defender], at)
+                if not event.frenzyResist then
+                    reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4,
+                        event.shockDuration or HIT_STUN)
+                    if event.shockDuration then
+                        defender.shock = math.max(defender.shock or 0, event.shockDuration)
+                    end
+                else
+                    event.shockDuration = nil
                 end
                 if event.burnDamage then
                     Magma.ignite(round, event.attacker, event.defender, round.sides[event.defender], at, event.burnDamage)
@@ -240,14 +245,15 @@ local function resolveBatch(round, at, notices, eliminateMany)
         elseif event.kind == "parried" then
             reaction(defender, "parry", 3, 0)
             defender.parried = true
-            if not event.detached then
+            if not event.detached and not Combatant.unstoppable(round.sides[event.attacker], at) then
                 reaction(attacker, "stagger", 2, PARRY_STUN)
                 attacker.counterUntil = at + PARRY_STUN
             end
         elseif event.kind == "snare" then
             defender.rootTime = math.max(defender.rootTime or 0, event.rootDuration)
         elseif event.kind == "pull" then
-            defender.interruptedTravel = true
+            event.frenzyResist = Combatant.unstoppable(round.sides[event.defender], at)
+            defender.interruptedTravel = not event.frenzyResist or defender.interruptedTravel
         elseif event.kind == "blocked" and not event.deflected and not event.controlOnly then
             reaction(defender, "block", 1, 0)
         end

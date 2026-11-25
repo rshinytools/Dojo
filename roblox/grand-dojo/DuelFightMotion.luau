@@ -1,5 +1,6 @@
 -- Native fighter motion, fitted contact volumes, and authored floor effects.
 local Match = require(script.Parent.DojoMatchSupport)
+local Debris = game:GetService("Debris")
 local FighterMotion = require(script.Parent.ReedguardFightMotion)
 local Geometry = FighterMotion.geometry
 local Penguin = require(script.Parent.PenguinCombatPoses)
@@ -14,15 +15,16 @@ local Heavy = require(script.Parent.HeavyFighterCombat)
 local Ricochet = require(script.Parent.RingRicochet)
 local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
+local Apex = require(script.Parent.ApexFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 
 local Motion = {}
 local defeatSeconds = Geometry.defeatSeconds
 local joints = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
 local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true, lilyVault = true, eddyPalm = true,
-    fortressRicochet = true, meteorRoll = true}
+    fortressRicochet = true, meteorRoll = true, apexPounce = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
-    pebbleBarrage = true, cinderSnare = true, cavitationCannon = true, volcanicBreath = true}
+    pebbleBarrage = true, cinderSnare = true, cavitationCannon = true, volcanicBreath = true, unstoppableFrenzy = true}
 local sideStep = {
     reedguard = {distance = 2.45, time = .23, start = 0},
     silverback = {distance = 2.23, time = .29, start = .045},
@@ -39,6 +41,8 @@ local sideStep = {
     komodo = {distance = 2.36, time = .24, start = .03},
     owl = {distance = 2.58, time = .23, start = .02},
     ram = {distance = 2.17, time = .27, start = .035},
+    badger = {distance = 2.36, time = .245, start = .025},
+    sabertooth = {distance = 2.57, time = .225, start = .025},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -291,6 +295,23 @@ local function thunderTravel(duel, actor, other, origin, target, at)
     return landing
 end
 
+local function nearestPounceTarget(duel, side, origin, at)
+    local target, best = nil, math.huge
+    for index, opponent in duel.actors do
+        if index ~= side and (not duel.enemies or duel.enemies(side, index)) and activeActor(duel, index) then
+            local point = opponent.root.Position
+            local distance = Match.flat(point - origin.Position).Magnitude
+            if distance < best and Match.inside(duel.bounds, point) and floorActive(duel, point, at) then
+                target, best = point, distance
+            end
+        end
+    end
+    if not target and duel.bossVolumes then
+        target = duel.bossVolumes[1].part.Position
+    end
+    return target or origin.Position
+end
+
 local function slideGuide(duel, actor, origin, distance)
     local start = floorPoint(duel, origin.Position)
     local feet = CFrame.new(start + Vector3.new(0, .76, 0)) * origin.Rotation
@@ -324,6 +345,10 @@ local function clearMarks(actor)
         end
     end
     table.clear(actor.marks)
+    if actor.apexZone then
+        actor.apexZone.visual:Destroy()
+        actor.apexZone = nil
+    end
 end
 
 local function clearDroppedMarks(duel, actor, now)
@@ -438,7 +463,21 @@ local function moveCast(duel, actor, other, cast, now)
     local clip, origin = cast.clip, cast.origin
     local action = clip.action
     local endAt = math.min(now, clip.endsAt)
-    if cast.rollPath then
+    if cast.apexTarget then
+        local arrival = clip.startedAt + Apex.pounce.teleportAt
+        if endAt >= arrival and not cast.apexArrived then
+            if arrival > cast.movedAt then
+                remember(actor, arrival - .0002)
+            end
+            local target = thunderTravel(duel, actor, other, origin, Apex.destination(origin.Position, cast.apexTarget), arrival)
+            Match.move(actor.root, Apex.face(target, cast.apexTarget, origin))
+            cast.apexArrived = true
+            remember(actor, arrival)
+        end
+        cast.movedAt = endAt
+        remember(actor, endAt)
+        return
+    elseif cast.rollPath then
         local windup = cast.rollPath.skill.windup
         if endAt >= clip.startedAt + windup then
             local frame = Ricochet.frameAt(cast.rollPath, endAt - clip.startedAt - windup)
@@ -520,6 +559,11 @@ local function updateActor(duel, index, now)
     local other = if brawl then nil else duel.actors[3 - index]
     local state = duel.round.sides[index]
     local root, clip = actor.root, state.clip
+    actor.frenzyGlow = Apex.frenzyVisual(actor.frenzyGlow and actor.frenzyGlow.Parent and actor.frenzyGlow,
+        state, actor.character, actor.fx, now)
+    if actor.knock and Apex.unstoppable(state, now) then
+        actor.knock, actor.lift = nil, nil
+    end
     local travel = clip and state.kit.poses.Travel and state.kit.poses.Travel[clip.action]
     local traveling = clip and (travelActions[clip.action] or (travel and travel.axis))
     local planting = (clip and plantedActions[clip.action])
@@ -550,7 +594,13 @@ local function updateActor(duel, index, now)
                 else root.CFrame.LookVector
             local origin = CFrame.lookAlong(root.Position, orientation)
             actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId, poses = state.kit.poses}
-            if clip.action == "gustVortex" then
+            if clip.action == "apexPounce" then
+                local target = nearestPounceTarget(duel, index, origin, now)
+                local landing = thunderTravel(duel, actor, other, origin, Apex.destination(origin.Position, target), now)
+                actor.cast.apexTarget = target
+                actor.cast.warning = floorContour(duel, actor, "Apex Pounce warning", floorPoint(duel, landing),
+                    Apex.pounce.radius, nil, nil, Apex.pounce.tint)
+            elseif clip.action == "gustVortex" then
                 actor.cast.fieldCenter = Match.clampFloor(duel.bounds, origin:PointToWorldSpace(Sky.gust.center), duel.floor)
             elseif clip.action == "cinderSnare" then
                 actor.cast.field = Fields.triangle(duel.bounds, duel.floor, origin, EmberAqua.snare.vertices)
@@ -583,6 +633,10 @@ local function updateActor(duel, index, now)
             local target = origin.Position + origin.LookVector * Thunder.skills[clip.action].travel.distance
             local landing = thunderTravel(duel, actor, other, origin, target, now)
             Thunder.present(actor.cast, actor.fx, duel.floor, now - clip.startedAt, landing, floorActive(duel, landing, now))
+        elseif actor.cast.apexTarget then
+            if now >= clip.startedAt + Apex.pounce.impactAt then
+                Fields.clearVisuals(actor.cast)
+            end
         elseif actor.cast.field then
             local field = actor.cast.field
             Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
@@ -811,7 +865,14 @@ local function pebbleSegment(duel, actor, move, index, castStartedAt)
 end
 
 local function radialCenter(duel, actor, root, move, at, castStartedAt)
-    if move.thunder then
+    if move.apex then
+        local cast = actor.cast
+        local center = floorPoint(duel, root.Position)
+        if cast and cast.apexArrived and cast.clip.startedAt == castStartedAt and floorActive(duel, center, at) then
+            return center, move.radius
+        end
+        return nil
+    elseif move.thunder then
         local cast = actor.cast
         if not cast or cast.clip.startedAt ~= castStartedAt or cast.movedAt < at - .001 then
             return nil
@@ -829,6 +890,33 @@ local function radialCenter(duel, actor, root, move, at, castStartedAt)
     local center = if cast and cast.clip.startedAt == castStartedAt and cast.fieldCenter then cast.fieldCenter
         else Match.clampFloor(duel.bounds, clockFrame(actor, castStartedAt):PointToWorldSpace(move.center), duel.floor)
     return (if floorActive(duel, center, at) then center else nil), move.radius
+end
+
+local function placeApexZone(duel, actor, root, at, castStartedAt)
+    local skill = Apex.pounce
+    local cast = actor.cast
+    local center = floorPoint(duel, root.Position)
+    if not cast or not cast.apexArrived or cast.clip.startedAt ~= castStartedAt or not floorActive(duel, center, at) then
+        return false
+    end
+    local visual = floorContour(duel, actor, "Apex Root Zone", center, skill.radius, nil, nil, skill.tint)
+    Debris:AddItem(visual, skill.duration)
+    actor.apexZone = {startedAt = castStartedAt, center = center, visual = visual, caught = {}}
+    return true
+end
+
+local function apexZoneContact(duel, actor, defender, target, move, at, castStartedAt)
+    local zone = actor.apexZone
+    if not zone or zone.startedAt ~= castStartedAt or zone.caught[defender]
+        or not floorActive(duel, zone.center, at) or not floorActive(duel, target.Position, at)
+        or not Match.inside(duel.bounds, target.Position) then
+        return nil, false
+    end
+    local hit, facing = floorContact(duel, defender, at, target, zone.center, move.radius)
+    if hit then
+        zone.caught[defender] = true
+    end
+    return hit, facing
 end
 
 local function fieldFor(duel, actor, move, at, castStartedAt)
@@ -881,7 +969,10 @@ local function rollContact(duel, other, at, target, segments, radius)
     return nil, false
 end
 
-local function breathFrame(actor, move, castStartedAt)
+local function breathFrame(actor, move, castStartedAt, root)
+    if move.shape == "apexCone" then
+        return Apex.swipeFrame(root, move)
+    end
     local cast = actor.cast
     if cast and cast.clip.startedAt == castStartedAt then
         return Magma.breathFrame(cast.origin, move)
@@ -905,6 +996,11 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local actor = duel.actors[side]
     local root = clockFrame(actor, at)
     local target = clockFrame(duel.actors[other], at)
+    if move.shape == "apexZone" then
+        if move.marker then return placeApexZone(duel, actor, root, at, castStartedAt) end
+        local hit, facing = apexZoneContact(duel, actor, other, target, move, at, castStartedAt)
+        return hit ~= nil, hit, "body", facing
+    end
     if move.shape == "ricochet" then
         local point, facing = rollContact(duel, other, at, target, rollSegments(duel, actor, move, castStartedAt, at), move.radius)
         return point ~= nil, point, "body", facing
@@ -942,8 +1038,8 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
         end
         return hit ~= nil, hit or finish, zone, facing
     end
-    if move.shape == "breath" then
-        local mouth, direction = breathFrame(actor, move, castStartedAt)
+    if move.shape == "breath" or move.shape == "apexCone" then
+        local mouth, direction = breathFrame(actor, move, castStartedAt, root)
         if mouth then
             local hit, guardFacing = breathContact(duel, other, at, target, move, mouth, direction)
             return hit ~= nil, hit or mouth, "body", guardFacing
@@ -975,6 +1071,19 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     end
     local actor = brawl.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "apexZone" then
+        if move.marker then return placeApexZone(brawl, actor, root, at, castStartedAt) end
+        local contacts = {}
+        for other, opponent in brawl.actors do
+            if other ~= side and (not brawl.enemies or brawl.enemies(side, other)) and activeActor(brawl, other) then
+                local point, facing = apexZoneContact(brawl, actor, other, clockFrame(opponent, at), move, at, castStartedAt)
+                if point then
+                    table.insert(contacts, {defender = other, point = point, zone = "body", facing = facing})
+                end
+            end
+        end
+        return contacts
+    end
     if move.shape == "ricochet" then
         local segments = rollSegments(brawl, actor, move, castStartedAt, at)
         local contacts = {}
@@ -1013,8 +1122,8 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     end
     local center, point, previous, breathDirection
     local radius = move.radius
-    if move.shape == "breath" then
-        center, breathDirection = breathFrame(actor, move, castStartedAt)
+    if move.shape == "breath" or move.shape == "apexCone" then
+        center, breathDirection = breathFrame(actor, move, castStartedAt, root)
         if not center then return {} end
     elseif tile then
         center = takeMagma(brawl, actor, at, index, castStartedAt)
@@ -1156,8 +1265,10 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     end
     local center, point, previous, effect, breathDirection
     local radius = move.radius
-    if move.shape == "breath" then
-        center, breathDirection = breathFrame(actor, move, castStartedAt)
+    if move.shape == "apexZone" then
+        return move.marker and placeApexZone(raid, actor, root, at, castStartedAt)
+    elseif move.shape == "breath" or move.shape == "apexCone" then
+        center, breathDirection = breathFrame(actor, move, castStartedAt, root)
         if not center then return false end
     elseif tile then
         center = takeMagma(raid, actor, at, index, castStartedAt)
@@ -1292,7 +1403,7 @@ function Motion.raidImpact(raid, index, origin, at, strength)
 end
 
 function Motion.impact(duel, event)
-    if event.kind == "burn" or ((event.damage or 0) <= 0 and event.kind ~= "pull") then
+    if event.kind == "burn" or event.frenzyResist or ((event.damage or 0) <= 0 and event.kind ~= "pull") then
         return
     end
     local action = event.attack
@@ -1313,8 +1424,9 @@ function Motion.impact(duel, event)
         local center = if action == "cavitationCannon" and field then field.center else root.Position
         offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
             (if action == "cavitationCannon" then .34 else .20), 0
-    elseif Thunder.shove[action] then
-        offset, duration, height = heading(root.Position, target.root.Position, direction) * Thunder.shove[action], .24, 0
+    elseif Thunder.shove[action] or Apex.shove[action] then
+        local force = Thunder.shove[action] or Apex.shove[action]
+        offset, duration, height = heading(root.Position, target.root.Position, direction) * force, .24, 0
     elseif Magma.shove[action] then
         offset, duration, height = heading(root.Position, target.root.Position, direction) * Magma.shove[action],
             .24, if action == "meteorRoll" then .32 else 0

@@ -1742,6 +1742,8 @@ local cues = {
     ricochetBounce = "Shell rebounds",
     guardBroken = "Guard broken", burn = "Heat lingers",
     shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
+    frenzyResist = "Frenzy keeps you planted",
+    apexRooted = "Rooted by Apex Pounce", apexRootCaught = "Pounce mark caught your foe",
     needParry = "Parry a strike to unlock Rising.",
     ["Shell Set"] = "Shell Set · Wait out the brace",
     ["Kiln Rush"] = "Kiln Rush · Leave the lane",
@@ -1761,6 +1763,7 @@ local priorityCues = {
     uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
     gustPull = true, snareCaught = true, ricochetBounce = true, guardBroken = true, shockLanded = true,
+    frenzyResist = true, apexRootCaught = true,
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat
@@ -2068,7 +2071,8 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     end
     local cooldownCue = cooldownCues[feedback]
     local parryCue = parryOpensAt ~= nil and attackAt ~= nil and now >= parryOpensAt and now <= attackAt
-    sparHint.TextColor3 = if feedback == "snared" or feedback == "shocked" then palette.gold
+    local movementLimited = feedback == "snared" or feedback == "shocked" or feedback == "apexRooted"
+    sparHint.TextColor3 = if movementLimited then palette.gold
         elseif parryCue or feedback == "parried" then Color3.fromRGB(148, 223, 233)
         elseif phase == "windup" or phase == "setup" then opponentTint or palette.gold else palette.parchment
     if phase == "outro" then
@@ -2078,7 +2082,7 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
             elseif roundResult == "draw" then "Round drawn" else "Round ended"
     elseif now < startsAt then
         sparHint.Text = string.format("Starting in %d", math.ceil(startsAt - now))
-    elseif feedback == "snared" or feedback == "shocked" then
+    elseif movementLimited then
         sparHint.Text = cues[feedback]
     elseif matchPresentation.showcase and feedback == "parried" then
         sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried

@@ -310,10 +310,13 @@ local function resolve(duel, now)
             setFeedback(b, if event.deflected then "projectileDeflected" else kind, now)
         elseif kind == "pull" then
             setFeedback(a, "gustPull", now)
-            setFeedback(b, "gustPull", now)
+            setFeedback(b, if event.frenzyResist then "frenzyResist" else "gustPull", now)
         elseif kind == "snare" then
-            setFeedback(a, "snareCaught", now)
-            setFeedback(b, "snared", now)
+            setFeedback(a, if event.attack == "apexPounce" then "apexRootCaught" else "snareCaught", now)
+            setFeedback(b, if event.attack == "apexPounce" then "apexRooted" else "snared", now)
+        elseif event.frenzyResist then
+            setFeedback(a, kind, now, event.elementEffect)
+            setFeedback(b, "frenzyResist", now)
         elseif event.shockDuration then
             setFeedback(a, "shockLanded", now, event.elementEffect)
             setFeedback(b, "shocked", now)

@@ -38,6 +38,7 @@ def verify_place():
                 "WalrusCombatPoses", "TortoiseCombatPoses", "HeavyFighterCombat", "RingRicochet",
                 "ArmadilloStrikerCombatPoses", "KomodoCombatPoses", "MagmaFighterCombat", "armadillo-striker", "komodo-dragon",
                 "ElectricOwlCombatPoses", "BighornRamCombatPoses", "ThunderFighterCombat", "electric-owl", "bighorn-ram",
+                "HoneyBadgerCombatPoses", "EmeraldSaberToothCombatPoses", "ApexFighterCombat", "honey-badger", "emerald-saber-tooth",
                 "Juniper Tortoise", "Bracken Boar", "Sablecrest Lynx", "Granite Rhino", "SplashArtwork",
                 "Fighter Select Station", "SwitchFighterPrompt", "Resident Dojo Bots",
                 "Cinder Terraces Ring", "Cloud-Top Temple", "Tideharbor practice ring",

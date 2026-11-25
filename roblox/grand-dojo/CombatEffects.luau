@@ -35,9 +35,13 @@ local groundPulses = {
     ["Breakwater Stamp"] = {name = "Breakwater contact pulse", color = Color3.fromRGB(135, 202, 236),
         initial = 1.2, width = 8.5, compact = 5.9, life = .28},
 }
-local skyContactTint = {
+local moveContactTint = {
     thunderDive = Color3.fromRGB(168, 222, 255),
     staticCharge = Color3.fromRGB(255, 212, 122),
+    burrowHook = Color3.fromRGB(245, 186, 106),
+    unstoppableFrenzy = Color3.fromRGB(255, 196, 117),
+    jadeRake = Color3.fromRGB(162, 231, 184),
+    apexPounce = Color3.fromRGB(137, 231, 174),
 }
 
 local folder
@@ -155,7 +159,7 @@ function CombatEffects.play(kind, point, attack)
         end
         return
     end
-    if kind == "snared" then
+    if kind == "snared" and attack ~= "apexPounce" then
         groundPulse(point, snareMark, compact, reduced)
         return
     end
@@ -172,7 +176,7 @@ function CombatEffects.play(kind, point, attack)
     elseif attack == "canopySlip" then
         color = tint.gustPull
     elseif not parry and kind ~= "blocked" and kind ~= "braced" then
-        color = skyContactTint[attack] or color
+        color = moveContactTint[attack] or color
     end
     local diameter = if parry then (if compact then 1.28 else 1.72)
         elseif kind == "diveKick" then (if compact then 1.08 else 1.44) else (if compact then .93 else 1.2)

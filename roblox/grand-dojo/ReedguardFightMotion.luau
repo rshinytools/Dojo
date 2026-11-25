@@ -18,6 +18,7 @@ local Heavy = require(script.Parent.HeavyFighterCombat)
 local Ricochet = require(script.Parent.RingRicochet)
 local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
+local Apex = require(script.Parent.ApexFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
@@ -58,6 +59,9 @@ for id, kit in Magma.kits do
     playerKits[id] = kit
 end
 for id, kit in Thunder.kits do
+    playerKits[id] = kit
+end
+for id, kit in Apex.kits do
     playerKits[id] = kit
 end
 
@@ -316,7 +320,7 @@ function Motion.open(bout)
         humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
     if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit]
-        or Heavy.kits[bout.kit] or Magma.kits[bout.kit] or Thunder.kits[bout.kit] then
+        or Heavy.kits[bout.kit] or Magma.kits[bout.kit] or Thunder.kits[bout.kit] or Apex.kits[bout.kit] then
         state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
     end
     for _, name in tracked do
@@ -911,7 +915,8 @@ local function moveCommittedSkill(bout, now, clip, age)
     local action = clip and not bout.outroAt and clip.action
     local roll = rolls[action]
     local thunder = Thunder.skills[action]
-    local active = action == "tidalBellyFlop" or action == "volcanicBreath" or roll ~= nil or thunder ~= nil
+    local pounce = action == "apexPounce"
+    local active = action == "tidalBellyFlop" or action == "volcanicBreath" or roll ~= nil or thunder ~= nil or pounce
     local cast = state.heavyCast
     if cast and (not active or cast.clip ~= clip) then
         Fields.clearVisuals(cast)
@@ -926,7 +931,13 @@ local function moveCommittedSkill(bout, now, clip, age)
             directionTo(root.Position, bout.position, root.CFrame.LookVector)) else root.CFrame
         cast = {clip = clip, origin = origin}
         state.heavyCast = cast
-        if action == "tidalBellyFlop" then
+        if pounce then
+            local target = bout.position
+            local aim = Apex.face(origin.Position, target, origin)
+            local wanted = Apex.destination(origin.Position, target)
+            local landing = safeTravel(bout, origin.Position, wanted, aim, Vector3.new(1.52, 2.18, 1.38), state.arenaCast)
+            cast.apexLanding = Apex.face(landing, target, aim)
+        elseif action == "tidalBellyFlop" then
             local target = origin.Position + origin.LookVector * Heavy.flopTravel.distance
             cast.landing = safeTravel(bout, origin.Position, target, origin, Vector3.new(1.84, 2.2, 1.5), state.arenaCast)
         elseif roll then
@@ -936,7 +947,21 @@ local function moveCommittedSkill(bout, now, clip, age)
             end)
         end
     end
-    if thunder then
+    if pounce then
+        local skill = Apex.pounce
+        if age < skill.impactAt then
+            if not cast.warning then
+                cast.warning = galleonContour(bout, "Apex Pounce warning",
+                    groundPoint(bout, cast.apexLanding.Position), skill.radius, nil, nil, skill.tint)
+            end
+        else
+            Fields.clearVisuals(cast)
+        end
+        if age >= skill.teleportAt and not cast.apexArrived then
+            Match.move(root, cast.apexLanding)
+            cast.apexArrived = true
+        end
+    elseif thunder then
         local origin, position = cast.origin, root.Position
         local function step(target)
             local delta = stopAtActor(position, Match.flat(target - position), bout.position, 1.91)
@@ -1069,7 +1094,7 @@ local function playerDodge(bout, now)
         state.kickClip = nil
     end
     local hold = now < bout.round.startsAt or bout.outroAt ~= nil or state.dodgeClip ~= nil or fieldAction == true
-        or heavyActive or kick == true
+        or heavyActive or kick == true or (clip ~= nil and clip.action == "unstoppableFrenzy")
     if hold ~= state.holding then
         root.Anchored = hold or state.anchored
         state.holding = hold
@@ -1657,6 +1682,18 @@ local function salamanderStrike(bout, action, move, time, index, castStartedAt)
     return false, point
 end
 
+local function botFloorContact(bout, frame, groups, center, radius)
+    for _, name in {"Left Leg", "Right Leg"} do
+        local joint = bout.joints[name]
+        local point = nearestPoint(jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size, center)
+        if Match.flat(point - center).Magnitude <= radius and point.Y <= center.Y + .78
+            and not obstructed(bout, center, point) then
+            return true
+        end
+    end
+    return false
+end
+
 function Motion.strike(bout, action, move, time, index, castStartedAt)
     if salamander(bout) then
         return salamanderStrike(bout, action, move, time, index, castStartedAt)
@@ -1667,7 +1704,41 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     end
     local state, root = bout.motion, actorRootAt(bout, time)
     local frame, groups = botPose(bout, time)
-    if move.thunder then
+    if move.shape == "apexCone" then
+        local from, direction = Apex.swipeFrame(root, move)
+        for _, name in {"Torso", "Head", "Left Arm", "Right Arm"} do
+            local joint = bout.joints[name]
+            local target = jointFrame(frame, groups, name, joint) * joint.shell
+            local point = Magma.breathHit(from, direction, move, target, joint.part.Size, nearestPoint)
+            if point and not obstructed(bout, from, point) then
+                return true, point, "body"
+            end
+        end
+        return false, from
+    elseif move.shape == "apexZone" then
+        if move.marker then
+            local cast = state.heavyCast
+            if not cast or not cast.apexArrived or cast.clip.startedAt ~= castStartedAt then return false end
+            local skill = Apex.pounce
+            local center = groundPoint(bout, root.Position)
+            local visual = galleonContour(bout, "Apex Root Zone", center, skill.radius, nil, nil, skill.tint)
+            Debris:AddItem(visual, skill.duration)
+            state.apexZone = {center = center, startedAt = castStartedAt}
+            return true
+        end
+        local zone = state.apexZone
+        if zone and zone.startedAt == castStartedAt and not zone.touched
+            and botFloorContact(bout, frame, groups, zone.center, move.radius) then
+            zone.touched = true
+            return true, zone.center, "body"
+        end
+        return false
+    elseif move.apex then
+        local cast = state.heavyCast
+        local center = groundPoint(bout, root.Position)
+        return cast ~= nil and cast.apexArrived and cast.clip.startedAt == castStartedAt
+            and botFloorContact(bout, frame, groups, center, move.radius), center, "body"
+    elseif move.thunder then
         local cast = state.heavyCast
         if not cast or cast.clip.startedAt ~= castStartedAt then
             return false
@@ -1675,15 +1746,7 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
         local center = groundPoint(bout, root.Position)
         local radius = Thunder.radius(Thunder.skills[action], cast.origin.Position, center)
         Thunder.burst(cast, bout.telegraph, center, radius)
-        for _, name in {"Left Leg", "Right Leg"} do
-            local joint = bout.joints[name]
-            local point = nearestPoint(jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size, center)
-            if Match.flat(point - center).Magnitude <= radius and point.Y <= center.Y + .78
-                and not obstructed(bout, center, point) then
-                return true, center, "body"
-            end
-        end
-        return false, center
+        return botFloorContact(bout, frame, groups, center, radius), center, "body"
     elseif move.shape == "ricochet" then
         local cast = state.heavyCast
         if not cast or not cast.rollPath or cast.clip.startedAt ~= castStartedAt then
@@ -1958,6 +2021,8 @@ end
 function Motion.move(bout, now, dt)
     playerDodge(bout, now)
     local round, state = bout.round, bout.motion
+    state.frenzyGlow = Apex.frenzyVisual(state.frenzyGlow and state.frenzyGlow.Parent and state.frenzyGlow,
+        round, bout.root.Parent, bout.telegraph, now)
     if state.rosterHistory then
         local history = state.rosterHistory
         rememberPosition(history, now, bout.root.CFrame)
@@ -2091,9 +2156,10 @@ function Motion.impact(bout, event)
         bout.motion.crossKnock = {at = event.at, offset = heading * EmberAqua.shove[event.attack],
             progress = 0, duration = if event.attack == "cavitationCannon" then .34 else .20, height = 0,
             basis = CFrame.lookAlong(Vector3.zero, heading)}
-    elseif damage and Thunder.shove[event.attack] then
+    elseif damage and (Thunder.shove[event.attack] or Apex.shove[event.attack]) then
         local direction = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
-        bout.motion.crossKnock = {at = event.at, offset = direction * Thunder.shove[event.attack], progress = 0,
+        local force = Thunder.shove[event.attack] or Apex.shove[event.attack]
+        bout.motion.crossKnock = {at = event.at, offset = direction * force, progress = 0,
             duration = .24, height = 0, basis = CFrame.lookAlong(Vector3.zero, direction)}
     elseif damage and Magma.shove[event.attack] then
         local forward = actorRootAt(bout, event.at).LookVector

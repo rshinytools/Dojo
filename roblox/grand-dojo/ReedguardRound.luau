@@ -11,6 +11,8 @@ local EmberAqua = require(script.Parent.EmberAquaCombat)
 local Heavy = require(script.Parent.HeavyFighterCombat)
 local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
+local Apex = require(script.Parent.ApexFighterCombat)
+local apexTimeline = Apex.zoneMoves()
 local Round = {}
 
 Round.INTRO = 10
@@ -172,6 +174,9 @@ end
 for id, kit in Thunder.kits do
     kits[id] = kit
 end
+for id, kit in Apex.kits do
+    kits[id] = kit
+end
 
 local residents = {
     juniper = {startRange = 3.65, attackLabel = "palm"},
@@ -248,7 +253,8 @@ end
 
 local function inMotion(side, action)
     local travel = side.kit.poses.Travel
-    return action == side.kit.dodge or (action == "fortressRicochet" or action == "meteorRoll") or (travel and travel[action] ~= nil)
+    return action == side.kit.dodge or action == "fortressRicochet" or action == "meteorRoll"
+        or action == "apexPounce" or (travel and travel[action] ~= nil)
 end
 
 local function applyRoot(side, at, duration)
@@ -260,7 +266,7 @@ end
 
 local function interruptFixedTravel(side)
     local action = side.clip and side.clip.action
-    if action == "fortressRicochet" or action == "meteorRoll" or action == "tidalBellyFlop" then
+    if action == "fortressRicochet" or action == "meteorRoll" or action == "tidalBellyFlop" or action == "apexPounce" then
         side.clip, side.bufferedLight = nil, false
     end
 end
@@ -323,7 +329,11 @@ function Round.act(round, action, now, direction)
         end
         round.signatureUntil, round.guardUntil = 0, 0
         play(round, kit.signature, now)
-        if kit == kits.salamander then
+        if kit.frenzyTime then
+            round.frenzyFrom, round.frenzyUntil = now, now + kit.frenzyTime
+        elseif kit.signature == "apexPounce" then
+            round.trail = {startedAt = now, clip = round.clip, nextEvent = 1, apex = true, remainingDamage = 0}
+        elseif kit == kits.salamander then
             round.trail = {
                 startedAt = now, clip = round.clip, nextEvent = 1, planted = {}, remainingDamage = magma.damageBudget,
             }
@@ -387,7 +397,7 @@ local function contact(round, at, check, resolve, publishCast)
     local hit, point, resolvedZone, facing
     if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
         or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" or move.shape == "breath"
-        or move.thunder then
+        or move.thunder or move.apex then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -406,7 +416,7 @@ local function contact(round, at, check, resolve, publishCast)
     end
     local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
         rootDuration = move.rootDuration,
-        castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak or move.thunder then clip.startedAt else nil}
+        castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak or move.thunder or move.apex then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
     end
@@ -415,10 +425,24 @@ end
 
 local function advanceTrail(round, at, check, resolve)
     local trail = round.trail
-    local move = magmaTimeline[trail.nextEvent]
+    local timeline = if trail.apex then apexTimeline else magmaTimeline
+    local move = timeline[trail.nextEvent]
     trail.nextEvent += 1
-    if trail.nextEvent > #magmaTimeline then
+    if trail.nextEvent > #timeline then
         round.trail = nil
+    end
+    if trail.apex then
+        if move.marker then
+            trail.planted = (not trail.interruptedAt or at <= trail.interruptedAt)
+                and check("apexPounce", move, at, 1, trail.startedAt)
+        elseif trail.planted then
+            local hit, point, zone, facing = check("apexPounce", move, at, trail.nextEvent - 1, trail.startedAt)
+            if hit then
+                resolve(round, at, {attack = "apexPounce", point = point, zone = zone, damage = 0,
+                    controlOnly = true, rootDuration = move.rootDuration, castStartedAt = trail.startedAt}, true, facing, move)
+            end
+        end
+        return
     end
     local index = move.index
     if move.marker then
@@ -446,7 +470,7 @@ local function nextContacts(round)
     local attacks = clip and round.kit.clips[clip.action]
     local hit = attacks and attacks[clip.nextContact]
     local trail = round.trail
-    local markOrBurst = trail and magmaTimeline[trail.nextEvent]
+    local markOrBurst = trail and (if trail.apex then apexTimeline else magmaTimeline)[trail.nextEvent]
     return if hit then clip.startedAt + hit.at else math.huge,
         if markOrBurst then trail.startedAt + markOrBurst.at else math.huge,
         if clip then clip.endsAt else math.huge
@@ -529,15 +553,18 @@ local function advanceBot(round, at, distance, check)
             play(round, "block", at)
         elseif hit then
             round.guardUntil = 0
-            round.bufferedLight = false
             round.playerHealth = math.max(0, round.playerHealth - round.attack.damage)
-            play(round, if zone == "head" then "hitHead" else "hitBody", at)
-            round.playerStunUntil = at + .28
+            if not Apex.unstoppable(round, at) then
+                round.bufferedLight = false
+                play(round, if zone == "head" then "hitHead" else "hitBody", at)
+                round.playerStunUntil = at + .28
+            end
             if round.playerHealth == 0 then
                 round.result = "loss"
             end
         end
         report(round, result, at, {source = "bot", attack = round.resident.attackLabel or round.attack.name, zone = zone, point = point,
+            frenzyResist = result == "hit" and Apex.unstoppable(round, at),
             damage = if result == "hit" then round.attack.damage else 0})
     else
         round.botPhase, round.botAt = "ready", at + .48
@@ -592,6 +619,7 @@ Round.Combatant = table.freeze({
     applyRoot = applyRoot,
     interruptFixedTravel = interruptFixedTravel,
     advanceTrail = advanceTrail,
+    unstoppable = Apex.unstoppable,
     PARRY_COUNTER_TIME = PARRY_COUNTER_TIME,
 })
 

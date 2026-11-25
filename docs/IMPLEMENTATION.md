@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.293 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.294 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -19,7 +19,15 @@ Desktop Studio sampled Reedguard’s boots on the plaza and Grand Dojo canvas. T
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to preview all sixteen playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+Choose an original starter on first join. Use the Fighter Select station between activities to preview all eighteen playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+
+### Honey Badger and Emerald Saber-Tooth
+
+Honey Badger starts with 115 HP. The fitted Burrow Hook deals 20 damage. Unstoppable Frenzy swipes four times for 6 damage each. Its five-second armor stops stun, parry stagger and forced knockback while incoming hits still drain health. Opponents can defend against each swipe.
+
+Emerald Saber-Tooth starts with 120 HP. Jade Rake deals 21 damage. Apex Pounce marks a landing close to the nearest eligible opponent, snaps forward at .41 seconds, then lands a 26-damage claw slam at .54 seconds. The landing respects arena bounds, collision and supported floor. The mark stays for 1.2 seconds and briefly roots a grounded opponent once. Guard can stop the root. Raid bosses can take the landing hit and can resist the root.
+
+Desktop Studio verified all four Frenzy contacts, Burrow Hook, and a 60 XP knockout. Galaxy A06 landscape Studio simulation verified the Pounce tap, a 4.65-stud snap and 13 damage while Juniper was braced. A later clean pounce dealt 26 and rooted for .88 seconds. Jade Rake and a 60 XP win followed. The Studio matches used temporary Level 10 account profiles. Luau tests verified Frenzy’s immunity and expiry, a late crossing into the root zone, and the existing combat rule sets.
 
 ### Electric Owl and Bighorn Ram
 

@@ -251,6 +251,8 @@ local tips = {
     ricochetBounce = "Shell rebounds",
     guardBroken = "Guard broken", burn = "Heat lingers",
     shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
+    frenzyResist = "Frenzy keeps you planted",
+    apexRooted = "Rooted by Apex Pounce", apexRootCaught = "Pounce mark caught your foe",
 }
 
 local offer, waiting, match

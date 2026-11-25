@@ -273,10 +273,13 @@ local function advance(match, now)
             setFeedback(match.actors[event.defender], if event.deflected then "projectileDeflected" else event.kind, now)
         elseif event.kind == "pull" then
             setFeedback(attacker, "gustPull", now)
-            setFeedback(match.actors[event.defender], "gustPull", now)
+            setFeedback(match.actors[event.defender], if event.frenzyResist then "frenzyResist" else "gustPull", now)
         elseif event.kind == "snare" then
-            setFeedback(attacker, "snareCaught", now)
-            setFeedback(match.actors[event.defender], "snared", now)
+            setFeedback(attacker, if event.attack == "apexPounce" then "apexRootCaught" else "snareCaught", now)
+            setFeedback(match.actors[event.defender], if event.attack == "apexPounce" then "apexRooted" else "snared", now)
+        elseif event.frenzyResist then
+            setFeedback(attacker, event.kind, now)
+            setFeedback(match.actors[event.defender], "frenzyResist", now)
         elseif event.shockDuration then
             setFeedback(attacker, "shockLanded", now)
             setFeedback(match.actors[event.defender], "shocked", now)

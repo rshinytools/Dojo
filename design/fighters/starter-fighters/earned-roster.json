@@ -485,5 +485,87 @@
         "counter": "Leave the lane and the marked stopping point before Ram braces."
       }
     ]
+  },
+  {
+    "id": "honey-badger",
+    "name": "Honey Badger",
+    "shortName": "Badger",
+    "title": "Cedar Foothill Pathkeeper",
+    "home": "Skywalk Approach · Cedar Foothill Walk",
+    "element": "Land",
+    "rarity": "Epic",
+    "role": "Beast",
+    "style": "Close hook strikes and relentless swipes",
+    "health": 115,
+    "normal_hit": 15,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "badger",
+      "techniqueCue": "burrowHook",
+      "signatureCue": "unstoppableFrenzy",
+      "techniqueCoolingCue": "burrowCooling",
+      "signatureCoolingCue": "frenzyCooling",
+      "compactTechnique": "Hook",
+      "compactSignature": "Frenzy",
+      "tint": "E8BA83",
+      "cardStyle": "Low hooks and four broad swipes",
+      "initials": "HB",
+      "previewPose": {"right": 14, "left": -30, "lean": -13, "roll": -9, "lift": 0.07, "step": 0.17, "legs": 7}
+    },
+    "story": "Honey Badger clears storm debris from the foothill paths before the first market carts set out. The trail crew knows where Badger has worked by the small cairns beside each cleared turn. Badger spars in the same steady rhythm, staying planted when challenged.",
+    "quote": "One stone at a time.",
+    "powers": [
+      {
+        "name": "Burrow Hook",
+        "effect": "Dip low and sweep a short hook for 20 damage.",
+        "counter": "Step back or defend as Badger rises."
+      },
+      {
+        "name": "Unstoppable Frenzy",
+        "effect": "Swing four times into a wide cone. For five seconds knockback and stun cannot interrupt Badger, who still takes damage.",
+        "counter": "Clear the cone or defend against each swipe."
+      }
+    ]
+  },
+  {
+    "id": "emerald-saber-tooth",
+    "name": "Emerald Saber-Tooth",
+    "shortName": "Saber-Tooth",
+    "title": "Jade Crossing Scout",
+    "home": "Grand Dojo City · Jade Crossing",
+    "element": "Land",
+    "rarity": "Legendary",
+    "role": "Beast",
+    "style": "Precise rakes and a sudden rooted landing",
+    "health": 120,
+    "normal_hit": 15,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "sabertooth",
+      "techniqueCue": "jadeRake",
+      "signatureCue": "apexPounce",
+      "techniqueCoolingCue": "jadeCooling",
+      "signatureCoolingCue": "apexCooling",
+      "compactTechnique": "Rake",
+      "compactSignature": "Pounce",
+      "tint": "95D5A2",
+      "cardStyle": "Precise rakes and a pounce that roots the floor",
+      "initials": "ES",
+      "previewPose": {"right": -32, "left": 20, "lean": -14, "roll": 7, "lift": 0.1, "step": 0.19, "legs": 8}
+    },
+    "story": "Emerald maps the stone markers along Jade Crossing so the courier crews can find their way after sunset. The polished shoulder plates carry the small marks of each district visited. At the dojo Emerald watches for a safe landing before committing to a pounce.",
+    "quote": "I know where I’ll land.",
+    "powers": [
+      {
+        "name": "Jade Rake",
+        "effect": "Step into a diagonal swipe for 21 damage.",
+        "counter": "Leave the sweep or meet it with a parry."
+      },
+      {
+        "name": "Apex Pounce",
+        "effect": "Blink toward the nearest available foe. The landing deals 26 damage and leaves a mark that briefly roots grounded opponents.",
+        "counter": "Leave the marked landing or defend on impact."
+      }
+    ]
   }
 ]

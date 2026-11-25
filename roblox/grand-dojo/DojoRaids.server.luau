@@ -351,8 +351,8 @@ local function mount(encounter)
             if event.source == "arena" and event.kind == "landing" then
                 effects:FireAllClients("combatAudio", "burst", origin, event.attack)
             elseif event.source == "boss" then
-                cue(match.actors[event.defender], event.kind, now)
-                if (event.damage or 0) > 0 then
+                cue(match.actors[event.defender], if event.frenzyResist then "frenzyResist" else event.kind, now)
+                if (event.damage or 0) > 0 and not event.frenzyResist then
                     Motion.raidImpact(match, event.defender, origin, event.at, 1.15)
                 end
             elseif event.source == "player" then
