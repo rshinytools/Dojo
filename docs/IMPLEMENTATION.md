@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.291 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.292 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -8,6 +8,12 @@ The v0.291 Studio checkpoint is the starting point for new work. This repository
 2. Start **Play** in one Studio window. Preview the four Blender fighters and confirm a starter. Find the Dojo Ring, run the Lantern Relay, and visit Trophy Hall. Open the City Map to see the six districts and 16 mapped links.
 3. Walk to Skywalk Peaks, climb the Wind Court ramp or stairs, and activate **Reed**, **Cloud**, then **Summit**. Try the browser concept separately to review the planned progression loop.
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
+
+## Reedguard footing
+
+V0.292 fits the invisible Festival Plaza spawn support to the sandstone surface and shortens Reedguard’s equipped tail by another 20 percent. Both feet settle on the canvas in his Bot Spar intro, idle and guard. The four Bot Spar entry marks use the shared rig’s settled root height. The original Blender source and mesh ID remain reusable.
+
+Desktop Studio sampled Reedguard’s boots on the plaza and Grand Dojo canvas. The authored sole fit was also checked against the original Blender export throughout the intro, idle, guard, block, salute and win, alongside the existing shuffle and body kick regression checks.
 
 ## Starter fighter selection
 

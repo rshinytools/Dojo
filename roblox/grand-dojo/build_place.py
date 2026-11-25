@@ -2001,7 +2001,9 @@ for label,y,tint in (("DOJO RING  →",3.02,"883B33"),
                      ("←  LANTERN RELAY",1.58,"734960")):
     sign(directions,label,direction_x+.18,y,direction_z+.16,3.5,.61,yaw=49,tint=tint)
 
-spawn=part(workspace, "Grand Dojo Spawn", (1.10, .22, 62.95), (6, .4, 4.8), CREAM,
+# Support arriving players at the height of the local flagstone faces.
+arrival_spawn_surface = .214
+spawn=part(workspace, "Grand Dojo Spawn", (1.10, arrival_spawn_surface-.20, 62.95), (6, .4, 4.8), CREAM,
            transparency=1, class_name="SpawnLocation")
 prop(spawn,"bool","Neutral",True)
 prop(spawn,"int","Duration",0)

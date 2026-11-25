@@ -234,6 +234,7 @@ local clips = {
 }
 
 local looping = { stance = true, advance = true, retreat = true }
+local planted = {stance = true, guard = true, block = true, salute = true, intro = true, win = true}
 local durations = {body = floorClips.Duration.body, strafeLeft = shuffleDuration, strafeRight = shuffleDuration}
 for action, frames in pairs(clips) do
 	durations[action] = frames[#frames][1]
@@ -280,21 +281,23 @@ function Poses.sample(action, ageSeconds)
 		age %= duration
 	end
 
+	local offsets
 	for index = 2, #frames do
 		local finish = frames[index]
 		if age <= finish[1] then
 			local start = frames[index - 1]
 			local progress = (age - start[1]) / (finish[1] - start[1])
 			local weight = progress * progress * (3 - 2 * progress)
-			local offsets = {}
+			offsets = {}
 			for jointName, offset in pairs(start[2]) do
 				offsets[jointName] = offset:Lerp(finish[2][jointName], weight)
 			end
-			return offsets
+			break
 		end
 	end
 
-	return table.clone(frames[#frames][2])
+	offsets = offsets or table.clone(frames[#frames][2])
+	return if planted[action] then groundedRig.plantFeet(offsets, .008) else offsets
 end
 
 return table.freeze(Poses)

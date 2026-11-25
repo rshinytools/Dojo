@@ -179,7 +179,17 @@ function Choreography.new(rootHeight, pivots, rightSole, leftSole)
         return table.freeze(poses)
     end
 
-    return {pose = pose, finish = finish}
+    local function plantFeet(offsets, clearance)
+        local root = offsets.RootJoint
+        for joint, points in feet do
+            local offset = offsets[joint]
+            local delta = clearance - rootHeight - lowest(root * offset, points)
+            offsets[joint] = moveVertically(root, offset, delta)
+        end
+        return offsets
+    end
+
+    return {pose = pose, finish = finish, plantFeet = plantFeet}
 end
 
 return table.freeze(Choreography)

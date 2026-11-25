@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.292, choose Reedguard and check both boots at Festival Plaza arrival. Enter Juniper’s Bot Spar and watch the planted feet in the intro and idle. Use **Q** to check the held guard. A side view shows the shorter tail.
+
 In v0.291, earn **Armadillo Striker** and **Komodo Dragon** at Level 10. **V** or D-pad Up uses Plate Check or Tail Rake. **F** or **Y** uses Meteor Roll or Volcanic Breath. Touch uses the corresponding combat buttons. Meteor Roll breaks a held guard, and a timed parry stops it. Volcanic Breath can leave two afterburn ticks.
 
 In v0.288, earn **Walrus Sumo** at Level 8 and **Snapping Tortoise** at Level 9. **V** or D-pad Up uses Harbor Palm or Shell Check. **F** or **Y** uses Tidal Belly-Flop or Fortress Ricochet. Leave Walrus’s landing circle or guard the pulse. Track the shell’s launch line and rebounds when facing Tortoise.

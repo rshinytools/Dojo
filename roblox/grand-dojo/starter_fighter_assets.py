@@ -199,7 +199,7 @@ def build_fighter_visual_models(library, visual_assets, *, item, part, prop, ass
         for name, (mesh_id, texture_id, channel, size, mesh_size, cframe, pivot) in groups.items():
             if fighter_id == "reedguard-kangaroo" and name == "Tail":
                 # Resize toward the attachment so the shorter tail stays connected to the body.
-                scale = .75
+                scale = .60
                 center = tuple(cframe[i] + (1 - scale) * sum(cframe[3 + 3 * i + j] * pivot[j]
                                                            for j in range(3)) for i in range(3))
                 cframe = (*center, *cframe[3:])

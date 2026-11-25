@@ -8,6 +8,7 @@ CLOUD_TOP_CENTER = (54.5, 28.95, -316.70)
 GALLEON_CENTER = (293.0, 6.34, 63.10)
 GILT = "D0A468"
 BONE = "EFE1BF"
+PLAYER_STAND_HEIGHT = 2.1326  # Settled root height of the shared R6 carrier.
 
 
 def _named(parent, name):
@@ -140,7 +141,7 @@ def _grand_dojo(court, art, y, dx):
         art.detail(style, "Jade shell scute stitch", (cx + cx_shift, y + .041, cz + cz_shift),
                    (.76, .025, .60), tint, art.fabric, yaw=45)
     art.sparring(court, "Juniper Tortoise", 1, gate=None, bounds=None, existing=True,
-                 player=((cx, y + 2.22, 10.5), 0), opponent=((cx, y, -2.2), 180),
+                 player=((cx, y + PLAYER_STAND_HEIGHT, 10.5), 0), opponent=((cx, y, -2.2), 180),
                  returning=((28.5 + dx, y + 2.22, 14.4), 0))
 
 
@@ -230,7 +231,7 @@ def _cinder(town, terrace, art):
         art.detail(ring, "Octagon entry amber lamp", (212.39, y + 2.31, z),
                    (.19, .78, .47), "FFCC8A", art.neon)
     art.sparring(ring, "Bracken Boar", 3, gate=(212.48, y + 1.61, cz),
-                 bounds=((cx, y + 3, cz), (18.0, 6, 18.0)), player=((cx - 5.6, y + 2.22, cz), -90),
+                 bounds=((cx, y + 3, cz), (18.0, 6, 18.0)), player=((cx - 5.6, y + PLAYER_STAND_HEIGHT, cz), -90),
                  opponent=((cx + 5.3, y, cz), 90), returning=((210.3, 18.29, cz), -90))
 
 
@@ -310,7 +311,7 @@ def _cloud_top(town, art):
              (cx + 10.78, y + 5.34, north + .55), .49, dusk)
     art.swept_roof(ring, cx, y + 5.47, north + .83, 22.4, 3.54, 1.22, fine_tiles=False)
     art.sparring(ring, "Sablecrest Lynx", 5, gate=(cx, y + 1.59, gate_z + .68),
-                 bounds=((cx, y + 3, cz), (21.8, 6, 19.8)), player=((cx, y + 2.22, cz + 5.4), 0),
+                 bounds=((cx, y + 3, cz), (21.8, 6, 19.8)), player=((cx, y + PLAYER_STAND_HEIGHT, cz + 5.4), 0),
                  opponent=((cx, y, cz - 5.2), 180), returning=((cx, 30.41, -301.70), 180))
 
 
@@ -357,7 +358,7 @@ def _galleon(town, art):
     art.detail(style, "Galleon opponent sign post", (280.40, y + .26, cz + 5.54),
                (.40, 3.22, .40), "76564F", art.wood)
     art.sparring(ring, "Granite Rhino", 7, gate=(279.45, 7.57, cz),
-                 bounds=((cx, y + 3, cz), (21.0, 6, 15.3)), player=((cx - 6.13, y + 2.22, cz), -90),
+                 bounds=((cx, y + 3, cz), (21.0, 6, 15.3)), player=((cx - 6.13, y + PLAYER_STAND_HEIGHT, cz), -90),
                  opponent=((cx + 6.07, y, cz), 90), returning=((275.80, 7.84, cz), 90))
 
 
