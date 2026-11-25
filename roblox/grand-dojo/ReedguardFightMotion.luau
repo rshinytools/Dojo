@@ -20,6 +20,7 @@ local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
 local Abyss = require(script.Parent.AbyssFighterCombat)
+local Inferno = require(script.Parent.InfernoFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
@@ -66,6 +67,9 @@ for id, kit in Apex.kits do
     playerKits[id] = kit
 end
 for id, kit in Abyss.kits do
+    playerKits[id] = kit
+end
+for id, kit in Inferno.kits do
     playerKits[id] = kit
 end
 
@@ -325,7 +329,7 @@ function Motion.open(bout)
         spacing = spacing, diameter = diameter, originalPair = originalPair}
     if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit]
         or Heavy.kits[bout.kit] or Magma.kits[bout.kit] or Thunder.kits[bout.kit]
-        or Apex.kits[bout.kit] or Abyss.kits[bout.kit] then
+        or Apex.kits[bout.kit] or Abyss.kits[bout.kit] or Inferno.kits[bout.kit] then
         state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
     end
     for _, name in tracked do
@@ -531,16 +535,20 @@ local function groundPoint(bout, position)
     return Vector3.new(position.X, bout.arena.floor, position.Z)
 end
 
+local function clipGroundLane(center, edge, parameters, hasFloor, width)
+    local delta = edge - center
+    if delta.Magnitude < .10 or (hasFloor and not hasFloor(center)) then return center end
+    local box = CFrame.lookAlong(center + Vector3.yAxis * .43, delta.Unit)
+    local hit = workspace:Blockcast(box, Vector3.new(width, .51, .13), delta, parameters)
+    local finish = if hit then center + delta.Unit * math.max(0, hit.Distance - .065) else edge
+    return if hasFloor then Thunder.floorEnd(center, finish, hasFloor) else finish
+end
+
 local function groundLanes(arena, origin, parameters, hasFloor)
     return Abyss.lanes(origin, arena.floor, function(position)
         return Match.clampFloor(arena.bounds, position, arena.floor)
     end, function(center, edge)
-        local delta = edge - center
-        if delta.Magnitude < .10 or (hasFloor and not hasFloor(center)) then return center end
-        local box = CFrame.lookAlong(center + Vector3.yAxis * .43, delta.Unit)
-        local hit = workspace:Blockcast(box, Vector3.new(1.52, .51, .13), delta, parameters)
-        local finish = if hit then center + delta.Unit * math.max(0, hit.Distance - .065) else edge
-        return if hasFloor then Thunder.floorEnd(center, finish, hasFloor) else finish
+        return clipGroundLane(center, edge, parameters, hasFloor, 1.52)
     end)
 end
 
@@ -936,9 +944,10 @@ local function moveCommittedSkill(bout, now, clip, age)
     local pounce = action == "apexPounce"
     local jaws = action == "jawsOfTheDeep"
     local cataclysm = action == "tentacleCataclysm"
+    local inferno = Inferno.isCast(action)
     local targeted = if pounce then Apex.pounce elseif jaws then Abyss.jaws else nil
     local active = action == "tidalBellyFlop" or action == "volcanicBreath" or roll ~= nil
-        or thunder ~= nil or targeted ~= nil or cataclysm
+        or thunder ~= nil or targeted ~= nil or cataclysm or inferno
     local cast = state.heavyCast
     if cast and (not active or cast.clip ~= clip) then
         Fields.clearVisuals(cast)
@@ -949,7 +958,7 @@ local function moveCommittedSkill(bout, now, clip, age)
     end
     local arena = bout.arena
     if not cast then
-        local origin = if thunder or cataclysm then CFrame.lookAlong(root.Position,
+        local origin = if thunder or cataclysm or inferno then CFrame.lookAlong(root.Position,
             directionTo(root.Position, bout.position, root.CFrame.LookVector)) else root.CFrame
         cast = {clip = clip, origin = origin}
         state.heavyCast = cast
@@ -962,6 +971,14 @@ local function moveCommittedSkill(bout, now, clip, age)
         elseif cataclysm then
             cast.lanes = groundLanes(arena, origin, state.arenaCast)
             cast.warning = Abyss.laneWarnings(cast.lanes, bout.telegraph)
+        elseif inferno then
+            cast.inferno = Inferno.plan(action, arena, origin, function(from, to, width)
+                return clipGroundLane(from, to, state.arenaCast, function(point)
+                    local support = workspace:Raycast(point + Vector3.yAxis * .94, -Vector3.yAxis * 1.76, state.arenaCast)
+                    return support and support.Normal.Y > .64 and math.abs(support.Position.Y - arena.floor) <= .38
+                end, width)
+            end)
+            cast.warning = Inferno.showWarnings(cast.inferno, bout.telegraph)
         elseif action == "tidalBellyFlop" then
             local target = origin.Position + origin.LookVector * Heavy.flopTravel.distance
             cast.landing = safeTravel(bout, origin.Position, target, origin, Vector3.new(1.84, 2.2, 1.5), state.arenaCast)
@@ -989,6 +1006,8 @@ local function moveCommittedSkill(bout, now, clip, age)
         end
     elseif cataclysm then
         Abyss.windupLanes(cast, age)
+    elseif inferno then
+        Inferno.presentEchoes(cast.inferno, age)
     elseif thunder then
         local origin, position = cast.origin, root.Position
         local function step(target)
@@ -1767,6 +1786,25 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
         if not cast or not cast.arrived or cast.clip.startedAt ~= castStartedAt then return false, center end
         if move.abyss then Abyss.splash(cast, bout.telegraph, center) end
         return botFloorContact(bout, frame, groups, center, move.radius), center, "body"
+    elseif move.shape == "eruption" or move.shape == "echo" then
+        local cast = state.heavyCast
+        if not cast or not cast.inferno or cast.clip.startedAt ~= castStartedAt then return false end
+        local impact = Inferno.impact(cast.inferno, move, index, bout.telegraph)
+        -- Sparring residents store their position at the floor. Arena bounds
+        -- compare the standing body's height, as they do for player roots.
+        local arena = bout.arena
+        local target = bout.position + Vector3.yAxis * (arena.playerSpawn.Position.Y - arena.floor)
+        if not impact or not Match.inside(arena.bounds, target) then return false end
+        if move.shape == "eruption" then
+            return botFloorContact(bout, frame, groups, impact, move.radius), impact, "body"
+        end
+        for _, name in {"Torso", "Left Leg", "Right Leg"} do
+            local joint = bout.joints[name]
+            local target = jointFrame(frame, groups, name, joint) * joint.shell
+            local point, from = Abyss.laneContact(impact, target, joint.part.Size, nearestPoint, 2.3, move.radius)
+            if point and not obstructed(bout, from, point) then return true, point, "body" end
+        end
+        return false, impact.finish
     elseif move.shape == "tentacle" then
         local cast = state.heavyCast
         if not cast or cast.clip.startedAt ~= castStartedAt then return false end
@@ -2197,9 +2235,10 @@ function Motion.impact(bout, event)
         bout.motion.crossKnock = {at = event.at, offset = heading * EmberAqua.shove[event.attack],
             progress = 0, duration = if event.attack == "cavitationCannon" then .34 else .20, height = 0,
             basis = CFrame.lookAlong(Vector3.zero, heading)}
-    elseif damage and (Thunder.shove[event.attack] or Apex.shove[event.attack] or Abyss.shove[event.attack]) then
+    elseif damage and (Thunder.shove[event.attack] or Apex.shove[event.attack] or Abyss.shove[event.attack]
+        or Inferno.shove[event.attack]) then
         local direction = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
-        local force = Thunder.shove[event.attack] or Apex.shove[event.attack] or Abyss.shove[event.attack]
+        local force = Thunder.shove[event.attack] or Apex.shove[event.attack] or Abyss.shove[event.attack] or Inferno.shove[event.attack]
         bout.motion.crossKnock = {at = event.at, offset = direction * force, progress = 0,
             duration = .24, height = 0, basis = CFrame.lookAlong(Vector3.zero, direction)}
     elseif damage and Magma.shove[event.attack] then
@@ -2281,6 +2320,7 @@ Motion.geometry = table.freeze({
     rememberPosition = rememberPosition,
     groundContour = galleonContour,
     groundLanes = groundLanes,
+    clipGroundLane = clipGroundLane,
     renderPlayerDefeat = renderPlayerDefeat,
     restoreDefeat = restoreDefeat,
     defeatSeconds = fallSeconds + .35,

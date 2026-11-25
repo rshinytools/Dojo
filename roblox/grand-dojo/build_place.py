@@ -117,6 +117,7 @@ from magma_roster_art import build_magma_roster_visuals
 from thunder_roster_art import build_thunder_roster_visuals
 from apex_roster_art import build_apex_roster_visuals
 from abyss_roster_art import build_abyss_roster_visuals
+from inferno_roster_art import build_inferno_roster_visuals
 from skywalk_foothill import build_skywalk_foothill
 from skywalk_road_bank import build_skywalk_road_bank
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
@@ -7800,6 +7801,7 @@ build_magma_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vec
 build_thunder_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_apex_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_abyss_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_inferno_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
@@ -8058,6 +8060,9 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","GreatWhiteSharkCombatPoses","GreatWhiteSharkCombatPoses.luau"),
                                     (server,"ModuleScript","AbyssalKrakenCombatPoses","AbyssalKrakenCombatPoses.luau"),
                                     (server,"ModuleScript","AbyssFighterCombat","AbyssFighterCombat.luau"),
+                                    (server,"ModuleScript","MagmaGrizzlyBearCombatPoses","MagmaGrizzlyBearCombatPoses.luau"),
+                                    (server,"ModuleScript","ObsidianHellhoundCombatPoses","ObsidianHellhoundCombatPoses.luau"),
+                                    (server,"ModuleScript","InfernoFighterCombat","InfernoFighterCombat.luau"),
                                     (server,"ModuleScript","RingRicochet","RingRicochet.luau"),
                                     (server,"ModuleScript","GraniteCombatPoses","GraniteCombatPoses.luau"),
                                     (storage,"ModuleScript","CombatIntro","CombatIntro.luau"),

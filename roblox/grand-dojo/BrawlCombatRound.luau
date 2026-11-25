@@ -137,12 +137,22 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
         if move.singleHit then
             clip.brawlHits = used
         end
+        local counts
+        if move.maxContacts then
+            clip.groupContactCounts = clip.groupContactCounts or {}
+            local group = move.contactGroup or 0
+            clip.groupContactCounts[group] = clip.groupContactCounts[group] or {}
+            counts = clip.groupContactCounts[group]
+        end
         targets = {}
         for _, hit in contacts or {} do
-            local defender = round.sides[hit.defender]
-            if defender and attacker.matchups[hit.defender] and not defender.eliminated and not used[hit.defender]
+            local id = hit.defender
+            local defender = round.sides[id]
+            if defender and attacker.matchups[id] and not defender.eliminated and not used[id]
+                and (not counts or (counts[id] or 0) < move.maxContacts)
                 and not Combatant.submerged(defender, contactAt) then
-                used[hit.defender] = true
+                used[id] = true
+                if counts then counts[id] = (counts[id] or 0) + 1 end
                 table.insert(targets, hit)
                 if not move.shape and not move.singleHit then
                     break
@@ -195,14 +205,15 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
                 notice.shockDuration = move.shockDuration
                 spent = fields.damage
             end
-            notice.detached = move.shape == "tile" or move.shape == "wave" or move.shape == "tentacle" or move.projectile ~= nil
+            notice.detached = move.detached or move.shape == "tile" or move.shape == "wave"
+                or move.shape == "tentacle" or move.projectile ~= nil
             table.insert(batch, notice)
         end
         -- Each tile spends the authored cast budget once, regardless of how many fighters it catches.
         return spent
     end
     if clipAt == at then
-        Combatant.contact(attacker, at, sample, resolve, true)
+        Combatant.contact(attacker, at, sample, resolve, true, true)
         -- Belly Slide consumes each victim once for the whole cast, while later sweeps can reach new victims.
         attacker.clip.connected = nil
     end

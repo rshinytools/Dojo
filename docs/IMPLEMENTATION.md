@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.296 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.297 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -21,7 +21,15 @@ Desktop Studio sampled Reedguard’s boots on the plaza and Grand Dojo canvas. T
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to preview all twenty playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+Choose an original starter on first join. Use the Fighter Select station between activities to preview all twenty-two playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+
+### Magma Grizzly Bear and Obsidian Hellhound
+
+Magma Grizzly Bear starts with 140 HP. Basalt Backhand deals 22 base damage and pushes a landed target back. Eruption Slam sends four timed molten pillars forward. Each pillar deals 12 base damage, and each defender can take at most two hits from a cast.
+
+Obsidian Hellhound starts with 118 HP. Cinder Lunge advances before its 22-damage strike. Hellfire Stampede sends two spectral hounds across the playable ring in opposite directions. Each can hit a defender once for 17 base damage. Walls and unsupported floor limit both signatures. The warning and contact geometry share the same planned paths.
+
+Desktop Studio verified the four warning-to-pillar releases, two hits for 24 damage, 22-damage Basalt Backhand, and a Juniper knockout for 60 XP. Galaxy A06 landscape Studio simulation verified a touch-activated Stampede, both spectral hounds crossing their lanes, two hits for 34 damage, 22-damage Cinder Lunge, and a second 60 XP win. Both used disposable Level 10 profiles. Luau fixtures covered the same move schedules in Spar, Duel, Brawl, Tag Team and raids, including remote parry behavior, terrain clipping, and a boss retaining its contact allowance after landing. Phoenix no longer loses HP from afterburn during flight.
 
 ### Great White Shark and the playable Abyssal Kraken
 

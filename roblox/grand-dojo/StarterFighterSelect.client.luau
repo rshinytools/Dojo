@@ -448,8 +448,8 @@ local function updateCards()
         if card.requirement then
             card.requirement.Visible = required ~= nil
             card.requirement.Text = if required then string.format("LEVEL %d", required) else ""
-            card.name.Position = UDim2.fromOffset(4, 0)
-            card.name.Size = UDim2.new(1, -8, 1, if required then -14 else 0)
+            card.name.Position = UDim2.fromOffset(2, 0)
+            card.name.Size = UDim2.new(1, -4, 1, if required then -14 else 0)
         end
     end
 end
@@ -557,10 +557,16 @@ local function layout()
     close.TextSize = if compact then 14 else 16
     local order = selectionOrder()
     local cardHeight = if compact then 44 else 49
+    local cardGap = gap
     local columns = if tall then 2 else 4
     if switching then
         local count = #order
-        local limit = if contentWidth >= 10 * 60 + 9 * gap then 10
+        local denseGap = if compact then 4 else 6
+        local denseRoster = count > 20 and contentWidth >= 11 * 56 + 10 * denseGap
+        if denseRoster then
+            cardGap = denseGap
+        end
+        local limit = if denseRoster then 11 elseif contentWidth >= 10 * 60 + 9 * gap then 10
             elseif contentWidth >= 9 * 68 + 8 * gap then 9
             elseif contentWidth >= 8 * 77 + 7 * gap then 8 elseif contentWidth >= 7 * 84 + 6 * gap then 7
             elseif contentWidth >= 604 then 6
@@ -574,15 +580,15 @@ local function layout()
     local reserve = if tall and status.Text ~= "" then 43 else 0
     local minimumBody = if tall then 108 else 62
     local rosterRoom = footerY - rosterY - reserve - minimumBody - gap * 2
-    local fittedRows = math.max(1, math.floor((rosterRoom + gap) / (cardHeight + gap)))
+    local fittedRows = math.max(1, math.floor((rosterRoom + cardGap) / (cardHeight + cardGap)))
     local rows = math.ceil(#order / columns)
     local visibleRows = math.min(rows, fittedRows, if tall and not compact then 3 else 2)
-    local rosterHeight = visibleRows * (cardHeight + gap) - gap
+    local rosterHeight = visibleRows * (cardHeight + cardGap) - cardGap
     local scrollRoster = rows > visibleRows
     local scrollbarWidth = if scrollRoster then 7 else 0
-    local slot = (contentWidth - scrollbarWidth - (columns - 1) * gap) / columns
+    local slot = (contentWidth - scrollbarWidth - (columns - 1) * cardGap) / columns
     rosterBar.Position, rosterBar.Size = UDim2.fromOffset(pad, rosterY), UDim2.fromOffset(contentWidth, rosterHeight)
-    rosterBar.CanvasSize = UDim2.fromOffset(0, rows * (cardHeight + gap) - gap)
+    rosterBar.CanvasSize = UDim2.fromOffset(0, rows * (cardHeight + cardGap) - cardGap)
     rosterBar.ScrollingEnabled = scrollRoster
     rosterBar.ScrollBarThickness = if scrollRoster then 4 else 0
     if not scrollRoster then
@@ -592,10 +598,11 @@ local function layout()
         local card = cardById[id]
         local column, row = (index - 1) % columns, math.floor((index - 1) / columns)
         local control = card.control
-        control.Position = UDim2.fromOffset(column * (slot + gap), row * (cardHeight + gap))
+        control.Position = UDim2.fromOffset(column * (slot + cardGap), row * (cardHeight + cardGap))
         control.Size = UDim2.fromOffset(slot, cardHeight)
         local nameLabel = card.name or control
-        nameLabel.TextSize = if slot < 75 then 11 elseif slot < 84 then 12 elseif slot < 108 then 14 else 16
+        nameLabel.TextSize = if slot < 60 then 10 elseif slot < 75 then 11 elseif slot < 84 then 12
+            elseif slot < 108 then 14 else 16
         nameLabel.TextWrapped = slot < 84
         control.NextSelectionLeft = if column > 0 then cardById[order[index - 1]].control else control
         control.NextSelectionRight = if column < columns - 1 and order[index + 1]

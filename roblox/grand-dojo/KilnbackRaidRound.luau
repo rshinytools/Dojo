@@ -322,7 +322,9 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
             -- An invulnerable overlap cannot consume the cast before a later landing sample.
             return false
         end
-        return checkPlayer(index, action, move, contactAt, contactIndex, castAt)
+        local hit, point, zone, facing = checkPlayer(index, action, move, contactAt, contactIndex, castAt)
+        -- Detached attacks still present in the arena during flight, but cannot spend a contact.
+        return hit and not (round.bossAirborne and move.maxContacts), point, zone, facing
     end
     local function resolve(_, contactAt, fields, hit, _facing, move)
         if fields.controlOnly then
@@ -392,6 +394,9 @@ end
 
 local function applyHits(round, hits)
     for _, event in hits do
+        if round.bossAirborne and event.kind == "burn" then
+            continue
+        end
         if event.source == "player" then
             event.damage = math.min(round.bossHealth, event.damage)
             round.bossHealth -= event.damage

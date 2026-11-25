@@ -17,6 +17,7 @@ local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
 local Abyss = require(script.Parent.AbyssFighterCombat)
+local Inferno = require(script.Parent.InfernoFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 local targetedSkills = {apexPounce = Apex.pounce, jawsOfTheDeep = Abyss.jaws}
 
@@ -27,7 +28,7 @@ local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magm
     fortressRicochet = true, meteorRoll = true, apexPounce = true, jawsOfTheDeep = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
     pebbleBarrage = true, cinderSnare = true, cavitationCannon = true, volcanicBreath = true, unstoppableFrenzy = true,
-    tentacleCataclysm = true}
+    tentacleCataclysm = true, eruptionSlam = true, hellfireStampede = true}
 local sideStep = {
     reedguard = {distance = 2.45, time = .23, start = 0},
     silverback = {distance = 2.23, time = .29, start = .045},
@@ -48,6 +49,8 @@ local sideStep = {
     sabertooth = {distance = 2.57, time = .225, start = .025},
     shark = {distance = 2.56, time = .23, start = .025},
     kraken = {distance = 2.03, time = .285, start = .035},
+    grizzly = {distance = 1.97, time = .28, start = .036},
+    hellhound = {distance = 2.56, time = .225, start = .025},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -245,6 +248,11 @@ end
 
 local function floorPoint(duel, point)
     return Vector3.new(point.X, duel.floor, point.Z)
+end
+
+local function clipInfernoLane(duel, from, to, width, at)
+    local supported = if duel.floorActive then function(point) return floorActive(duel, point, at) end else nil
+    return Geometry.clipGroundLane(from, to, duel.motion.contactCast or duel.motion.arenaCast, supported, width)
 end
 
 local function obstructed(duel, source, target)
@@ -616,6 +624,11 @@ local function updateActor(duel, index, now)
                 local supported = if duel.floorActive then function(point) return floorActive(duel, point, now) end else nil
                 actor.cast.lanes = Geometry.groundLanes(duel, origin, duel.motion.arenaCast, supported)
                 actor.cast.warning = Abyss.laneWarnings(actor.cast.lanes, actor.fx)
+            elseif Inferno.isCast(clip.action) then
+                actor.cast.inferno = Inferno.plan(clip.action, duel, origin, function(from, to, width)
+                    return clipInfernoLane(duel, from, to, width, now)
+                end)
+                actor.cast.warning = Inferno.showWarnings(actor.cast.inferno, actor.fx)
             elseif clip.action == "gustVortex" then
                 actor.cast.fieldCenter = Match.clampFloor(duel.bounds, origin:PointToWorldSpace(Sky.gust.center), duel.floor)
             elseif clip.action == "cinderSnare" then
@@ -656,6 +669,8 @@ local function updateActor(duel, index, now)
             end
         elseif actor.cast.lanes then
             Abyss.windupLanes(actor.cast, now - clip.startedAt)
+        elseif actor.cast.inferno then
+            Inferno.presentEchoes(actor.cast.inferno, now - clip.startedAt)
         elseif actor.cast.field then
             local field = actor.cast.field
             Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
@@ -951,6 +966,40 @@ local function tentacleContact(duel, index, target, lane, move, at)
     return nil, facing
 end
 
+local function infernoGeometry(duel, actor, move, at, index, castStartedAt)
+    local cast = actor.cast
+    if not cast or not cast.inferno or cast.clip.startedAt ~= castStartedAt then
+        return nil
+    end
+    local supported = if duel.floorActive then function(point) return floorActive(duel, point, at) end else nil
+    local shape = Inferno.impact(cast.inferno, move, index, actor.fx, supported)
+    if not shape or move.shape == "eruption" then return shape end
+    if duel.floorActive then
+        -- The warning and echo follow the cast's original lane. If the floor
+        -- drops under this sweep, reject it instead of moving the damage.
+        local finish = clipInfernoLane(duel, shape.start, shape.finish, move.radius * 2, at)
+        if (finish - shape.finish).Magnitude > .015 then return nil end
+    end
+    return shape
+end
+
+local function infernoContact(duel, defender, target, move, shape, at)
+    if not Match.inside(duel.bounds, target.Position) or not floorActive(duel, target.Position, at) then
+        return nil, false
+    end
+    if move.shape == "eruption" then
+        return floorContact(duel, defender, at, target, shape, move.radius)
+    end
+    local facing = defenderFacing(target, shape.start)
+    for _, volume in defenderVolumes(duel, defender, at, target, facing) do
+        local hit, from = Abyss.laneContact(shape, volume.frame, volume.size, Geometry.nearestPoint, 2.3, move.radius)
+        if hit and floorActive(duel, from, at) and not obstructed(duel, from, hit + Vector3.yAxis * .12) then
+            return hit, facing
+        end
+    end
+    return nil, facing
+end
+
 local function apexZoneContact(duel, actor, defender, target, move, at, castStartedAt)
     local zone = actor.apexZone
     if not zone or zone.startedAt ~= castStartedAt or zone.caught[defender]
@@ -1042,6 +1091,13 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local actor = duel.actors[side]
     local root = clockFrame(actor, at)
     local target = clockFrame(duel.actors[other], at)
+    if move.shape == "eruption" or move.shape == "echo" then
+        local shape = infernoGeometry(duel, actor, move, at, index, castStartedAt)
+        if not shape then return false end
+        local hit, facing = infernoContact(duel, other, target, move, shape, at)
+        local effectPoint = if move.shape == "eruption" then shape else shape.finish
+        return hit ~= nil, hit or effectPoint, "body", facing
+    end
     if move.shape == "tentacle" then
         local lane = tentacleLane(duel, actor, at, index, castStartedAt)
         if not lane then return false end
@@ -1123,6 +1179,20 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     end
     local actor = brawl.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "eruption" or move.shape == "echo" then
+        local shape = infernoGeometry(brawl, actor, move, at, index, castStartedAt)
+        local contacts = {}
+        if not shape then return contacts end
+        for other, opponent in brawl.actors do
+            if other ~= side and (not brawl.enemies or brawl.enemies(side, other)) and activeActor(brawl, other) then
+                local hit, facing = infernoContact(brawl, other, clockFrame(opponent, at), move, shape, at)
+                if hit then
+                    table.insert(contacts, {defender = other, point = hit, zone = "body", facing = facing})
+                end
+            end
+        end
+        return contacts, if move.shape == "eruption" then shape else shape.finish
+    end
     if move.shape == "tentacle" then
         local lane = tentacleLane(brawl, actor, at, index, castStartedAt)
         local contacts = {}
@@ -1291,6 +1361,28 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     end
     local actor = raid.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "eruption" or move.shape == "echo" then
+        local shape = infernoGeometry(raid, actor, move, at, index, castStartedAt)
+        if not shape then return false end
+        local eruption = move.shape == "eruption"
+        local targets = if raid.round.coreExposed then raid.exposedBossVolumes else raid.bossVolumes
+        for _, volume in targets do
+            local frame, size = volume.part.CFrame, volume.part.Size
+            local hit, from
+            if eruption then
+                local closest = Geometry.nearestPoint(frame, size, shape + Vector3.yAxis * .24)
+                if closest.Y <= shape.Y + .78 and Match.flat(closest - shape).Magnitude <= move.radius then
+                    hit, from = closest, shape
+                end
+            else
+                hit, from = Abyss.laneContact(shape, frame, size, Geometry.nearestPoint, 2.3, move.radius)
+            end
+            if hit and not obstructed(raid, from, hit + Vector3.yAxis * .12) then
+                return true, hit, volume.zone
+            end
+        end
+        return false, if eruption then shape else shape.finish
+    end
     if move.shape == "tentacle" then
         local lane = tentacleLane(raid, actor, at, index, castStartedAt)
         if not lane then return false end
@@ -1500,8 +1592,8 @@ function Motion.impact(duel, event)
         local center = if action == "cavitationCannon" and field then field.center else root.Position
         offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
             (if action == "cavitationCannon" then .34 else .20), 0
-    elseif Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] then
-        local force = Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action]
+    elseif Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] or Inferno.shove[action] then
+        local force = Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] or Inferno.shove[action]
         offset, duration, height = heading(root.Position, target.root.Position, direction) * force, .24, 0
     elseif Magma.shove[action] then
         offset, duration, height = heading(root.Position, target.root.Position, direction) * Magma.shove[action],

@@ -94,7 +94,7 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
             fields.shockDuration = move.shockDuration
         end
         table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and move.shape ~= "wave"
-            and move.shape ~= "tentacle" and not move.projectile})
+            and move.shape ~= "tentacle" and not move.projectile and not move.detached})
         -- The authored Magma Trail budget spends unscaled move damage.
         return baseDamage
     end

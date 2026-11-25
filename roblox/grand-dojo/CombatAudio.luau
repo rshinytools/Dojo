@@ -19,6 +19,7 @@ local groundPitch = {
     cavitationCannon = .72, tidalBellyFlop = .84, ["Breakwater Stamp"] = .93,
     thunderDive = 1.35, staticCharge = .80, apexPounce = 1.22,
     jawsOfTheDeep = 1.10, tentacleCataclysm = .76,
+    eruptionSlam = .74, hellfireStampede = 1.21,
     pulse = .87, sweep = .98, undertow = .90, cataclysm = .82, solarFlare = 1.13,
 }
 local heavyPitch = {
@@ -26,6 +27,7 @@ local heavyPitch = {
     harborPalm = .91, shellCheck = .89, fortressRicochet = .79,
     plateCheck = .93, meteorRoll = .78, tailRake = 1.02, volcanicBreath = .88, hornCheck = .89, burrowHook = 1.08,
     reefHook = 1.04, tideGrip = .92,
+    basaltBackhand = .81, cinderLunge = 1.14,
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {

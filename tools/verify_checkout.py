@@ -40,6 +40,7 @@ def verify_place():
                 "ElectricOwlCombatPoses", "BighornRamCombatPoses", "ThunderFighterCombat", "electric-owl", "bighorn-ram",
                 "HoneyBadgerCombatPoses", "EmeraldSaberToothCombatPoses", "ApexFighterCombat", "honey-badger", "emerald-saber-tooth",
                 "GreatWhiteSharkCombatPoses", "AbyssalKrakenCombatPoses", "AbyssFighterCombat", "great-white-shark", "abyssal-kraken",
+                "MagmaGrizzlyBearCombatPoses", "ObsidianHellhoundCombatPoses", "InfernoFighterCombat", "magma-grizzly-bear", "obsidian-hellhound",
                 "Juniper Tortoise", "Bracken Boar", "Sablecrest Lynx", "Granite Rhino", "SplashArtwork",
                 "Fighter Select Station", "SwitchFighterPrompt", "Resident Dojo Bots",
                 "Cinder Terraces Ring", "Cloud-Top Temple", "Tideharbor practice ring",

@@ -22,6 +22,8 @@ Match.FighterKits = table.freeze({
     ["emerald-saber-tooth"] = "sabertooth",
     ["great-white-shark"] = "shark",
     ["abyssal-kraken"] = "kraken",
+    ["magma-grizzly-bear"] = "grizzly",
+    ["obsidian-hellhound"] = "hellhound",
 })
 
 local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,

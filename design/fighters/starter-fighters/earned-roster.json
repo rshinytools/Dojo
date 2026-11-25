@@ -649,5 +649,87 @@
         "counter": "Move between the marked lanes or guard each slam."
       }
     ]
+  },
+  {
+    "id": "magma-grizzly-bear",
+    "name": "Magma Grizzly Bear",
+    "shortName": "Grizzly",
+    "title": "Cinder Kiln Keeper",
+    "home": "Cinder Terraces · Kiln Workshops",
+    "element": "Magma",
+    "rarity": "Epic",
+    "role": "Heavy",
+    "style": "Heavy short-range strikes and a line of erupting pillars",
+    "health": 140,
+    "normal_hit": 16,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "grizzly",
+      "techniqueCue": "basaltBackhand",
+      "signatureCue": "eruptionSlam",
+      "techniqueCoolingCue": "basaltCooling",
+      "signatureCoolingCue": "eruptionCooling",
+      "compactTechnique": "Basalt",
+      "compactSignature": "Erupt",
+      "tint": "FFB477",
+      "cardStyle": "Broad backhands and four marked eruptions",
+      "initials": "MG",
+      "previewPose": {"right": -27, "left": 20, "lean": -10, "roll": 9, "lift": 0.06, "step": 0.12, "legs": 6}
+    },
+    "story": "Grizzly helps fire the ceramic tiles used on the Cinder Terraces roofs. Before the kilns are opened, the crew waits for the keeper to tap each vent. That measured rhythm carries into the ring, where every eruption follows its own warning.",
+    "quote": "Watch the floor.",
+    "powers": [
+      {
+        "name": "Basalt Backhand",
+        "effect": "Step into a heavy, short-range backhand for 22 damage.",
+        "counter": "Step back or defend as the lead arm swings."
+      },
+      {
+        "name": "Eruption Slam",
+        "effect": "Raise four marked pillars in a line for 12 damage per eruption. Each opponent can be hit at most twice.",
+        "counter": "Step out of the line or guard at the eruption."
+      }
+    ]
+  },
+  {
+    "id": "obsidian-hellhound",
+    "name": "Obsidian Hellhound",
+    "shortName": "Hellhound",
+    "title": "Cinder Lift Runner",
+    "home": "Cinder Terraces · Steam Lifts",
+    "element": "Magma",
+    "rarity": "Legendary",
+    "role": "Beast",
+    "style": "A quick lunge and two spectral charges across the ring",
+    "health": 118,
+    "normal_hit": 15,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "hellhound",
+      "techniqueCue": "cinderLunge",
+      "signatureCue": "hellfireStampede",
+      "techniqueCoolingCue": "lungeCooling",
+      "signatureCoolingCue": "stampedeCooling",
+      "compactTechnique": "Lunge",
+      "compactSignature": "Clones",
+      "tint": "FF998A",
+      "cardStyle": "Fast lunges and two sweeping spectral charges",
+      "initials": "OH",
+      "previewPose": {"right": 17, "left": -31, "lean": -15, "roll": -8, "lift": 0.10, "step": 0.20, "legs": 8}
+    },
+    "story": "Hellhound ferries kiln tools between the steam lifts before the morning bell. The crews time their handoffs by the glow of the runner’s obsidian wraps. In the ring, two spectral companions repeat the same dash on a second beat.",
+    "quote": "Wait for the second beat.",
+    "powers": [
+      {
+        "name": "Cinder Lunge",
+        "effect": "Lunge forward for a 22-damage strike.",
+        "counter": "Step to the side or defend when the lunge reaches you."
+      },
+      {
+        "name": "Hellfire Stampede",
+        "effect": "Send two spectral clones across the playable width of the ring. Each deals 17 damage on contact.",
+        "counter": "Leave the marked lane or defend as each clone passes."
+      }
+    ]
   }
 ]

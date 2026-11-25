@@ -13,6 +13,7 @@ local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
 local Abyss = require(script.Parent.AbyssFighterCombat)
+local Inferno = require(script.Parent.InfernoFighterCombat)
 local apexTimeline = Apex.zoneMoves()
 local Round = {}
 
@@ -179,6 +180,9 @@ for id, kit in Apex.kits do
     kits[id] = kit
 end
 for id, kit in Abyss.kits do
+    kits[id] = kit
+end
+for id, kit in Inferno.kits do
     kits[id] = kit
 end
 
@@ -383,7 +387,7 @@ local function resolveBotContact(round, at, fields, hit, _, move)
     return damage
 end
 
-local function contact(round, at, check, resolve, publishCast)
+local function contact(round, at, check, resolve, publishCast, multipleDefenders)
     local clip = round.clip
     local attacks = round.kit.clips[clip.action]
     local move = attacks[clip.nextContact]
@@ -402,12 +406,21 @@ local function contact(round, at, check, resolve, publishCast)
     local hit, point, resolvedZone, facing
     if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
         or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" or move.shape == "breath"
-        or move.thunder or move.apex or move.abyss or move.shape == "tentacle" then
+        or move.thunder or move.apex or move.abyss or move.shape == "tentacle" or move.detached then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
     end
     if move.launch or (move.projectile and not hit and not move.lastSample) then
+        return
+    end
+    if hit and move.maxContacts and not multipleDefenders then
+        local group = move.contactGroup or 0
+        clip.contactCounts = clip.contactCounts or {}
+        local contacts = clip.contactCounts[group] or 0
+        if contacts >= move.maxContacts then return end
+        clip.contactCounts[group] = contacts + 1
+    elseif not hit and move.silentMiss then
         return
     end
     if move.projectile and hit then
@@ -422,7 +435,7 @@ local function contact(round, at, check, resolve, publishCast)
     local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
         rootDuration = move.rootDuration,
         castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak or move.thunder
-            or move.apex or move.abyss or move.shape == "tentacle" then clip.startedAt else nil}
+            or move.apex or move.abyss or move.shape == "tentacle" or move.detached then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
     end

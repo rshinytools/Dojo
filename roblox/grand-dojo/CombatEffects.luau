@@ -46,6 +46,10 @@ local moveContactTint = {
     jawsOfTheDeep = Color3.fromRGB(121, 226, 255),
     tideGrip = Color3.fromRGB(209, 174, 251),
     tentacleCataclysm = Color3.fromRGB(210, 149, 244),
+    basaltBackhand = Color3.fromRGB(255, 173, 111),
+    eruptionSlam = Color3.fromRGB(255, 193, 102),
+    cinderLunge = Color3.fromRGB(255, 124, 103),
+    hellfireStampede = Color3.fromRGB(244, 144, 198),
 }
 
 local folder

@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.297, earn **Magma Grizzly Bear** and **Obsidian Hellhound** at Level 10. Press **V** or D-pad Up for Basalt Backhand or Cinder Lunge. Press **F** or **Y** for Eruption Slam or Hellfire Stampede. Touch players use **Basalt**, **Erupt**, **Lunge**, and **Clones**. Each pillar rises in sequence, and the two hounds run across marked lanes in opposite directions.
+
 In v0.296, choose Reedguard and inspect his shorter tail in Festival Plaza. Stand in Juniper’s Bot Spar to see the leveled boots during the intro, idle, and guard. Look underneath the boots for soft contact shadows that fade during a jump.
 
 In v0.295, earn **Great White Shark** and **Abyssal Kraken** at Level 10. **V** or D-pad Up uses Reef Hook or Tide Grip. **F** or **Y** uses Jaws of the Deep or Tentacle Cataclysm. Tap **Hook**, **Jaws**, **Grip**, or **Slam** on touch. Watch the water ring as Shark dives and the four purple lanes before Kraken’s tentacles strike inward.
