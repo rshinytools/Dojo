@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.332, choose Silverback Gorilla or Fire Salamander. Earn Levels 5 and 10 with that fighter to see their additional techniques at Fighter Select. Equip any unlocked option and use **V**, **D-pad Up**, or the Technique control in a match.
+
 In v0.331, choose Penguin Brawler and press **V**, **D-pad Up**, or the **Icecrest Palm** control in the ring. At Penguin’s own Level 5, visit Fighter Select, choose **Floe Hook**, and confirm. The same control now performs the faster, shorter-range strike. Return to Fighter Select to equip Palm again.
 
 In v0.330, use Tag Team and switch fighters with **T** or **Tag In**. An action still in transit from the outgoing fighter expires at the swap.

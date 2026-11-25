@@ -120,6 +120,28 @@ local palmContact = pose({.045, -.16, -.37, -16, 22, -4}, {48, 15, -14, .035, -.
 local palmRelease = pose({.02, -.23, -.21, -14, 19, -3}, {39, 16, -15, .01, -.13}, leftGuard,
 	planted, {11, -16, 2})
 
+-- The quick back-knuckle redirects one wrapped fist while the other stays in guard.
+local knuckleLoad = pose({.09, -.31, .065, -14, -12, -7}, {16, 7, -8, -.025, .19}, {52, -21, 15, .055, .24},
+	planted, {10, 10, 4})
+local knuckleHit = pose({.06, -.285, -.18, -14, 24, -6}, {31, 14, -13, -.045, -.17}, {56, -23, 16, .08, .285},
+	planted, {10, -20, 3})
+local knuckleFold = pose({.065, -.32, -.095, -12, 15, -5}, {24, 17, -15, -.02, -.035}, leftGuard,
+	planted, {9, -13, 3})
+
+-- Raise the two gloves beside the head, then drop them together through the torso line.
+local hammerGather = pose({-.02, -.24, .105, -4, 12, 3}, {45, 29, -12, .09, .13}, {53, -28, 16, .09, .18},
+	planted, {4, -10, -2})
+local hammerRaised = pose({-.03, -.065, .085, 7, 2, 1}, {136, 11, -18, .14, .13}, {127, -13, 20, .145, .13},
+	planted, {-4, -2, -1})
+local hammerDrop = pose({-.02, -.30, .025, -13, 0, 2}, {65, 20, -23, .055, -.13}, {73, -20, 25, .059, -.14},
+	planted, {11, -1, -1})
+local hammerHit = pose({-.03, -.46, -.575, -26, 0, 2}, {23, 27, -32, -.04, -.27}, {41, -27, 32, .04, -.34},
+	planted, {16, -1, -1})
+local hammerFollow = pose({-.025, -.51, -.285, -26, 2, 2}, {7, 24, -22, -.07, -.21}, {21, -24, 25, -.03, -.25},
+	planted, {16, -2, -1})
+local hammerRelease = pose({.015, -.31, -.105, -15, 5, 0}, {27, 19, -17, -.015, -.035}, {38, -17, 16, .02, .045},
+	planted, {12, -6})
+
 local tapRight = pose({.025, -.17, .035, -4, 5, 2}, {54, 52, -24, .005, .48}, {31, -6, 5, .015, .10},
 	planted, {4, -5, -1})
 local tapCenter = pose({0, -.16, .035, -6, 2, 0}, {37, 14, -8, .035, .18}, {36, -13, 9, .045, .18},
@@ -177,6 +199,8 @@ local contact = table.freeze({
 	body = .32,
 	heavy = .49,
 	ridgePalm = .46,
+	canopyKnuckle = .24,
+	ironbarkHammer = .50,
 	seismicChestPound = .99,
 })
 local warningAt, firstTap, secondTap = .15, .25, .51
@@ -198,6 +222,10 @@ local clips = {
 	knockout = {{0, headHit}, {.16, stumble}, {.39, drop}, {.64, kneel}, {1.24, kneel}},
 	ridgePalm = {{0, ready}, {.25, palmSet}, {.36, palmDrive}, {contact.ridgePalm, palmContact},
 		{.57, palmContact}, {.69, palmRelease}, {1.09, ready}},
+	canopyKnuckle = {{0, ready}, {.10, knuckleLoad}, {contact.canopyKnuckle, knuckleHit},
+		{.34, knuckleFold}, {.59, ready}},
+	ironbarkHammer = {{0, ready}, {.14, hammerGather}, {.32, hammerRaised}, {.43, hammerDrop},
+		{contact.ironbarkHammer, hammerHit}, {.57, hammerFollow}, {.73, hammerRelease}, {.90, ready}},
 	seismicChestPound = {{0, ready}, {warningAt, tapCenter}, {firstTap, tapRight}, {.35, tapRight}, {.40, tapCenter},
 		{secondTap, tapLeft}, {.60, tapLeft}, {.80, slamDraw}, {contact.seismicChestPound, slamContact},
 		{1.13, slamContact}, {1.26, slamLift}, {1.49, slamGather}, {1.92, ready}},
@@ -223,6 +251,8 @@ Poses.Impact = table.freeze({
 	body = table.freeze({Vector3.new(.467, -.594, -2.600)}),
 	heavy = table.freeze({Vector3.new(-.146, -.265, -3.060)}),
 	ridgePalm = table.freeze({Vector3.new(.432, .481, -3.030)}),
+	canopyKnuckle = table.freeze({Vector3.new(0.580762585, 0.290204020, -2.600006575)}),
+	ironbarkHammer = table.freeze({Vector3.new(-0.740041782, -0.528732746, -2.731000439)}),
 	seismicChestPound = table.freeze({Vector3.new(0, floorHeight, -.800)}),
 })
 

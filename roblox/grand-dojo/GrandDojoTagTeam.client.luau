@@ -31,7 +31,8 @@ local darkTrack = Color3.fromRGB(37, 26, 30)
 local bold = Enum.Font.GothamBold
 local regular = Enum.Font.GothamMedium
 
-local earnedCues = {penguinTacticalCooling = "Technique cooling down"}
+local earnedCues = {penguinTacticalCooling = "Technique cooling down", ridgeCooling = "Technique cooling down",
+    emberCooling = "Technique cooling down"}
 for _, group in fighterTactics.ByKit do
     for _, option in group.options do
         earnedCues[option.id] = option.name
@@ -43,9 +44,9 @@ local roster = {
     {id = "penguin-brawler", kit = "penguin", name = "Penguin", style = "Dodge and slide",
         dodge = "Floe Turn", signature = "Belly Slide"},
     {id = "silverback-gorilla", kit = "silverback", name = "Silverback", style = "Power and wide hits",
-        technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
+        signature = "Seismic"},
     {id = "fire-salamander", kit = "salamander", name = "Salamander", style = "Sweep and floor control",
-        technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
+        signature = "Magma Trail"},
 }
 for _, id in fighterCatalog.Order do
     local fighter = fighterCatalog.ById[id]

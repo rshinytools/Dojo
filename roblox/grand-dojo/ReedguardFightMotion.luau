@@ -878,7 +878,7 @@ end
 
 local function plantStrike(bout, clip)
     local state, root = bout.motion, bout.root
-    local planted = Motion.canPlantStrike(bout.kit, clip, root, bout.arena.floor)
+    local planted = not bout.outroAt and Motion.canPlantStrike(bout.kit, clip, root, bout.arena.floor)
     if planted and state.plantedStrikeClip ~= clip then
         state.plantedStrikeClip = clip
         local forward = directionTo(root.Position, bout.position, root.CFrame.LookVector)
@@ -987,7 +987,7 @@ local function galleonPlayer(bout, now)
             clearMagmaMarks(state)
         end
         restoreClearance(bout, .69)
-        setTravelHold(bout, now < round.startsAt)
+        setTravelHold(bout, plantStrike(bout, clip) or now < round.startsAt)
         return
     end
     local cast = state.salamanderCast
@@ -1073,7 +1073,7 @@ local function skywalkPlayer(bout, now)
     if bout.outroAt or (action ~= "sidestep" and action ~= "seismicChestPound" and action ~= "ridgePalm") then
         state.skywalkCast = nil
         clearLane(state, "seismicWarning")
-        setTravelHold(bout, now < round.startsAt)
+        setTravelHold(bout, plantStrike(bout, clip) or now < round.startsAt)
         return
     end
 
@@ -1988,7 +1988,7 @@ local function silverbackStrike(bout, action, move, time, index)
         local joint = bout.joints[name]
         local target = jointFrame(frame, groups, name, joint) * joint.shell
         local nearest = nearestPoint(target, joint.part.Size, point)
-        local radius = if action == "ridgePalm" then .46 else .42
+        local radius = move.radius or (if action == "ridgePalm" then .46 else .42)
         if (point - nearest).Magnitude <= radius then
             local contact = point:Lerp(nearest, .5)
             if not obstructed(bout, root.Position, contact) then
@@ -2068,12 +2068,14 @@ local function salamanderStrike(bout, action, move, time, index, castStartedAt)
         return false, point
     end
     local frame, groups = botPose(bout, time)
-    for _, name in if move.zone == "head" then {"Head", "Torso"} else {"Torso"} do
+    local targets = if move.foot then {"Torso", "Right Leg", "Left Leg"}
+        elseif move.zone == "head" then {"Head", "Torso"} else {"Torso"}
+    for _, name in targets do
         local joint = bout.joints[name]
         local target = jointFrame(frame, groups, name, joint) * joint.shell
         local nearest = nearestPoint(target, joint.part.Size, point)
         local contact = point:Lerp(nearest, .5)
-        if (point - nearest).Magnitude <= .46 and not obstructed(bout, root.Position, contact) then
+        if (point - nearest).Magnitude <= (move.radius or .46) and not obstructed(bout, root.Position, contact) then
             return true, contact, if name == "Head" then "head" else "body"
         end
     end

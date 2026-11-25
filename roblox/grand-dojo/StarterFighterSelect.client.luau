@@ -188,7 +188,11 @@ local tacticalBar = create("Frame", details, {
 local tacticalHeading = label(tacticalBar, "Heading", "Technique", 13, colors.gold, Enum.Font.GothamBold)
 tacticalHeading.Size = UDim2.new(1, 0, 0, 16)
 local tacticalButtons = {}
-for index = 1, 2 do
+local maxTacticalOptions = 0
+for _, group in fighterTactics.ByFighter do
+    maxTacticalOptions = math.max(maxTacticalOptions, #group.options)
+end
+for index = 1, maxTacticalOptions do
     local control, stroke = button(tacticalBar, "Option" .. index, "", colors.panel, colors.edge)
     control.TextWrapped, control.TextTruncate = true, Enum.TextTruncate.None
     tacticalButtons[index] = {control = control, stroke = stroke}
@@ -500,27 +504,49 @@ end
 local function updateTacticalButtons(saving)
     local group = fighterTactics.ByFighter[selectedId]
     tacticalBar.Visible = switching and group ~= nil and #group.options > 1
-    if not tacticalBar.Visible then return end
     local stored = savedTactical()
     local selected = requestedTactical or stored
     local activeFighter = selectedId == player:GetAttribute("SelectedStarterFighter")
-    tacticalHeading.Text = if UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
-        and not tacticalRequirement(group.options[2].id) then "Technique · T" else "Technique"
+    local canCycle = false
     for index, tile in tacticalButtons do
-        local option = group.options[index]
-        tile.id = option.id
+        local option = if tacticalBar.Visible then group.options[index] else nil
+        tile.id = option and option.id
         local control = tile.control
-        local locked = tacticalRequirement(option.id)
-        local chosen = option.id == selected
-        local subline = if locked then "Level " .. locked elseif option.id == stored and activeFighter then "Equipped"
-            elseif chosen then "Selected" else ""
-        control.Name = option.id
-        control.Text = option.name .. (if subline == "" then "" else "\n" .. subline)
-        control.Active, control.Selectable = not saving and not locked, not saving
-        control.AutoButtonColor = not locked
-        control.TextColor3 = if chosen then colors.gold elseif locked then colors.muted else colors.text
-        control.BackgroundColor3 = if chosen then colors.gold:Lerp(colors.panel, .82) else colors.panel
-        tile.stroke.Color = if chosen then colors.gold else colors.edge
+        control.Name = tile.id or ("Option" .. index)
+        control.Visible, control.Selectable = option ~= nil, option ~= nil and not saving
+        if option then
+            local locked = tacticalRequirement(option.id)
+            local chosen = option.id == selected
+            local subline = if locked then "Level " .. locked elseif option.id == stored and activeFighter then "Equipped"
+                elseif chosen then "Selected" else ""
+            canCycle = canCycle or (not chosen and locked == nil)
+            control.Text = option.name .. (if subline == "" then "" else "\n" .. subline)
+            control.Active, control.AutoButtonColor = not saving and not locked, not locked
+            control.TextColor3 = if chosen then colors.gold elseif locked then colors.muted else colors.text
+            control.BackgroundColor3 = if chosen then colors.gold:Lerp(colors.panel, .82) else colors.panel
+            tile.stroke.Color = if chosen then colors.gold else colors.edge
+        else
+            control.Active = false
+        end
+    end
+    tacticalHeading.Text = if canCycle and UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
+        then "Technique · T" else "Technique"
+end
+
+local function updateMoveDescriptions(info)
+    local group = fighterTactics.ByFighter[selectedId]
+    local current = group and fighterTactics.get(selectedId, requestedTactical or savedTactical())
+    local default = group and fighterTactics.get(selectedId, group.default)
+    for index, row in moves do
+        local move = info.powers[index]
+        row.name.Visible, row.effect.Visible = move ~= nil, move ~= nil
+        if move then
+            if current and current.description and move.name == default.name then
+                row.name.Text, row.effect.Text = current.name, current.description
+            else
+                row.name.Text, row.effect.Text = move.name, move.effect
+            end
+        end
     end
 end
 
@@ -528,7 +554,9 @@ buttons = function()
     local saving = inFlight or player:GetAttribute("StarterSelectionPending") == true
     local waiting = previewState == "loading"
     local busy = saving or waiting
-    local name = displayName(roster.ById[selectedId])
+    local info = roster.ById[selectedId]
+    local name = displayName(info)
+    updateMoveDescriptions(info)
     local formId = previewForm(selectedId)
     local equipped = alreadyEquipped(selectedId)
     local locked = switching and (requiredLevel(selectedId) or formRequirement(selectedId, formId)
@@ -621,13 +649,6 @@ local function showFighter(id)
     quote.Text = "“" .. info.quote .. "”"
     story.Text = info.story
     updateLevel()
-    for index, row in moves do
-        local move = info.powers[index]
-        row.name.Visible, row.effect.Visible = move ~= nil, move ~= nil
-        if move then
-            row.name.Text, row.effect.Text = move.name, move.effect
-        end
-    end
     updateCards()
     revealSelection()
     details.CanvasPosition = Vector2.zero
@@ -700,7 +721,7 @@ for _, tile in formButtons do
 end
 
 local function selectTactical(id)
-    if not (panel.Visible and tacticalBar.Visible) or tacticalRequirement(id) or inFlight
+    if not (id and panel.Visible and tacticalBar.Visible) or tacticalRequirement(id) or inFlight
         or player:GetAttribute("StarterSelectionPending") == true then
         return
     end
@@ -825,25 +846,38 @@ layout = function()
     fighterName.TextSize = if compact then 19 else 25
     title.TextSize, home.TextSize = if compact then 13 else 15, if compact then 12 else 13
     local tacticOffset = if tacticalBar.Visible then 1 else 0
+    local tacticCount = if tacticalBar.Visible then #fighterTactics.ByFighter[selectedId].options else 0
+    local lastTacticRow = 1
     formBar.LayoutOrder = 3 + tacticOffset
     if tacticalBar.Visible then
         local gapBetween = 4
-        local stacked = detailWidth - textPad - controlsWidth - 9 < 144
+        local widthForTactics = detailWidth - textPad - controlsWidth - 9
+        local minimumWidth = if tacticCount > 2 then 78 else 70
+        local columnsForTactics = math.clamp(math.floor((widthForTactics + gapBetween) / (minimumWidth + gapBetween)),
+            1, tacticCount)
+        local rowsForTactics = math.ceil(tacticCount / columnsForTactics)
+        lastTacticRow = (rowsForTactics - 1) * columnsForTactics + 1
+        local buttonHeight = if tacticCount > 2 then 48 else 44
+        local buttonWidth = (widthForTactics - gapBetween * (columnsForTactics - 1)) / columnsForTactics
         local headerHeight = if compact then 0 else 20
         tacticalBar.LayoutOrder = if compact then 0 else 3
-        tacticalBar.Size = UDim2.new(1, -9, 0, headerHeight + (if stacked then 92 else 44))
+        tacticalBar.Size = UDim2.new(1, -9, 0, headerHeight + rowsForTactics * (buttonHeight + gapBetween) - gapBetween)
         tacticalHeading.Visible = not compact
-        for index, tile in tacticalButtons do
-            local control = tile.control
-            control.Position = if stacked then UDim2.fromOffset(0, headerHeight + (index - 1) * 48)
-                else UDim2.new((index - 1) * .5, (index - 1) * gapBetween * .5, 0, headerHeight)
-            control.Size = if stacked then UDim2.new(1, 0, 0, 44) else UDim2.new(.5, -gapBetween * .5, 0, 44)
-            control.TextSize = if compact or detailWidth < 310 then 12 else 14
-            local previous = if index == 2 then tacticalButtons[1].control else control
-            local nextChoice = if index == 1 then tacticalButtons[2].control else control
-            control.NextSelectionLeft, control.NextSelectionRight = previous, nextChoice
-            control.NextSelectionUp = if stacked and index == 2 then previous else selectedCard()
-            control.NextSelectionDown = if stacked and index == 1 then nextChoice
+        for index = 1, tacticCount do
+            local control = tacticalButtons[index].control
+            local column = (index - 1) % columnsForTactics
+            local row = math.floor((index - 1) / columnsForTactics)
+            control.Position = UDim2.new(column / columnsForTactics, column * gapBetween / columnsForTactics,
+                0, headerHeight + row * (buttonHeight + gapBetween))
+            control.Size = UDim2.new(1 / columnsForTactics, -gapBetween * (columnsForTactics - 1) / columnsForTactics,
+                0, buttonHeight)
+            control.TextSize = if compact or detailWidth < 310 or (tacticCount > 2 and buttonWidth < 124) then 12 else 14
+            control.NextSelectionLeft = if column > 0 then tacticalButtons[index - 1].control else control
+            control.NextSelectionRight = if column < columnsForTactics - 1 and index < tacticCount
+                then tacticalButtons[index + 1].control else control
+            control.NextSelectionUp = if row > 0 then tacticalButtons[index - columnsForTactics].control else selectedCard()
+            control.NextSelectionDown = if row < rowsForTactics - 1
+                then tacticalButtons[math.min(index + columnsForTactics, tacticCount)].control
                 elseif formBar.Visible then formButtons[1].control else confirm
         end
     end
@@ -864,7 +898,7 @@ layout = function()
             control.NextSelectionRight = if column < formColumns - 1 and formButtons[index + 1]
                 then formButtons[index + 1].control else control
             control.NextSelectionUp = if row > 0 then formButtons[index - formColumns].control
-                elseif tacticalBar.Visible then tacticalButtons[math.min(column + 1, #tacticalButtons)].control
+                elseif tacticalBar.Visible then tacticalButtons[math.min(lastTacticRow + column, tacticCount)].control
                 else selectedCard()
             control.NextSelectionDown = if row < formRows - 1 then formButtons[math.min(index + formColumns, #formButtons)].control
                 else confirm
@@ -892,7 +926,7 @@ layout = function()
     status.Size = UDim2.fromOffset(if tall then contentWidth - 4 else contentWidth - confirm.Size.X.Offset - 12,
         if tall then 39 else footer)
     confirm.NextSelectionUp = if formBar.Visible then formButtons[#formButtons].control
-        elseif tacticalBar.Visible then tacticalButtons[#tacticalButtons].control else selectedCard()
+        elseif tacticalBar.Visible then tacticalButtons[tacticCount].control else selectedCard()
     confirm.NextSelectionDown = confirm
     up.NextSelectionDown, down.NextSelectionUp = down, up
     up.NextSelectionLeft, down.NextSelectionLeft = confirm, confirm
@@ -965,10 +999,16 @@ UserInputService.InputBegan:Connect(function(input, processed)
         closePicker()
     elseif tacticalBar.Visible and input.KeyCode == Enum.KeyCode.T then
         local current = requestedTactical or savedTactical()
-        local nextTile = if current == tacticalButtons[1].id then tacticalButtons[2] else tacticalButtons[1]
-        if not tacticalRequirement(nextTile.id) then
-            selectTactical(nextTile.id)
-            revealDetail(nextTile.control)
+        local options = fighterTactics.ByFighter[selectedId].options
+        local index = table.find(options, fighterTactics.get(selectedId, current)) or 1
+        for step = 1, #options - 1 do
+            local nextIndex = (index - 1 + step) % #options + 1
+            local id = options[nextIndex].id
+            if not tacticalRequirement(id) then
+                selectTactical(id)
+                revealDetail(tacticalButtons[nextIndex].control)
+                break
+            end
         end
     elseif formBar.Visible and (input.KeyCode == Enum.KeyCode.Up or input.KeyCode == Enum.KeyCode.Down) then
         local options = forms.list(selectedId)

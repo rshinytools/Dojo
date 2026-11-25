@@ -60,6 +60,8 @@ local silverbackClips = {
     body = {{at = Silverback.Contact.body, damage = 16, zone = "body"}},
     heavy = {{at = Silverback.Contact.heavy, damage = 23, zone = "body"}},
     ridgePalm = {{at = Silverback.Contact.ridgePalm, damage = 20, zone = "body"}},
+    canopyKnuckle = {{at = Silverback.Contact.canopyKnuckle, damage = 15, zone = "body", radius = .46}},
+    ironbarkHammer = {{at = Silverback.Contact.ironbarkHammer, damage = 23, zone = "body", radius = .48}},
     seismicChestPound = {{
         at = Silverback.Contact.seismicChestPound, damage = 34, zone = "body",
         shape = "radial", center = seismic.center, radius = seismic.radius,
@@ -77,6 +79,8 @@ local salamanderClips = {
         at = Salamander.Contact.emberSweep, damage = ember.damage, zone = "body",
         shape = "fan", center = ember.center, radius = ember.radius, halfAngle = ember.halfAngle,
     }},
+    coalstepKick = {{at = Salamander.Contact.coalstepKick, damage = 14, zone = "body", radius = .46, foot = true}},
+    furnaceBacklash = {{at = Salamander.Contact.furnaceBacklash, damage = 22, zone = "body", radius = .48, foot = true}},
 }
 
 -- The mat owns these events once the cast begins. A later clip can stop
@@ -147,13 +151,13 @@ local kits = {
         poses = Silverback, clips = silverbackClips,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .98,
         signature = "seismicChestPound", signatureCooldown = 7.8, signatureCooling = "seismicCooling",
-        secondary = "ridgePalm", secondaryCooldown = 3.4, secondaryCooling = "ridgeCooling",
+        secondaryCooldown = 3.4, secondaryCooling = "ridgeCooling",
     },
     salamander = {
         poses = Salamander, clips = salamanderClips,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .78,
         signature = "magmaTrail", signatureCooldown = 7.4, signatureCooling = "magmaCooling",
-        secondary = "emberSweep", secondaryCooldown = 3.2, secondaryCooling = "emberCooling",
+        secondaryCooldown = 3.2, secondaryCooling = "emberCooling",
     },
     frog = {
         poses = Frog, clips = frogClips,

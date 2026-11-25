@@ -132,7 +132,8 @@ make("UISizeConstraint", notice, {MaxSize = Vector2.new(410, 42)})
 make("UIPadding", notice, {PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9)})
 style(notice)
 
-local earnedCues = {penguinTacticalCooling = "Technique cooling down"}
+local earnedCues = {penguinTacticalCooling = "Technique cooling down", ridgeCooling = "Technique cooling down",
+    emberCooling = "Technique cooling down"}
 for _, group in fighterTactics.ByKit do
     for _, option in group.options do
         earnedCues[option.id] = option.name
@@ -141,8 +142,8 @@ end
 local kits = {
     reedguard = {fighter = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {fighter = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
-    silverback = {fighter = "Silverback", technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
-    salamander = {fighter = "Salamander", technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
+    silverback = {fighter = "Silverback", signature = "Seismic"},
+    salamander = {fighter = "Salamander", signature = "Magma Trail"},
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat

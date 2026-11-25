@@ -48,7 +48,8 @@ local raids = {
         health = Color3.fromRGB(246, 132, 79), lastMatchId = 0, nextStatusAt = 0},
 }
 
-local earnedCues = {penguinTacticalCooling = "Technique cooling down"}
+local earnedCues = {penguinTacticalCooling = "Technique cooling down", ridgeCooling = "Technique cooling down",
+    emberCooling = "Technique cooling down"}
 for _, group in fighterTactics.ByKit do
     for _, option in group.options do
         earnedCues[option.id] = option.name
@@ -57,8 +58,8 @@ end
 local kits = {
     reedguard = {name = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {name = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
-    silverback = {name = "Silverback", technique = "Ridge Palm", techniqueAction = "secondary", signature = "Seismic"},
-    salamander = {name = "Salamander", technique = "Ember Sweep", techniqueAction = "secondary", signature = "Magma Trail"},
+    silverback = {name = "Silverback", signature = "Seismic"},
+    salamander = {name = "Salamander", signature = "Magma Trail"},
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat

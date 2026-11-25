@@ -112,6 +112,63 @@ local sweepSettle = pose({-.02, -.105, .01, -5, 288, 4}, rightGuard, leftGuard,
 local sweepForward = pose({.005, -.095, -.015, -6, 332, -1}, rightGuard, leftGuard,
 	{5, 0, .05, 0, 340, 336, .325, .015, -.10, 0}, {6, 18}, {-8, 11, 1})
 
+local mountedRootHeight = 2.132
+local kickPivot = Vector3.new(.42, 1.71 - mountedRootHeight, .073)
+local lashPivot = Vector3.new(0, 1.70 - mountedRootHeight, .34)
+local function techniquePose(core, right, left, head, tailMotion)
+	return {
+		RootJoint = CFrame.new(.015, core[1], -.035) * rotation(core[2], core[3], core[4]),
+		Neck = around(neck, table.unpack(head)),
+		["Right Shoulder"] = around(rightShoulder, table.unpack(right)),
+		["Left Shoulder"] = around(leftShoulder, table.unpack(left)),
+		["Right Hip"] = ready["Right Hip"],
+		["Left Hip"] = ready["Left Hip"],
+		TailJoint = around(lashPivot, table.unpack(tailMotion)),
+	}
+end
+
+local function coalstepPose(core, right, left, kick, head, tailMotion)
+	local offsets = techniquePose(core, right, left, head, tailMotion)
+	offsets["Right Hip"] = around(kickPivot, table.unpack(kick)) * offsets["Right Hip"]
+	return offsets
+end
+
+local coalLoad = coalstepPose({-.19, 3, -18, 9}, {34, 10, -17, .03, .13}, {42, -17, 18, .04, .10},
+	{4, 0, -2, .035, .06}, {2, 16, -5}, {-10, 21, 1})
+local coalChamber = coalstepPose({-.13, 6, -20, 12}, {37, 15, -29, .04, .16}, {43, -13, 23, .05, .04},
+	{15, 3, -4, .39, .22}, {1, 19, -8}, {-16, 33, 2})
+local coalContact = coalstepPose({-.055, 7, 9, 9}, {53, 17, -26, .04, .18}, {39, -24, 21, .04, -.015},
+	{30, 14, -4, .15, -.41}, {-2, -7, -5}, {-12, -24, -4})
+local coalWithdraw = coalstepPose({-.117, 5, 1, 8}, {48, 18, -24, .04, .14}, {37, -19, 19, .04, .055},
+	{22, 8, -3, .27, -.10}, {0, 0, -4}, {-11, -15, -3})
+local coalSettle = coalstepPose({-.14, -4, -10, 3}, rightGuard, leftGuard,
+	{6, 1, -1, .11, .035}, {4, 10, -2}, {-9, 5, 2})
+
+local function pivotBoot(name, center, yaw)
+	local home = ready[name]
+	return around(home:PointToWorldSpace(center), 0, yaw) * home
+end
+
+local function furnacePose(core, right, left, toes, head, tailMotion)
+	local offsets = techniquePose(core, right, left, head, tailMotion)
+	offsets["Right Hip"] = pivotBoot("Right Hip", rightBoot, toes[1])
+	offsets["Left Hip"] = pivotBoot("Left Hip", leftBoot, toes[2])
+	return offsets
+end
+
+local furnaceGather = furnacePose({-.22, -7, -44, -9}, {19, 10, -22, .02, .20}, {45, -25, 31, .05, .08},
+	{-12, -25}, {7, 29, 4}, {-13, -45, 3})
+local furnaceBrace = furnacePose({-.30, -9, -47, -12}, {13, 9, -26, .01, .23}, {48, -25, 35, .055, .08},
+	{-15, -28}, {8, 34, 4}, {-13, -52, 5})
+local furnaceTurn = furnacePose({-.21, -3, 30, 4}, {34, 31, -34, .055, .11}, {31, -11, 33, .03, .18},
+	{18, 33}, {4, -26, -3}, {-10, 43, 2})
+local furnaceContact = furnacePose({-.14, 2, 112, 5}, {38, 29, -39, .055, .16}, {25, -17, 37, .03, .17},
+	{29, 45}, {1, -39, -3}, {-10, 63, -3})
+local furnaceFollow = furnacePose({-.20, -2, 119, 7}, {39, 25, -36, .055, .15}, {30, -11, 30, .04, .15},
+	{33, 48}, {4, -45, -4}, {-11, 19, -3})
+local furnaceBrake = furnacePose({-.17, -5, 59, 2}, {39, 20, -27, .04, .10}, {32, -10, 22, .04, .11},
+	{28, 30}, {6, -28, -1}, {-10, 16, 1})
+
 local advanceRight = pose({.085, -.075, -.08, -9, -14, -5}, {33, 13, -13, .02, .08}, leftGuard,
 	{-7, 3, .14, 0, 4, -9, -.26, .13}, {8, 13, 3}, {-9, 17, 2})
 local advanceLeft = pose({-.065, -.08, -.075, -9, -9, 3}, rightGuard, {25, -14, 15, .025, .12},
@@ -173,6 +230,8 @@ local contact = table.freeze({
 	body = .26,
 	heavy = .42,
 	emberSweep = .49,
+	coalstepKick = .25,
+	furnaceBacklash = .49,
 	magmaTrail = table.freeze({firstTile.burstAt, secondTile.burstAt}),
 })
 local clips = {
@@ -194,6 +253,10 @@ local clips = {
 	emberSweep = {{0, ready}, {fanWarningAt, sweepLoad}, {.32, sweepLoad}, {.42, sweepPivot},
 		{contact.emberSweep, sweepContact}, {.57, sweepFollow}, {.68, sweepCatch}, {.83, sweepSettle},
 		{.94, sweepForward}, {1.02, ready}},
+	coalstepKick = {{0, ready}, {.075, coalLoad}, {.145, coalChamber}, {contact.coalstepKick, coalContact},
+		{.34, coalWithdraw}, {.465, coalSettle}, {.63, ready}},
+	furnaceBacklash = {{0, ready}, {.16, furnaceGather}, {.29, furnaceBrace}, {.405, furnaceTurn},
+		{contact.furnaceBacklash, furnaceContact}, {.585, furnaceFollow}, {.745, furnaceBrake}, {.90, ready}},
 	magmaTrail = {{0, ready}, {.12, trailCrouch}, {.24, trailCutLeft}, {firstTile.markAt, trailMarkLeft},
 		{.52, trailBend}, {secondTile.markAt, trailMarkRight}, {.88, trailBank}, {1.00, trailBrake},
 		{1.08, trailFace}, {1.15, ready}},
@@ -215,12 +278,17 @@ Poses.Contact = contact
 -- Basic contacts are glove surfaces and the fan uses a measured tail tip.
 -- Tile points are nominal floor positions relative to the skill's start.
 -- Use the server's actual reached floor position when planting each mark.
+-- GLB surface points in the neutral floor frame, converted to the mounted root frame.
+local coalstepToe = Vector3.new(.679547846, .100000024 - mountedRootHeight, -.874111548)
+local furnaceTip = Vector3.new(.625723124, .571580887 - mountedRootHeight, 2.866577238)
 Poses.Impact = table.freeze({
 	jab = table.freeze({Vector3.new(.180, .641, -1.673)}),
 	cross = table.freeze({Vector3.new(-.273, .711, -1.717)}),
 	body = table.freeze({Vector3.new(.057, -.061, -1.827)}),
 	heavy = table.freeze({Vector3.new(-.145, .627, -1.935)}),
 	emberSweep = table.freeze({Vector3.new(.295, -2.501, -2.989)}),
+	coalstepKick = table.freeze({coalContact["Right Hip"]:PointToWorldSpace(coalstepToe)}),
+	furnaceBacklash = table.freeze({(furnaceContact.RootJoint * furnaceContact.TailJoint):PointToWorldSpace(furnaceTip)}),
 	magmaTrail = table.freeze({firstTile.offset, secondTile.offset}),
 })
 

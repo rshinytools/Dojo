@@ -39,6 +39,8 @@ local tells = {
     icecrestPalm = "Icecrest Palm", floeHook = "Floe Hook",
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
+    canopyKnuckle = "Canopy Knuckle", ironbarkHammer = "Ironbark Hammer",
+    coalstepKick = "Coalstep Kick", furnaceBacklash = "Furnace Backlash",
 }
 local resultMessages = {
     win = "You won the duel.",

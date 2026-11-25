@@ -1569,13 +1569,9 @@ local showcaseKits = {
         dodgeName = "FloeTurn", dodgeLabel = "Floe Turn", signatureName = "BellySlide", signatureLabel = "Belly Slide",
         signatureCooldown = "Slide %ds", tint = Color3.fromRGB(163, 216, 251)},
     silverback = {challenger = "Silverback Gorilla", challengerShort = "Silverback",
-        techniqueAction = "secondary", techniqueName = "RidgePalm", techniqueLabel = "Ridge Palm",
-        techniqueCooldown = "Ridge Palm\n%ds",
         dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "SeismicChestPound", signatureLabel = "Seismic",
         signatureCooldown = "Seismic\n%ds", wideFighters = true, tint = Color3.fromRGB(230, 194, 138)},
     salamander = {challenger = "Fire Salamander", challengerShort = "Salamander",
-        techniqueAction = "secondary", techniqueName = "EmberSweep", techniqueLabel = "Ember Sweep",
-        techniqueCooldown = "Ember Sweep\n%ds",
         dodgeName = "Dodge", dodgeLabel = "Dodge", signatureName = "MagmaTrail", signatureLabel = "Magma Trail",
         signatureCooldown = "Magma Trail\n%ds", wideFighters = true, tint = Color3.fromRGB(255, 174, 109)},
 }
@@ -1741,8 +1737,7 @@ local cues = {
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike", uppercut = "Uppercut",
     reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
     floeTurn = "Floe Turn", bellySlide = "Belly-Slide Blitz",
-    ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
-    emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
+    seismicChestPound = "Seismic Chest-Pound", magmaTrail = "Magma Trail",
     projectileDeflected = "Projectile deflected!",
     gustPull = "Vortex pulls inward",
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
@@ -1767,14 +1762,14 @@ local cues = {
 local cooldownCues = {
     slideCooling = {label = "Belly Slide", field = "nextSignature"},
     penguinTacticalCooling = {field = "nextSecondary"},
-    ridgeCooling = {label = "Ridge Palm", field = "nextSecondary"},
+    ridgeCooling = {field = "nextSecondary"},
     seismicCooling = {label = "Seismic", field = "nextSignature"},
-    emberCooling = {label = "Ember Sweep", field = "nextSecondary"},
+    emberCooling = {field = "nextSecondary"},
     magmaCooling = {label = "Magma Trail", field = "nextSignature"},
 }
 local priorityCues = {
-    uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
-    emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
+    uppercut = true, floeTurn = true, bellySlide = true, seismicChestPound = true,
+    magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
     gustPull = true, snareCaught = true, ricochetBounce = true, guardBroken = true, shockLanded = true,
     frenzyResist = true, apexRootCaught = true, submerged = true,
     talonCarry = true, talonCaught = true, talonDropMiss = true, stormThunder = true,
@@ -2022,7 +2017,7 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
         kit.techniqueAction = option.action
         kit.techniqueName = option.id:gsub("^%l", string.upper)
         kit.techniqueLabel, kit.compactTechnique, kit.wrapTechnique = option.name, option.compact, true
-        if kitId == "penguin" then kit.techniqueCooldown = option.name .. "\n%ds" end
+        if option.action == "secondary" then kit.techniqueCooldown = option.name .. "\n%ds" end
     end
     matchPresentation.kit = kit
     matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
