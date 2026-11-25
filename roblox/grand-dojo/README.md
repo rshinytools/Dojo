@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.337, select Honey Badger, Emerald Saber-Tooth, Great White Shark, or Abyssal Kraken after the account earns its first Level 10 fighter. Train and equip the new fighter’s Level 5 or 10 Technique in Fighter Select. Press **V**, **D-pad Up**, or the Technique control in a match.
+
 In v0.336, select Armadillo Striker, Komodo Dragon, Electric Owl or Bighorn Ram after the account reaches its first Level 10 fighter. Use Fighter Select to equip that fighter’s Level 5 or 10 Technique, then use **V**, **D-pad Up**, or the Technique control in a match.
 
 In v0.335, equip Desert Scorpion, Pistol Shrimp, Walrus Sumo, or Snapping Tortoise. Train that fighter to Level 5 and Level 10 to earn two Technique choices. Use Fighter Select to equip one, then press **V**, **D-pad Up**, or the Technique control in a match.

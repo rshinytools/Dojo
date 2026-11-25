@@ -1,13 +1,14 @@
 -- Emerald Saber-Tooth loads from a long stance and drops its leading paw through the landing.
 local Choreography = require(script.Parent.FighterChoreography)
 local v = Vector3.new
+local rootHeight = 2.132
 
 local function sole(side)
     return {v(side * .18, .014, -.86), v(side * .88, .014, -.86),
         v(side * .18, .014, .22), v(side * .88, .014, .22)}
 end
 
-local rig = Choreography.new(2.132, {
+local rig = Choreography.new(rootHeight, {
     Neck = v(0, 3.12, -.09),
     ["Right Shoulder"] = v(1.015, 3.04, .055), ["Left Shoulder"] = v(-1.015, 3.04, .055),
     ["Right Hip"] = v(.52, 1.54, .035), ["Left Hip"] = v(-.52, 1.54, .035),
@@ -64,6 +65,26 @@ local rakeHit = pose({-.075, -.225, -.275, -12, -32, 6}, {42, 12, -25},
 local rakeFollow = pose({-.13, -.315, -.15, -20, -47, 11}, rightGuard,
     {47, -39, 15, .14, -.015, -.13}, rear, lead, {21, 41, -8}, {-14, 54, 12})
 
+local mossLoad = pose({-.078, -.255, .075, -9, 13, 6}, {49, 17, -23, .025, .10, .08},
+    {39, -11, 28, -.055, .065, .14}, rear, lead, {10, -11, -5}, {-9, -12, -8})
+local mossHit = pose({-.025, -.235, -.165, -12, -17, 4}, {49, 13, -25, .022, .105, .065},
+    {56, -23, 7, .15, .05, -.14}, rear, lead, {13, 16, -4}, {-8, 24, -3})
+local mossFold = pose({-.045, -.275, -.045, -11, -10, 6}, rightGuard,
+    {49, -29, 21, .095, .095, .10}, rear, lead, {12, 8, -5}, {-7, 16, -2})
+
+local prowlLower = pose({.075, -.355, .10, -16, -22, -8}, {31, 8, -39, .095, .015, .15},
+    {59, -22, 19, .095, .09, .035}, rear, lead, {16, 22, 5}, {-13, 32, 5})
+local prowlLoad = pose({.128, -.48, .16, -17, -39, -10}, {25, -9, -39, .16, .045, .21},
+    {58, -16, 26, .025, .145, .035}, rear, lead, {18, 34, 9}, {-17, 51, 11})
+local prowlDrive = pose({.09, -.39, -.045, -19, 1, -7}, {48, 14, -29, .11, -.015, -.018},
+    {57, -21, 20, .065, .12, .075}, rear, lead, {17, 0, 3}, {-9, 14, 4})
+local prowlHit = pose({.03, -.29, -.33, -16, 27, -4}, {60, 31, -9, -.15, .025, -.20},
+    {55, -20, 15, .07, .13, .13}, rear, lead, {15, -22, 3}, {4, -23, -8})
+local prowlFollow = pose({-.10, -.36, -.16, -18, 45, 6}, {46, 40, 8, -.24, .045, -.055},
+    leftGuard, rear, lead, {18, -37, -4}, {-4, -42, -11})
+local prowlFold = pose({-.025, -.24, .005, -9, 6, 3}, {47, 16, -23, -.035, .085, .065},
+    leftGuard, rear, lead, {9, -7, -2}, {-7, -3, -5})
+
 local squatRear, squatLead = {13, -15, 0, .14, 0, .23, .018}, {15, 13, 0, -.15, 0, -.19, .018}
 local coil = pose({0, -.43, .23, -26, 0, 0}, {27, 15, -35, .065, .04, .16},
     {28, -15, 35, -.075, .035, .15}, squatRear, squatLead, {23, 0, 0}, {-21, -13, 0})
@@ -99,7 +120,8 @@ local clawSalute = pose({-.035, -.115, -.031, -2, -18, 5}, rightGuard,
 local crestRaise = pose({.048, -.055, -.08, 3, -3, 1}, {68, 8, -51, .04, .15, -.04},
     {75, -6, 50, -.04, .15, -.07}, rear, lead, {-3, 3, -1}, {-10, 11, 3})
 
-local contact = {jab = .155, cross = .218, body = .268, heavy = .413, jadeRake = .31, apexPounce = .54}
+local contact = {jab = .155, cross = .218, body = .268, heavy = .413, jadeRake = .31,
+    mossPalm = .24, emeraldProwl = .48, apexPounce = .54}
 local teleportAt = .41
 local clips = {
     stance = {{0, ready}, {.55, breathe}, {1.10, ready}},
@@ -113,6 +135,9 @@ local clips = {
         {.524, heavyFollow}, {.795, ready}},
     jadeRake = {{0, ready}, {.15, rakeWind}, {.229, rakeStart}, {contact.jadeRake, rakeHit},
         {.416, rakeFollow}, {.567, breathe}, {.676, ready}},
+    mossPalm = {{0, ready}, {.088, mossLoad}, {contact.mossPalm, mossHit}, {.334, mossFold}, {.60, ready}},
+    emeraldProwl = {{0, ready}, {.135, prowlLower}, {.226, prowlLoad}, {.298, prowlLoad}, {.391, prowlDrive},
+        {contact.emeraldProwl, prowlHit}, {.59, prowlFollow}, {.735, prowlFold}, {.94, ready}},
     apexPounce = {{0, ready}, {.19, coil}, {.30, coil}, {.365, spring}, {teleportAt, blink},
         {.474, reach}, {contact.apexPounce, land}, {.65, land}, {.79, landRecover}, {1.03, ready}},
     guard = {{0, cover}},
@@ -128,17 +153,29 @@ local clips = {
 }
 
 local rightPad, leftPad = v(1.255, 1.865, -.915), v(-1.255, 1.865, -.915)
+-- The visible jade pad leads the contact cue as the glove rotates around the shoulder.
+local function gauntletContact(authored, joint, side)
+    local frame = authored.RootJoint * authored[joint]
+    local radii = v(.251, .1355, .057)
+    local front = frame:VectorToObjectSpace(-Vector3.zAxis) * radii
+    return frame:PointToWorldSpace(v(side * 1.255, 1.865 - rootHeight, -.858) + front * radii / front.Magnitude)
+end
+
 local hits = {
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     jadeRake = {{rakeHit, "Left Shoulder", leftPad}}, apexPounce = {{land, "Right Shoulder", rightPad}},
+    mossPalm = {gauntletContact(mossHit, "Left Shoulder", -1)},
+    emeraldProwl = {gauntletContact(prowlHit, "Right Shoulder", 1)},
 }
 local skills = {
     jadeRake = table.freeze({damage = 21, radius = .61, shove = .96}),
+    mossPalm = table.freeze({damage = 15, radius = .40}),
+    emeraldProwl = table.freeze({damage = 23, radius = .49}),
     apexPounce = table.freeze({damage = 26, teleportAt = teleportAt}),
 }
 local travel = {
     jadeRake = table.freeze({axis = "forward", distance = .33, startsAt = .18, endsAt = .30}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {mossPalm = true, emeraldProwl = true})

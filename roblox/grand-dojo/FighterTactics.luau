@@ -162,6 +162,46 @@ local byFighter = {
                 description = "A slow, braced horn strike that pushes the opponent back."},
         },
     },
+    ["honey-badger"] = {
+        kit = "badger", attribute = "BadgerTactical", default = "burrowHook",
+        options = {
+            {id = "burrowHook", name = "Burrow Hook", compact = "Hook", level = 1, action = "secondary"},
+            {id = "copperKnuckle", name = "Copper Knuckle", compact = "Knuckle", level = 5, action = "secondary", planted = true,
+                description = "A short strike with the padded foreknuckle."},
+            {id = "quarryBackhand", name = "Quarry Backhand", compact = "Backhand", level = 10, action = "secondary", planted = true,
+                description = "A planted turn into a wide backhand."},
+        },
+    },
+    ["emerald-saber-tooth"] = {
+        kit = "sabertooth", attribute = "SaberTactical", default = "jadeRake",
+        options = {
+            {id = "jadeRake", name = "Jade Rake", compact = "Rake", level = 1, action = "secondary"},
+            {id = "mossPalm", name = "Moss Palm", compact = "Palm", level = 5, action = "secondary", planted = true,
+                description = "A quick palm strike out of guard."},
+            {id = "emeraldProwl", name = "Emerald Prowl", compact = "Prowl", level = 10, action = "secondary", planted = true,
+                description = "A low crouch into a sweeping gauntlet strike."},
+        },
+    },
+    ["great-white-shark"] = {
+        kit = "shark", attribute = "SharkTactical", default = "reefHook",
+        options = {
+            {id = "reefHook", name = "Reef Hook", compact = "Hook", level = 1, action = "secondary"},
+            {id = "shoalPalm", name = "Shoal Palm", compact = "Palm", level = 5, action = "secondary", planted = true,
+                description = "A compact strike with the leading glove."},
+            {id = "undertowHeel", name = "Undertow Heel", compact = "Heel", level = 10, action = "secondary", planted = true,
+                description = "A turning heel strike with one boot planted."},
+        },
+    },
+    ["abyssal-kraken"] = {
+        kit = "kraken", attribute = "KrakenTactical", default = "tideGrip",
+        options = {
+            {id = "tideGrip", name = "Tide Grip", compact = "Grip", level = 1, action = "secondary"},
+            {id = "currentTap", name = "Current Tap", compact = "Tap", level = 5, action = "secondary", planted = true,
+                description = "A quick close strike with the folded tentacle."},
+            {id = "maelstromPalm", name = "Maelstrom Palm", compact = "Maelstrom", level = 10, action = "secondary", planted = true,
+                description = "A deliberate body turn into a broad tentacle press."},
+        },
+    },
 }
 
 local byKit, byId = {}, {}

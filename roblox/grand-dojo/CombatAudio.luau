@@ -24,6 +24,7 @@ local groundPitch = {
     pulse = .87, sweep = .98, undertow = .90, cataclysm = .82, solarFlare = 1.13,
 }
 local heavyPitch = {
+    quarryBackhand = .86, emeraldProwl = .93, undertowHeel = .94, maelstromPalm = .79,
     kilnShoulder = .83, cinderHeel = 1.06, thunderclapWing = 1.18, ridgelineDrive = .79,
     duneLash = 1.04, tidebreakerClaw = .89, basinPress = .80, rampartBash = .77,
     pondboundHeel = 1.08, breakwaterPalm = .91, crestWheel = 1.11, sailSwipe = 1.15,
@@ -37,6 +38,7 @@ local heavyPitch = {
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {
+    copperKnuckle = 1.04, mossPalm = 1.13, shoalPalm = 1.17, currentTap = 1.22,
     rivetPalm = .98, ashenSnap = 1.18, quillFlick = 1.28, stoneTap = 1.05,
     sandPincer = 1.14, jetSnap = 1.27, whiskerCheck = .91, quickSnap = 1.1,
     mudPalm = 1.08, brookHook = .98, perchPeck = 1.19, boughSnap = 1.15,

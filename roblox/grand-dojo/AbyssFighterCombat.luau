@@ -4,15 +4,19 @@ local Debris = game:GetService("Debris")
 local TweenService = game:GetService("TweenService")
 local Abyss = {}
 
-local function strikes(poses, damage, secondary)
-    local contacts, move = poses.Contact, poses.Skill[secondary]
-    return {
+local function strikes(poses, damage, techniques)
+    local contacts = poses.Contact
+    local moves = {
         jab = {{at = contacts.jab, damage = damage[1], zone = "head"}},
         cross = {{at = contacts.cross, damage = damage[2], zone = "body"}},
         body = {{at = contacts.body, damage = damage[3], zone = "body"}},
         heavy = {{at = contacts.heavy, damage = damage[4], zone = "body"}},
-        [secondary] = {{at = contacts[secondary], damage = move.damage, radius = move.radius, zone = "body"}},
     }
+    for _, id in techniques do
+        local move = poses.Skill[id]
+        moves[id] = {{at = contacts[id], damage = move.damage, radius = move.radius, zone = "body", foot = move.foot}}
+    end
+    return moves
 end
 
 local jaws = Shark.Skill.jawsOfTheDeep
@@ -22,11 +26,11 @@ Abyss.jaws = table.freeze({
     at = Shark.Contact.jawsOfTheDeep, radius = 2.45, gap = 2.05, tint = Color3.fromRGB(126, 233, 255),
     center = Vector3.new(0, 0, -.85),
 })
-local shark = strikes(Shark, {15, 15, 16, 24}, "reefHook")
+local shark = strikes(Shark, {15, 15, 16, 24}, {"reefHook", "shoalPalm", "undertowHeel"})
 shark.jawsOfTheDeep = {{at = Abyss.jaws.at, damage = jaws.damage, shape = "radial", center = Abyss.jaws.center,
     abyss = true, radius = Abyss.jaws.radius, zone = "body"}}
 
-local kraken = strikes(Kraken, {14, 16, 17, 25}, "tideGrip")
+local kraken = strikes(Kraken, {14, 16, 17, 25}, {"tideGrip", "currentTap", "maelstromPalm"})
 local laneRadius = .83
 kraken.tentacleCataclysm = {}
 for index, at in Kraken.Contact.tentacleCataclysm do
@@ -37,11 +41,11 @@ end
 Abyss.kits = table.freeze({
     shark = {poses = Shark, clips = shark, mixedSpacing = 2.62,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .79,
-        secondary = "reefHook", secondaryCooldown = 3.35, secondaryCooling = "reefCooling",
+        secondaryCooldown = 3.35, secondaryCooling = "reefCooling",
         signature = "jawsOfTheDeep", signatureCooldown = 9.8, signatureCooling = "jawsCooling"},
     kraken = {poses = Kraken, clips = kraken, mixedSpacing = 2.72,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = 1.03,
-        secondary = "tideGrip", secondaryCooldown = 3.55, secondaryCooling = "tideCooling",
+        secondaryCooldown = 3.55, secondaryCooling = "tideCooling",
         signature = "tentacleCataclysm", signatureCooldown = 11.4, signatureCooling = "cataclysmCooling"},
 })
 Abyss.shove = table.freeze({reefHook = Shark.Skill.reefHook.shove, tideGrip = Kraken.Skill.tideGrip.shove,

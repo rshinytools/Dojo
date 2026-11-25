@@ -63,6 +63,29 @@ local hookHit = pose({.023, -.27, -.25, -12, 28, 3}, {64, 32, -15, -.155, .10, -
 local hookFollow = pose({-.03, -.225, -.11, -6, 42, 5}, {76, 44, -11, -.18, .16, -.135},
     leftGuard, rear, lead, {8, -37, -4}, {-14, -35, 8})
 
+-- Snap the padded right knuckle forward from guard with a compact shoulder turn.
+local copperLoad = pose({.07, -.33, .085, -18, -18, -6}, {33, 3, -22, .03, .055, .18},
+    {63, -20, 25, .071, .12, -.04}, rear, lead, {19, 16, 4}, {-13, 17, -4})
+local copperHit = pose({.035, -.32, -.135, -17, 22, -5}, {54, 18, -19, -.105, -.015, -.13},
+    {64, -20, 25, .075, .12, .015}, rear, lead, {18, -20, 4}, {-12, -21, 5})
+local copperFold = pose({.04, -.30, -.035, -14, 14, -4}, {49, 17, -22, -.065, .045, -.03},
+    leftGuard, rear, lead, {15, -13, 3}, {-12, -13, 4})
+
+-- Roll the left wrist across the body so the padded outside of the paw
+-- leads the swing. The right glove holds its guard during the turn.
+local quarryLoad = pose({-.12, -.37, .12, -19, 25, 8}, {62, 20, -21, -.045, .10, -.015},
+    {28, 14, 11, -.10, .045, .18}, rear, lead, {18, -22, -5}, {-13, -24, -6})
+local quarryDraw = pose({-.15, -.40, .12, -19, 40, 10}, {68, 24, -24, -.055, .10, -.025},
+    {32, 30, 21, -.14, .07, .20}, rear, lead, {18, -33, -7}, {-15, -36, -8})
+local quarryTurn = pose({-.10, -.34, .035, -17, 7, 7}, {65, 21, -25, -.05, .10, .01},
+    {52, -20, 36, -.085, .07, .075}, rear, lead, {17, -7, -4}, {-13, -8, -5})
+local quarryHit = pose({-.035, -.27, -.57, -12, -39, 3}, {58, 23, -22, -.065, .11, .07},
+    {55, -50, 33, .045, .045, -.24}, rear, lead, {13, 35, -3}, {-12, 32, 6})
+local quarryThrough = pose({.08, -.31, -.24, -16, -51, -4}, {55, 22, -24, -.06, .10, .045},
+    {53, -68, 37, .11, .05, -.08}, rear, lead, {16, 41, 3}, {-13, 43, 6})
+local quarryFold = pose({.045, -.30, -.075, -16, -14, -3}, rightGuard,
+    {53, -32, 26, .105, .08, -.015}, rear, lead, {17, 12, 3}, {-12, 15, 4})
+
 local frenzyRear = {8, -22, -1, .14, 0, .18, .018}
 local frenzyLead = {10, 22, 1, -.14, 0, -.23, .018}
 local frenzyWind = pose({.055, -.40, .105, -25, -29, -6}, {30, -31, -54, .09, .045, .17},
@@ -96,7 +119,7 @@ local broadRaise = pose({0, -.075, -.035, 4, 0, 0}, {74, -18, -44, .055, .15, -.
     {74, 18, 44, -.06, .14, -.07}, rear, lead, {-2, 0, 0}, {-12, 0, 0})
 
 local contact = {jab = .159, cross = .228, body = .275, heavy = .421,
-    burrowHook = .29, unstoppableFrenzy = table.freeze({.28, .48, .69, .92})}
+    burrowHook = .29, copperKnuckle = .24, quarryBackhand = .49, unstoppableFrenzy = table.freeze({.28, .48, .69, .92})}
 local swipe = contact.unstoppableFrenzy
 local clips = {
     stance = {{0, ready}, {.59, breathe}, {1.18, ready}},
@@ -110,6 +133,9 @@ local clips = {
         {.53, heavyCarry}, {.817, ready}},
     burrowHook = {{0, ready}, {.14, hookDuck}, {.213, hookRise}, {contact.burrowHook, hookHit},
         {.394, hookFollow}, {.518, breathe}, {.654, ready}},
+    copperKnuckle = {{0, ready}, {.095, copperLoad}, {contact.copperKnuckle, copperHit}, {.345, copperFold}, {.59, ready}},
+    quarryBackhand = {{0, ready}, {.145, quarryLoad}, {.285, quarryDraw}, {.395, quarryTurn},
+        {contact.quarryBackhand, quarryHit}, {.585, quarryThrough}, {.75, quarryFold}, {.94, ready}},
     unstoppableFrenzy = {{0, ready}, {.14, frenzyWind}, {.21, frenzyWind}, {swipe[1], firstSwipe},
         {.327, firstSwipe}, {swipe[2], secondSwipe}, {.527, secondSwipe}, {swipe[3], thirdSwipe},
         {.741, thirdSwipe}, {swipe[4], finalSwipe}, {1.07, frenzySettle}, {1.31, ready}},
@@ -131,6 +157,9 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     burrowHook = {{hookHit, "Right Shoulder", rightPad}},
+    -- The native striking pad and the outside of the opposite enclosed paw.
+    copperKnuckle = {{copperHit, "Right Shoulder", v(1.421409231, 1.830635123, -.815136785)}},
+    quarryBackhand = {{quarryHit, "Left Shoulder", v(-1.592291598, 1.856266583, -.547768232)}},
     unstoppableFrenzy = {
         {firstSwipe, "Right Shoulder", rightPad}, {secondSwipe, "Left Shoulder", leftPad},
         {thirdSwipe, "Right Shoulder", rightPad}, {finalSwipe, "Left Shoulder", leftPad},
@@ -138,10 +167,12 @@ local hits = {
 }
 local skills = {
     burrowHook = table.freeze({damage = 20, radius = .60, shove = .85}),
+    copperKnuckle = table.freeze({damage = 15, radius = .46}),
+    quarryBackhand = table.freeze({damage = 23, radius = .51}),
     unstoppableFrenzy = table.freeze({damage = table.freeze({6, 6, 6, 6}), immunity = 5}),
 }
 local travel = {
     burrowHook = table.freeze({axis = "forward", distance = .40, startsAt = .17, endsAt = .28}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {copperKnuckle = true, quarryBackhand = true})

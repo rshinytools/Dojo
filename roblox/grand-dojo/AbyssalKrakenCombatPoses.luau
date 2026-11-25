@@ -62,6 +62,28 @@ local gripHit = pose({-.044, -.271, -.252, -16, -27, 4}, {61, 21, -18, -.23, .12
 local gripHold = pose({-.035, -.329, -.186, -22, -18, 2}, {56, 28, -22, -.185, .082, -.07},
     {62, -30, 26, .18, .073, -.12}, rear, lead, {22, 16, -2}, {-16, 24, 5})
 
+local tapGather = pose({.043, -.234, .055, -14, -8, -6}, {38, -11, -34, .015, .064, .105},
+    leftGuard, rear, lead, {14, 8, 3}, {-12, 15, 0})
+local tapDrive = pose({.041, -.279, -.047, -17, 15, -4}, {54, 4, -29, -.032, .041, -.028},
+    {54, -13, 32, .063, .072, -.021}, rear, lead, {17, -13, 2}, {-16, -17, 5})
+local tapHit = pose({.028, -.25, -.032, -15, 27, -3}, {66, 17, -10, -.137, .067, -.028},
+    {54, -16, 34, .062, .06, -.045}, rear, lead, {16, -24, 1}, {-13, -24, 7})
+local tapReset = pose({.026, -.228, -.049, -14, 16, -3}, {60, 15, -22, -.104, .068, -.077},
+    leftGuard, rear, lead, {15, -15, 2}, {-13, -14, 6})
+
+local palmDraw = pose({-.077, -.299, .13, -16, 33, 8}, {54, 6, -42, -.064, .085, -.015},
+    {31, 12, 54, .017, .065, .161}, rear, lead, {15, -31, -6}, {-18, -25, -7})
+local palmBrace = pose({-.069, -.333, .083, -19, 30, 7}, {55, 13, -39, -.100, .076, -.031},
+    {36, 8, 50, .035, .092, .129}, rear, lead, {19, -27, -5}, {-19, -24, -6})
+local palmSwing = pose({-.051, -.279, -.047, -15, 3, 4}, {58, 19, -34, -.123, .067, -.055},
+    {55, -13, 37, .068, .112, -.059}, rear, lead, {15, -3, -4}, {-19, 7, -4})
+local palmHit = pose({-.043, -.222, -.258, -13, -37, 3}, {57, 19, -36, -.106, .076, -.065},
+    {73, -17, 11, .172, .117, -.229}, rear, lead, {13, 35, -1}, {-13, 38, -5})
+local palmThrough = pose({-.063, -.273, -.162, -17, -46, 6}, {54, 19, -32, -.072, .075, -.041},
+    {63, -26, 18, .154, .092, -.156}, rear, lead, {17, 41, -4}, {-17, 43, -7})
+local palmReset = pose({-.027, -.221, -.050, -12, -15, 2}, rightGuard,
+    {56, -19, 29, .091, .073, -.077}, rear, lead, {12, 14, -1}, {-14, 17, -3})
+
 local anchorRight = {8, -24, 1, .22, 0, .134, .018}
 local anchorLeft = {9, 23, -1, -.22, 0, -.19, .018}
 local summon = pose({0, -.30, .10, -16, -2, 0}, {64, -21, -62, .15, .11, .023},
@@ -95,6 +117,7 @@ local currentCall = pose({0, -.057, -.04, 1, 0, 0}, {81, -23, -54, .083, .15, -.
     {80, 24, 54, -.075, .15, -.091}, rear, lead, {0, 0, 0}, {-19, 0, 0})
 
 local contact = {jab = .171, cross = .237, body = .285, heavy = .438, tideGrip = .31,
+    currentTap = .25, maelstromPalm = .51,
     tentacleCataclysm = table.freeze({.47, .62, .77, .92})}
 local beat = contact.tentacleCataclysm
 local clips = {
@@ -109,6 +132,11 @@ local clips = {
         {.559, heavyCarry}, {.83, ready}},
     tideGrip = {{0, ready}, {.139, gripOpen}, {.213, gripOpen}, {contact.tideGrip, gripHit},
         {.394, gripHold}, {.544, breathe}, {.683, ready}},
+    currentTap = {{0, ready}, {.091, tapGather}, {.168, tapDrive}, {contact.currentTap, tapHit},
+        {.349, tapReset}, {.63, ready}},
+    maelstromPalm = {{0, ready}, {.188, palmDraw}, {.280, palmDraw}, {.352, palmBrace},
+        {.419, palmSwing}, {contact.maelstromPalm, palmHit}, {.622, palmThrough},
+        {.801, palmReset}, {.98, ready}},
     tentacleCataclysm = {{0, ready}, {.16, gripOpen}, {.31, summon}, {.39, summon},
         {beat[1], firstCall}, {.494, firstCall}, {beat[2], secondCall}, {.645, secondCall},
         {beat[3], thirdCall}, {.792, thirdCall}, {beat[4], finalCall}, {1.04, settle}, {1.34, ready}},
@@ -129,13 +157,18 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     tideGrip = {{gripHit, "Left Shoulder", leftPad}},
+    currentTap = {{tapHit, "Right Shoulder", v(1.568347134, 1.790349227, -.726339229)}},
+    maelstromPalm = {{palmHit, "Left Shoulder", v(-1.532139772, 1.872116985, -.863937001)}},
     tentacleCataclysm = {{firstCall, "Right Shoulder", rightPad}, {secondCall, "Left Shoulder", leftPad},
         {thirdCall, "Right Shoulder", rightPad}, {finalCall, "Left Shoulder", leftPad}},
 }
 local skills = {
     tideGrip = table.freeze({damage = 20, radius = .63, shove = .99}),
+    currentTap = table.freeze({damage = 15, radius = .48}),
+    maelstromPalm = table.freeze({damage = 24, radius = .56}),
     tentacleCataclysm = table.freeze({damage = table.freeze({9, 9, 9, 9})}),
 }
 local travel = {tideGrip = table.freeze({axis = "forward", distance = .29, startsAt = .18, endsAt = .29})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"},
+    {currentTap = true, maelstromPalm = true})

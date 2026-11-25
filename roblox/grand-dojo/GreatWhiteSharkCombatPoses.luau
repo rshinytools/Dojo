@@ -62,6 +62,27 @@ local reefHit = pose({.058, -.21, -.275, -17, 27, 3}, {67, 18, -20, -.20, .065, 
 local reefCarry = pose({-.108, -.236, -.14, -12, 43, 9}, {74, 36, -15, -.20, .145, -.11},
     leftGuard, rear, lead, {13, -39, -8}, {-9, -45, 8})
 
+local shoalFold = pose({-.06, -.22, .074, -12, 24, 5}, {53, 10, -23, -.03, .086, .04},
+    {40, -7, 12, .08, .064, .13}, rear, lead, {12, -24, -4}, {-8, -29, -5})
+local shoalHit = pose({.038, -.25, -.233, -14, -26, -2}, {55, 15, -25, -.03, .083, .045},
+    {61, -15, 11, .21, .108, -.209}, rear, lead, {15, 25, 2}, {-9, 38, 6})
+local shoalCatch = pose({.01, -.23, -.047, -12, -9, 2}, rightGuard,
+    {55, -17, 16, .13, .11, -.061}, rear, lead, {13, 9, -1}, {-8, 12, 3})
+
+-- Counterbalance the raised heel with the fins while the lead boot stays in place.
+local undertowGather = pose({-.068, -.30, .13, -6, -34, 9}, {36, 12, -31, .03, .035, .12},
+    {61, -22, 23, .085, .135, .05}, rear, lead, {9, 33, -9}, {-13, 38, 8})
+local undertowChamber = pose({-.169, -.22, .058, 2, -13, 13}, {34, 8, -42, .106, .04, .17},
+    {53, -20, 23, .09, .117, .086}, {71, -14, 4, .16, .19, .07}, lead,
+    {-1, 12, -9}, {2, 32, 10})
+local undertowHit = pose({-.163, -.135, -.28, 6, 19, 10}, {36, 21, -39, .10, .074, .159},
+    {61, -17, 28, .075, .11, .081}, {106, 2, 2, .09, .33, -.243}, lead,
+    {-6, -19, -7}, {8, -11, 6})
+local undertowFollow = pose({-.195, -.19, -.165, 4, 27, 11}, {40, 24, -36, .095, .063, .081},
+    {59, -17, 24}, {94, 1, 2, .11, .21, -.12}, lead, {-4, -23, -7}, {7, -15, 4})
+local undertowSettle = pose({-.095, -.24, .025, -5, 16, 8}, rightGuard, leftGuard,
+    {49, -11, 2, .18, .115, .071}, lead, {8, -15, -6}, {-4, -14, 2})
+
 -- World locomotion stays on the ring plane. These local offsets dip the art
 -- below it while the rule set controls concealment and the server relocation.
 local diveWind = pose({0, -.48, .14, -26, -13, 0}, {35, -6, -33, .025, -.045, .145},
@@ -98,7 +119,7 @@ local rollFins = pose({.022, -.053, -.033, 3, 17, -2}, {75, -21, -51, .07, .115,
     {71, 14, 39, -.07, .135, -.04}, rear, lead, {0, -15, 2}, {-9, -31, 8})
 
 local contact = {jab = .157, cross = .216, body = .266, heavy = .421,
-    reefHook = .30, jawsOfTheDeep = .84}
+    reefHook = .30, shoalPalm = .24, undertowHeel = .50, jawsOfTheDeep = .84}
 local submergeAt, teleportAt, resurfaceAt = .27, .58, .76
 local clips = {
     stance = {{0, ready}, {.53, breathe}, {1.06, ready}},
@@ -112,6 +133,9 @@ local clips = {
         {.515, heavyCarry}, {.788, ready}},
     reefHook = {{0, ready}, {.122, reefWind}, {.203, reefWind}, {contact.reefHook, reefHit},
         {.39, reefCarry}, {.622, ready}},
+    shoalPalm = {{0, ready}, {.103, shoalFold}, {contact.shoalPalm, shoalHit}, {.34, shoalCatch}, {.60, ready}},
+    undertowHeel = {{0, ready}, {.18, undertowGather}, {.343, undertowChamber}, {contact.undertowHeel, undertowHit},
+        {.565, undertowFollow}, {.734, undertowSettle}, {.95, ready}},
     jawsOfTheDeep = {{0, ready}, {.173, diveWind}, {.22, diveWind}, {submergeAt, submerged},
         {resurfaceAt, submerged}, {.798, emerge}, {contact.jawsOfTheDeep, eruption}, {.93, eruptionCarry},
         {1.18, ready}},
@@ -132,13 +156,30 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     reefHook = {{reefHit, "Right Shoulder", rightPad}},
+    shoalPalm = {{shoalHit, "Left Shoulder", leftPad}},
+    undertowHeel = {{undertowHit, "Right Hip", v(.48, .012, .18)}},
     jawsOfTheDeep = {{eruption, "Right Shoulder", rightPad}},
 }
 local skills = {
     reefHook = table.freeze({damage = 21, radius = .61, shove = .94}),
+    shoalPalm = table.freeze({damage = 15, radius = .47}),
+    undertowHeel = table.freeze({damage = 23, radius = .50, foot = true}),
     jawsOfTheDeep = table.freeze({damage = 28, submergeAt = submergeAt, resurfaceAt = resurfaceAt,
         teleportAt = teleportAt, shove = 1.28}),
 }
 local travel = {reefHook = table.freeze({axis = "forward", distance = .33, startsAt = .16, endsAt = .28})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {shoalPalm = true})
+local poses = table.clone(standard)
+local leftHip = "Left Hip"
+local support = ready.RootJoint * ready[leftHip]
+
+function poses.sample(action, age, direction)
+    local offsets = standard.sample(action, age, direction)
+    if action == "undertowHeel" then
+        offsets[leftHip] = offsets.RootJoint:ToObjectSpace(support)
+    end
+    return offsets
+end
+
+return table.freeze(poses)

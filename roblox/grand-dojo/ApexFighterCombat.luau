@@ -3,20 +3,24 @@ local Saber = require(script.Parent.EmeraldSaberToothCombatPoses)
 local Debris = game:GetService("Debris")
 local Apex = {}
 
-local function standard(poses, damage, secondary)
-    local contacts, move = poses.Contact, poses.Skill[secondary]
-    return {
+local function standard(poses, damage, techniques)
+    local contacts = poses.Contact
+    local moves = {
         jab = {{at = contacts.jab, damage = damage[1], zone = "head"}},
         cross = {{at = contacts.cross, damage = damage[2], zone = "body"}},
         body = {{at = contacts.body, damage = damage[3], zone = "body"}},
         heavy = {{at = contacts.heavy, damage = damage[4], zone = "body"}},
-        [secondary] = {{at = contacts[secondary], damage = move.damage, radius = move.radius, zone = "body"}},
     }
+    for _, id in techniques do
+        local move = poses.Skill[id]
+        moves[id] = {{at = contacts[id], damage = move.damage, radius = move.radius, zone = "body"}}
+    end
+    return moves
 end
 
 local frenzy = Badger.Skill.unstoppableFrenzy
 local pounce = Saber.Skill.apexPounce
-local badgerMoves = standard(Badger, {14, 15, 15, 23}, "burrowHook")
+local badgerMoves = standard(Badger, {14, 15, 15, 23}, {"burrowHook", "copperKnuckle", "quarryBackhand"})
 badgerMoves.unstoppableFrenzy = {}
 for index, time in Badger.Contact.unstoppableFrenzy do
     badgerMoves.unstoppableFrenzy[index] = {
@@ -29,19 +33,19 @@ Apex.pounce = table.freeze({
     teleportAt = pounce.teleportAt, impactAt = Saber.Contact.apexPounce,
     radius = 2.82, gap = 2.35, duration = 1.20, rootDuration = .88, tint = Color3.fromRGB(143, 239, 158),
 })
-local saberMoves = standard(Saber, {15, 15, 17, 24}, "jadeRake")
+local saberMoves = standard(Saber, {15, 15, 17, 24}, {"jadeRake", "mossPalm", "emeraldProwl"})
 saberMoves.apexPounce = {{at = Apex.pounce.impactAt, damage = pounce.damage, shape = "radial", apex = true,
     radius = Apex.pounce.radius, center = Vector3.zero, zone = "body"}}
 
 Apex.kits = table.freeze({
     badger = {poses = Badger, clips = badgerMoves, mixedSpacing = 2.52,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .85,
-        secondary = "burrowHook", secondaryCooldown = 3.3, secondaryCooling = "burrowCooling",
+        secondaryCooldown = 3.3, secondaryCooling = "burrowCooling",
         signature = "unstoppableFrenzy", signatureCooldown = 12, signatureCooling = "frenzyCooling",
         frenzyTime = frenzy.immunity},
     sabertooth = {poses = Saber, clips = saberMoves, mixedSpacing = 2.63,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .79,
-        secondary = "jadeRake", secondaryCooldown = 3.45, secondaryCooling = "jadeCooling",
+        secondaryCooldown = 3.45, secondaryCooling = "jadeCooling",
         signature = "apexPounce", signatureCooldown = 9.3, signatureCooling = "apexCooling"},
 })
 
