@@ -67,6 +67,28 @@ local clawHit = pose({-.043, -.198, -.278, -13, -36, 7}, {61, 17, -32},
 local clawFollow = pose({-.092, -.271, -.143, -20, -47, 10}, rightGuard,
     {51, -41, 8, .21, .038, -.104}, rear, lead, {18, 43, -9}, {-17, 48, 11})
 
+local horizonLoad = pose({.075, -.23, .075, -9, -19, -5}, {36, 11, -29, .025, .06, .12},
+    {61, -18, 31, .095, .10, -.05}, rear, lead, {10, 18, 4}, {-10, 12, 6})
+local horizonHit = pose({.034, -.185, -.19, -14, 25, -2}, {62, 21, -15, -.14, .075, -.13},
+    {60, -20, 33, .083, .077, .035}, rear, lead, {14, -23, 2}, {-7, -19, 2})
+local horizonFold = pose({.022, -.224, -.04, -12, 14, -3}, {47, 20, -27, -.060, .061, .07},
+    leftGuard, rear, lead, {12, -13, 4}, {-11, -17, 3})
+
+local nimbusGather = pose({-.060, -.28, .09, -7, -25, 5}, {55, 23, -25, -.098, .125, .07},
+    {53, -16, 32, .060, .090, .075}, rear, lead, {9, 23, -4}, {-10, 22, 12})
+local nimbusCoil = pose({-.11, -.40, .12, -10, -38, 7}, {53, 16, -30, -.068, .10, .12},
+    {62, -20, 36, .092, .085, -.01}, rear, lead, {10, 34, -6}, {-18, 67, -9})
+local nimbusOpen = pose({.02, -.31, -.04, -8, 45, -1}, {50, 18, -39, .065, .083, .065},
+    {53, -11, 38, .055, .073, .10}, rear, lead, {10, -20, 3}, {-12, 69, 7})
+local nimbusSwing = pose({.06, -.255, -.23, -7, 92, -3}, {50, 12, -42, .082, .050, .1},
+    {59, -14, 43, .05, .103, .08}, rear, lead, {10, -38, 5}, {-7, 76, 4})
+local nimbusHit = pose({-.01, -.055, -.56, -6, 132, 0}, {51, 11, -40, .075, .067, .11},
+    {54, -20, 40, .06, .091, .08}, rear, lead, {8, -54, 2}, {-5, 58, 2, 0, .14, .11})
+local nimbusFollow = pose({-.09, -.235, -.285, -8, 139, 4}, {46, 16, -37, .065, .055, .115},
+    {59, -21, 43, .075, .083, .075}, rear, lead, {10, -57, -5}, {-8, 79, -4})
+local nimbusFold = pose({-.08, -.25, .005, -12, 64, 6}, rightGuard, leftGuard,
+    rear, lead, {14, -42, -4}, {-12, 40, -5})
+
 local anchorRight = {6, -22, 0, .19, 0, .145, .018}
 local anchorLeft = {7, 23, 0, -.195, 0, -.145, .018}
 local gather = pose({0, -.38, .10, -19, 0, 0}, {35, -8, -47, .071, .079, .094},
@@ -110,7 +132,7 @@ local channelAt, channelEnd = .52, 1.54
 local beamBeats = table.freeze({channelAt, .76, 1.00, 1.24, 1.48})
 local thunderAt = 1.37
 local contacts = {jab = .175, cross = .239, body = .281, heavy = .433, stormClaw = .31,
-    tempestRoar = table.freeze({beamBeats[1], beamBeats[2], beamBeats[3], beamBeats[4], thunderAt, beamBeats[5]})}
+    horizonPalm = .24, nimbusTail = .52, tempestRoar = table.freeze({beamBeats[1], beamBeats[2], beamBeats[3], beamBeats[4], thunderAt, beamBeats[5]})}
 local clips = {
     stance = {{0, ready}, {.675, breathe}, {1.35, ready}},
     advance = {{0, ready}, {.176, stepLead}, {.355, breathe}, {.533, stepRear}, {.711, ready}},
@@ -123,6 +145,9 @@ local clips = {
         {.551, heavyCarry}, {.829, ready}},
     stormClaw = {{0, ready}, {.135, clawWind}, {.224, clawArmed}, {contacts.stormClaw, clawHit},
         {.403, clawFollow}, {.53, breathe}, {.679, ready}},
+    horizonPalm = {{0, ready}, {.094, horizonLoad}, {contacts.horizonPalm, horizonHit}, {.345, horizonFold}, {.60, ready}},
+    nimbusTail = {{0, ready}, {.145, nimbusGather}, {.246, nimbusCoil}, {.310, nimbusCoil}, {.392, nimbusOpen},
+        {.454, nimbusSwing}, {contacts.nimbusTail, nimbusHit}, {.627, nimbusFollow}, {.781, nimbusFold}, {.99, ready}},
     tempestRoar = {{0, ready}, {.17, gather}, {.27, gather}, {.41, haloRise},
         {beamBeats[1], beamPush}, {beamBeats[2], beamEase}, {beamBeats[3], beamPush},
         {beamBeats[4], beamEase}, {thunderAt, beamPush}, {beamBeats[5], beamEase},
@@ -142,15 +167,27 @@ local clips = {
 
 local rightClaw, leftClaw = v(1.37, 1.94, -.830), v(-1.37, 1.94, -.830)
 local muzzle = v(0, 3.69, -1.305)
+-- Resolve to the visible soft strike pad or tapered blue tail, rather than a crest or proxy box.
+local function contactSurface(authored, joint, center, halfSize, pitch, direction)
+    local frame = authored.RootJoint * authored[joint] * CFrame.new(center - v(0, rootHeight, 0))
+        * CFrame.Angles(math.rad(pitch), 0, 0)
+    local front = frame:VectorToObjectSpace(direction) * halfSize
+    return frame:PointToWorldSpace(front * halfSize / front.Magnitude)
+end
+
 local hits = {
     jab = {{jabHit, "Right Shoulder", rightClaw}}, cross = {{crossHit, "Left Shoulder", leftClaw}},
     body = {{bodyHit, "Right Shoulder", rightClaw}}, heavy = {{heavyHit, "Left Shoulder", leftClaw}},
     stormClaw = {{clawHit, "Left Shoulder", leftClaw}},
+    horizonPalm = {contactSurface(horizonHit, "Right Shoulder", v(1.37, 1.94, -.755), v(.29, .195, .075), 0, -Vector3.zAxis)},
+    nimbusTail = {contactSurface(nimbusHit, "TailJoint", v(0, 2.183, 1.633), v(.1705, .1955, .3475), -49, v(.42, -.75, -1))},
     tempestRoar = {{beamPush, "Neck", muzzle}, {beamEase, "Neck", muzzle}, {beamPush, "Neck", muzzle},
         {beamEase, "Neck", muzzle}, v(0, -rootHeight, 0), {beamEase, "Neck", muzzle}},
 }
 local skills = {
     stormClaw = table.freeze({damage = 21, radius = .60, shove = .88}),
+    horizonPalm = table.freeze({damage = 15, radius = .43}),
+    nimbusTail = table.freeze({damage = 24, radius = .55}),
     tempestRoar = table.freeze({
         aimAt = .24, channelAt = channelAt, channelEnd = channelEnd, beamBeats = beamBeats,
         maxYaw = math.rad(40), steerRate = math.rad(86), range = 8.2, beamRadius = .83, beamDamage = 6,
@@ -159,7 +196,8 @@ local skills = {
 }
 local travel = {stormClaw = table.freeze({axis = "forward", distance = .29, startsAt = .163, endsAt = .30})}
 
-local poses = table.clone(rig.finish(clips, contacts, hits, skills, travel, {"sidestep"}))
+local planted = {horizonPalm = true, nimbusTail = true}
+local poses = table.clone(rig.finish(clips, contacts, hits, skills, travel, {"sidestep"}, planted))
 function poses.muzzleAt(age)
     local offsets = poses.sample("tempestRoar", age)
     local head = offsets.RootJoint * offsets.Neck

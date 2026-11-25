@@ -202,6 +202,46 @@ local byFighter = {
                 description = "A deliberate body turn into a broad tentacle press."},
         },
     },
+    ["magma-grizzly-bear"] = {
+        kit = "grizzly", attribute = "GrizzlyTactical", default = "basaltBackhand",
+        options = {
+            {id = "basaltBackhand", name = "Basalt Backhand", compact = "Backhand", level = 1, action = "secondary"},
+            {id = "pumiceKnuckle", name = "Pumice Knuckle", compact = "Knuckle", level = 5, action = "secondary", planted = true,
+                description = "A short, quick strike with the padded forepaw."},
+            {id = "forgeShoulder", name = "Forge Shoulder", compact = "Shoulder", level = 10, action = "secondary", planted = true,
+                description = "A braced turn that brings the rounded shoulder plate forward."},
+        },
+    },
+    ["obsidian-hellhound"] = {
+        kit = "hellhound", attribute = "HellhoundTactical", default = "cinderLunge",
+        options = {
+            {id = "cinderLunge", name = "Cinder Lunge", compact = "Lunge", level = 1, action = "secondary"},
+            {id = "emberKnuckle", name = "Ember Knuckle", compact = "Knuckle", level = 5, action = "secondary", planted = true,
+                description = "A compact strike that snaps out of a narrow guard."},
+            {id = "blackglassSweep", name = "Blackglass Sweep", compact = "Sweep", level = 10, action = "secondary", planted = true,
+                description = "A low windup into a sweeping glove strike."},
+        },
+    },
+    ["golden-eagle"] = {
+        kit = "eagle", attribute = "EagleTactical", default = "galeRake",
+        options = {
+            {id = "galeRake", name = "Gale Rake", compact = "Rake", level = 1, action = "secondary"},
+            {id = "gildedFlick", name = "Gilded Flick", compact = "Flick", level = 5, action = "secondary", planted = true,
+                description = "A quick strike with the edge of the leading feathers."},
+            {id = "crosswindWing", name = "Crosswind Wing", compact = "Crosswind", level = 10, action = "secondary", planted = true,
+                description = "A broad body turn with the padded wing leading."},
+        },
+    },
+    ["celestial-storm-dragon"] = {
+        kit = "dragon", attribute = "DragonTactical", default = "stormClaw",
+        options = {
+            {id = "stormClaw", name = "Storm Claw", compact = "Claw", level = 1, action = "secondary"},
+            {id = "horizonPalm", name = "Horizon Palm", compact = "Palm", level = 5, action = "secondary", planted = true,
+                description = "A short foreclaw strike from a steady guard."},
+            {id = "nimbusTail", name = "Nimbus Tail", compact = "Tail", level = 10, action = "secondary", planted = true,
+                description = "Coil up, then sweep the rounded tail across the front."},
+        },
+    },
 }
 
 local byKit, byId = {}, {}

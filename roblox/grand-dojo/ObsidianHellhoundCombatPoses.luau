@@ -70,6 +70,25 @@ local lungeHit = pose({-.092, -.265, -.334, -21, -30, 6}, {44, 14, -23, .05, .05
 local lungeFollow = pose({-.104, -.335, -.229, -27, -38, 9}, {52, 16, -26},
     {57, -34, 18, .15, .064, -.194}, lungeRear, lungeLead, {24, 32, -8}, {-24, 39, 8})
 
+local emberDraw = pose({.044, -.29, .073, -15, -18, -4}, {32, 12, -33, .09, .043, .151},
+    leftGuard, rear, lead, {16, 17, 3}, {-18, 21, 6})
+local emberHit = pose({-.029, -.235, -.25, -19, 27, 1}, {64, 14, -14, -.158, .071, -.251},
+    {62, -17, 27, .081, .082, -.011}, rear, lead, {17, -26, -1}, {-18, -28, 7})
+local emberRecover = pose({-.017, -.269, -.051, -16, 15, 1}, {55, 10, -26, -.076, .08, -.073},
+    leftGuard, rear, lead, {16, -13, -1}, {-18, -13, 5})
+
+-- Load the outer glove close, then carry it across a low, grounded turn.
+local glassDraw = pose({-.14, -.335, .13, -16, 35, 10}, {62, 14, -27, -.044, .124, .041},
+    {30, 4, 49, -.09, .065, .21}, rear, lead, {18, -21, -8}, {-20, -37, 8})
+local glassHold = pose({-.105, -.427, .075, -23, 39, 10}, {55, 15, -28, -.043, .100, .051},
+    {25, 18, 50, -.06, .02, .18}, rear, lead, {24, -27, -8}, {-22, -43, 8})
+local glassHit = pose({.017, -.358, -.265, -18, -35, -2}, {51, 17, -29, -.023, .043, .222},
+    {64, -20, 8, .157, .059, -.219}, rear, lead, {18, 29, 2}, {-23, 35, -7})
+local glassFollow = pose({-.024, -.33, -.174, -21, -44, -6}, {54, 18, -24, -.03, .055, .11},
+    {55, -29, 8, .203, .075, -.09}, rear, lead, {20, 40, 4}, {-21, 40, -8})
+local glassEase = pose({-.064, -.268, -.049, -15, -19, 5}, rightGuard,
+    {55, -21, 23, .126, .072, -.03}, rear, lead, {15, 18, -4}, {-17, 18, -4})
+
 local anchorRight = {6, -24, 0, .19, 0, .15, .018}
 local anchorLeft = {9, 22, 0, -.18, 0, -.18, .018}
 local inhale = pose({0, -.425, .119, -20, -7, 0}, {36, 8, -42, .09, .05, .117},
@@ -101,7 +120,7 @@ local victory = pose({0, -.08, .048, 8, 1, 0}, {67, -7, -45, .084, .092, .089},
     {67, 11, 47, -.083, .096, .086}, anchorRight, anchorLeft, {27, -1, 0}, {-30, 3, 0})
 
 local contact = {jab = .161, cross = .224, body = .27, heavy = .411, cinderLunge = .28,
-    hellfireStampede = table.freeze({.38, .57})}
+    emberKnuckle = .235, blackglassSweep = .50, hellfireStampede = table.freeze({.38, .57})}
 local beat = contact.hellfireStampede
 local clips = {
     stance = {{0, ready}, {.56, breathe}, {1.12, ready}},
@@ -115,6 +134,9 @@ local clips = {
         {.522, heavyCarry}, {.781, ready}},
     cinderLunge = {{0, ready}, {.116, lungeLoad}, {.208, lungeReach}, {contact.cinderLunge, lungeHit},
         {.363, lungeFollow}, {.48, breathe}, {.625, ready}},
+    emberKnuckle = {{0, ready}, {.098, emberDraw}, {contact.emberKnuckle, emberHit}, {.344, emberRecover}, {.60, ready}},
+    blackglassSweep = {{0, ready}, {.178, glassDraw}, {.341, glassHold}, {contact.blackglassSweep, glassHit},
+        {.63, glassFollow}, {.786, glassEase}, {.96, ready}},
     hellfireStampede = {{0, ready}, {.135, inhale}, {.216, inhale}, {.307, howl}, {beat[1], howl},
         {.432, howl}, {beat[2], release}, {.645, release}, {.775, callHold}, {1.13, watch}, {1.27, ready}},
     guard = {{0, cover}},
@@ -135,12 +157,16 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     cinderLunge = {{lungeHit, "Left Shoulder", leftPad}},
+    emberKnuckle = {{emberHit, "Right Shoulder", rightPad}},
+    blackglassSweep = {{glassHit, "Left Shoulder", leftPad}},
     hellfireStampede = {{howl, "Neck", mouth}, {release, "Right Shoulder", rightPad}},
 }
 local skills = {
     cinderLunge = table.freeze({damage = 22, radius = .58, shove = .96}),
+    emberKnuckle = table.freeze({damage = 15, radius = .46}),
+    blackglassSweep = table.freeze({damage = 23, radius = .53}),
     hellfireStampede = table.freeze({damage = table.freeze({17, 17})}),
 }
 local travel = {cinderLunge = table.freeze({axis = "forward", distance = .40, startsAt = .14, endsAt = .27})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {emberKnuckle = true, blackglassSweep = true})

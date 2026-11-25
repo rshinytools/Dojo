@@ -67,6 +67,28 @@ local rakeHit = pose({-.014, -.162, -.271, -11, 32, 5}, {68, 26, -9, -.20, .106,
 local rakeFollow = pose({-.117, -.252, -.141, -17, 42, 12}, {52, 34, -18, -.247, .033, -.11},
     leftGuard, rear, lead, {17, -39, -10}, {-12, -48, 9})
 
+local flickDraw = pose({-.034, -.144, .081, -7, 14, 4}, rightGuard,
+    {47, 4, -39, -.028, .052, .118}, rear, lead, {7, -13, -4}, {-9, -9, 0})
+local flickUnfold = pose({-.049, -.184, -.032, -9, -16, 4}, {57, 13, 18, -.069, .068, -.031},
+    {67, -11, -22, .025, .065, .023}, rear, lead, {9, 16, -4}, {-11, 19, -4})
+local flickHit = pose({-.029, -.211, .105, -9, -42, 3}, {58, 14, 18, -.062, .069, -.042},
+    {108, -18, 5, .055, .051, .1}, rear, lead, {10, 32, -1}, {-11, 32, -6})
+local flickRecover = pose({-.03, -.190, .048, -8, -17, 2}, rightGuard,
+    {79, -14, -21, .067, .069, .014}, rear, lead, {9, 16, -2}, {-10, 15, -4})
+
+local crosswindDraw = pose({.085, -.249, .138, -12, -35, -7}, {31, -27, 77, -.085, .042, .115},
+    {56, -19, -38, .082, .077, .03}, rear, lead, {12, 33, 6}, {-13, 36, -6})
+local crosswindCoil = pose({.085, -.318, .079, -17, -29, -7}, {39, -25, 68, -.102, .040, .088},
+    {59, -18, -33, .096, .076, .028}, rear, lead, {18, 26, 5}, {-13, 31, -5})
+local crosswindSwing = pose({.051, -.255, -.045, -13, -4, -4}, {54, 4, 42, -.077, .075, -.075},
+    {60, -13, -35, .085, .082, -.012}, rear, lead, {13, 4, 3}, {-11, 7, -3})
+local crosswindHit = pose({.055, -.205, -.278, -10, 31, -2}, {77, 25, -10, -.157, .104, -.225},
+    {64, -18, -25, .093, .082, -.047}, rear, lead, {10, -33, 2}, {-10, -37, 6})
+local crosswindCarry = pose({.075, -.272, -.14, -16, 45, -6}, {64, 33, -16, -.134, .083, -.135},
+    {59, -18, -30, .084, .078, -.02}, rear, lead, {17, -41, 5}, {-17, -44, 8})
+local crosswindSettle = pose({.03, -.215, -.047, -10, 21, -4}, {59, 18, 15, -.078, .08, -.057},
+    leftGuard, rear, lead, {10, -18, 4}, {-11, -17, 5})
+
 local takeoffRight = {6, -16, 0, .12, 0, .22, .018}
 local takeoffLeft = {10, 18, 0, -.12, 0, -.15, .018}
 local preload = pose({0, -.43, .143, -21, 0, 0}, {27, -13, 53, .06, .045, .07},
@@ -118,6 +140,7 @@ local crown = pose({0, -.064, .028, 7, 0, 0}, {62, -20, 82, .058, .12, .042},
 local grabAt, carryDuration = .36, 1.50
 local throwAt, impactAt = grabAt + carryDuration, 2.02
 local contacts = {jab = .159, cross = .224, body = .269, heavy = .415, galeRake = .29,
+    gildedFlick = .25, crosswindWing = .49,
     talonDrop = table.freeze({grabAt, throwAt, impactAt})}
 local clips = {
     stance = {{0, ready}, {.63, breathe}, {1.26, ready}},
@@ -131,6 +154,11 @@ local clips = {
         {.521, heavyCarry}, {.776, ready}},
     galeRake = {{0, ready}, {.121, rakeWind}, {.204, rakeDrive}, {contacts.galeRake, rakeHit},
         {.39, rakeFollow}, {.50, breathe}, {.629, ready}},
+    gildedFlick = {{0, ready}, {.087, flickDraw}, {.171, flickUnfold}, {contacts.gildedFlick, flickHit},
+        {.341, flickRecover}, {.62, ready}},
+    crosswindWing = {{0, ready}, {.183, crosswindDraw}, {.267, crosswindDraw}, {.341, crosswindCoil},
+        {.410, crosswindSwing}, {contacts.crosswindWing, crosswindHit}, {.602, crosswindCarry},
+        {.767, crosswindSettle}, {.94, ready}},
     talonDrop = {{0, ready}, {.16, preload}, {.258, wingUp}, {grabAt, grab}, {.52, carryLift},
         {.72, carryPressed}, {.93, carryLift}, {1.14, carryPressed}, {1.35, carryLift},
         {1.57, carryPressed}, {1.74, aimThrow}, {throwAt, castDown}, {1.959, descend}, {impactAt, land},
@@ -167,10 +195,14 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightWing}}, cross = {{crossHit, "Left Shoulder", leftWing}},
     body = {{bodyHit, "Right Shoulder", rightWing}}, heavy = {{heavyHit, "Left Shoulder", leftWing}},
     galeRake = {{rakeHit, "Right Shoulder", rightWing}},
+    gildedFlick = {{flickHit, "Left Shoulder", v(-1.633774943, 1.634514565, .560177260)}},
+    crosswindWing = {{crosswindHit, "Right Shoulder", v(1.527881190, 1.831077922, -.734102860)}},
     talonDrop = {betweenTalons(grab), betweenTalons(castDown), v(0, -rootHeight, 0)},
 }
 local skills = {
     galeRake = table.freeze({damage = 20, radius = .63, shove = .81}),
+    gildedFlick = table.freeze({damage = 15, radius = .48}),
+    crosswindWing = table.freeze({damage = 23, radius = .55}),
     talonDrop = table.freeze({
         grabAt = grabAt, carryDuration = carryDuration, throwAt = throwAt, impactAt = impactAt,
         grabRadius = .88, damage = 28, missAction = "talonDropMiss",
@@ -178,7 +210,8 @@ local skills = {
 }
 local travel = {galeRake = table.freeze({axis = "forward", distance = .26, startsAt = .16, endsAt = .28})}
 
-local poses = table.clone(rig.finish(clips, contacts, hits, skills, travel, {"sidestep"}))
+local poses = table.clone(rig.finish(clips, contacts, hits, skills, travel, {"sidestep"},
+    {gildedFlick = true, crosswindWing = true}))
 function poses.talonsAt(age)
     return talons(poses.sample("talonDrop", age))
 end

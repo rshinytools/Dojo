@@ -15,25 +15,29 @@ local ember = Color3.fromRGB(255, 153, 66)
 local coal = Color3.fromRGB(111, 49, 66)
 local flame = Color3.fromRGB(255, 188, 103)
 
-local function strikes(poses, damage, secondary)
-    local at, move = poses.Contact, poses.Skill[secondary]
-    return {
+local function strikes(poses, damage, techniques)
+    local at = poses.Contact
+    local moves = {
         jab = {{at = at.jab, damage = damage[1], zone = "head"}},
         cross = {{at = at.cross, damage = damage[2], zone = "body"}},
         body = {{at = at.body, damage = damage[3], zone = "body"}},
         heavy = {{at = at.heavy, damage = damage[4], zone = "body"}},
-        [secondary] = {{at = at[secondary], damage = move.damage, radius = move.radius, zone = "body"}},
     }
+    for _, id in techniques do
+        local move = poses.Skill[id]
+        moves[id] = {{at = at[id], damage = move.damage, radius = move.radius, zone = "body"}}
+    end
+    return moves
 end
 
-local grizzly = strikes(Grizzly, {14, 16, 18, 26}, "basaltBackhand")
+local grizzly = strikes(Grizzly, {14, 16, 18, 26}, {"basaltBackhand", "pumiceKnuckle", "forgeShoulder"})
 grizzly[eruption] = {}
 for index, at in Grizzly.Contact.eruptionSlam do
     grizzly[eruption][index] = {at = at, damage = Grizzly.Skill[eruption].damage[index], shape = "eruption",
         radius = pillarRadius, zone = "body", maxContacts = 2, silentMiss = true, detached = true}
 end
 
-local hellhound = strikes(Hellhound, {15, 15, 17, 24}, "cinderLunge")
+local hellhound = strikes(Hellhound, {15, 15, 17, 24}, {"cinderLunge", "emberKnuckle", "blackglassSweep"})
 local echoes = {}
 for echo, release in breaks do
     for step = 1, travelSteps do
@@ -51,11 +55,11 @@ hellhound[stampede] = echoes
 Inferno.kits = table.freeze({
     grizzly = {poses = Grizzly, clips = grizzly, mixedSpacing = 2.71,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = 1.01,
-        secondary = "basaltBackhand", secondaryCooldown = 3.65, secondaryCooling = "basaltCooling",
+        secondaryCooldown = 3.65, secondaryCooling = "basaltCooling",
         signature = eruption, signatureCooldown = 10.2, signatureCooling = "eruptionCooling"},
     hellhound = {poses = Hellhound, clips = hellhound, mixedSpacing = 2.57,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .78,
-        secondary = "cinderLunge", secondaryCooldown = 3.35, secondaryCooling = "lungeCooling",
+        secondaryCooldown = 3.35, secondaryCooling = "lungeCooling",
         signature = stampede, signatureCooldown = 10.9, signatureCooling = "stampedeCooling"},
 })
 Inferno.shove = table.freeze({

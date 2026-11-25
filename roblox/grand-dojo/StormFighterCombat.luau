@@ -16,23 +16,27 @@ local violet = Color3.fromRGB(165, 131, 255)
 local blue = Color3.fromRGB(143, 224, 255)
 local white = Color3.fromRGB(232, 250, 255)
 
-local function strikes(poses, damage, secondary)
-    local at, move = poses.Contact, poses.Skill[secondary]
-    return {
+local function strikes(poses, damage, techniques)
+    local at = poses.Contact
+    local moves = {
         jab = {{at = at.jab, damage = damage[1], zone = "head"}},
         cross = {{at = at.cross, damage = damage[2], zone = "body"}},
         body = {{at = at.body, damage = damage[3], zone = "body"}},
         heavy = {{at = at.heavy, damage = damage[4], zone = "body"}},
-        [secondary] = {{at = at[secondary], damage = move.damage, radius = move.radius, zone = "body"}},
     }
+    for _, id in techniques do
+        local move = poses.Skill[id]
+        moves[id] = {{at = at[id], damage = move.damage, radius = move.radius, zone = "body"}}
+    end
+    return moves
 end
 
-local eagle = strikes(Eagle, {14, 16, 17, 24}, "galeRake")
+local eagle = strikes(Eagle, {14, 16, 17, 24}, {"galeRake", "gildedFlick", "crosswindWing"})
 eagle[carryAction] = {
     {at = talon.grabAt, shape = "talonGrab", radius = talon.grabRadius, damage = 0, zone = "body"},
     {at = talon.impactAt, shape = "talonThrow", damage = talon.damage, zone = "body", silentMiss = true},
 }
-local dragon = strikes(Dragon, {14, 16, 18, 25}, "stormClaw")
+local dragon = strikes(Dragon, {14, 16, 18, 25}, {"stormClaw", "horizonPalm", "nimbusTail"})
 dragon[aimAction] = {}
 for _, at in tempest.beamBeats do
     table.insert(dragon[aimAction], {at = at, shape = "stormBeam", radius = tempest.beamRadius,
@@ -44,10 +48,10 @@ table.sort(dragon[aimAction], function(a, b) return a.at < b.at end)
 
 Storm.kits = table.freeze({
     eagle = {poses = Eagle, clips = eagle, mixedSpacing = 2.57, dodge = "sidestep", dodgeCue = "dodge",
-        dodgeCooldown = .79, secondary = "galeRake", secondaryCooldown = 3.32, secondaryCooling = "galeCooling",
+        dodgeCooldown = .79, secondaryCooldown = 3.32, secondaryCooling = "galeCooling",
         signature = carryAction, signatureCooldown = 10.7, signatureCooling = "talonCooling"},
     dragon = {poses = Dragon, clips = dragon, mixedSpacing = 2.72, dodge = "sidestep", dodgeCue = "dodge",
-        dodgeCooldown = .96, secondary = "stormClaw", secondaryCooldown = 3.65, secondaryCooling = "clawCooling",
+        dodgeCooldown = .96, secondaryCooldown = 3.65, secondaryCooling = "clawCooling",
         signature = aimAction, signatureCooldown = 12, signatureCooling = "tempestCooling"},
 })
 Storm.shove = table.freeze({galeRake = Eagle.Skill.galeRake.shove, stormClaw = Dragon.Skill.stormClaw.shove})

@@ -65,6 +65,29 @@ local backhandHit = pose({-.039, -.185, -.244, -10, 35, 6}, {66, 28, -6, -.26, .
 local backhandCarry = pose({-.128, -.24, -.14, -19, 44, 13}, {53, 36, -4, -.308, .03, -.106},
     leftGuard, rear, lead, {17, -39, -10}, {-13, -49, 9})
 
+-- A short forepaw strike turns out of the elbow line while the off paw holds guard.
+local pumiceLoad = pose({.082, -.285, .072, -16, -27, -4}, {35, 6, -32, .055, .004, .15},
+    {61, -20, 28, .070, .114, -.030}, rear, lead, {15, 24, 2}, {-11, 24, -4})
+local pumiceHit = pose({.072, -.343, -.032, -16, 19, -5}, {51, 19, -26, -.115, -.007, -.09},
+    {63, -20, 31, .065, .094, -.034}, rear, lead, {16, -17, 4}, {-12, -20, 5})
+local pumiceFold = pose({.056, -.27, -.055, -14, 9, -5}, {50, 15, -29, -.089, .061, -.059},
+    leftGuard, rear, lead, {15, -8, 4}, {-11, -12, 4})
+
+-- Lower into the rear boot, then roll the left brass plate across the body line.
+-- The tucked glove and muzzle trail the rounded shoulder through contact.
+local forgeSit = pose({.075, -.39, .087, -15, 21, -9}, {58, 18, -27, -.042, .10, -.025},
+    {27, -6, 21, .033, .084, .115}, rear, lead, {15, -17, 7}, {-11, -21, 9})
+local forgeDraw = pose({.168, -.51, .123, -18, 37, -13}, {62, 23, -27, -.055, .111, -.026},
+    {16, -2, 25, .073, .084, .143}, rear, lead, {18, -32, 8}, {-12, -34, 10})
+local forgeTurn = pose({.035, -.36, -.038, -13, -18, -8}, {47, 15, -30, -.033, .117, .071},
+    {-17, -11, 29, .045, .113, .025}, rear, lead, {13, 12, 6}, {-9, 16, 7})
+local forgeHit = pose({-.045, -.245, -.36, -12, -70, 7}, {29, 20, -21, -.085, .084, .23},
+    {-34, -13, 25, .034, .083, -.035}, rear, lead, {10, 12, -8, -.045, -.10, .125}, {-10, 31, -5})
+local forgeThrough = pose({-.09, -.29, -.24, -13, -75, 7}, {35, 20, -23, -.071, .083, .171},
+    {-29, -15, 23, .041, .071, -.011}, rear, lead, {12, 14, -7, -.025, -.061, .09}, {-11, 33, -5})
+local forgeFold = pose({.015, -.325, -.058, -14, -27, 4}, rightGuard,
+    {22, -16, 28, .052, .074, .058}, rear, lead, {13, 22, -2}, {-10, 22, -2})
+
 local anchorRight = {4, -17, 0, .25, 0, .19, .018}
 local anchorLeft = {5, 18, 0, -.23, 0, -.19, .018}
 local pull = pose({.005, -.30, .10, -11, -4, 0}, {43, 8, -48, .125, .06, .034},
@@ -102,6 +125,7 @@ local roar = pose({0, -.075, .042, 7, 0, 0}, {80, -9, -47, .11, .11, -.043},
     {81, 11, 46, -.117, .115, -.045}, anchorRight, anchorLeft, {-16, 0, 0}, {-9, 8, 1})
 
 local contact = {jab = .183, cross = .248, body = .294, heavy = .45, basaltBackhand = .32,
+    pumiceKnuckle = .25, forgeShoulder = .53,
     eruptionSlam = table.freeze({.52, .68, .84, 1.00})}
 local beat = contact.eruptionSlam
 local clips = {
@@ -116,6 +140,9 @@ local clips = {
         {.596, heavyCarry}, {.875, ready}},
     basaltBackhand = {{0, ready}, {.122, backhandWind}, {.209, backhandWind}, {contact.basaltBackhand, backhandHit},
         {.425, backhandCarry}, {.556, breathe}, {.715, ready}},
+    pumiceKnuckle = {{0, ready}, {.105, pumiceLoad}, {contact.pumiceKnuckle, pumiceHit}, {.365, pumiceFold}, {.62, ready}},
+    forgeShoulder = {{0, ready}, {.156, forgeSit}, {.31, forgeDraw}, {.414, forgeTurn}, {contact.forgeShoulder, forgeHit},
+        {.657, forgeThrough}, {.814, forgeFold}, {.99, ready}},
     eruptionSlam = {{0, ready}, {.135, pull}, {.295, lift}, {.354, lift}, {.447, descend},
         {beat[1], slam}, {.56, slam}, {beat[2], secondBeat}, {beat[3], thirdBeat}, {beat[4], fourthBeat},
         {1.145, recover}, {1.39, ready}},
@@ -146,13 +173,18 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightPad}}, cross = {{crossHit, "Left Shoulder", leftPad}},
     body = {{bodyHit, "Right Shoulder", rightPad}}, heavy = {{heavyHit, "Left Shoulder", leftPad}},
     basaltBackhand = {{backhandHit, "Right Shoulder", rightPad}},
+    -- The glove pad and the rounded outside of the brass shoulder armor.
+    pumiceKnuckle = {{pumiceHit, "Right Shoulder", v(1.719596455, 1.859098872, -.905733591)}},
+    forgeShoulder = {{forgeHit, "Left Shoulder", v(-1.888723431, 3.281662140, .010069325)}},
     eruptionSlam = {{slam, "Right Shoulder", gloveContact},
         v(0, -rootHeight, -3.10), v(0, -rootHeight, -4.75), v(0, -rootHeight, -6.40)},
 }
 
 local skills = {
     basaltBackhand = table.freeze({damage = 22, radius = .65, shove = .86}),
+    pumiceKnuckle = table.freeze({damage = 16, radius = .47}),
+    forgeShoulder = table.freeze({damage = 25, radius = .53}),
     eruptionSlam = table.freeze({damage = table.freeze({12, 12, 12, 12})}),
 }
 
-return rig.finish(clips, contact, hits, skills, {}, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, {}, {"sidestep"}, {pumiceKnuckle = true, forgeShoulder = true})
