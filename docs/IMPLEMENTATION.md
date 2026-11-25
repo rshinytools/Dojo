@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.308 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.309 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -11,9 +11,11 @@ The v0.308 Studio checkpoint is the starting point for new work. This repository
 
 ## Reedguard footing
 
+V0.309 aligns each local Reedguard boot to the support beneath it while he stands still. It adjusts the visible pose and yields to walking, jumping and combat. The equipped tail keeps its attachment and thickness and shortens from 1.124 to 1.038 studs in all three forms. At the red bridge shoulder, the previous idle showed 0.118 studs of clearance at one end of a sampled boot. Desktop and Galaxy A06 landscape Studio measured the revised boot points within 0.002 studs of the deck. Desktop verified both headings, plaza spawn, the promenade after a keyboard walk, and that contact shadows clear during a jump. Published play and physical-device checks remain open.
+
 V0.306 plants Reedguard’s boots during grounded head and body recoil, parry and the stagger from a parried attack. The torso and gloves still carry the reaction. The fitted mesh check evaluated 3,948 boot samples across ten clips. The deepest uncorrected stagger boot point reached 0.464 studs below the mat. All four corrected reaction clips have a 0.003-stud authored sole clearance. The existing lateral shuffle and body kick contact tests pass. The native Juniper capture freezes a real hit on Reedguard at 78 HP.
 
-V0.305 levels local Reedguard’s boots after he stands still on flat city surfaces. His torso keeps the idle motion. The foot adjustment releases for walking, jumping and combat, and the two contact shadows sit above the plaza sandstone. The shared tail is 1.12 studs long, about 9% shorter, with the same joint and thickness in all three forms. Desktop Studio and Galaxy A06 landscape simulation checked toe, center and heel separately at the spawn. The same desktop check followed a keyboard walk and stop on the promenade. Sloped footing and physical hardware remain open.
+V0.305 levels local Reedguard’s boots after he stands still on flat city surfaces. His torso keeps the idle motion. The foot adjustment releases for walking, jumping and combat, and the two contact shadows sit above the plaza sandstone. The shared tail is 1.12 studs long, about 9% shorter, with the same joint and thickness in all three forms. Desktop Studio and Galaxy A06 landscape simulation checked toe, center and heel separately at the spawn. The same desktop check followed a keyboard walk and stop on the promenade. This flat-ground checkpoint preceded the separate v0.309 bridge check.
 
 V0.302 shortens the tail from 1.38 to 1.24 studs and preserves its thickness and attachment. The change carries through Rookie, Warrior and Grandmaster. The two contact shadows are easier to read when Reedguard stands in the plaza or holds his pose at a match intro. Duel, Tag Team and Brawl now place fighters at the same fitted standing height used for Bot Spar. Desktop Studio sampled the boots at Festival Plaza spawn and on the promenade. A two-client Casual Duel measured the soles within 0.04 studs of the canvas during the intro and registered two jabs and a parry. Studio checked all fourteen multiplayer entry markers and Reedguard’s Bot Spar intro, idle and guard. Live Roblox and physical-device checks remain open.
 

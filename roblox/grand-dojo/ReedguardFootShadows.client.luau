@@ -71,40 +71,63 @@ ray.RespectCanCollide = true
 ray.IgnoreWater = true
 local trackedCharacter
 local idleWeight = 0
-local onLevelFloor = false
+local plantedFeet = {}
 local elapsed = 0
+
+local function idleJoint(character, humanoid, root)
+    local animate = character and character:FindFirstChild("Animate")
+    -- The ring owns its own poses. Defer to locomotion as soon as the player moves.
+    if not root or root.Anchored
+        or not animate or animate.Disabled or player:GetAttribute("SparringActive")
+        or player:GetAttribute("RingTrainingActive") or humanoid.FloorMaterial == Enum.Material.Air
+        or humanoid:GetState() ~= Enum.HumanoidStateType.Running or humanoid.Sit
+        or humanoid.MoveDirection.Magnitude > .01 or root.AssemblyLinearVelocity.Magnitude > .5 then
+        return nil
+    end
+    return root:FindFirstChild("RootJoint")
+end
+
+local function findFootTargets(root, joint, shell)
+    local torsoRest = root.CFrame * joint.C0 * joint.C1:Inverse()
+    for leg, sole in soles do
+        local side = if leg == "Left Leg" then "Left" else "Right"
+        local hip = joint.Part1:FindFirstChild(side .. " Hip")
+        local foot = shell:FindFirstChild(leg)
+        local weld = foot and foot:FindFirstChildOfClass("Weld")
+        if not (hip and weld and weld.Part0 == hip.Part1) then
+            return false
+        end
+        -- Sample from the unanimated bind pose so planting never feeds back into the next ray.
+        local hipRest = torsoRest * hip.C0
+        local footRest = hipRest * hip.C1:Inverse() * weld.C0 * weld.C1:Inverse()
+        local point = footRest:PointToWorldSpace(sole.point)
+        local floor = workspace:Raycast(point + Vector3.yAxis * .40, -Vector3.yAxis * .80, ray)
+        if not floor or floor.Normal.Y < .90 or math.abs(point.Y - floor.Position.Y) > .32 then
+            return false
+        end
+        local forward = footRest:VectorToWorldSpace(sole.forward)
+        local tangent = forward - floor.Normal * forward:Dot(floor.Normal)
+        local restSole = CFrame.lookAt(point, point + forward)
+        local planted = CFrame.lookAt(floor.Position, floor.Position + tangent, floor.Normal)
+        plantedFeet[hip] = planted * restSole:ToObjectSpace(hipRest)
+    end
+    return true
+end
 
 RunService.PreSimulation:Connect(function(dt)
     local character = player.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
     local root = humanoid and humanoid.RootPart
-    local shell = character and character:FindFirstChild("Starter Fighter Shell")
-    local animate = character and character:FindFirstChild("Animate")
-    -- The ring owns its own poses. Defer to locomotion as soon as the player moves.
-    if character ~= trackedCharacter or not root or root.Anchored or not onLevelFloor
-        or not shell or shell:GetAttribute("FighterId") ~= fighterId
-        or not animate or animate.Disabled or player:GetAttribute("SparringActive")
-        or player:GetAttribute("RingTrainingActive") or humanoid.FloorMaterial == Enum.Material.Air
-        or humanoid:GetState() ~= Enum.HumanoidStateType.Running or humanoid.Sit
-        or humanoid.MoveDirection.Magnitude > .01 or root.AssemblyLinearVelocity.Magnitude > .5 then
+    local joint = character == trackedCharacter and next(plantedFeet) and idleJoint(character, humanoid, root)
+    if not joint or not joint.Part1 then
         idleWeight = 0
         return
     end
-
-    local rootJoint = root:FindFirstChild("RootJoint")
-    local torso = rootJoint and rootJoint.Part1
-    if not torso then
-        return
-    end
     idleWeight = math.min(1, idleWeight + dt / .12)
-    -- Cancel the torso's idle motion at the hips so the torso can keep breathing.
-    local counterMotion = rootJoint.C1 * rootJoint.Transform:Inverse() * rootJoint.C1:Inverse()
-    for _, name in {"Left Hip", "Right Hip"} do
-        local hip = torso:FindFirstChild(name)
-        if hip then
-            local planted = hip.C0:ToObjectSpace(counterMotion * hip.C0)
-            hip.Transform = hip.Transform:Lerp(planted, idleWeight)
-        end
+    local torsoAnimated = root.CFrame * joint.C0 * joint.Transform * joint.C1:Inverse()
+    for hip, target in plantedFeet do
+        local planted = (torsoAnimated * hip.C0):ToObjectSpace(target)
+        hip.Transform = hip.Transform:Lerp(planted, idleWeight)
     end
 end)
 
@@ -124,12 +147,16 @@ RunService.Heartbeat:Connect(function(dt)
     local isReedguard = shell and shell:GetAttribute("FighterId") == fighterId
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
     local root = humanoid and humanoid.RootPart
+    table.clear(plantedFeet)
+    local joint = isReedguard and idleJoint(character, humanoid, root)
+    if joint and joint.Part1 and not findFootTargets(root, joint, shell) then
+        table.clear(plantedFeet)
+    end
     -- Intro holds anchor the root, so a nearby floor ray can supply contact
     -- while the Humanoid temporarily reports Air.
     local active = isReedguard and humanoid and (humanoid.FloorMaterial ~= Enum.Material.Air
         or (root and root.Anchored))
         and humanoid:GetState() ~= Enum.HumanoidStateType.Swimming
-    local levelContacts = 0
     for name, shadow in shadows do
         local foot = active and shell:FindFirstChild(name)
         local sole = soles[name]
@@ -138,9 +165,6 @@ RunService.Heartbeat:Connect(function(dt)
         -- The smooth walking surfaces sit below the visible sandstone faces.
         local lift = floor and visualFloorLift[floor.Instance.Name] or 0
         local floorGap = if floor then position.Y - floor.Position.Y else math.huge
-        if floor and floor.Normal.Y >= .995 and math.abs(floorGap) < .11 then
-            levelContacts += 1
-        end
         local fade = if floor and floor.Normal.Y >= .65
             then math.clamp(1 - (floorGap - lift) / .26, 0, 1)
             else 0
@@ -157,5 +181,4 @@ RunService.Heartbeat:Connect(function(dt)
             end
         end
     end
-    onLevelFloor = levelContacts == 2
 end)
