@@ -201,7 +201,7 @@ local function finish(duel, at)
     duel.resolvedAt, duel.outroAt = at, at + Duel.OUTRO
 end
 
-function Duel.step(duel, now, check)
+function Duel.step(duel, now, check, beforeExit)
     if duel.result or now < duel.startsAt then
         return
     end
@@ -212,7 +212,7 @@ function Duel.step(duel, now, check)
         local secondClip, secondTrail, secondEnd = Combatant.nextContacts(second)
         local burnAt = Magma.nextBurn(duel)
         local time = math.min(firstClip, firstTrail, firstEnd, secondClip, secondTrail, secondEnd, burnAt)
-        if time > limit then
+        if time > limit or (beforeExit and time == now) then
             break
         end
 
@@ -239,7 +239,7 @@ function Duel.step(duel, now, check)
             finish(duel, time)
         end
     end
-    if not duel.result and now >= duel.endsAt then
+    if not duel.result and (now > duel.endsAt or (not beforeExit and now == duel.endsAt)) then
         finish(duel, duel.endsAt)
     end
 end

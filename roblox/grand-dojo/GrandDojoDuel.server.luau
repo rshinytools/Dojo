@@ -330,16 +330,6 @@ local function stop(duel, result, departing, walkover)
     end
 end
 
-local function forfeit(duel, index, reason, departing)
-    if duel.series.result then
-        stop(duel, duel.series.result, departing)
-        return
-    end
-    local result = {"win", "win"}
-    result[index] = reason
-    stop(duel, result, departing, true)
-end
-
 local function setFeedback(side, feedback, now, elementEffect)
     side.feedback, side.feedbackUntil = feedback, now + .82
     side.elementEffect = elementEffect
@@ -349,11 +339,11 @@ local function onMat(side)
     return Match.root(side.player) == side.root and Match.inside(bounds, side.root.Position)
 end
 
-local function resolve(duel, now)
+local function resolve(duel, now, beforeExit)
     local round = duel.round
     Round.step(round, now, function(attacker, _, action, move, at, index, castStartedAt)
         return Motion.strike(duel, attacker, action, move, at, index, castStartedAt)
-    end)
+    end, beforeExit)
     local ended = round.result and not duel.series.roundResult
     if ended then
         Series.record(duel.series, round.result)
@@ -413,6 +403,21 @@ end
 local function advance(duel, now)
     Motion.move(duel, now)
     return resolve(duel, now)
+end
+
+local function forfeit(duel, index, reason, departing)
+    local first, second = duel.actors[1], duel.actors[2]
+    if not duel.round.result and Match.root(first.player) == first.root and Match.root(second.player) == second.root then
+        -- Resolve earlier contacts from recorded positions before settling the exit.
+        resolve(duel, workspace:GetServerTimeNow(), true)
+    end
+    if duel.series.result then
+        stop(duel, duel.series.result, departing)
+        return
+    end
+    local result = {"win", "win"}
+    result[index] = reason
+    stop(duel, result, departing, true)
 end
 
 local function endPreparation(attempt, message)

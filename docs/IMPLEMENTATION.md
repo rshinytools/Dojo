@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.347 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.348 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -204,17 +204,33 @@ Two desktop Studio clients completed the exact v0.327 Best of 3 build at about 2
 
 V0.276 two-endpoint Luau simulations of the actual server exercised a casual knockout, a 2–0 series sweep, a three-round 1–1 draw on time, stale input rejection, leave and disconnect handling, and zero progression writes. Desktop Studio and Galaxy A06 landscape touch simulation joined and cancelled both v0.276 queues. A separate one-client series used a fitted Fire Salamander stand-in to verify Silverback’s palm, parry and slam in both rounds, the 3-second second-round reset, the 2–0 recap and camera return.
 
+V0.348 settles a deciding hit or completed bell strictly before a Duel exit while both original fighter roots are available. An unresolved match still uses its normal walkover result. Standalone Luau checked the archived server rules. Native replay remains open.
+
 ## Cross-server Casual staging
 
 V0.347 implements an opt-in Casual queue across servers. Two eligible players in separate city jobs can be assigned to the same reserved Grand Dojo Duel Court. The original Casual intro, moves, rules and result are reused. The return to Grand Dojo City waits for the profile release. Standalone Luau checks covered two origin queues, matching receipt versions, cancellation, lost replies, failed travel, expiration with MemoryStore unavailable, split destination jobs and safe return retries. The tests preserved XP, trophies and the next City server’s profile ownership. The new option stays disabled in the packaged checkpoint until the published private staging test is run.
 
-The gate lives in [DuelTransportConfig](../roblox/grand-dojo/DuelTransportConfig.luau). Set the exact private staging universe and place IDs in a staging-only build, and give its protocol a separate namespace. The source queue uses a Roblox MemoryStore ticket and a matching assignment. The progress worker remains the only owner of the profile token. Before either player leaves, both profiles must have a matching transfer receipt. The destination checks both profiles and the physical server before starting the original Casual bout. Regular City return uses a separate public-server teleport after a durable release receipt. [Roblox teleport routing](https://create.roblox.com/docs/projects/teleport)
+The gate lives in [DuelTransportConfig](../roblox/grand-dojo/DuelTransportConfig.luau). Use a separate private Roblox experience for the drill so its profile and Ranked data stores are separate from beta and live data. Record the private staging universe ID and its start place ID from Creator Dashboard. [Roblox DataStore scope](https://create.roblox.com/docs/cloud-services/data-stores)
+
+Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol for a new drill and an unused output path outside this checkout.
+
+```sh
+python3 -B tools/export_duel_staging.py \
+  --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
+  --protocol stage-v348-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+```
+
+The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
+
+The source queue uses a Roblox MemoryStore ticket and matching assignment. The progress worker remains the sole profile owner. Both profiles need a matching transfer receipt before either player leaves. The destination checks both profiles and the physical server before starting the original Casual bout. Regular City return uses a separate public-server teleport after a durable release receipt.
 
 Run `python3 -B tools/verify_cross_server_duel.py luau` from the repository root with the standalone Luau runner. Published staging needs two eligible accounts in separate City jobs. Verify both arrivals in one physical server, the full Casual match and City return, a failed transfer, a late arrival and a later reconnect. Confirm touch and controller access to the new choice.
 
 The exact v0.346 Tag run verified four player entries, the Grizzly reserve and its 41-damage Heavy. Cinder Tap was attempted after knockback pushed the defender outside its reach. An updated test approaches again before attempting the move. The v0.346 eight-client Brawl test lost its local connection before recording match evidence. Staggered startup is prepared for the rerun. Latest-build full Tag and Brawl replays remain open.
 
 ## Grand Dojo Tag Team
+
+V0.348 keeps recorded Tag Team win, loss and draw results if a player chooses Leave or resets their character during the knockout outro. Standalone Luau checked the archived server rules. Native replay remains open.
 
 Use the **2v2 Tag Team** sign by the Grand Dojo stairs and choose a backup different from your equipped fighter. Four players in the same server start a 10-second introduction and a 90-second match on a separate Grand Dojo terrace. The first two arrivals play Jade and the next two play Ember. Combat uses the Level 15 baseline and existing elemental advantages.
 

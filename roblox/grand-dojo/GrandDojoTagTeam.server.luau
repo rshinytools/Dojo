@@ -413,8 +413,9 @@ local function leave(player, departing)
     local match = active
     local index = match and match.sideFor[player]
     if index and not match.actors[index].returned then
+        local outcome = match.round.result
         Round.eliminateMany(match.round, {{index = index, reason = "left"}}, workspace:GetServerTimeNow())
-        finishPlayer(match, index, "left", departing)
+        finishPlayer(match, index, if outcome then outcome.outcomes[index] else "left", departing)
     end
 end
 
@@ -449,9 +450,10 @@ local function settleSeats(match, now)
         end
     end
     if #exits > 0 then
+        local outcome = round.result
         Round.eliminateMany(round, exits, now)
         for _, exit in exits do
-            finishPlayer(match, exit.index, "left")
+            finishPlayer(match, exit.index, if outcome then outcome.outcomes[exit.index] else "left")
         end
     end
     return changed
