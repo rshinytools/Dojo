@@ -294,6 +294,6 @@ Launch gradually and maintain within solo capacity.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P13.1 | Staged launch | In progress | Creator Hub verified public 16+ access for Beast Dojo on November 25, 2026. Track genuine qualifying players during evaluation. Announce all-ages access after Roblox enables Kids and Select. Stop rollout if saving, purchases, crashes or any device core flow regress. |
-| P13.2 | Measure before optional marketing | Planned | Compare source/device cohorts with matched Creator Analytics benchmarks. Validate actual cost per retained player before scaling; no assumed revenue, guaranteed 1–2k CCU or universal retention threshold. |
+| P13.2 | Measure before optional marketing | In progress | Three organic share links and a 15-second Cloudbreak gameplay clip are ready. Record actual plays, playtime and movement in the Kids and Select count before considering the $50–$100 reserve. Compare source/device cohorts with matched Creator Analytics benchmarks. Validate actual cost per retained player before scaling; no assumed revenue, guaranteed 1–2k CCU or universal retention threshold. |
 | P13.3 | Sustainable updates | Planned | Every update rechecks affected devices, policy and asset/IP provenance. |
 | P13.4 | Living implementation record | Planned | Local source and this same private site remain synchronized; no invented completion or background monitoring. |

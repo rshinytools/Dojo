@@ -209,6 +209,18 @@ Use the Reedguard face icon and 16:9 illustrations already in `roblox/grand-dojo
 
 Explore six lantern-lit districts in Beast Dojo, from the Tideharbor waterfront to the bridges of Skywalk Peaks. Follow clues to hidden treasure, race the Lantern Relay, and see if you can clear all 24 stones in the Cloudbreak obstacle course. Visit the Dojo Ring to spar as an animal fighter and learn new moves. Display the trophies you earn in Trophy Hall.
 
+### Organic outreach during the 16+ evaluation
+
+Lead with Cloudbreak’s 24-stone challenge and the six-district world. Invite a small group of active Roblox players to try the Lantern Relay and Cloudbreak. Ask where they first got stuck or wanted to come back. Share the 15-second gameplay cut in obby communities that allow playtest posts. Share a separate link with short gameplay videos. The cut uses the verified Cloudbreak run and shows the final approach and summit.
+
+| Channel | Roblox tracking link |
+| --- | --- |
+| Friends and playtesters | [Friends link](https://www.roblox.com/join/sv482) |
+| Obby communities | [Community link](https://www.roblox.com/join/im2e2) |
+| Short gameplay clips | [Video link](https://www.roblox.com/join/a2g4r) |
+
+Compare plays and playtime in Creator Analytics by Share Link. Track Kids and Select qualifying players separately in Manage Audience. Roblox considers playtime, account history and recent platform spending. The campaign starts organically with zero spend. Reserve the proposed $50–$100 for a later test after the early play sessions show which message attracts players who stay. [Roblox Share Links](https://create.roblox.com/docs/production/promotion/share-links) · [Acquisition analytics](https://create.roblox.com/docs/production/analytics/acquisition) · [Kids and Select evaluation](https://create.roblox.com/docs/production/publishing/kids-and-select)
+
 ### Evidence for rights enforcement
 
 Keep a dated ownership ledger of original source code, Blender files, editable art and audio, publish versions, contributor grants, and third-party licenses. Mark purchased packs as licensed and record which parts were AI-generated and which were human-authored. A U.S. copyright registration can cover eligible authored code and audiovisual content. A trademark clearance search should precede any filing for the Beast Dojo name or logo as a source identifier. Shared ideas such as animal sparring, floating platforms, and trophy collecting remain available to other creators. [U.S. Copyright Office videogame guidance](https://www.copyright.gov/circs/circ61.pdf) · [U.S. Copyright Office AI authorship report](https://copyright.gov/newsnet/2025/1060.html) · [USPTO trademark clearance](https://www.uspto.gov/trademarks/search/federal-trademark-searching)
