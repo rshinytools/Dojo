@@ -133,8 +133,9 @@ local function publish(match, event, now)
     for index, actor in match.actors do
         local seat, side = round.lineup[index], round.sides[index]
         local backup = seat.slots[3 - seat.active]
-        slots[index] = {kitId = side.kitId, health = side.playerHealth, maxHealth = side.playerMaxHealth,
-            backupKitId = backup.kitId, backupHealth = backup.playerHealth, backupMaxHealth = backup.playerMaxHealth,
+        slots[index] = {kitId = side.kitId, tactical = side.tactical, health = side.playerHealth, maxHealth = side.playerMaxHealth,
+            backupKitId = backup.kitId, backupTactical = backup.tactical,
+            backupHealth = backup.playerHealth, backupMaxHealth = backup.playerMaxHealth,
             userName = actor.player.DisplayName, eliminated = seat.out == true, entryAt = seat.entryAt}
     end
     for index, actor in match.actors do
@@ -148,7 +149,8 @@ local function publish(match, event, now)
                 hitStop = Match.takeHitStop(actor),
                 focusIndex = actor.lastTarget,
                 canTag = Round.planTag(round, index, now) ~= nil and not seat.entryAt,
-                tagReadyAt = seat.nextTagAt, nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
+                tactical = side.tactical, tagReadyAt = seat.nextTagAt,
+                nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                 feedback = if now < actor.feedbackUntil then actor.feedback else nil})
             if not round.result and not seat.out and not seat.entryAt then
                 Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
@@ -159,8 +161,9 @@ local function publish(match, event, now)
     CombatPresentation.broadcast(effects, snapshot, recipients)
 end
 
-local function kitEntry(id)
-    return {fighter = catalog[id], kitId = Match.FighterKits[id]}
+local function kitEntry(player, id)
+    local kit = Match.FighterKits[id]
+    return {fighter = catalog[id], kitId = kit, tactical = Match.reedguardTactical(player, kit)}
 end
 
 local function teamMarker(actor, parent, team)
@@ -204,7 +207,7 @@ local function start(now)
         end
         actors[index] = {player = player, root = waiting.root, ids = {waiting.primaryId, waiting.backupId},
             forms = {primaryForm, backupForm}, nextInput = now, feedbackUntil = 0}
-        entrants[index] = {primary = kitEntry(waiting.primaryId), backup = kitEntry(waiting.backupId)}
+        entrants[index] = {primary = kitEntry(player, waiting.primaryId), backup = kitEntry(player, waiting.backupId)}
         sideFor[player] = index
     end
     matchId += 1

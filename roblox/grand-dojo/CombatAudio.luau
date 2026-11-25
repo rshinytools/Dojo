@@ -33,7 +33,7 @@ local heavyPitch = {
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {
-    jab = 1.06, cross = .98, body = .94, uppercut = 1.02, reedstep = .92, emberSweep = 1.12,
+    jab = 1.06, cross = .98, body = .94, uppercut = 1.02, reedSweep = .86, reedstep = .92, emberSweep = 1.12,
     eddyPalm = .89, pebbleBarrage = 1.25, canopySlip = 1.16, featherFlurry = 1.20,
     tailFeint = 1.03, clawDash = .92, wingSweep = 1.19, unstoppableFrenzy = 1.30, jadeRake = 1.12,
     galeRake = 1.32,

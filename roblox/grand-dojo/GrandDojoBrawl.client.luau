@@ -131,7 +131,7 @@ make("UISizeConstraint", notice, {MaxSize = Vector2.new(410, 42)})
 make("UIPadding", notice, {PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9)})
 style(notice)
 
-local earnedCues = {}
+local earnedCues = {reedSweep = "Reed Sweep"}
 local kits = {
     reedguard = {fighter = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {fighter = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
@@ -152,6 +152,13 @@ for _, fighter in fighterCatalog.ById do
         earnedCues[combat.signatureCue] = combat.signature
     end
 end
+local reedSweep = table.clone(kits.reedguard)
+reedSweep.technique, reedSweep.techniqueAction, reedSweep.compactTechnique = "Reed Sweep", "secondary", "Sweep"
+
+local function equippedKit(state)
+    return if state.kitId == "reedguard" and state.tactical == "reedSweep" then reedSweep else kits[state.kitId] or kits.reedguard
+end
+
 local keyMap = {
     [Enum.KeyCode.E] = "strike", [Enum.KeyCode.ButtonR2] = "strike", [Enum.KeyCode.ButtonX] = "strike",
     [Enum.KeyCode.Q] = "guard", [Enum.KeyCode.ButtonL2] = "guard",
@@ -207,7 +214,7 @@ local function layout()
     championship:Layout(compact or stacked, true)
     local preferredBottom = if compact and not stacked then 20
         elseif touch then math.min(112, math.floor(height * .24)) else 26
-    local kit = match and (kits[match.kitId] or kits.reedguard) or kits.reedguard
+    local kit = if match then equippedKit(match) else kits.reedguard
     local order = if kit.technique then {"strike", "technique", "heavy", "guard", "dodge", "signature"}
         else {"strike", "heavy", "guard", "dodge", "signature"}
     local columns = if stacked then 3 else #order
@@ -246,7 +253,8 @@ local function updateActionLabels(now, kit)
     actions.dodge.Text = hint(kit.dodge or "Dodge", "X", "LB")
     if kit.technique then
         local width = actions.technique.AbsoluteSize.X
-        local technique = if kit.compactTechnique and width > 0 and width < 70 then kit.compactTechnique else kit.technique
+        local compactWidth = if kit == reedSweep then 100 else 70
+        local technique = if kit.compactTechnique and width > 0 and width < compactWidth then kit.compactTechnique else kit.technique
         cooldown(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
@@ -277,7 +285,7 @@ local function refresh()
     if not current then
         return
     end
-    local kit = kits[match.kitId] or kits.reedguard
+    local kit = equippedKit(match)
     local seconds = match.startsAt - now
     if not match.eliminated and not match.resolvedAt and not sendingLeave and now < match.endsAt then
         CombatAudio.countdown(seconds)
@@ -334,7 +342,7 @@ local function send(action, direction)
     if not controls.Visible then
         return
     end
-    local kit = kits[match.kitId] or kits.reedguard
+    local kit = equippedKit(match)
     if action == "technique" then
         action = kit.techniqueAction
     end
@@ -432,7 +440,7 @@ remote.OnClientEvent:Connect(function(kind, data)
             or (health.displayedHealth and match.playerHealth < health.displayedHealth) then
             CombatWindup.clear()
         end
-        local kit = kits[match.kitId] or kits.reedguard
+        local kit = equippedKit(match)
         health:Set(match.playerHealth, match.maxHealth or match.playerMaxHealth, kit.fighter, kind == "begin")
         if kind == "begin" then
             ChampionshipPortraits.set(fighterPortrait, match.kitId)

@@ -12,7 +12,7 @@ function Brawl.new(now, entrants)
     local sides = {}
     for index, entrant in entrants do
         local kitId = entrant.kitId or "reedguard"
-        local side = Combatant.new(now, entrant.fighter, kitId)
+        local side = Combatant.new(now, entrant.fighter, kitId, nil, entrant.tactical)
         local level = entrant.level or 1
         assert(type(level) == "number" and level >= 1 and level < math.huge and level % 1 == 0,
             "Brawl requires a valid fighter level")

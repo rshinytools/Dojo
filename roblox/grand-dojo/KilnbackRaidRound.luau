@@ -51,7 +51,7 @@ function Raid.new(now, entrants, bossId)
     for index, entrant in entrants do
         assert(type(entrant.fighter.health) == "number" and entrant.fighter.health > 0
             and entrant.fighter.health < math.huge and entrant.kitId, "Invalid raid fighter")
-        local side = Fighter.new(now, entrant.fighter, entrant.kitId, timing)
+        local side = Fighter.new(now, entrant.fighter, entrant.kitId, timing, entrant.tactical)
         side.kitId = entrant.kitId
         side.contribution = {damage = 0, revives = 0, parries = 0}
         sides[index] = side

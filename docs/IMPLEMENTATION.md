@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.328 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.329 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -269,6 +269,8 @@ Exact-source tests covered 16 ranked and 16 casual contact pairings, the element
 V0.328 gives each Studio test player a distinct rating identity in the current server’s memory. Published servers use the player’s Roblox user ID and the rating DataStore. Two Studio clients selected Ranked at the normal gate after staging beside the sign. Both Level 1 Reedguards started each round with 156 ranked HP. At about 233–234 ms measured median round trip, Jab and Heavy showed local startup before acknowledgment and resolved for 20 and 34 damage at 180 and 420 ms in both rounds. The two knockouts produced a 2–0 series. Bronze ratings moved once from 1200 to 1216 and 1184, and both players dismissed the recap and regained city controls. Reopening and cancelling Ranked independently read back the same points. Published DataStore settlement, cross-server matchmaking and physical devices remain open.
 
 ## Combat presentation
+
+V0.329 adds Reed Sweep as a saved alternative to Uppercut after Reedguard earns Level 5 with 460 of his own XP. The left boot sweeps low while the right boot carries the stance. Its base hit deals 13 damage at 350 ms and returns to stance at 740 ms. The authored toe reaches about half a stud farther forward than Uppercut. Desktop Studio verified the locked picker, the normal save, the equipped HUD, an out-of-range miss and a clean 13-damage counter against Juniper. The Studio fixture used existing award events to reach Level 5. Exact Luau verified older saves, the threshold, save retries, defense, per-mode selection and scaling. Published saves, live multiplayer and raid use of Sweep, and physical devices remain open.
 
 V0.327 lets a fighter’s recoil take priority when both attacks connect together. A two-client desktop Studio test aligned Reedguard’s Body finisher and a reciprocal Jab to the same contact timestamp. The test staged the fighters and seeded the combo; the game resolved native reach, damage, poses and effects. Both clients saw the 15- and 13-damage contacts, the matching 85 and 87 HP totals, and the two contact marks. Both views matched the grounded head and body recoil, and neither applied a local contact hold. Exact-source Luau additionally verified clean contact holds, camera cue deduplication, delayed Tag shells, rapid replacements, match exit and fresh rounds. Published play and physical-device coverage remain open.
 

@@ -604,6 +604,9 @@ function Motion.close(bout)
 end
 
 function Motion.canAct(bout, action)
+    if action == "secondary" and bout.round.tactical == "reedSweep" then
+        return Motion.reactionGrounded(bout.root, bout.arena.floor)
+    end
     local groundedOnly = (bout.motion.rosterHistory and (action == "dodge" or action == "secondary" or action == "signature"))
         or (penguin(bout) or silverback(bout) or salamander(bout))
         and (action == "dodge" or action == "signature") or ((silverback(bout) or salamander(bout)) and action == "secondary")
@@ -645,7 +648,7 @@ function Motion.locomotion(poses, state, root, forward, now, readOnly)
 end
 
 function Motion.canPlantKick(kit, clip, root, floor)
-    return kit == "reedguard" and clip and clip.action == "body"
+    return kit == "reedguard" and clip and (clip.action == "body" or clip.action == "reedSweep")
         and math.abs(root.Position.Y - (floor + 2.13)) < .38 and math.abs(root.AssemblyLinearVelocity.Y) < 4
 end
 

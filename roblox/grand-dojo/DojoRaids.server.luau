@@ -162,7 +162,7 @@ local function mount(encounter)
         local slots = {}
         for index, actor in match.actors do
             local side = round.sides[index]
-            slots[index] = {kitId = side.kitId, health = side.playerHealth, maxHealth = side.playerMaxHealth,
+            slots[index] = {kitId = side.kitId, tactical = side.tactical, health = side.playerHealth, maxHealth = side.playerMaxHealth,
                 userName = actor.player.DisplayName, down = side.downed or false, left = side.left or false,
                 reviveUsed = side.reviveUsed or false}
         end
@@ -180,7 +180,7 @@ local function mount(encounter)
                     bossMaxHealth = round.bossMaxHealth, phase = round.bossPhase, attack = packetAttack,
                     bossAirborne = round.bossAirborne == true,
                     vulnerableUntil = round.cooldownUntil, selfIndex = index, slots = slots, hitStop = Match.takeHitStop(actor),
-                    nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
+                    tactical = side.tactical, nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                     feedback = if now < actor.feedbackUntil then actor.feedback else nil,
                     revive = revive and {targetIndex = revive.target, startedAt = revive.startedAt, endsAt = revive.endsAt},
                     reviveTarget = if not round.result and now >= round.startsAt then nearestRevive(match, index, now) else nil})
@@ -224,7 +224,8 @@ local function mount(encounter)
         telegraph.Name, telegraph.Parent = prefix .. " combat effects", court
         for index, member in lineup do
             local kit = Match.FighterKits[member.fighterId]
-            entrants[index] = {fighter = fighters[member.fighterId], kitId = kit}
+            entrants[index] = {fighter = fighters[member.fighterId], kitId = kit,
+                tactical = Match.reedguardTactical(member.player, kit)}
             actors[index] = {player = member.player, root = member.root, nextInput = now, feedbackUntil = 0,
                 reviveMarker = reviveMarker(member.root, telegraph)}
             byPlayer[member.player] = index

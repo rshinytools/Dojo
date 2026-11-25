@@ -30,7 +30,7 @@ local darkTrack = Color3.fromRGB(37, 26, 30)
 local bold = Enum.Font.GothamBold
 local regular = Enum.Font.GothamMedium
 
-local earnedCues = {}
+local earnedCues = {reedSweep = "Reed Sweep"}
 local roster = {
     {id = "reedguard-kangaroo", kit = "reedguard", name = "Reedguard", style = "Parry and counter",
         technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
@@ -58,6 +58,12 @@ end
 local byKit = {}
 for _, fighter in roster do
     byKit[fighter.id], byKit[fighter.kit] = fighter, fighter
+end
+local reedSweep = table.clone(byKit.reedguard)
+reedSweep.technique, reedSweep.techniqueAction, reedSweep.compactTechnique = "Reed Sweep", "secondary", "Sweep"
+
+local function equippedKit(slot)
+    return if slot.kitId == "reedguard" and slot.tactical == "reedSweep" then reedSweep else byKit[slot.kitId] or roster[1]
 end
 
 local function object(class, parent, properties)
@@ -458,7 +464,8 @@ local function showCombatActions(now, own, kit)
     actions.guard.Text, actions.dodge.Text = binding("Guard", "Q", "LT"), binding(kit.dodge or "Dodge", "X", "LB")
     if kit.technique then
         local width = actions.technique.AbsoluteSize.X
-        local technique = if kit.compactTechnique and width > 0 and width < 70 then kit.compactTechnique else kit.technique
+        local compactWidth = if kit == reedSweep then 100 else 70
+        local technique = if kit.compactTechnique and width > 0 and width < compactWidth then kit.compactTechnique else kit.technique
         cool(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
@@ -512,7 +519,7 @@ local function refresh()
         return
     end
     local own = match.slots[match.selfIndex]
-    local kit = byKit[own.kitId] or roster[1]
+    local kit = equippedKit(own)
     if not match.resolvedAt and not own.eliminated and own.health > 0 and not leaving and now < match.endsAt then
         CombatAudio.countdown(match.startsAt - now)
     end
@@ -575,7 +582,7 @@ local function send(action, direction)
     if not fighting(own) then
         return
     end
-    local kit = byKit[own.kitId] or roster[1]
+    local kit = equippedKit(own)
     if action == "technique" then
         action = kit.techniqueAction
     end

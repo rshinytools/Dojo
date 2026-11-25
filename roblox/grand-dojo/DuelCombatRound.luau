@@ -9,9 +9,9 @@ local Duel = {INTRO = Spar.INTRO, DURATION = Spar.DURATION, OUTRO = Spar.OUTRO}
 local PARRY_STUN = .56
 local HIT_STUN = .28
 
-function Duel.new(now, firstFighter, firstKitId, secondFighter, secondKitId, timing, ranked)
-    local first = Combatant.new(now, firstFighter, firstKitId, timing)
-    local second = Combatant.new(now, secondFighter, secondKitId, timing)
+function Duel.new(now, firstFighter, firstKitId, secondFighter, secondKitId, timing, ranked, firstTactical, secondTactical)
+    local first = Combatant.new(now, firstFighter, firstKitId, timing, firstTactical)
+    local second = Combatant.new(now, secondFighter, secondKitId, timing, secondTactical)
     first.kitId, second.kitId = firstKitId or "reedguard", secondKitId or "reedguard"
     if ranked then
         first.playerHealth = RankRules.health(firstFighter.health)

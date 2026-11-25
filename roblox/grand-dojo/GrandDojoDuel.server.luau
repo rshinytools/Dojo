@@ -35,7 +35,7 @@ local actions = {strike = true, guard = true, heavy = true, uppercut = true, sec
     dodge = true, signature = true}
 local tells = {
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike",
-    uppercut = "Uppercut", reedstep = "Reedstep Rising", bellySlide = "Belly-Slide Blitz",
+    uppercut = "Uppercut", reedSweep = "Reed Sweep", reedstep = "Reedstep Rising", bellySlide = "Belly-Slide Blitz",
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
 }
@@ -144,7 +144,9 @@ end
 
 local function actor(player, root)
     local id = player:GetAttribute("SelectedStarterFighter")
-    return {player = player, root = root, kit = Match.FighterKits[id], fighter = fighters[id], nextInput = 0, feedbackUntil = 0}
+    local kit = Match.FighterKits[id]
+    return {player = player, root = root, kit = kit, fighter = fighters[id], tactical = Match.reedguardTactical(player, kit),
+        nextInput = 0, feedbackUntil = 0}
 end
 
 local function score(duel, side, payload)
@@ -175,7 +177,7 @@ local function publish(duel, kind, now)
             playerHealth = side.playerHealth, playerMaxHealth = side.playerMaxHealth,
             opponentHealth = rival.playerHealth, opponentMaxHealth = rival.playerMaxHealth,
             opponentName = opponent.player.DisplayName, opponentUserId = opponent.player.UserId, sideIndex = i,
-            kitId = challenger.kit, opponentKitId = opponent.kit,
+            kitId = challenger.kit, opponentKitId = opponent.kit, tactical = side.tactical,
             introAt = round.introAt, startsAt = round.startsAt, endsAt = round.endsAt,
             phase = if round.result then "outro" elseif attackAt then "windup" else "ready",
             attackAt = attackAt, parryOpensAt = opensAt, tell = tells[attack],
@@ -197,7 +199,7 @@ local function startRound(duel, now)
     local a, b = table.clone(duel.lineup[1]), table.clone(duel.lineup[2])
     duel.actors = {a, b}
     duel.round = Round.new(now, a.fighter, a.kit, b.fighter, b.kit, Series.timing(duel.series),
-        duel.series.format == "ranked")
+        duel.series.format == "ranked", a.tactical, b.tactical)
     duel.lastUpdate = now
     for i, side in duel.actors do
         Match.move(side.root, spawns[i].CFrame)

@@ -28,6 +28,13 @@ Match.FighterKits = table.freeze({
     ["celestial-storm-dragon"] = "dragon",
 })
 
+function Match.reedguardTactical(player, kitId)
+    if kitId == "reedguard" then
+        return if player:GetAttribute("ReedguardTactical") == "reedSweep" then "reedSweep" else "uppercut"
+    end
+    return nil
+end
+
 local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
     tidalBellyFlop = true, thunderDive = true, staticCharge = true, apexPounce = true,
     jawsOfTheDeep = true, tentacleCataclysm = true, ["Breakwater Stamp"] = true}

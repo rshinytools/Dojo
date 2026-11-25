@@ -38,6 +38,7 @@ local groundPulses = {
         initial = 1.2, width = 8.5, compact = 5.9, life = .28},
 }
 local moveContactTint = {
+    reedSweep = Color3.fromRGB(187, 230, 143),
     thunderDive = Color3.fromRGB(168, 222, 255),
     staticCharge = Color3.fromRGB(255, 212, 122),
     burrowHook = Color3.fromRGB(245, 186, 106),

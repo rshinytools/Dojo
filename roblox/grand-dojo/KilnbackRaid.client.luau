@@ -47,7 +47,7 @@ local raids = {
         health = Color3.fromRGB(246, 132, 79), lastMatchId = 0, nextStatusAt = 0},
 }
 
-local earnedCues = {}
+local earnedCues = {reedSweep = "Reed Sweep"}
 local kits = {
     reedguard = {name = "Reedguard", technique = "Uppercut", techniqueAction = "uppercut", signature = "Rising"},
     penguin = {name = "Penguin", dodge = "Floe Turn", signature = "Belly Slide"},
@@ -68,6 +68,13 @@ for _, fighter in fighterCatalog.ById do
         earnedCues[combat.signatureCue] = combat.signature
     end
 end
+local reedSweep = table.clone(kits.reedguard)
+reedSweep.technique, reedSweep.techniqueAction, reedSweep.compactTechnique = "Reed Sweep", "secondary", "Sweep"
+
+local function equippedKit(slot)
+    return if slot.kitId == "reedguard" and slot.tactical == "reedSweep" then reedSweep else kits[slot.kitId] or kits.reedguard
+end
+
 local function make(class, parent, properties)
     local node = Instance.new(class)
     for key, value in properties do
@@ -427,7 +434,7 @@ local function binding(name, key, pad)
 end
 
 local function refreshActions(own, now)
-    local kit = kits[own.kitId] or kits.reedguard
+    local kit = equippedKit(own)
     local fighting = active(now) and canFight(own)
     for action, control in actions do
         control.Visible = if action == "leave" then not match.resolvedAt
@@ -443,7 +450,8 @@ local function refreshActions(own, now)
     end
     if kit.technique then
         local width = actions.technique.AbsoluteSize.X
-        local technique = if kit.compactTechnique and width > 0 and width < 70 then kit.compactTechnique else kit.technique
+        local compactWidth = if kit == reedSweep then 100 else 70
+        local technique = if kit.compactTechnique and width > 0 and width < compactWidth then kit.compactTechnique else kit.technique
         cooldown(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
@@ -601,7 +609,7 @@ local function send(action, direction)
         end
         return
     end
-    local kit = kits[own.kitId] or kits.reedguard
+    local kit = equippedKit(own)
     if action == "technique" then action = kit.techniqueAction end
     if not action then return end
     if action == "dodge" or action == "secondary" then

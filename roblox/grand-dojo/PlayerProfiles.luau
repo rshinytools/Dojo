@@ -11,6 +11,8 @@ local FIRST_DOJO_PRACTICE_XP = 20
 local FIRST_SPAR_WIN_XP = 60
 local REPEAT_SPAR_WIN_XP = 30
 local REEDGUARD = "reedguard-kangaroo"
+local DEFAULT_TACTICAL = "uppercut"
+local REEDGUARD_TACTICAL_LEVELS = {[DEFAULT_TACTICAL] = 1, reedSweep = 5}
 local STARTERS = {
     [REEDGUARD] = true,
     ["penguin-brawler"] = true,
@@ -262,6 +264,24 @@ function PlayerProfiles.formFor(profile, fighterId)
     return if PlayerProfiles.canEquipForm(profile, fighterId, equipped) then equipped else FighterForms.BaseId
 end
 
+function PlayerProfiles.tacticalUnlockLevel(fighterId, tactical)
+    return if fighterId == REEDGUARD and type(tactical) == "string" then REEDGUARD_TACTICAL_LEVELS[tactical] else nil
+end
+
+function PlayerProfiles.canEquipTactical(profile, fighterId, tactical)
+    local required = PlayerProfiles.tacticalUnlockLevel(fighterId, tactical)
+    if not required then return false end
+    local fighter = profile.fighters[fighterId]
+    return PlayerProfiles.levelForXp(if fighter then fighter.xp else 0) >= required
+end
+
+function PlayerProfiles.tacticalFor(profile, fighterId)
+    if fighterId ~= REEDGUARD then return nil end
+    local fighter = profile.fighters[fighterId]
+    local equipped = fighter and fighter.equippedTactical
+    return if PlayerProfiles.canEquipTactical(profile, fighterId, equipped) then equipped else DEFAULT_TACTICAL
+end
+
 function PlayerProfiles.summary(profile, fighterId)
     fighterId = fighterId or REEDGUARD
     local fighter = profile.fighters[fighterId]
@@ -297,6 +317,7 @@ function PlayerProfiles.summary(profile, fighterId)
         highestFighterLevel = PlayerProfiles.levelForXp(highestXp(profile)),
         fighterLevels = fighterLevels,
         fighterForms = fighterForms,
+        reedguardTactical = PlayerProfiles.tacticalFor(profile, REEDGUARD),
         ringTraining = (training and training[fighterId]) or {},
     }
 end
@@ -378,30 +399,42 @@ function PlayerProfiles:commitStarterChoice(userId, token, fighterId)
     end)
 end
 
-function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId)
+function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, tactical)
     if not isFighter(fighterId) then
         return nil, "invalid fighter"
+    end
+    if tactical ~= nil and not PlayerProfiles.tacticalUnlockLevel(fighterId, tactical) then
+        return nil, "invalid tactical"
     end
     return self:_owned(userId, token, function(profile, now)
         if not PlayerProfiles.canSwitch(profile, fighterId) then
             return "fighter locked"
         end
+        local fighter = profile.fighters[fighterId]
+        local storedForm = fighter and fighter.equippedForm
+        local storedTactical = fighter and fighter.equippedTactical
+        local equippedForm, equippedTactical = storedForm, storedTactical
         if formId ~= nil then
             if not PlayerProfiles.canEquipForm(profile, fighterId, formId) then
                 return "form locked"
             end
-            local fighter = profile.fighters[fighterId]
-            local equipped = if formId == FighterForms.BaseId then nil else formId
-            if equipped ~= (fighter and fighter.equippedForm) then
-                profile.fighters = table.clone(profile.fighters)
-                local updated = table.clone(fighter or {xp = 0})
-                updated.equippedForm = equipped
-                profile.fighters[fighterId] = updated
+            equippedForm = if formId == FighterForms.BaseId then nil else formId
+        end
+        if tactical ~= nil then
+            if not PlayerProfiles.canEquipTactical(profile, fighterId, tactical) then
+                return "tactical locked"
             end
-            if equipped and profile.trophies[NEW_FORM] == nil then
-                profile.trophies = table.clone(profile.trophies)
-                profile.trophies[NEW_FORM] = {earnedAt = now, criterionVersion = 1, completionId = "fighter-form"}
-            end
+            equippedTactical = if tactical == DEFAULT_TACTICAL then nil else tactical
+        end
+        if equippedForm ~= storedForm or equippedTactical ~= storedTactical then
+            profile.fighters = table.clone(profile.fighters)
+            local updated = table.clone(fighter or {xp = 0})
+            updated.equippedForm, updated.equippedTactical = equippedForm, equippedTactical
+            profile.fighters[fighterId] = updated
+        end
+        if formId ~= nil and equippedForm and profile.trophies[NEW_FORM] == nil then
+            profile.trophies = table.clone(profile.trophies)
+            profile.trophies[NEW_FORM] = {earnedAt = now, criterionVersion = 1, completionId = "fighter-form"}
         end
         if EXPANDED_UNLOCKS[fighterId] then
             -- Older builds still see a fighter they can equip and retain new progress fields.

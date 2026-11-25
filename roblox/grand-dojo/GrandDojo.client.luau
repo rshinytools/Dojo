@@ -1738,7 +1738,7 @@ local cues = {
     attackBlocked = "Your opponent blocked the strike.",
     attackParried = "Your opponent parried the strike.",
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike", uppercut = "Uppercut",
-    reedstep = "Reedstep Rising", dodge = "Sidestep", brace = "Shell Set",
+    reedstep = "Reedstep Rising", reedSweep = "Reed Sweep", dodge = "Sidestep", brace = "Shell Set",
     floeTurn = "Floe Turn", bellySlide = "Belly-Slide Blitz",
     ridgePalm = "Ridge Palm", seismicChestPound = "Seismic Chest-Pound",
     emberSweep = "Ember Sweep", magmaTrail = "Magma Trail",
@@ -1771,7 +1771,7 @@ local cooldownCues = {
     magmaCooling = {label = "Magma Trail", field = "nextSignature"},
 }
 local priorityCues = {
-    uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
+    uppercut = true, reedSweep = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
     gustPull = true, snareCaught = true, ricochetBounce = true, guardBroken = true, shockLanded = true,
     frenzyResist = true, apexRootCaught = true, submerged = true,
@@ -1801,6 +1801,12 @@ for _, fighter in fighterCatalog.ById do
         end
     end
 end
+
+showcaseKits.reedSweep = table.clone(showcaseKits.reedguard)
+showcaseKits.reedSweep.techniqueAction = "secondary"
+showcaseKits.reedSweep.techniqueName = "ReedSweep"
+showcaseKits.reedSweep.techniqueLabel = "Reed Sweep"
+showcaseKits.reedSweep.compactTechnique = "Sweep"
 
 local resultAwaitingReward = false
 
@@ -1832,9 +1838,11 @@ local function refreshSparControls(now)
     local shortTechnique = kit.compactTechnique and techniqueWidth > 0 and techniqueWidth < 70
     local techniqueLabel = if shortTechnique then kit.compactTechnique else kit.techniqueLabel or "Uppercut"
     local techniqueCooldown = if shortTechnique then techniqueLabel .. "\n%ds" else kit.techniqueCooldown
-    combatButtons.technique.TextWrapped = kit.techniqueCooldown ~= nil
+    local sweep = kit == showcaseKits.reedSweep
+    combatButtons.technique.TextWrapped = kit.techniqueCooldown ~= nil or sweep
     combatButtons.technique.Text = if techniqueCooling > 0 then string.format(techniqueCooldown, techniqueCooling)
-        else techniqueLabel .. (if keyboard then " · V" elseif gamepad then "\nD-pad ↑" else "")
+        else techniqueLabel .. (if keyboard then (if sweep then "\nV" else " · V")
+            elseif gamepad then "\nD-pad ↑" else "")
     combatButtons.technique.TextColor3 = if techniqueCooling > 0 then palette.muted else palette.parchment
     combatButtons.heavy.Text = if keyboard then "Heavy · R" elseif gamepad then "Heavy · RB" else "Heavy"
     local separator = if kit.signatureCooldown then "\n" else " · "
@@ -1994,7 +2002,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, kitId, nextSignature, nextSecondary)
+local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, kitId, nextSignature, nextSecondary, tactical)
     matchPresentation.windup.clear()
     duelRound = isDuel
     sparringActive = true
@@ -2006,7 +2014,8 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     matchPresentation.matchId = if isDuel and opponent then opponent.matchId else nil
     matchPresentation.roundIndex = if isDuel and opponent then opponent.roundIndex else nil
     matchPresentation.roundResult = nil
-    local kit = if matchPresentation.showcase then showcaseKits[kitId] or showcaseKits.reedguard else nil
+    local loadout = if kitId == "reedguard" and tactical == "reedSweep" then showcaseKits.reedSweep else showcaseKits[kitId]
+    local kit = if matchPresentation.showcase then loadout or showcaseKits.reedguard else nil
     matchPresentation.kit = kit
     matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
     matchPresentation.nextSecondary = if type(nextSecondary) == "number" then nextSecondary else nil
@@ -2187,7 +2196,7 @@ player:GetAttributeChangedSignal("SparringActive"):Connect(function()
 end)
 
 sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt,
-    id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary, hitStop)
+    id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary, hitStop, tactical)
     if kind == "spectatorImpacts" then
         if type(b) == "table" and not table.find(b, player.UserId) then
             matchPresentation.contacts.play({impacts = a}, workspace:GetServerTimeNow(), matchPresentation.playImpact)
@@ -2267,7 +2276,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
         return
     elseif kind == "begin" then
         showMatchHud(false, ringProgression.ById[ringId].name, startsAt, introAt, ringId, opponent, kitId,
-            nextSignature, nextSecondary)
+            nextSignature, nextSecondary, tactical)
     elseif kind ~= "state" or not sparringActive or duelRound then
         return
     end
@@ -2505,7 +2514,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
             duelUi.queued = false
             local title = if info.format == "ranked" then "Ranked Duel" elseif series then "Best of 3 Duel" else "Grand Dojo Duel"
             showMatchHud(true, title, info.startsAt, info.introAt,
-                "grand-dojo", info, info.kitId, info.nextSignature, info.nextSecondary)
+                "grand-dojo", info, info.kitId, info.nextSignature, info.nextSecondary, info.tactical)
         end
         if series then
             duelUi.score.Text = string.format("Round %d/%d · %d–%d", info.roundIndex, info.maxRounds,

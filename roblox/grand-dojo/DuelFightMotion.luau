@@ -273,6 +273,9 @@ function Motion.canAct(duel, side, action, now)
     if duel.motion.brawl and not floorActive(duel, root.Position, now or duel.motion.at) then
         return false
     end
+    if action == "secondary" and duel.round.sides[side].tactical == "reedSweep" then
+        return FighterMotion.reactionGrounded(root, duel.floor)
+    end
     if action == "dodge" or action == "signature" or action == "secondary" then
         return root.Position.Y <= duel.floor + 3.19 and math.abs(root.AssemblyLinearVelocity.Y) <= 4
     end

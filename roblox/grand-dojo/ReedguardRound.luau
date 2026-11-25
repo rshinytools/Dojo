@@ -30,6 +30,7 @@ Round.CLIPS = {
     cross = {{at = Reedguard.Contact.cross, damage = 14, zone = "body"}},
     body = {{at = Reedguard.Contact.body, damage = 15, zone = "body", foot = true, radius = .52}},
     uppercut = {{at = Reedguard.Contact.uppercut, damage = 16, zone = "head"}},
+    reedSweep = {{at = Reedguard.Contact.reedSweep, damage = 13, zone = "body", foot = true, radius = .50}},
     heavy = {{at = Reedguard.Contact.heavy, damage = 22, zone = "body"}},
     reedstep = {
         {at = Reedguard.Contact.reedstep[1], damage = 9, zone = "body"},
@@ -206,12 +207,13 @@ local residentByOpener = {
 local combo = {jab = "cross", cross = "body"}
 local PARRY_COUNTER_TIME = 2.4
 
-local function newCombatant(now, fighter, kitId, timing)
+local function newCombatant(now, fighter, kitId, timing, tactical)
     local kit = kits[kitId or "reedguard"]
     assert(kit, "Unknown combat kit")
     local startsAt = now + (timing and timing.intro or Round.INTRO)
     return {
         kit = kit,
+        tactical = if kit == kits.reedguard then (if tactical == "reedSweep" then tactical else "uppercut") else nil,
         introAt = now, startsAt = startsAt, endsAt = startsAt + (timing and timing.duration or Round.DURATION),
         playerHealth = fighter.health, playerMaxHealth = fighter.health,
         playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
@@ -221,8 +223,8 @@ local function newCombatant(now, fighter, kitId, timing)
     }
 end
 
-function Round.new(now, bot, fighter, kitId, botId)
-    local round = newCombatant(now, fighter, kitId)
+function Round.new(now, bot, fighter, kitId, botId, tactical)
+    local round = newCombatant(now, fighter, kitId, nil, tactical)
     if not botId then
         -- Earlier callers supplied the resident's attack profile without its ID.
         local opener = bot.attacks and bot.attacks[1]
@@ -326,6 +328,7 @@ function Round.act(round, action, now, direction)
         return
     end
     local kit = round.kit
+    local reedSweep = action == "secondary" and round.tactical == "reedSweep"
     if now < (round.rootedUntil or 0) then
         local attempted = if action == "secondary" then kit.secondary
             elseif action == "signature" then kit.signature elseif action == "dodge" then kit.dodge else nil
@@ -351,10 +354,11 @@ function Round.act(round, action, now, direction)
         round.guardFrom, round.guardUntil = now, now + Round.GUARD_DURATION
         play(round, "guard", now)
         return "guard"
-    elseif action == "heavy" or (action == "uppercut" and kit.clips.uppercut) then
+    elseif action == "heavy" or reedSweep or (action == "uppercut" and round.tactical == "uppercut") then
+        local move = if reedSweep then "reedSweep" else action
         round.guardUntil = 0
-        play(round, action, now)
-        return action
+        play(round, move, now)
+        return move
     elseif action == "dodge" and now >= round.nextDodge then
         round.nextDodge, round.guardUntil = now + kit.dodgeCooldown, 0
         play(round, kit.dodge, now)
