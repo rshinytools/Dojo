@@ -205,6 +205,10 @@ Creator Hub confirmed identity, 2-Step Verification and the 1,000 Robux Kids and
 
 The Reedguard face icon and existing cover art are in `roblox/grand-dojo/art/experience-media/`. The new **55-second gameplay trailer** is a 1920×1080 MP4 at 30 fps (75.4 MB). It opens on the city, follows the Lantern Relay, shows Reedguard sparring with Juniper and a published Cloudbreak summit run, visits the earned Lantern Keeper trophy, and closes above Grand Dojo City. The edit uses Roblox gameplay and Studio camera footage. The opening, Relay, trophy and final skyline were captured in v0.362. The spar and Cloudbreak excerpts use earlier gameplay recordings for those same activities. Creator Hub accepts a 60-second maximum for this listing. Creator Hub accepted the upload as asset `92133544879851` and showed **Video under review**, with a review window of up to 48 hours. Check public gallery playback after approval. [Roblox video guidelines](https://create.roblox.com/docs/production/publishing/thumbnails#videos)
 
+### Experience detail page photos
+
+Gallery exports are stored in `roblox/grand-dojo/art/experience-media/gallery/`. The public carousel showed the new Roblox screenshots on November 25, 2026. Creator Hub has the original cover, seven distinct gameplay stills and two duplicate rows from delayed upload responses. Keep one Tideharbor and one Cloudbreak photo. Roblox requires confirmation before permanently deleting the extra rows. The 1920×1080 lineup of all four playable starters is ready to upload after the two copies are cleared. The target is nine images and the 55-second trailer, within Roblox’s ten-item limit. [Roblox thumbnail guidance](https://create.roblox.com/docs/production/publishing/thumbnails)
+
 ### Game description verified on the public listing
 
 **🏮 Explore Beast Dojo**

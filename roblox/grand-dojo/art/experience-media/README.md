@@ -5,9 +5,24 @@
 | Experience icon | [Beast_Dojo_Game_Icon_512.png](Beast_Dojo_Game_Icon_512.png) | 512 × 512 |
 | Experience detail page cover | [Beast_Dojo_Cover_1920x1080.png](Beast_Dojo_Cover_1920x1080.png) | 1920 × 1080 |
 
-These are illustrated marketing assets based on Reedguard and the playable Grand Dojo plaza. Both are opaque PNG files. The 512 × 512 icon is visible in Creator Dashboard for Beast Dojo – Private Beta. The 1920 × 1080 artwork is saved and visible under Experience Detail Page thumbnails after Roblox processing.
+These illustrated marketing assets depict Reedguard and the playable Grand Dojo plaza. The icon and cover are attached to the published Beast Dojo experience.
 
 Generated with Codex’s built-in ImageGen. [Roblox icon specifications](https://create.roblox.com/docs/production/publishing/experience-icons) · [Roblox thumbnail specifications](https://create.roblox.com/docs/production/publishing/thumbnails)
+
+## Experience detail page gallery
+
+The gallery JPGs use the Roblox-recommended 1920 × 1080 layout. Seven show native Roblox captures. The starter lineup is a labeled render of the four playable models. Roblox allows ten items total, including the 55-second trailer. The existing illustrated cover and eight gallery photos leave one slot for that trailer.
+
+| Image | Subject and source |
+| --- | --- |
+| [Grand Dojo City](gallery/01-Grand-Dojo-City.jpg) | Festival plaza at sunset with Trophy Hall and the Dojo Ring. Studio v0.362. |
+| [Reedguard vs. Juniper](gallery/02-Reedguard-vs-Juniper.jpg) | Reedguard Kangaroo and Juniper Tortoise sparring. Studio v0.322. |
+| [Lantern Relay](gallery/03-Lantern-Relay.jpg) | Reedguard running through the illuminated gates of a timed Relay run. Studio v0.362. |
+| [Cloudbreak Summit](gallery/04-Cloudbreak-Summit.jpg) | Reedguard in mid-jump below the summit bell. Published Roblox v0.360. |
+| [Starter Fighter Lineup](gallery/05-Starter-Fighter-Lineup.jpg) | Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. Labeled render of the game models. |
+| [Lantern Keeper Trophy](gallery/06-Lantern-Keeper-Trophy.jpg) | The trophy earned by completing Lantern Relay, displayed in Trophy Hall. Studio v0.362. |
+| [Tideharbor Coast](gallery/07-Tideharbor-Coast.jpg) | Penguin Brawler looking towards seaside cliffs and coastal bridges. Studio v0.362. |
+| [Rooftops and Reedfall](gallery/08-Rooftops-and-Reedfall.jpg) | Aerial view of Trophy Hall, the festival canal, and Reedfall waterfall. Studio v0.362. |
 
 ## Generation prompts
 
