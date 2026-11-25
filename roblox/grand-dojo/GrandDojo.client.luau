@@ -1744,6 +1744,7 @@ local cues = {
     shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
     frenzyResist = "Frenzy keeps you planted",
     apexRooted = "Rooted by Apex Pounce", apexRootCaught = "Pounce mark caught your foe",
+    submerged = "Attack evaded underwater",
     needParry = "Parry a strike to unlock Rising.",
     ["Shell Set"] = "Shell Set · Wait out the brace",
     ["Kiln Rush"] = "Kiln Rush · Leave the lane",
@@ -1763,7 +1764,7 @@ local priorityCues = {
     uppercut = true, floeTurn = true, bellySlide = true, ridgePalm = true, seismicChestPound = true,
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
     gustPull = true, snareCaught = true, ricochetBounce = true, guardBroken = true, shockLanded = true,
-    frenzyResist = true, apexRootCaught = true,
+    frenzyResist = true, apexRootCaught = true, submerged = true,
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat

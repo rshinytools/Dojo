@@ -16,15 +16,18 @@ local Ricochet = require(script.Parent.RingRicochet)
 local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
+local Abyss = require(script.Parent.AbyssFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
+local targetedSkills = {apexPounce = Apex.pounce, jawsOfTheDeep = Abyss.jaws}
 
 local Motion = {}
 local defeatSeconds = Geometry.defeatSeconds
 local joints = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
 local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magmaTrail = true, lilyVault = true, eddyPalm = true,
-    fortressRicochet = true, meteorRoll = true, apexPounce = true}
+    fortressRicochet = true, meteorRoll = true, apexPounce = true, jawsOfTheDeep = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
-    pebbleBarrage = true, cinderSnare = true, cavitationCannon = true, volcanicBreath = true, unstoppableFrenzy = true}
+    pebbleBarrage = true, cinderSnare = true, cavitationCannon = true, volcanicBreath = true, unstoppableFrenzy = true,
+    tentacleCataclysm = true}
 local sideStep = {
     reedguard = {distance = 2.45, time = .23, start = 0},
     silverback = {distance = 2.23, time = .29, start = .045},
@@ -43,6 +46,8 @@ local sideStep = {
     ram = {distance = 2.17, time = .27, start = .035},
     badger = {distance = 2.36, time = .245, start = .025},
     sabertooth = {distance = 2.57, time = .225, start = .025},
+    shark = {distance = 2.56, time = .23, start = .025},
+    kraken = {distance = 2.03, time = .285, start = .035},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -295,13 +300,14 @@ local function thunderTravel(duel, actor, other, origin, target, at)
     return landing
 end
 
-local function nearestPounceTarget(duel, side, origin, at)
+local function nearestGroundTarget(duel, side, origin, at)
     local target, best = nil, math.huge
     for index, opponent in duel.actors do
         if index ~= side and (not duel.enemies or duel.enemies(side, index)) and activeActor(duel, index) then
             local point = opponent.root.Position
             local distance = Match.flat(point - origin.Position).Magnitude
-            if distance < best and Match.inside(duel.bounds, point) and floorActive(duel, point, at) then
+            if distance < best and Match.inside(duel.bounds, point) and floorActive(duel, point, at)
+                and not Abyss.submerged(duel.round.sides[index], at) then
                 target, best = point, distance
             end
         end
@@ -463,15 +469,16 @@ local function moveCast(duel, actor, other, cast, now)
     local clip, origin = cast.clip, cast.origin
     local action = clip.action
     local endAt = math.min(now, clip.endsAt)
-    if cast.apexTarget then
-        local arrival = clip.startedAt + Apex.pounce.teleportAt
-        if endAt >= arrival and not cast.apexArrived then
+    if cast.targeted then
+        local arrival = clip.startedAt + cast.targeted.teleportAt
+        if endAt >= arrival and not cast.arrived then
             if arrival > cast.movedAt then
                 remember(actor, arrival - .0002)
             end
-            local target = thunderTravel(duel, actor, other, origin, Apex.destination(origin.Position, cast.apexTarget), arrival)
-            Match.move(actor.root, Apex.face(target, cast.apexTarget, origin))
-            cast.apexArrived = true
+            local desired = Apex.destination(origin.Position, cast.targetPoint, cast.targeted.gap)
+            local target = thunderTravel(duel, actor, other, origin, desired, arrival)
+            Match.move(actor.root, Apex.face(target, cast.targetPoint, origin))
+            cast.arrived = true
             remember(actor, arrival)
         end
         cast.movedAt = endAt
@@ -561,7 +568,7 @@ local function updateActor(duel, index, now)
     local root, clip = actor.root, state.clip
     actor.frenzyGlow = Apex.frenzyVisual(actor.frenzyGlow and actor.frenzyGlow.Parent and actor.frenzyGlow,
         state, actor.character, actor.fx, now)
-    if actor.knock and Apex.unstoppable(state, now) then
+    if actor.knock and (Apex.unstoppable(state, now) or Abyss.submerged(state, now)) then
         actor.knock, actor.lift = nil, nil
     end
     local travel = clip and state.kit.poses.Travel and state.kit.poses.Travel[clip.action]
@@ -594,12 +601,21 @@ local function updateActor(duel, index, now)
                 else root.CFrame.LookVector
             local origin = CFrame.lookAlong(root.Position, orientation)
             actor.cast = {clip = clip, origin = origin, movedAt = clip.startedAt, kit = state.kitId, poses = state.kit.poses}
-            if clip.action == "apexPounce" then
-                local target = nearestPounceTarget(duel, index, origin, now)
-                local landing = thunderTravel(duel, actor, other, origin, Apex.destination(origin.Position, target), now)
-                actor.cast.apexTarget = target
-                actor.cast.warning = floorContour(duel, actor, "Apex Pounce warning", floorPoint(duel, landing),
-                    Apex.pounce.radius, nil, nil, Apex.pounce.tint)
+            local targeted = targetedSkills[clip.action]
+            if targeted then
+                local target = nearestGroundTarget(duel, index, origin, now)
+                local desired = Apex.destination(origin.Position, target, targeted.gap)
+                local landing = thunderTravel(duel, actor, other, origin, desired, now)
+                local face = Apex.face(landing, target, origin)
+                local center = Match.clampFloor(duel.bounds,
+                    face:PointToWorldSpace(targeted.center or Vector3.zero), duel.floor)
+                actor.cast.targetPoint, actor.cast.targeted = target, targeted
+                local name = if clip.action == "apexPounce" then "Apex Pounce warning" else "Jaws of the Deep warning"
+                actor.cast.warning = floorContour(duel, actor, name, center, targeted.radius, nil, nil, targeted.tint)
+            elseif clip.action == "tentacleCataclysm" then
+                local supported = if duel.floorActive then function(point) return floorActive(duel, point, now) end else nil
+                actor.cast.lanes = Geometry.groundLanes(duel, origin, duel.motion.arenaCast, supported)
+                actor.cast.warning = Abyss.laneWarnings(actor.cast.lanes, actor.fx)
             elseif clip.action == "gustVortex" then
                 actor.cast.fieldCenter = Match.clampFloor(duel.bounds, origin:PointToWorldSpace(Sky.gust.center), duel.floor)
             elseif clip.action == "cinderSnare" then
@@ -633,10 +649,13 @@ local function updateActor(duel, index, now)
             local target = origin.Position + origin.LookVector * Thunder.skills[clip.action].travel.distance
             local landing = thunderTravel(duel, actor, other, origin, target, now)
             Thunder.present(actor.cast, actor.fx, duel.floor, now - clip.startedAt, landing, floorActive(duel, landing, now))
-        elseif actor.cast.apexTarget then
-            if now >= clip.startedAt + Apex.pounce.impactAt then
+        elseif actor.cast.targeted then
+            local targeted = actor.cast.targeted
+            if now >= clip.startedAt + (targeted.impactAt or targeted.at) then
                 Fields.clearVisuals(actor.cast)
             end
+        elseif actor.cast.lanes then
+            Abyss.windupLanes(actor.cast, now - clip.startedAt)
         elseif actor.cast.field then
             local field = actor.cast.field
             Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
@@ -744,6 +763,7 @@ end
 
 local function defenderVolumes(duel, index, at, root, facing)
     local state, actor = duel.round.sides[index], duel.actors[index]
+    if Abyss.submerged(state, at) then return {} end
     local guard = facing and state.guardUntil >= at and at >= state.guardFrom + .055
     return Geometry.fittedVolumes(actor.character, root, actor.motors, poseAt(duel, index, at, true), guard)
 end
@@ -865,10 +885,11 @@ local function pebbleSegment(duel, actor, move, index, castStartedAt)
 end
 
 local function radialCenter(duel, actor, root, move, at, castStartedAt)
-    if move.apex then
+    if move.apex or move.abyss then
         local cast = actor.cast
-        local center = floorPoint(duel, root.Position)
-        if cast and cast.apexArrived and cast.clip.startedAt == castStartedAt and floorActive(duel, center, at) then
+        local center = Match.clampFloor(duel.bounds, root:PointToWorldSpace(move.center), duel.floor)
+        if cast and cast.arrived and cast.clip.startedAt == castStartedAt and floorActive(duel, center, at) then
+            if move.abyss then Abyss.splash(cast, actor.fx, center) end
             return center, move.radius
         end
         return nil
@@ -896,13 +917,38 @@ local function placeApexZone(duel, actor, root, at, castStartedAt)
     local skill = Apex.pounce
     local cast = actor.cast
     local center = floorPoint(duel, root.Position)
-    if not cast or not cast.apexArrived or cast.clip.startedAt ~= castStartedAt or not floorActive(duel, center, at) then
+    if not cast or not cast.arrived or cast.clip.startedAt ~= castStartedAt or not floorActive(duel, center, at) then
         return false
     end
     local visual = floorContour(duel, actor, "Apex Root Zone", center, skill.radius, nil, nil, skill.tint)
     Debris:AddItem(visual, skill.duration)
     actor.apexZone = {startedAt = castStartedAt, center = center, visual = visual, caught = {}}
     return true
+end
+
+local function tentacleLane(duel, actor, at, index, castStartedAt)
+    local cast = actor.cast
+    if not cast or cast.clip.startedAt ~= castStartedAt or not cast.lanes
+        or not floorActive(duel, cast.lanes[index].finish, at) then
+        return nil
+    end
+    return Abyss.resolveLane(cast, actor.fx, index)
+end
+
+local function tentacleContact(duel, index, target, lane, move, at)
+    if not Match.inside(duel.bounds, target.Position) or not floorActive(duel, target.Position, at) then
+        return nil, false
+    end
+    local facing = defenderFacing(target, lane.start)
+    for _, volume in defenderVolumes(duel, index, at, target, facing) do
+        if volume.grounded then
+            local hit, from = Abyss.laneContact(lane, volume.frame, volume.size, Geometry.nearestPoint, .78, move.radius)
+            if hit and floorActive(duel, from, at) and not obstructed(duel, from, hit + Vector3.yAxis * .12) then
+                return hit, facing
+            end
+        end
+    end
+    return nil, facing
 end
 
 local function apexZoneContact(duel, actor, defender, target, move, at, castStartedAt)
@@ -996,6 +1042,12 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local actor = duel.actors[side]
     local root = clockFrame(actor, at)
     local target = clockFrame(duel.actors[other], at)
+    if move.shape == "tentacle" then
+        local lane = tentacleLane(duel, actor, at, index, castStartedAt)
+        if not lane then return false end
+        local hit, facing = tentacleContact(duel, other, target, lane, move, at)
+        return hit ~= nil, hit or lane.finish, "body", facing
+    end
     if move.shape == "apexZone" then
         if move.marker then return placeApexZone(duel, actor, root, at, castStartedAt) end
         local hit, facing = apexZoneContact(duel, actor, other, target, move, at, castStartedAt)
@@ -1071,6 +1123,19 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     end
     local actor = brawl.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "tentacle" then
+        local lane = tentacleLane(brawl, actor, at, index, castStartedAt)
+        local contacts = {}
+        if lane then
+            for other, opponent in brawl.actors do
+                if other ~= side and (not brawl.enemies or brawl.enemies(side, other)) and activeActor(brawl, other) then
+                    local hit, facing = tentacleContact(brawl, other, clockFrame(opponent, at), lane, move, at)
+                    if hit then table.insert(contacts, {defender = other, point = hit, zone = "body", facing = facing}) end
+                end
+            end
+        end
+        return contacts, lane and lane.finish
+    end
     if move.shape == "apexZone" then
         if move.marker then return placeApexZone(brawl, actor, root, at, castStartedAt) end
         local contacts = {}
@@ -1226,6 +1291,17 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     end
     local actor = raid.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "tentacle" then
+        local lane = tentacleLane(raid, actor, at, index, castStartedAt)
+        if not lane then return false end
+        local targets = if raid.round.coreExposed then raid.exposedBossVolumes else raid.bossVolumes
+        for _, volume in targets do
+            local hit, from = Abyss.laneContact(lane, volume.part.CFrame, volume.part.Size, Geometry.nearestPoint, 3.1,
+                move.radius)
+            if hit and not obstructed(raid, from, hit) then return true, hit, volume.zone end
+        end
+        return false, lane.finish
+    end
     if move.shape == "ricochet" then
         local segments = rollSegments(raid, actor, move, castStartedAt, at)
         if segments then
@@ -1424,8 +1500,8 @@ function Motion.impact(duel, event)
         local center = if action == "cavitationCannon" and field then field.center else root.Position
         offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
             (if action == "cavitationCannon" then .34 else .20), 0
-    elseif Thunder.shove[action] or Apex.shove[action] then
-        local force = Thunder.shove[action] or Apex.shove[action]
+    elseif Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] then
+        local force = Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action]
         offset, duration, height = heading(root.Position, target.root.Position, direction) * force, .24, 0
     elseif Magma.shove[action] then
         offset, duration, height = heading(root.Position, target.root.Position, direction) * Magma.shove[action],

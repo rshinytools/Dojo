@@ -22,6 +22,7 @@ local EXPANDED_UNLOCKS = {
     ["armadillo-striker"] = 10, ["komodo-dragon"] = 10,
     ["electric-owl"] = 10, ["bighorn-ram"] = 10,
     ["honey-badger"] = 10, ["emerald-saber-tooth"] = 10,
+    ["great-white-shark"] = 10, ["abyssal-kraken"] = 10,
 }
 local STARTER_PROGRESS = {relay = "lastRelayReward", spar = "lastSparReward", training = "ringTraining"}
 local ROSTER_PROGRESS = {relay = "lastRosterRelayReward", spar = "lastRosterSparReward", training = "rosterTraining"}

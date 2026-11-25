@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.295, earn **Great White Shark** and **Abyssal Kraken** at Level 10. **V** or D-pad Up uses Reef Hook or Tide Grip. **F** or **Y** uses Jaws of the Deep or Tentacle Cataclysm. Tap **Hook**, **Jaws**, **Grip**, or **Slam** on touch. Watch the water ring as Shark dives and the four purple lanes before Kraken’s tentacles strike inward.
+
 In v0.294, earn **Honey Badger** and **Emerald Saber-Tooth** at Level 10. **V** or D-pad Up uses Burrow Hook or Jade Rake. **F** or **Y** uses Unstoppable Frenzy or Apex Pounce. Touch players use **Hook**, **Frenzy**, **Rake**, and **Pounce**. Defend through the swipes or move out of the marked landing.
 
 In v0.293, earn **Electric Owl** and **Bighorn Ram** at Level 10. **V** or D-pad Up uses Wing Sweep or Horn Check. **F** or **Y** uses Thunder Dive or Static Charge. Touch has the same moves on **Sweep**, **Dive**, **Horn**, and **Charge**. Step outside the marked landing or time a guard before the impact.

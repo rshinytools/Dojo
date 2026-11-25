@@ -202,7 +202,7 @@
   {
     "id": "pistol-shrimp",
     "name": "Pistol Shrimp",
-    "shortName": "Pistol Shrimp",
+    "shortName": "Shrimp",
     "title": "Breaker of the Still Pool",
     "home": "Tideharbor Coast · Lantern Quay",
     "element": "Aquatic",
@@ -243,7 +243,7 @@
   {
     "id": "walrus-sumo",
     "name": "Walrus Sumo",
-    "shortName": "Walrus Sumo",
+    "shortName": "Walrus",
     "title": "Keeper of the Tide Bell",
     "home": "Tideharbor Coast · Saltwind Lookout",
     "element": "Aquatic",
@@ -448,7 +448,7 @@
   {
     "id": "bighorn-ram",
     "name": "Bighorn Ram",
-    "shortName": "Bighorn Ram",
+    "shortName": "Ram",
     "title": "The Switchback Warden",
     "home": "Skywalk Peaks · Wind Court",
     "element": "Sky",
@@ -565,6 +565,88 @@
         "name": "Apex Pounce",
         "effect": "Blink toward the nearest available foe. The landing deals 26 damage and leaves a mark that briefly roots grounded opponents.",
         "counter": "Leave the marked landing or defend on impact."
+      }
+    ]
+  },
+  {
+    "id": "great-white-shark",
+    "name": "Great White Shark",
+    "shortName": "Shark",
+    "title": "Breakwater Guide",
+    "home": "Tideharbor Coast · Sunken Pirate Galleon",
+    "element": "Aquatic",
+    "rarity": "Epic",
+    "role": "Beast",
+    "style": "Measured hooks and a sudden underwater approach",
+    "health": 118,
+    "normal_hit": 15,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "shark",
+      "techniqueCue": "reefHook",
+      "signatureCue": "jawsOfTheDeep",
+      "techniqueCoolingCue": "reefCooling",
+      "signatureCoolingCue": "jawsCooling",
+      "compactTechnique": "Hook",
+      "compactSignature": "Jaws",
+      "tint": "A4E3F5",
+      "cardStyle": "Close hooks and a marked underwater eruption",
+      "initials": "GW",
+      "previewPose": {"right": 20, "left": -26, "lean": -12, "roll": -7, "lift": 0.08, "step": 0.16, "legs": 7}
+    },
+    "story": "Shark guides the harbor tenders around the submerged beams of the old galleon. The crew follows the fin just above the water to find the channel. In the ring, Shark uses the same patience to choose where to surface.",
+    "quote": "Watch the ripples.",
+    "powers": [
+      {
+        "name": "Reef Hook",
+        "effect": "Step into a short hook for 21 damage.",
+        "counter": "Step back or defend before the wrap connects."
+      },
+      {
+        "name": "Jaws of the Deep",
+        "effect": "Dive out of reach for a moment, then erupt at the marked spot for 28 damage.",
+        "counter": "Leave the surface marker or defend as Shark rises."
+      }
+    ]
+  },
+  {
+    "id": "abyssal-kraken",
+    "name": "Abyssal Kraken",
+    "shortName": "Kraken",
+    "title": "Tidecall Warden",
+    "home": "Tideharbor Coast · Harbor Pier",
+    "element": "Aquatic",
+    "rarity": "Mythic",
+    "role": "Heavy",
+    "style": "Heavy wraps and four timed inward slams",
+    "health": 150,
+    "normal_hit": 16,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "kraken",
+      "techniqueCue": "tideGrip",
+      "signatureCue": "tentacleCataclysm",
+      "techniqueCoolingCue": "tideCooling",
+      "signatureCoolingCue": "cataclysmCooling",
+      "compactTechnique": "Grip",
+      "compactSignature": "Slam",
+      "tint": "D3A4F5",
+      "cardStyle": "Heavy strikes and four marked tentacle lanes",
+      "initials": "AK",
+      "previewPose": {"right": -30, "left": 24, "lean": -8, "roll": 8, "lift": 0.07, "step": 0.12, "legs": 6}
+    },
+    "story": "The Tidecall Warden teaches dock apprentices to haul nets in rhythm. In the dojo this Kraken summons four water shapes in the same steady cadence. Harbor stories tell of an ancient Kraken that guards the depths below the docks.",
+    "quote": "Four beats. Find your opening.",
+    "powers": [
+      {
+        "name": "Tide Grip",
+        "effect": "Land a close-range tentacle strike for 20 damage.",
+        "counter": "Step outside the reach of the lead arm."
+      },
+      {
+        "name": "Tentacle Cataclysm",
+        "effect": "Summon four telegraphed tentacles that slam inward, each for 9 damage.",
+        "counter": "Move between the marked lanes or guard each slam."
       }
     ]
   }

@@ -12,6 +12,7 @@ local Heavy = require(script.Parent.HeavyFighterCombat)
 local Magma = require(script.Parent.MagmaFighterCombat)
 local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
+local Abyss = require(script.Parent.AbyssFighterCombat)
 local apexTimeline = Apex.zoneMoves()
 local Round = {}
 
@@ -177,6 +178,9 @@ end
 for id, kit in Apex.kits do
     kits[id] = kit
 end
+for id, kit in Abyss.kits do
+    kits[id] = kit
+end
 
 local residents = {
     juniper = {startRange = 3.65, attackLabel = "palm"},
@@ -254,7 +258,7 @@ end
 local function inMotion(side, action)
     local travel = side.kit.poses.Travel
     return action == side.kit.dodge or action == "fortressRicochet" or action == "meteorRoll"
-        or action == "apexPounce" or (travel and travel[action] ~= nil)
+        or action == "apexPounce" or action == "jawsOfTheDeep" or (travel and travel[action] ~= nil)
 end
 
 local function applyRoot(side, at, duration)
@@ -266,7 +270,8 @@ end
 
 local function interruptFixedTravel(side)
     local action = side.clip and side.clip.action
-    if action == "fortressRicochet" or action == "meteorRoll" or action == "tidalBellyFlop" or action == "apexPounce" then
+    if action == "fortressRicochet" or action == "meteorRoll" or action == "tidalBellyFlop"
+        or action == "apexPounce" or action == "jawsOfTheDeep" then
         side.clip, side.bufferedLight = nil, false
     end
 end
@@ -397,7 +402,7 @@ local function contact(round, at, check, resolve, publishCast)
     local hit, point, resolvedZone, facing
     if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
         or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" or move.shape == "breath"
-        or move.thunder or move.apex then
+        or move.thunder or move.apex or move.abyss or move.shape == "tentacle" then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -416,7 +421,8 @@ local function contact(round, at, check, resolve, publishCast)
     end
     local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
         rootDuration = move.rootDuration,
-        castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak or move.thunder or move.apex then clip.startedAt else nil}
+        castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak or move.thunder
+            or move.apex or move.abyss or move.shape == "tentacle" then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
     end
@@ -536,10 +542,13 @@ local function advanceBot(round, at, distance, check)
         round.botPhase, round.botStartedAt, round.botAt = "windup", at, at + round.attack.windup
     elseif round.botPhase == "windup" then
         local hit, facing, zone, point = check(at)
+        local submerged = Abyss.submerged(round, at)
+        hit = hit and not submerged
         round.botPhase, round.recoveryStartedAt = "recovery", at
         local guarded = hit and facing and at >= round.guardFrom + Round.GUARD_RAISE and at <= round.guardUntil
         local parried = guarded and round.guardFrom >= at - Round.PARRY_WINDOW
-        local result = if not hit then "dodged" elseif parried then "parried" elseif guarded then "blocked" else "hit"
+        local result = if submerged then "submerged" elseif not hit then "dodged"
+            elseif parried then "parried" elseif guarded then "blocked" else "hit"
         round.recoveryKind = result
         round.botAt = at + round.attack.recovery + (if parried then .56 else 0)
         if parried then
@@ -620,6 +629,7 @@ Round.Combatant = table.freeze({
     interruptFixedTravel = interruptFixedTravel,
     advanceTrail = advanceTrail,
     unstoppable = Apex.unstoppable,
+    submerged = Abyss.submerged,
     PARRY_COUNTER_TIME = PARRY_COUNTER_TIME,
 })
 

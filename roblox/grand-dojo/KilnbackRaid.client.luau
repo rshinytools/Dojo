@@ -234,6 +234,7 @@ local feedback = {
     guardBroken = "Guard broken", burn = "Heat lingers",
     shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
     frenzyResist = "Frenzy keeps you planted",
+    submerged = "Attack evaded underwater",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},

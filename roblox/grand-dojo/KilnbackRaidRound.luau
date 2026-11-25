@@ -260,6 +260,9 @@ local function attackEventAt(round)
 end
 
 local function defense(side, at, facing)
+    if Fighter.submerged(side, at) then
+        return "submerged"
+    end
     local clip = side.clip
     if clip and evades[clip.action] and at >= clip.startedAt + .045
         and at < math.min(clip.endsAt, clip.startedAt + .27) then
@@ -298,7 +301,7 @@ local function advanceBoss(round, at, chooseTarget, checkBoss, hits)
         if standing(side) and not attack.caught[index] and not seen[index] then
             seen[index] = true
             local kind = defense(side, at, contact.facing)
-            if kind ~= "dodged" then
+            if kind ~= "dodged" and kind ~= "submerged" then
                 -- Adjacent lanes belong to one cast. A broad hurtbox can
                 -- overlap multiple steps, but only one may deal damage.
                 attack.caught[index] = true

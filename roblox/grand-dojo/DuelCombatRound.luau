@@ -58,12 +58,17 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
     end
     local defenderIndex = 3 - attackerIndex
     local attacker, defender = duel.sides[attackerIndex], duel.sides[defenderIndex]
+    local submerged
     local function sample(action, move, at, index, castStartedAt)
-        return check(attackerIndex, defenderIndex, action, move, at, index, castStartedAt)
+        submerged = Combatant.submerged(defender, at) and not move.marker and not move.launch
+        if submerged and move.projectile then return false end
+        local hit, point, zone, facing = check(attackerIndex, defenderIndex, action, move, at, index, castStartedAt)
+        return hit and not submerged, point, zone, facing
     end
     local function resolve(_, at, fields, hit, facing, move)
         local deflected = hit and Combatant.deflects(defender, at, move)
-        local kind = if not hit then "miss" elseif deflected then "blocked" else defense(defender, at, facing)
+        local kind = if not hit then (if submerged then "submerged" else "miss")
+            elseif deflected then "blocked" else defense(defender, at, facing)
         if hit and move.controlOnly then
             kind = if kind then "blocked" elseif move.rootDuration then "snare" else "pull"
         elseif not kind then
@@ -88,7 +93,8 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
         if landed then
             fields.shockDuration = move.shockDuration
         end
-        table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and move.shape ~= "wave" and not move.projectile})
+        table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and move.shape ~= "wave"
+            and move.shape ~= "tentacle" and not move.projectile})
         -- The authored Magma Trail budget spends unscaled move damage.
         return baseDamage
     end
@@ -114,6 +120,9 @@ local function resolveBatch(duel, time, batch)
     for _, impact in batch do
         local event = impact.notice
         local attacker, defender = plans[event.attacker], plans[event.defender]
+        if event.kind == "burn" and Combatant.submerged(duel.sides[event.defender], time) then
+            continue
+        end
         if event.damage > 0 then
             defender.damage += event.damage
             local head = event.zone == "head"

@@ -42,6 +42,10 @@ local moveContactTint = {
     unstoppableFrenzy = Color3.fromRGB(255, 196, 117),
     jadeRake = Color3.fromRGB(162, 231, 184),
     apexPounce = Color3.fromRGB(137, 231, 174),
+    reefHook = Color3.fromRGB(155, 231, 243),
+    jawsOfTheDeep = Color3.fromRGB(121, 226, 255),
+    tideGrip = Color3.fromRGB(209, 174, 251),
+    tentacleCataclysm = Color3.fromRGB(210, 149, 244),
 }
 
 local folder

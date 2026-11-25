@@ -71,12 +71,13 @@ function Apex.swipeFrame(root, move)
     return from, (root * CFrame.Angles(0, move.side * .17, 0)).LookVector
 end
 
-function Apex.destination(origin, target)
+function Apex.destination(origin, target, gap)
+    gap = gap or Apex.pounce.gap
     local delta = Vector3.new(target.X - origin.X, 0, target.Z - origin.Z)
-    if delta.Magnitude <= Apex.pounce.gap then
+    if delta.Magnitude <= gap then
         return origin
     end
-    return origin + delta.Unit * (delta.Magnitude - Apex.pounce.gap)
+    return origin + delta.Unit * (delta.Magnitude - gap)
 end
 
 function Apex.face(origin, target, fallback)

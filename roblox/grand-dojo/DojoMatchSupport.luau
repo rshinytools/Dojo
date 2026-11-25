@@ -20,10 +20,13 @@ Match.FighterKits = table.freeze({
     ["bighorn-ram"] = "ram",
     ["honey-badger"] = "badger",
     ["emerald-saber-tooth"] = "sabertooth",
+    ["great-white-shark"] = "shark",
+    ["abyssal-kraken"] = "kraken",
 })
 
 local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
-    tidalBellyFlop = true, thunderDive = true, staticCharge = true, apexPounce = true, ["Breakwater Stamp"] = true}
+    tidalBellyFlop = true, thunderDive = true, staticCharge = true, apexPounce = true,
+    jawsOfTheDeep = true, tentacleCataclysm = true, ["Breakwater Stamp"] = true}
 
 function Match.floorAttack(action)
     return floorAttacks[action] == true

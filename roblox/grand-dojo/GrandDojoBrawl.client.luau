@@ -169,6 +169,7 @@ local tips = {
     shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
     frenzyResist = "Frenzy keeps you planted",
     apexRooted = "Rooted by Apex Pounce", apexRootCaught = "Pounce mark caught your foe",
+    submerged = "Attack evaded underwater",
 }
 
 local waiting, match, lastResultId

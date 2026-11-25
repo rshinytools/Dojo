@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.294 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.295 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -19,7 +19,15 @@ Desktop Studio sampled Reedguard’s boots on the plaza and Grand Dojo canvas. T
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to preview all eighteen playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+Choose an original starter on first join. Use the Fighter Select station between activities to preview all twenty playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+
+### Great White Shark and the playable Abyssal Kraken
+
+Great White Shark starts with 118 HP. Reef Hook catches an opponent for 21 damage. Jaws of the Deep marks a landing near the nearest eligible opponent and submerges from .27 to .76 seconds. The protected interval stops hits and related status effects. Shark moves to the marked location while submerged, then erupts at .84 seconds for 28 base damage. Walls, arena bounds and unsupported floor can shorten the move.
+
+The playable Abyssal Kraken starts with 150 HP and uses its own purple-and-coral rig. Tide Grip deals 20 damage. Tentacle Cataclysm telegraphs four inward lanes centered at a fixed point in front of the caster. Each animated slamming tentacle deals 9 damage on a clean contact. An opponent can step off a marked lane, jump, or defend in the direction of the incoming tentacle.
+
+Desktop Studio verified the Palm evade, 4.28-stud submerged relocation, 28-damage eruption, Reef Hook, and a 60 XP win. Galaxy A06 landscape Studio simulation activated all four Cataclysm slams with a tap, measured two braced contacts, and checked Tide Grip and the 60 XP win. The Studio matches used temporary Level 10 profiles. Luau tests verified clipped lane geometry, parry behavior, boss hazards and the protected time window.
 
 ### Honey Badger and Emerald Saber-Tooth
 

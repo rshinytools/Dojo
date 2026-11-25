@@ -140,7 +140,8 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
         targets = {}
         for _, hit in contacts or {} do
             local defender = round.sides[hit.defender]
-            if defender and attacker.matchups[hit.defender] and not defender.eliminated and not used[hit.defender] then
+            if defender and attacker.matchups[hit.defender] and not defender.eliminated and not used[hit.defender]
+                and not Combatant.submerged(defender, contactAt) then
                 used[hit.defender] = true
                 table.insert(targets, hit)
                 if not move.shape and not move.singleHit then
@@ -194,7 +195,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
                 notice.shockDuration = move.shockDuration
                 spent = fields.damage
             end
-            notice.detached = move.shape == "tile" or move.shape == "wave" or move.projectile ~= nil
+            notice.detached = move.shape == "tile" or move.shape == "wave" or move.shape == "tentacle" or move.projectile ~= nil
             table.insert(batch, notice)
         end
         -- Each tile spends the authored cast budget once, regardless of how many fighters it catches.
@@ -224,6 +225,9 @@ local function resolveBatch(round, at, notices, eliminateMany)
     end
     for _, event in notices do
         local attacker, defender = plans[event.attacker], plans[event.defender]
+        if event.kind == "burn" and Combatant.submerged(round.sides[event.defender], at) then
+            continue
+        end
         if event.damage > 0 then
             defender.damage += event.damage
             local head = event.zone == "head"

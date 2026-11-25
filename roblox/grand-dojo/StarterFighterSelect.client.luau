@@ -560,7 +560,8 @@ local function layout()
     local columns = if tall then 2 else 4
     if switching then
         local count = #order
-        local limit = if contentWidth >= 9 * 68 + 8 * gap then 9
+        local limit = if contentWidth >= 10 * 60 + 9 * gap then 10
+            elseif contentWidth >= 9 * 68 + 8 * gap then 9
             elseif contentWidth >= 8 * 77 + 7 * gap then 8 elseif contentWidth >= 7 * 84 + 6 * gap then 7
             elseif contentWidth >= 604 then 6
             elseif contentWidth >= 530 then 5 elseif contentWidth >= 450 then 4
