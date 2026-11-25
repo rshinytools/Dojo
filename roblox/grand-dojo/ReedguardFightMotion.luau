@@ -34,6 +34,7 @@ local fallSeconds = .57
 local playerFall = Vector3.new(math.rad(4), math.rad(62), math.rad(88))
 local residentFall = Vector3.new(math.rad(86), 0, math.rad(10))
 local tracked = {"RootJoint", "Neck", "Right Shoulder", "Left Shoulder", "Right Hip", "Left Hip", "TailJoint"}
+local shoulders = {"Right Shoulder", "Left Shoulder"}
 local slideClearance = 2.65
 local brackenDriveClearance = 2.05
 local slideTint = Color3.fromRGB(105, 213, 249)
@@ -496,6 +497,40 @@ local function playerAction(bout, now, readOnly)
     end
     local forward = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
     return Motion.locomotion(bout.motion.playerPoses, bout.motion, bout.root, forward, now, readOnly)
+end
+
+-- A late server update can resolve and finish a reaction before any live pose is written.
+-- Use the noncolliding arms so the visual recovery cannot move the physical body or feet.
+function Motion.recoverReaction(combatant, motion, offsets, now, canRecover)
+    local reaction = combatant.reaction
+    if reaction ~= motion.lastReaction then
+        motion.lastReaction, motion.reactionAt = reaction, nil
+        if canRecover and reaction and reaction.expired and now - reaction.startedAt <= .60 then
+            motion.reactionAt = now
+        end
+    end
+    if not motion.reactionAt then
+        return offsets
+    end
+
+    local age = now - motion.reactionAt
+    if not canRecover or age >= .18 then
+        motion.reactionAt = nil
+        return offsets
+    end
+
+    local recoil = combatant.kit.poses.sample(reaction.action, math.min(age + .035, .10))
+    local weight = 1 - math.clamp((age - .055) / .125, 0, 1)
+    local visible = table.clone(offsets)
+    for _, joint in shoulders do
+        local neutral = offsets[joint] or CFrame.identity
+        visible[joint] = neutral:Lerp(recoil[joint] or CFrame.identity, weight)
+    end
+    return visible
+end
+
+function Motion.reactionGrounded(root, floor)
+    return math.abs(root.Position.Y - floor - 2.1326) < .28 and math.abs(root.AssemblyLinearVelocity.Y) < 2.5
 end
 
 local function rememberPosition(samples, now, position)
@@ -2261,6 +2296,10 @@ function Motion.render(bout, now)
         local offsets = state.playerPoses.sample(action, sampleAge, direction)
         if roll then
             offsets = Ricochet.pose(offsets, age, roll, roll.shellCenter, path)
+        end
+        if round.reaction or state.lastReaction then
+            offsets = Motion.recoverReaction(round, state, offsets, now,
+                not bout.outroAt and action == "stance" and Motion.reactionGrounded(bout.root, bout.arena.floor))
         end
         for name, joint in state.motors do
             joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest

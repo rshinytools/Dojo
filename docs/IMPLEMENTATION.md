@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.306 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.307 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -48,6 +48,12 @@ Brawl displays Element edge and Element resisted. The v0.301 Galaxy A06 Studio t
 In v0.303, Duel, Tag Team and Brawl now package server-confirmed HP and impacts together. Clients apply health first and reject stale, duplicate or closed match updates. Spectators receive a separate relay. Match clients keep receiving nearby impacts after their local HUD closes, including after respawn. Tag Team publishes the outgoing fighter’s hit before the backup takes over. Two local Studio clients joined Casual Duel through the normal prompt. Two jabs dealt 13 damage at 180 ms from cast, and a heavy was parried for zero at 420 ms. Effect instances were created 5–36 ms after server contact. The sampled health text and impact differed by 1–34 ms on the jabs. The nearest defender pose match was 67–110 ms after contact. This sample tracks a later reference pose. Flinch onset still needs its own timing measurement. Four managed Studio clients joined Tag Team through the normal sign, selected Penguin as backup, and saw the same 20-damage jab and updated health. A manual tag replaced Reedguard with Penguin and updated all four roster HUDs. Two voluntary exits ended the match and all four clients displayed a recap and returned to the city. A Galaxy A06 Brawl simulation used one player and seven stand-ins. Three Ridge Palm contacts each delivered one packet and one visible contact effect. The HUD retained the advantage, resistance and floor-drop warnings, then displayed the result. Original audio asset playback, network delay and real hardware remain open.
 
 A second four-client Tag Team test in v0.304 ran through the full 90-second clock. All four Studio players joined through the normal sign, selected Penguin as their backup, saw the same 20-damage jab and observed the manual swap. The bell awarded the result on remaining fighter health. Both teammates saw the same result and all four returned to the city. Published play and real-device inputs remain open.
+
+### Recoil after a late server update
+
+V0.307 gives a grounded player one brief shoulder recoil when the server completes a fresh reaction before its first visible frame. It uses the fighter’s authored arm poses. The original contact, damage, stun and movement stay on the server clock. An earlier visible recoil, an expired contact, a newer action, a knockout or lost floor support takes precedence. A historical Brawl floor check does not consume the visible reaction.
+
+A managed two-client Casual Duel skipped 35 Duel updates. The v0.306 baseline resolved one 13-damage jab 403 ms late, and both clients saw the impact and 87 HP without a measurable recoil. The v0.307 run kept that hit and rendered the defender’s shoulder movement and HP change together on both clients, 28 and 32 ms after the server resumed. The defender’s follow-up jab was accepted 151 ms after resuming. A separate Bot Spar replay froze the corrected pose at 78 HP after a 405 ms delayed Juniper strike. Exact-source cases also passed for Brawl supports, Tag Team replacement, a Kilnback pulse and a Juniper hit. Published network conditions, physical devices and boss-specific live repetition remain open.
 
 ### Two-client Duel under verified delay
 

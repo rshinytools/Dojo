@@ -17,6 +17,7 @@ local Inferno = require(script.Parent.InfernoFighterCombat)
 local Storm = require(script.Parent.StormFighterCombat)
 local apexTimeline = Apex.zoneMoves()
 local Round = {}
+local reactions = {hitHead = true, hitBody = true, block = true, parry = true, stagger = true}
 
 Round.INTRO = 10
 Round.OUTRO = 2.55
@@ -253,6 +254,7 @@ local function play(round, action, at)
     end
     local duration = if action == "guard" then Round.GUARD_DURATION else round.kit.poses.Duration[action]
     round.clip = {action = action, startedAt = at, endsAt = at + duration, nextContact = 1}
+    round.reaction = if reactions[action] then round.clip else nil
     if action == "tempestRoar" then
         round.clip.steerEndsAt = at + Storm.tempest.channelEnd
     end
@@ -544,6 +546,9 @@ local function nextContacts(round)
 end
 
 local function completeClip(round, at)
+    if round.reaction and round.clip == round.reaction then
+        round.reaction.expired = true
+    end
     round.clip = nil
     if round.bufferedLight then
         round.bufferedLight = false

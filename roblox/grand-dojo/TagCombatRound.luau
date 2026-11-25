@@ -70,6 +70,7 @@ end
 
 local function clearAttack(side)
     side.clip, side.trail, side.lastLight, side.bufferedLight = nil, nil, nil, false
+    side.reaction = nil
     side.guardUntil, side.counterUntil = 0, nil
     side.talonHold = nil
 end

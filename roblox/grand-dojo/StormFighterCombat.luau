@@ -74,7 +74,7 @@ function Storm.latch(attacker, defender, target, at)
     end
     clip.talonTarget = target
     defender.talonHold = {attacker = attacker, clip = clip, endsAt = clip.startedAt + talon.impactAt}
-    defender.clip, defender.guardUntil, defender.bufferedLight = nil, 0, false
+    defender.clip, defender.reaction, defender.guardUntil, defender.bufferedLight = nil, nil, 0, false
     return true
 end
 

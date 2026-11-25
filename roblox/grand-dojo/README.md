@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.307, a fresh hit can still show a brief recoil after a server stall. The recovered pose moves the arms while the fighter is standing and yields as soon as a new move starts.
+
 In v0.306, watch Reedguard’s boots when he takes a grounded hit or parries. His head, torso and gloves carry the recoil while both boots meet the mat.
 
 In v0.305, choose Reedguard, walk across the plaza and stop. His boots settle flat with clearer contact shadows. The same shorter tail fits Rookie, Warrior and Grandmaster.

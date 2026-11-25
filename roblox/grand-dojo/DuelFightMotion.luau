@@ -112,6 +112,7 @@ local function beginActor(duel, actor, index, brawl)
     actor.wasAnchored = root.Anchored
     actor.held, actor.network, actor.knock, actor.lift, actor.cast = nil, nil, nil, nil, nil
     actor.aim, actor.facing, actor.defeat, actor.shuffle = nil, nil, nil, nil
+    actor.lastReaction, actor.reactionAt = nil, nil
     actor.history = {{at = duel.round.introAt, position = root.CFrame}}
     actor.motors, actor.marks = {}, {}
     actor.fx = Instance.new("Folder")
@@ -832,10 +833,10 @@ local function poseAt(duel, index, now, readOnly)
         offsets = table.clone(offsets)
         offsets.RootJoint = CFrame.new(0, actor.lift, 0) * offsets.RootJoint
     end
-    return offsets
+    return offsets, action
 end
 
-function Motion.render(duel, now)
+function Motion.render(duel, now, historical)
     for index, actor in duel.actors do
         local state = duel.round.sides[index]
         local defeatAt
@@ -869,7 +870,13 @@ function Motion.render(duel, now)
                 clearDroppedMarks(duel, actor, now)
             end
         end
-        local offsets = poseAt(duel, index, now)
+        local offsets, action = poseAt(duel, index, now)
+        if not historical and (state.reaction or actor.lastReaction) then
+            local canRecover = not duel.round.resolvedAt and action == "stance" and not actor.knock
+                and not (duel.round.revives and duel.round.revives[index])
+                and FighterMotion.reactionGrounded(actor.root, duel.floor) and floorActive(duel, actor.root.Position, now)
+            offsets = FighterMotion.recoverReaction(state, actor, offsets, now, canRecover)
+        end
         for name, joint in actor.motors do
             joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest
         end

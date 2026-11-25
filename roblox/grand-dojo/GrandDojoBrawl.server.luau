@@ -383,7 +383,7 @@ local function advanceTimeline(match, now)
     while not round.result and dropAt and dropAt <= now do
         -- Resolve committed contacts on the outgoing deck. The new floor owns the exact boundary.
         if advance(match, dropAt, true) then
-            Motion.render(match, dropAt)
+            Motion.render(match, dropAt, true)
             publish(match, "update", dropAt)
         end
         if round.result then

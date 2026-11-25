@@ -386,7 +386,7 @@ local function applyBossHit(round, event)
     Raid.cancelRevive(round, event.defender, event.at, "hit")
     if side.playerHealth == 0 then
         side.downed, side.eliminated, side.eliminatedAt, side.eliminationReason = true, true, event.at, "knockout"
-        side.clip, side.trail = nil, nil
+        side.clip, side.trail, side.reaction = nil, nil, nil
         report(round, {source = "team", kind = "down", defender = event.defender, at = event.at})
     elseif event.kind == "blocked" then
         Fighter.play(side, "block", event.at)
