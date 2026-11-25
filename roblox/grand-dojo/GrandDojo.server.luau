@@ -718,9 +718,11 @@ cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).moun
         return true
     end,
 })
+local CityAdventureProgress = require(script.Parent:WaitForChild("CityAdventureProgress"))
 script.Parent:WaitForChild("CloudbreakAdventureCleared").Event:Connect(function(player, seconds, clean)
-    if type(seconds) == "number" and seconds > 0 and seconds <= 120 and type(clean) == "boolean" then
-        cityAdventure.trusted(player, {kind = "cloudbreak", tenths = math.round(seconds * 10), clean = clean})
+    local tenths = CityAdventureProgress.cloudbreakTenths(seconds)
+    if tenths and type(clean) == "boolean" then
+        cityAdventure.trusted(player, {kind = "cloudbreak", tenths = tenths, clean = clean})
     end
 end)
 script.Parent:WaitForChild("AdventureSparCompleted").Event:Connect(function(player, ring)

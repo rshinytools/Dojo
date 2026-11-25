@@ -288,9 +288,12 @@ function TrophyJournal:_update()
     local mode = self.player:GetAttribute("ProgressMode")
     local state = self.player:GetAttribute("ProgressStatus")
     local earned = 0
-    for _, attribute in permanentAwards do
-        if self.player:GetAttribute(attribute) == true then
-            earned += 1
+    for _, category in categories do
+        for _, trophy in category[2] do
+            local awardState = if trophy == entry then self.state.Text else describe(self.player, trophy[1])
+            if awardState == "Earned" or awardState == "Studio award" then
+                earned += 1
+            end
         end
     end
     if mode == "studio" then

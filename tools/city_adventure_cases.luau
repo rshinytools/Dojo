@@ -80,13 +80,21 @@ end
 assert(result("track", {district = "frost"}) == 0 and profile.cityAdventure.tracked == "frost")
 
 local startingXP = profile.fighters["reedguard-kangaroo"].xp
+assert(Progress.cloudbreakTenths(math.huge) == nil and Progress.cloudbreakTenths(0/0) == nil)
+local longFinish = assert(Progress.cloudbreakTenths(228.1))
 loseReply = true
-local xp, clear = result("cloudbreak", {tenths = 265, clean = false})
+local xp, clear = result("cloudbreak", {tenths = longFinish, clean = false})
 assert(xp == 85 and profile.fighters["reedguard-kangaroo"].xp == startingXP + 85)
-assert(profile.cityAdventure.cloudbreak.best == 265 and not profile.cityAdventure.cloudbreak.cleanBest)
+assert(profile.cityAdventure.cloudbreak.best == 2281 and not profile.cityAdventure.cloudbreak.cleanBest)
 assert(profile.cityAdventure.cloudbreak.equipped and profile.trophies["mastery-sky"])
 local replay, _, creditedXP = profiles:commitCityAdventure(playerId, lease, clear)
 assert(creditedXP == 85 and replay.fighters["reedguard-kangaroo"].xp == startingXP + 85)
+assert(profiles:release(playerId, lease))
+lease = "after-long-clear"
+local afterLongClear = assert(profiles:open(playerId, lease))
+assert(afterLongClear.cityAdventure.cloudbreak.best == 2281)
+assert(afterLongClear.cityAdventure.cloudbreak.equipped and afterLongClear.trophies["mastery-sky"])
+assert(result("cloudbreak", {tenths = 265, clean = false}) == 0)
 assert(result("cloudbreak", {tenths = 281, clean = true}) == 0)
 assert(result("sash", {equipped = false}) == 0)
 assert(result("cloudbreak", {tenths = 309, clean = true}) == 0 and not profile.cityAdventure.cloudbreak.equipped)

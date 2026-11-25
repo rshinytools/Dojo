@@ -2,9 +2,17 @@ local Catalog = require(script.Parent.CityAdventureCatalog)
 local Progress = {}
 local EMPTY = table.freeze({districts = table.freeze({}), activities = table.freeze({})})
 local FESTIVAL_SOURCES = {relay = true, cloudbreak = true}
+-- Expert has an inactivity limit. Any verified finish can be stored as exact tenths.
+local MAX_CLOUDBREAK_TENTHS = 2 ^ 53 - 1
 
 local function integer(value, minimum, maximum)
     return type(value) == "number" and value % 1 == 0 and value >= minimum and value <= maximum
+end
+
+function Progress.cloudbreakTenths(seconds)
+    if type(seconds) ~= "number" then return nil end
+    local tenths = math.round(seconds * 10)
+    return if integer(tenths, 1, MAX_CLOUDBREAK_TENTHS) then tenths else nil
 end
 
 local function allThree(flags)
@@ -52,8 +60,8 @@ function Progress.valid(world)
         end
     end
     local c = world.cloudbreak
-    return c == nil or (type(c) == "table" and integer(c.best, 1, 1200)
-        and (c.cleanBest == nil or integer(c.cleanBest, c.best, 1200))
+    return c == nil or (type(c) == "table" and integer(c.best, 1, MAX_CLOUDBREAK_TENTHS)
+        and (c.cleanBest == nil or integer(c.cleanBest, c.best, MAX_CLOUDBREAK_TENTHS))
         and (c.equipped == nil or type(c.equipped) == "boolean"))
 end
 
@@ -115,7 +123,7 @@ function Progress.apply(source, action)
     local awards, xp = {}, 0
     if kind == "festival" then
         xp += addStamp(world, action.activity, action.at, awards)
-    elseif kind == "cloudbreak" and integer(action.tenths, 1, 1200) and type(action.clean) == "boolean" then
+    elseif kind == "cloudbreak" and integer(action.tenths, 1, MAX_CLOUDBREAK_TENTHS) and type(action.clean) == "boolean" then
         local previous = old.cloudbreak
         local cleanBest = previous and previous.cleanBest
         if action.clean then cleanBest = math.min(cleanBest or action.tenths, action.tenths) end
