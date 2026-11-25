@@ -12,6 +12,7 @@ local fighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"
 local Health = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
+local CombatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
 local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local CombatTouchDock = require(ReplicatedStorage:WaitForChild("CombatTouchDock"))
 local CombatWindup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
@@ -280,6 +281,7 @@ local function gamepad()
 end
 
 local function focus()
+    close.Text = if UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse then "Close · Enter" else "Close"
     local selected = GuiService.SelectedObject
     local target = if recap.Visible then close elseif queue.Visible and cancel.Visible then cancel
         elseif queue.Visible and join.Visible then join else nil
@@ -683,7 +685,9 @@ UserInputService.InputBegan:Connect(function(input, consumed)
     if consumed or UserInputService:GetFocusedTextBox() then return end
     local back = input.KeyCode == Enum.KeyCode.ButtonB or input.KeyCode == Enum.KeyCode.Backspace
     if recap.Visible then
-        if back then closeRecap() end
+        if back or input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
+            closeRecap()
+        end
     elseif match then
         local action = keys[input.KeyCode]
         if action then send(action) end
@@ -738,6 +742,13 @@ local function showReward()
     rewardLine.TextColor3 = if reward and reward.status == "unavailable" then coral else mint
 end
 
+local function playImpact(cue, point, attack, muteSound)
+    CombatEffects.play(cue, point, attack)
+    if not muteSound then
+        CombatAudio.impact(cue, point, attack)
+    end
+end
+
 local function receive(raid, kind, data)
     if type(data) ~= "table" or (data.raidId or "kilnback") ~= raid.id then return end
     local now = workspace:GetServerTimeNow()
@@ -779,9 +790,9 @@ local function receive(raid, kind, data)
             CombatWindup.clear()
         end
         health:Set(data.bossHealth, data.bossMaxHealth, raid.name, beginning)
-        CombatPresentation.playLocalContact(data.hitStop, now)
         healthValue.Text = string.format("%d / %d HP", math.round(data.bossHealth), math.round(data.bossMaxHealth))
         refreshParty()
+        CombatPresentation.play(data, now, playImpact)
         if beginning then
             layout()
             closeRecap()

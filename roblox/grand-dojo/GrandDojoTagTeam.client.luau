@@ -291,6 +291,7 @@ local function isGamepad()
 end
 
 local function focus()
+    close.Text = if UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse then "Close · Enter" else "Close"
     local selected = GuiService.SelectedObject
     local target = if recap.Visible then close elseif offerPanel.Visible then firstChoice or offerCancel
         elseif queue.Visible then queueCancel else nil
@@ -676,7 +677,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
     local back = input.KeyCode == Enum.KeyCode.ButtonB or input.KeyCode == Enum.KeyCode.Backspace
     if recap.Visible then
-        if back then closeRecap() end
+        if back or input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
+            closeRecap()
+        end
     elseif match then
         local action = keys[input.KeyCode]
         if action then send(action) end

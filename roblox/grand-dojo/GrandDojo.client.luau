@@ -1572,9 +1572,11 @@ local matchPresentation = {
 matchPresentation.contacts = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 matchPresentation.windup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
 matchPresentation.touchDock = require(ReplicatedStorage:WaitForChild("CombatTouchDock"))
-function matchPresentation.playImpact(cue, point, attack)
+function matchPresentation.playImpact(cue, point, attack, muteSound)
     combatEffects.play(cue, point, attack)
-    combatAudio.impact(cue, point, attack)
+    if not muteSound then
+        combatAudio.impact(cue, point, attack)
+    end
 end
 local showcaseKits = {
     reedguard = {challenger = "Reedguard Kangaroo", challengerShort = "Reedguard",

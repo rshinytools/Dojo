@@ -9,11 +9,11 @@ local function nextSequence(match)
     return sequence
 end
 
-function Presentation.collect(match, cue, point, attack, at)
+function Presentation.collect(match, cue, point, attack, at, muteSound)
     if not match.pendingImpacts then
         match.pendingImpacts = {}
     end
-    table.insert(match.pendingImpacts, {cue = cue, point = point, attack = attack, at = at})
+    table.insert(match.pendingImpacts, {cue = cue, point = point, attack = attack, at = at, muteSound = muteSound})
 end
 
 function Presentation.snapshot(match)
@@ -79,7 +79,7 @@ function Presentation.play(data, now, play)
     for _, impact in data.impacts do
         if type(impact) == "table" and type(impact.at) == "number" and now - impact.at <= maximumEffectAge
             and impact.at - now <= .1 and type(impact.cue) == "string" and typeof(impact.point) == "Vector3" then
-            play(impact.cue, impact.point, impact.attack)
+            play(impact.cue, impact.point, impact.attack, impact.muteSound)
         end
     end
 end

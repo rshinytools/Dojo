@@ -8,6 +8,7 @@ local Motion = require(script.Parent.DuelFightMotion)
 local Windup = require(script.Parent.CombatWindupSupport)
 local Round = require(script.Parent.KilnbackRaidRound)
 local CombatHandoff = require(script.Parent.CombatProfileHandoff)
+local Presentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local completed = script.Parent:WaitForChild("DojoRaidCompleted")
@@ -160,8 +161,10 @@ local function mount(encounter)
         return nearest
     end
 
-    local function publish(match, kind, now)
+    local function publish(match, kind, now, departing)
         local round = match.round
+        local snapshot = Presentation.snapshot(match)
+        local recipients = {}
         local slots = {}
         for index, actor in match.actors do
             local side = round.sides[index]
@@ -176,7 +179,7 @@ local function mount(encounter)
             landAt = attack.landAt, endAt = attack.endsAt, hint = attack.hint}
         for index, actor in match.actors do
             local player, side = actor.player, round.sides[index]
-            if not actor.returned and player.Parent == Players then
+            if not actor.returned and player ~= departing and player.Parent == Players then
                 Match.syncStormAim(player, if not round.result and not side.eliminated then side else nil)
                 local revive = round.revives[index]
                 send(player, kind, {matchId = match.id, introAt = round.introAt, startsAt = round.startsAt,
@@ -184,6 +187,7 @@ local function mount(encounter)
                     bossMaxHealth = round.bossMaxHealth, phase = round.bossPhase, attack = packetAttack,
                     bossAirborne = round.bossAirborne == true,
                     vulnerableUntil = round.cooldownUntil, selfIndex = index, slots = slots, hitStop = Match.takeHitStop(actor),
+                    impacts = snapshot.impacts,
                     tactical = side.tactical, basic = side.basic, ultimate = side.ultimate,
                     nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                     feedback = if now < actor.feedbackUntil then actor.feedback else nil,
@@ -192,8 +196,10 @@ local function mount(encounter)
                 if not round.result and not side.downed and not side.left then
                     Windup.profile(actor, side, actor.motors, round.startsAt, round.endsAt)
                 end
+                table.insert(recipients, player.UserId)
             end
         end
+        Presentation.broadcast(effects, snapshot, recipients)
     end
 
     local function reviveMarker(root, container)
@@ -412,7 +418,7 @@ local function mount(encounter)
             end
             if code then
                 local playedAtHazard = event.source == "boss" and event.kind == "hit"
-                effects:FireAllClients("impact", code, event.point, Match.effectAttack(event), playedAtHazard)
+                Presentation.collect(match, code, event.point, Match.effectAttack(event), event.at, playedAtHazard or nil)
             end
         end
         table.clear(round.notices)
@@ -476,8 +482,8 @@ local function mount(encounter)
         if not index or id ~= match.id or match.actors[index].returned then
             return
         elseif action == "leave" then
-            if not match.round.result and Match.root(player) == match.actors[index].root then
-                advance(match, now)
+            if not match.round.result and Match.root(player) == match.actors[index].root and advance(match, now) then
+                publish(match, "update", now)
             end
             leave(player, now)
             return
@@ -538,7 +544,9 @@ local function mount(encounter)
         end
         for index, actor in match.actors do
             if not actor.returned and Match.root(actor.player) ~= actor.root then
-                advance(match, now, true)
+                if advance(match, now, true) then
+                    publish(match, "update", now)
+                end
                 leave(actor.player, now)
             elseif liveSide(match, index) and not match.round.result and not Match.inside(bounds, actor.root.Position) then
                 local position = Match.clampFloor(bounds, actor.root.Position, floor + 2.3)
@@ -548,6 +556,10 @@ local function mount(encounter)
         local changed = advance(match, now)
         local round = match.round
         if round.result and now >= round.outroAt then
+            if changed then
+                Motion.render(match, now)
+                publish(match, "update", now)
+            end
             stop(match)
             return
         end
@@ -563,8 +575,8 @@ local function mount(encounter)
         statusAt[player] = nil
         local match = active
         local index = match and match.byPlayer[player]
-        if index and not match.actors[index].returned then
-            advance(match, now, true)
+        if index and not match.actors[index].returned and advance(match, now, true) then
+            publish(match, "update", now, player)
         end
         leave(player, now, true)
     end)

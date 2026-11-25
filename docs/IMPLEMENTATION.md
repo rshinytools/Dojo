@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.355 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.356 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -194,6 +194,8 @@ The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite
 
 ## Grand Dojo Duel formats
 
+V0.356 uses the incoming Pebble Barrage path to judge Guard and Parry in Duel, Tag Team and Brawl. Fitted tests reproduced a flared pebble reaching the front while Otter was to the side, and the inverse invalid parry. The existing damage, wall checks and Bot Spar brace remain as authored. Native multiplayer remains open.
+
 V0.354 checks both original fighters before a new Duel input advances a pending strike. A reset fighter previously could win if the opponent’s Guard reached the server before Heartbeat handled the reset. An exact fitted replay produced the same walkover in both orders after the fix and preserved live hit, parry and recorded series results. Native and published multiplayer remain open.
 
 V0.354 gives Tag Team the same reset and hit ordering whether player input or Heartbeat sees the reset first. A valid hit due before the reset can still decide the match. A reset at the scheduled contact time takes priority. Exact fitted checks exercised both boundaries, a live Guard tie and an already recorded result. Native multiplayer remains open.
@@ -227,7 +229,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v355-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v356-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -239,6 +241,10 @@ Run `python3 -B tools/verify_cross_server_duel.py luau` from the repository root
 The exact v0.346 Tag run verified four player entries, the Grizzly reserve and its 41-damage Heavy. Cinder Tap was attempted after knockback pushed the defender outside its reach. An updated test approaches again before attempting the move. The v0.346 eight-client Brawl test lost its local connection before recording match evidence. Staggered startup is prepared for the rerun. Latest-build full Tag and Brawl replays remain open.
 
 ## Grand Dojo Tag Team
+
+V0.356 sends raid health and contact effects in the same update. Nearby spectators use the same effects once, and boss hazard sounds stay at their authored centers. Exact-source stand-alone checks verified the health update precedes a late recap or Leave, preserves guard and parry audio, and keeps reward closure checks passing. Studio and published raid playback remain open.
+
+V0.356 adds Enter and keypad Enter to close Tag Team, Brawl and Raid recaps, with a visible shortcut for keyboard players and focus retained for gamepad. Brawl gives longer winner names two lines in the compact recap. Exact UI callbacks passed with text entry and handled inputs protected. Native font rendering and device input remain open.
 
 V0.355 fits combat controls around Roblox’s stock movement and Jump areas in Bot Spar, Duel, Tag Team, Brawl and all three Raids. The full attack set stays visible without paging. Exact layouts checked the recorded Galaxy A06 safe areas in both orientations and synthetic 480 × 248 and 320 × 570 frames, with targets at least 44 px in both dimensions. Exact client fixtures dispatched the controls. Native touch priority, text readability and older-phone performance remain open.
 
@@ -427,6 +433,8 @@ The intro names the actual fighters and warms their mesh textures while it plays
 Desktop Studio entered all 16 pairings through the native ring prompts, checked each resident intro and each starter's signature control, landed a starter technique, and observed a resident attack. All 16 ended with the normal player camera and movement restored. Fire Salamander defeated Juniper for 60 XP. The other 15 rounds ended after contact without a reward. Galaxy A06 landscape Studio separately completed Penguin versus Sablecrest for 60 XP after activating Belly-Slide Blitz with touch. Both test profiles used temporary activity XP to open the higher rings. Physical devices and published play remain open.
 
 ## Reedguard and Juniper combat
+
+V0.356 makes Bracken, Sablecrest and Granite show their authored hit reaction when Thunder Dive interrupts a windup. The previous selector briefly played the finishing motion of an attack that never landed. Exact mounted mesh checks preserved completed attacks, real parries and the existing shock duration. Studio playback remains open.
 
 V0.355 eases Juniper’s last moving pose into a planted stance over 75 ms before he guards or starts Palm. Offline samples of the original fighter mesh measured a previous foot snap of up to 0.382 studs. The revised transition preserves the moving poses and the authored Palm and Shell Set contact frames. Studio playback remains open.
 

@@ -1797,10 +1797,11 @@ local function moveCrossKnock(bout, now)
     end
 end
 
-local juniperPalmRecovery = {hit = "recover", dodged = "recover", submerged = "recover", parried = "deflect", blocked = "blocked"}
+local attackRecovery = {hit = "recover", dodged = "recover", submerged = "recover", parried = "deflect", blocked = "blocked"}
 
 local function botAction(bout, now)
     local round = bout.round
+    local recoveryKind = attackRecovery[round.recoveryKind]
     if bout.outroAt then
         local action = if round.result == "loss" then "win" else "idle"
         return action, now - bout.outroAt
@@ -1814,10 +1815,9 @@ local function botAction(bout, now)
                 return cue.windup, now - round.botStartedAt, attack.windup
             elseif round.botPhase == "setup" then
                 return cue.setup or "idle", now - round.botStartedAt, attack.setupTime
-            elseif round.botPhase == "recovery" then
+            elseif round.botPhase == "recovery" and recoveryKind then
                 local elapsed = now - round.recoveryStartedAt
-                local reaction = if round.recoveryKind == "parried" then cue.deflect
-                    elseif round.recoveryKind == "blocked" then cue.blocked else cue.recover
+                local reaction = cue[recoveryKind]
                 if elapsed < .28 or not bout.reactionAt or now - bout.reactionAt >= .28 then
                     return reaction, elapsed
                 end
@@ -1836,7 +1836,7 @@ local function botAction(bout, now)
     elseif round.botPhase == "setup" then
         return "brace", now - round.botStartedAt, round.attack.setupTime
     end
-    local recovery = round.botPhase == "recovery" and juniperPalmRecovery[round.recoveryKind]
+    local recovery = round.botPhase == "recovery" and recoveryKind
     if recovery and (not bout.reactionAt or bout.reactionAt <= round.recoveryStartedAt) then
         return recovery, now - round.recoveryStartedAt
     elseif bout.reactionAt and now - bout.reactionAt < .28 then

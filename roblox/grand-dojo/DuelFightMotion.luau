@@ -1087,6 +1087,10 @@ local function clipPoint(duel, side, root, action, index)
     return root:PointToWorldSpace(point)
 end
 
+local function projectileFacing(root, start, finish)
+    return Match.flat(start - finish).Unit:Dot(root.LookVector) >= .38
+end
+
 local function pebbleSegment(duel, actor, move, index, castStartedAt)
     local origin = clockFrame(actor, castStartedAt + move.release)
     local params = duel.motion.contactCast or duel.motion.arenaCast
@@ -1431,11 +1435,12 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
         if not start then
             return false, finish
         end
-        local hit, zone = Geometry.pebbleHit(start, finish, defenderVolumes(duel, other, at, target, facing), move.radius)
+        local guardFacing = projectileFacing(target, start, finish)
+        local hit, zone = Geometry.pebbleHit(start, finish, defenderVolumes(duel, other, at, target, guardFacing), move.radius)
         if hit and effect then
             effect:Destroy()
         end
-        return hit ~= nil, hit or finish, zone, facing
+        return hit ~= nil, hit or finish, zone, guardFacing
     end
     if move.shape == "breath" or move.shape == "apexCone" then
         local mouth, direction = breathFrame(actor, move, castStartedAt, root)
@@ -1607,7 +1612,7 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
             if not Match.inside(brawl.bounds, target.Position) or not floorActive(brawl, target.Position, at) then
                 continue
             end
-            local facing = defenderFacing(target, root.Position)
+            local facing = projectileFacing(target, start, finish)
             local volumes = defenderVolumes(brawl, other, at, target, facing)
             local hit, zone, distance = Geometry.pebbleHit(start, finish, volumes, move.radius)
             if hit and distance < best then

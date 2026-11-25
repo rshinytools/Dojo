@@ -122,7 +122,8 @@ local recap = frame(gui, "Result", UDim2.fromScale(.5, .5), UDim2.new(.9, 0, 0, 
 make("UISizeConstraint", recap, {MaxSize = Vector2.new(400, 166)})
 local resultTitle = label(recap, "Heading", UDim2.fromOffset(15, 13), UDim2.new(1, -30, 0, 30), 22, gold, true)
 local placement = label(recap, "Placement", UDim2.fromOffset(15, 46), UDim2.new(1, -30, 0, 24), 15, parchment, true)
-local winner = label(recap, "Winner", UDim2.fromOffset(15, 73), UDim2.new(1, -30, 0, 22), 13, muted)
+local winner = label(recap, "Winner", UDim2.fromOffset(15, 73), UDim2.new(1, -30, 0, 34), 13, muted)
+winner.TextWrapped, winner.TextYAlignment = true, Enum.TextYAlignment.Top
 local close = button(recap, "Close", true)
 close.Position, close.Size = UDim2.new(1, -118, 1, -56), UDim2.fromOffset(105, 44)
 
@@ -203,6 +204,7 @@ local noticeUntil, stageCueUntil = 0, 0
 local sendingLeave = false
 
 local function focusModal()
+    close.Text = if UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse then "Close · Enter" else "Close"
     local selected = GuiService.SelectedObject
     local ownsSelection = selected and selected:IsDescendantOf(gui)
     local gamepad = UserInputService.PreferredInput == Enum.PreferredInput.Gamepad
@@ -436,7 +438,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
     local back = input.KeyCode == Enum.KeyCode.ButtonB or input.KeyCode == Enum.KeyCode.Backspace
     if recap.Visible then
-        if back then
+        if back or input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter then
             closeRecap()
         end
     elseif match then
