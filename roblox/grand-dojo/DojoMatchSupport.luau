@@ -1,5 +1,6 @@
 local TweenService = game:GetService("TweenService")
 local FighterTactics = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterTactics"))
+local FighterLoadouts = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterLoadouts"))
 local Match = {}
 
 Match.FighterKits = table.freeze({
@@ -36,12 +37,32 @@ function Match.tactical(player, kitId)
     return option.id
 end
 
-local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
+function Match.loadout(player, kitId)
+    local group = FighterLoadouts.ByKit[kitId]
+    return table.freeze({
+        tactical = Match.tactical(player, kitId),
+        basic = group and FighterLoadouts.forKit(kitId, "basic", player:GetAttribute(group.basic.attribute)).id,
+        ultimate = group and FighterLoadouts.forKit(kitId, "ultimate", player:GetAttribute(group.ultimate.attribute)).id,
+    })
+end
+
+local floorAttacks = {lanternBreak = true, seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
     tidalBellyFlop = true, thunderDive = true, staticCharge = true, apexPounce = true,
     jawsOfTheDeep = true, tentacleCataclysm = true, ["Breakwater Stamp"] = true}
 
 function Match.floorAttack(action)
     return floorAttacks[action] == true
+end
+
+function Match.plantedAction(action)
+    return FighterTactics.isPlanted(action) or FighterLoadouts.isPlanted(action)
+end
+
+function Match.plantedInput(side, action)
+    local move = if action == "strike" then side.basic
+        elseif action == "secondary" then side.tactical
+        elseif action == "signature" then side.ultimate else nil
+    return Match.plantedAction(move)
 end
 
 function Match.syncStormAim(player, side)

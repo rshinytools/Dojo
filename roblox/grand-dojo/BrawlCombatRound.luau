@@ -12,7 +12,7 @@ function Brawl.new(now, entrants)
     local sides = {}
     for index, entrant in entrants do
         local kitId = entrant.kitId or "reedguard"
-        local side = Combatant.new(now, entrant.fighter, kitId, nil, entrant.tactical)
+        local side = Combatant.new(now, entrant.fighter, kitId, nil, entrant.loadout or entrant.tactical)
         local level = entrant.level or 1
         assert(type(level) == "number" and level >= 1 and level < math.huge and level % 1 == 0,
             "Brawl requires a valid fighter level")
@@ -289,7 +289,7 @@ local function resolveBatch(round, at, notices, eliminateMany)
                 side.playerStunUntil = math.max(side.playerStunUntil, at + plan.stun)
                 Combatant.play(side, plan.action, at)
             end
-            if plan.parried and not side.kit.signatureCooldown then
+            if plan.parried and not side.ultimateCooldown then
                 side.signatureUntil = at + Combatant.PARRY_COUNTER_TIME
             end
             if plan.counterUntil then

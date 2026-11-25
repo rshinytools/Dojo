@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
+local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 
 local PlayerProfiles = {}
 PlayerProfiles.__index = PlayerProfiles
@@ -285,6 +286,31 @@ function PlayerProfiles.tacticalFor(profile, fighterId)
     return if PlayerProfiles.canEquipTactical(profile, fighterId, equipped) then equipped else registered.default
 end
 
+function PlayerProfiles.canEquipLoadout(profile, fighterId, slot, id)
+    local option = FighterLoadouts.get(fighterId, slot, id)
+    if not option then return false end
+    local fighter = profile.fighters[fighterId]
+    return PlayerProfiles.levelForXp(if fighter then fighter.xp else 0) >= option.level
+end
+
+local function loadoutFor(profile, fighterId, slot, field)
+    local loadout = FighterLoadouts.ByFighter[fighterId]
+    local definition = loadout and loadout[slot]
+    if not definition then return nil end
+    local fighter = profile.fighters[fighterId]
+    local equipped = fighter and fighter[field]
+    -- Project the default for unknown or locked choices without dropping the stored choice.
+    return if PlayerProfiles.canEquipLoadout(profile, fighterId, slot, equipped) then equipped else definition.default
+end
+
+function PlayerProfiles.basicFor(profile, fighterId)
+    return loadoutFor(profile, fighterId, "basic", "equippedBasic")
+end
+
+function PlayerProfiles.ultimateFor(profile, fighterId)
+    return loadoutFor(profile, fighterId, "ultimate", "equippedUltimate")
+end
+
 function PlayerProfiles.summary(profile, fighterId)
     fighterId = fighterId or REEDGUARD
     local fighter = profile.fighters[fighterId]
@@ -401,12 +427,18 @@ function PlayerProfiles:commitStarterChoice(userId, token, fighterId)
     end)
 end
 
-function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, tactical)
+function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, tactical, basic, ultimate)
     if not isFighter(fighterId) then
         return nil, "invalid fighter"
     end
     if tactical ~= nil and not PlayerProfiles.tacticalUnlockLevel(fighterId, tactical) then
         return nil, "invalid tactical"
+    end
+    if basic ~= nil and not FighterLoadouts.get(fighterId, "basic", basic) then
+        return nil, "invalid basic"
+    end
+    if ultimate ~= nil and not FighterLoadouts.get(fighterId, "ultimate", ultimate) then
+        return nil, "invalid ultimate"
     end
     return self:_owned(userId, token, function(profile, now)
         if not PlayerProfiles.canSwitch(profile, fighterId) then
@@ -415,7 +447,10 @@ function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, ta
         local fighter = profile.fighters[fighterId]
         local storedForm = fighter and fighter.equippedForm
         local storedTactical = fighter and fighter.equippedTactical
+        local storedBasic = fighter and fighter.equippedBasic
+        local storedUltimate = fighter and fighter.equippedUltimate
         local equippedForm, equippedTactical = storedForm, storedTactical
+        local equippedBasic, equippedUltimate = storedBasic, storedUltimate
         if formId ~= nil then
             if not PlayerProfiles.canEquipForm(profile, fighterId, formId) then
                 return "form locked"
@@ -428,10 +463,24 @@ function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, ta
             end
             equippedTactical = if tactical == FighterTactics.ByFighter[fighterId].default then nil else tactical
         end
-        if equippedForm ~= storedForm or equippedTactical ~= storedTactical then
+        if basic ~= nil then
+            if not PlayerProfiles.canEquipLoadout(profile, fighterId, "basic", basic) then
+                return "basic locked"
+            end
+            equippedBasic = if basic == FighterLoadouts.ByFighter[fighterId].basic.default then nil else basic
+        end
+        if ultimate ~= nil then
+            if not PlayerProfiles.canEquipLoadout(profile, fighterId, "ultimate", ultimate) then
+                return "ultimate locked"
+            end
+            equippedUltimate = if ultimate == FighterLoadouts.ByFighter[fighterId].ultimate.default then nil else ultimate
+        end
+        if equippedForm ~= storedForm or equippedTactical ~= storedTactical
+            or equippedBasic ~= storedBasic or equippedUltimate ~= storedUltimate then
             profile.fighters = table.clone(profile.fighters)
             local updated = table.clone(fighter or {xp = 0})
             updated.equippedForm, updated.equippedTactical = equippedForm, equippedTactical
+            updated.equippedBasic, updated.equippedUltimate = equippedBasic, equippedUltimate
             profile.fighters[fighterId] = updated
         end
         if formId ~= nil and equippedForm and profile.trophies[NEW_FORM] == nil then

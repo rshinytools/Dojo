@@ -12,6 +12,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local roster = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
+local fighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local visuals = ReplicatedStorage:WaitForChild("StarterFighterVisuals")
 local forms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local formVisuals = ReplicatedStorage:WaitForChild("FighterFormVisuals")
@@ -187,6 +188,19 @@ local tacticalBar = create("Frame", details, {
 })
 local tacticalHeading = label(tacticalBar, "Heading", "Technique", 13, colors.gold, Enum.Font.GothamBold)
 tacticalHeading.Size = UDim2.new(1, 0, 0, 16)
+local slotOrder = {"basic", "technique", "ultimate"}
+local slotNames = {basic = "Basic", technique = "Technique", ultimate = "Ultimate"}
+local slotHints = {basic = "B", technique = "T", ultimate = "U"}
+local slotStrip = create("Frame", tacticalBar, {
+    Name = "MoveSlots", Visible = false, BackgroundTransparency = 1, BorderSizePixel = 0,
+})
+local slotButtons = {}
+for _, slot in slotOrder do
+    local control, stroke = button(slotStrip, slotNames[slot], slotNames[slot], colors.panel, colors.edge)
+    slotButtons[slot] = {control = control, stroke = stroke}
+end
+local slotDescription = label(tacticalBar, "SlotDescription", "", 13, colors.text)
+slotDescription.TextWrapped, slotDescription.Visible = true, false
 local tacticalButtons = {}
 local maxTacticalOptions = 0
 for _, group in fighterTactics.ByFighter do
@@ -251,7 +265,8 @@ local cards = {}
 local cardById = {}
 local selectedId
 local requestedForm
-local requestedTactical
+local requestedMoves = {}
+local activeSlot = "technique"
 local switching = false
 local fighterLevels = {}
 local fighterForms = {}
@@ -298,21 +313,60 @@ local function formRequirement(id, formId)
     return if requirement > (tonumber(fighterLevels[id]) or 1) then requirement else nil
 end
 
-local function savedTactical()
-    local group = fighterTactics.ByFighter[selectedId]
-    if not group then return nil end
-    local option = fighterTactics.forKit(group.kit, player:GetAttribute(group.attribute))
-    return option and option.id
+local function moveGroup(slot)
+    if slot == "technique" then
+        return fighterTactics.ByFighter[selectedId]
+    end
+    local loadout = fighterLoadouts.ByFighter[selectedId]
+    return loadout and loadout[slot]
 end
 
-local function tacticalRequirement(tactical)
-    local option = tactical and fighterTactics.get(selectedId, tactical)
+local function getMove(slot, id)
+    if not id then return nil end
+    if slot == "technique" then
+        return fighterTactics.get(selectedId, id)
+    end
+    return fighterLoadouts.get(selectedId, slot, id)
+end
+
+local function savedMove(slot)
+    local group = moveGroup(slot)
+    if not group then return nil end
+    local saved = player:GetAttribute(group.attribute)
+    return getMove(slot, saved) or getMove(slot, group.default)
+end
+
+local function moveRequirement(option)
     return if option and (tonumber(fighterLevels[selectedId]) or 1) < option.level then option.level else nil
+end
+
+local function requestedMoveRequirement()
+    for _, slot in slotOrder do
+        local requirement = moveRequirement(getMove(slot, requestedMoves[slot]))
+        if requirement then return requirement end
+    end
+    return nil
+end
+
+local function pendingMoves()
+    local count, first = 0, nil
+    for _, slot in slotOrder do
+        local option = getMove(slot, requestedMoves[slot])
+        if option and option ~= savedMove(slot) then
+            count += 1
+            first = first or option
+        end
+    end
+    return count, first
+end
+
+local function usesLoadoutSlots()
+    return switching and fighterLoadouts.ByFighter[selectedId] ~= nil
 end
 
 local function alreadyEquipped(id)
     return switching and id == player:GetAttribute("SelectedStarterFighter") and previewForm(id) == savedForm(id)
-        and (requestedTactical == nil or requestedTactical == savedTactical())
+        and pendingMoves() == 0
 end
 
 local function focusNavigation()
@@ -514,10 +568,24 @@ local function updateFormButtons(saving)
 end
 
 local function updateTacticalButtons(saving)
-    local group = fighterTactics.ByFighter[selectedId]
+    local group = moveGroup(activeSlot)
     tacticalBar.Visible = switching and group ~= nil and #group.options > 1
-    local stored = savedTactical()
-    local selected = requestedTactical or stored
+    slotStrip.Visible = tacticalBar.Visible and usesLoadoutSlots()
+    local keyboard = UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
+    for _, slot in slotOrder do
+        local tile = slotButtons[slot]
+        local selected = slot == activeSlot
+        local control = tile.control
+        control.Selectable, control.Active = slotStrip.Visible and not saving, slotStrip.Visible and not saving
+        control.Text = slotNames[slot] .. (if keyboard then " · " .. slotHints[slot] else "")
+        control.TextColor3 = if selected then colors.gold else colors.text
+        control.BackgroundColor3 = if selected then colors.gold:Lerp(colors.panel, .82) else colors.panel
+        tile.stroke.Color = if selected then colors.gold else colors.edge
+    end
+    local stored = savedMove(activeSlot)
+    local selected = getMove(activeSlot, requestedMoves[activeSlot]) or stored
+    slotDescription.Visible = slotStrip.Visible and selected ~= nil and type(selected.description) == "string"
+    slotDescription.Text = if slotDescription.Visible then selected.description else ""
     local activeFighter = selectedId == player:GetAttribute("SelectedStarterFighter")
     local canCycle = false
     for index, tile in tacticalButtons do
@@ -527,9 +595,9 @@ local function updateTacticalButtons(saving)
         control.Name = tile.id or ("Option" .. index)
         control.Visible, control.Selectable = option ~= nil, option ~= nil and not saving
         if option then
-            local locked = tacticalRequirement(option.id)
-            local chosen = option.id == selected
-            local subline = if locked then "Level " .. locked elseif option.id == stored and activeFighter then "Equipped"
+            local locked = moveRequirement(option)
+            local chosen = option == selected
+            local subline = if locked then "Level " .. locked elseif option == stored and activeFighter then "Equipped"
                 elseif chosen then "Selected" else ""
             canCycle = canCycle or (not chosen and locked == nil)
             control.Text = option.name .. (if subline == "" then "" else "\n" .. subline)
@@ -541,19 +609,31 @@ local function updateTacticalButtons(saving)
             control.Active = false
         end
     end
-    tacticalHeading.Text = if canCycle and UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
-        then "Technique · T" else "Technique"
+    tacticalHeading.Text = if canCycle and keyboard then "Technique · T" else "Technique"
 end
 
 local function updateMoveDescriptions(info)
-    local group = fighterTactics.ByFighter[selectedId]
-    local current = group and fighterTactics.get(selectedId, requestedTactical or savedTactical())
+    local loadout = usesLoadoutSlots()
+    local powers = info.powers
+    local current = if loadout then nil else getMove("technique", requestedMoves.technique) or savedMove("technique")
+    if loadout then
+        -- The loadout already describes the equipped Ultimate. Keep other catalog moves here once.
+        local ultimate = moveGroup("ultimate")
+        local default = ultimate and getMove("ultimate", ultimate.default)
+        powers = {}
+        for _, move in info.powers do
+            if not default or move.name ~= default.name then
+                table.insert(powers, move)
+            end
+        end
+    end
+    techniques.Text = if loadout then "Other moves" else "Technique preview"
     local hasDescription = current and type(current.description) == "string" and current.description ~= ""
     local catalogIndex = tacticalPowerIndexes[selectedId]
     local extraRow = hasDescription and not catalogIndex
     for index, row in moves do
         local selectedTechnique = hasDescription and index == (catalogIndex or 1)
-        local move = info.powers[if extraRow then index - 1 else index]
+        local move = powers[if extraRow then index - 1 else index]
         local visible = selectedTechnique or move ~= nil
         row.name.Visible, row.effect.Visible = visible, visible
         if selectedTechnique then
@@ -574,9 +654,11 @@ buttons = function()
     local formId = previewForm(selectedId)
     local equipped = alreadyEquipped(selectedId)
     local locked = switching and (requiredLevel(selectedId) or formRequirement(selectedId, formId)
-        or tacticalRequirement(requestedTactical))
+        or requestedMoveRequirement())
     local option = forms.get(selectedId, formId)
-    local tactic = requestedTactical and fighterTactics.get(selectedId, requestedTactical)
+    local pending, move = pendingMoves()
+    local editingLoadout = usesLoadoutSlots() and pending > 0
+    local activeFighter = selectedId == player:GetAttribute("SelectedStarterFighter")
     local formCopy = switching and #forms.list(selectedId) > 1 and option
     local enabled = not busy and (previewState == "failed" or (not equipped and not locked))
     confirm.Active = enabled
@@ -587,8 +669,9 @@ buttons = function()
         elseif previewState == "failed" then "Retry 3D preview"
         elseif locked then string.format("Unlock at Level %d", locked)
         elseif equipped then "Currently equipped"
-        elseif tactic and selectedId == player:GetAttribute("SelectedStarterFighter")
-            and formId == savedForm(selectedId) then "Equip " .. tactic.name
+        elseif editingLoadout and not activeFighter then "Switch & equip loadout"
+        elseif editingLoadout and (pending > 1 or formId ~= savedForm(selectedId)) then "Equip loadout"
+        elseif move and activeFighter and formId == savedForm(selectedId) then "Equip " .. move.name
         elseif formCopy then "Equip " .. option.name
         else (if switching then "Switch to " else "Start as ") .. name
     confirm.BackgroundColor3 = if enabled then colors.gold else colors.gold:Lerp(colors.panel, .28)
@@ -661,7 +744,8 @@ local function showFighter(id)
         return
     end
     selectedId = id
-    requestedForm, requestedTactical = nil, nil
+    requestedForm, activeSlot = nil, "technique"
+    table.clear(requestedMoves)
     local tint = elements[info.element] or colors.gold
     screen:SetAttribute("PreviewFighterId", id)
     fighterName.Text, title.Text, home.Text = info.name, info.title, info.home
@@ -743,11 +827,12 @@ for _, tile in formButtons do
 end
 
 local function selectTactical(id)
-    if not (id and panel.Visible and tacticalBar.Visible) or tacticalRequirement(id) or inFlight
+    local option = getMove(activeSlot, id)
+    if not (option and panel.Visible and tacticalBar.Visible) or moveRequirement(option) or inFlight
         or player:GetAttribute("StarterSelectionPending") == true then
         return
     end
-    requestedTactical = if id == savedTactical() then nil else id
+    requestedMoves[activeSlot] = if option == savedMove(activeSlot) then nil else id
     lastError = ""
     updateLevel()
     buttons()
@@ -760,6 +845,29 @@ for _, tile in tacticalButtons do
     tile.control.SelectionGained:Connect(function()
         if panel.Visible and focusNavigation() then
             revealDetail(tile.control)
+        end
+    end)
+end
+
+local function selectSlot(slot)
+    if slot == activeSlot or not (panel.Visible and slotStrip.Visible) or inFlight
+        or player:GetAttribute("StarterSelectionPending") == true then
+        return
+    end
+    activeSlot = slot
+    buttons()
+    layout()
+    revealDetail(slotButtons[slot].control)
+end
+
+for _, slot in slotOrder do
+    local control = slotButtons[slot].control
+    control.Activated:Connect(function()
+        selectSlot(slot)
+    end)
+    control.SelectionGained:Connect(function()
+        if panel.Visible and focusNavigation() then
+            revealDetail(control)
         end
     end)
 end
@@ -845,7 +953,8 @@ layout = function()
             then cardById[order[index + 1]].control else control
         control.NextSelectionUp = if row > 0 then cardById[order[index - columns]].control else (if switching then close else control)
         local nextRow = (row + 1) * columns + 1
-        control.NextSelectionDown = if id == selectedId and tacticalBar.Visible then tacticalButtons[1].control
+        control.NextSelectionDown = if id == selectedId and slotStrip.Visible then slotButtons[activeSlot].control
+            elseif id == selectedId and tacticalBar.Visible then tacticalButtons[1].control
             elseif id == selectedId and formBar.Visible then formButtons[1].control
             elseif order[nextRow] then cardById[order[math.min(index + columns, #order)]].control else confirm
     end
@@ -873,7 +982,7 @@ layout = function()
     fighterName.TextSize = if compact then 19 else 25
     title.TextSize, home.TextSize = if compact then 13 else 15, if compact then 12 else 13
     local tacticOffset = if tacticalBar.Visible then 1 else 0
-    local tacticCount = if tacticalBar.Visible then #fighterTactics.ByFighter[selectedId].options else 0
+    local tacticCount = if tacticalBar.Visible then #moveGroup(activeSlot).options else 0
     local lastTacticRow = 1
     formBar.LayoutOrder = 3 + tacticOffset
     if tacticalBar.Visible then
@@ -887,9 +996,36 @@ layout = function()
         local buttonHeight = if tacticCount > 2 then 48 else 44
         local buttonWidth = (widthForTactics - gapBetween * (columnsForTactics - 1)) / columnsForTactics
         local headerHeight = if compact then 0 else 20
+        if slotStrip.Visible then
+            local tabColumns = math.clamp(math.floor((widthForTactics + gapBetween) / 76), 1, #slotOrder)
+            local tabRows = math.ceil(#slotOrder / tabColumns)
+            local tabHeight = 44
+            headerHeight = tabRows * (tabHeight + gapBetween)
+            slotStrip.Size = UDim2.new(1, 0, 0, headerHeight - gapBetween)
+            for index, slot in slotOrder do
+                local control = slotButtons[slot].control
+                local column, row = (index - 1) % tabColumns, math.floor((index - 1) / tabColumns)
+                control.Position = UDim2.new(column / tabColumns, column * gapBetween / tabColumns,
+                    0, row * (tabHeight + gapBetween))
+                control.Size = UDim2.new(1 / tabColumns, -gapBetween * (tabColumns - 1) / tabColumns, 0, tabHeight)
+                control.TextSize = if compact or widthForTactics < 320 then 12 else 14
+                control.NextSelectionLeft = if column > 0 then slotButtons[slotOrder[index - 1]].control else control
+                control.NextSelectionRight = if column < tabColumns - 1 and slotOrder[index + 1]
+                    then slotButtons[slotOrder[index + 1]].control else control
+                control.NextSelectionUp = if row > 0 then slotButtons[slotOrder[index - tabColumns]].control else selectedCard()
+                control.NextSelectionDown = if row < tabRows - 1
+                    then slotButtons[slotOrder[math.min(index + tabColumns, #slotOrder)]].control
+                    else tacticalButtons[1].control
+            end
+        end
         tacticalBar.LayoutOrder = if compact then 0 else 3
-        tacticalBar.Size = UDim2.new(1, -9, 0, headerHeight + rowsForTactics * (buttonHeight + gapBetween) - gapBetween)
-        tacticalHeading.Visible = not compact
+        local optionsBottom = headerHeight + rowsForTactics * (buttonHeight + gapBetween) - gapBetween
+        local descriptionHeight = if slotStrip.Visible then (if compact then 44 else 38) else 0
+        tacticalBar.Size = UDim2.new(1, -9, 0, optionsBottom + descriptionHeight)
+        tacticalHeading.Visible = not compact and not slotStrip.Visible
+        slotDescription.Position = UDim2.fromOffset(0, optionsBottom + 3)
+        slotDescription.Size = UDim2.new(1, 0, 0, math.max(0, descriptionHeight - 3))
+        slotDescription.TextSize = if compact then 12 else 13
         for index = 1, tacticCount do
             local control = tacticalButtons[index].control
             local column = (index - 1) % columnsForTactics
@@ -902,7 +1038,8 @@ layout = function()
             control.NextSelectionLeft = if column > 0 then tacticalButtons[index - 1].control else control
             control.NextSelectionRight = if column < columnsForTactics - 1 and index < tacticCount
                 then tacticalButtons[index + 1].control else control
-            control.NextSelectionUp = if row > 0 then tacticalButtons[index - columnsForTactics].control else selectedCard()
+            control.NextSelectionUp = if row > 0 then tacticalButtons[index - columnsForTactics].control
+                elseif slotStrip.Visible then slotButtons[activeSlot].control else selectedCard()
             control.NextSelectionDown = if row < rowsForTactics - 1
                 then tacticalButtons[math.min(index + columnsForTactics, tacticCount)].control
                 elseif formBar.Visible then formButtons[1].control else confirm
@@ -979,7 +1116,7 @@ local function confirmChoice()
         return
     end
     if switching and (requiredLevel(selectedId) or formRequirement(selectedId, previewForm(selectedId))
-        or tacticalRequirement(requestedTactical) or alreadyEquipped(selectedId)) then
+        or requestedMoveRequirement() or alreadyEquipped(selectedId)) then
         return
     end
     inFlight = true
@@ -988,8 +1125,11 @@ local function confirmChoice()
     local thisRequest = requestNumber
     buttons()
     if switching then
-        if requestedTactical then
-            choice:FireServer("switch", selectedId, requestedForm, requestedTactical)
+        if requestedMoves.basic or requestedMoves.ultimate then
+            choice:FireServer("switch", selectedId, requestedForm, requestedMoves.technique, requestedMoves.basic,
+                requestedMoves.ultimate)
+        elseif requestedMoves.technique then
+            choice:FireServer("switch", selectedId, requestedForm, requestedMoves.technique)
         elseif requestedForm then
             choice:FireServer("switch", selectedId, requestedForm)
         else
@@ -1016,6 +1156,8 @@ local function closePicker()
 end
 close.Activated:Connect(closePicker)
 
+local slotKeys = {[Enum.KeyCode.B] = "basic", [Enum.KeyCode.T] = "technique", [Enum.KeyCode.U] = "ultimate"}
+
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed or not panel.Visible or UserInputService:GetFocusedTextBox() or focusNavigation() then
         return
@@ -1024,15 +1166,20 @@ UserInputService.InputBegan:Connect(function(input, processed)
         confirmChoice()
     elseif input.KeyCode == Enum.KeyCode.Backspace then
         closePicker()
-    elseif tacticalBar.Visible and input.KeyCode == Enum.KeyCode.T then
-        local current = requestedTactical or savedTactical()
-        local options = fighterTactics.ByFighter[selectedId].options
-        local index = table.find(options, fighterTactics.get(selectedId, current)) or 1
+    elseif tacticalBar.Visible and (input.KeyCode == Enum.KeyCode.T or (slotStrip.Visible and slotKeys[input.KeyCode])) then
+        local slot = slotKeys[input.KeyCode]
+        if slot ~= activeSlot then
+            selectSlot(slot)
+            return
+        end
+        local current = getMove(slot, requestedMoves[slot]) or savedMove(slot)
+        local options = moveGroup(slot).options
+        local index = table.find(options, current) or 1
         for step = 1, #options - 1 do
             local nextIndex = (index - 1 + step) % #options + 1
-            local id = options[nextIndex].id
-            if not tacticalRequirement(id) then
-                selectTactical(id)
+            local option = options[nextIndex]
+            if not moveRequirement(option) then
+                selectTactical(option.id)
                 revealDetail(tacticalButtons[nextIndex].control)
                 break
             end
@@ -1213,13 +1360,20 @@ local function readFighterForms()
 end
 player:GetAttributeChangedSignal("FighterRosterForms"):Connect(readFighterForms)
 player:GetAttributeChangedSignal("SelectedFighterForm"):Connect(readFighterForms)
-for fighterId, group in fighterTactics.ByFighter do
-    player:GetAttributeChangedSignal(group.attribute):Connect(function()
+local function watchMove(fighterId, attribute)
+    player:GetAttributeChangedSignal(attribute):Connect(function()
         if panel.Visible and selectedId == fighterId then
             updateLevel()
             buttons()
         end
     end)
+end
+for fighterId, group in fighterTactics.ByFighter do
+    watchMove(fighterId, group.attribute)
+end
+for fighterId, loadout in fighterLoadouts.ByFighter do
+    watchMove(fighterId, loadout.basic.attribute)
+    watchMove(fighterId, loadout.ultimate.attribute)
 end
 readFighterForms()
 player:GetAttributeChangedSignal("HighestFighterLevel"):Connect(function()

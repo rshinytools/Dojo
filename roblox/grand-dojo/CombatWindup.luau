@@ -1,4 +1,4 @@
--- Preview the authored Heavy or opening Jab preparation while the server decides the action.
+-- Preview the authored Heavy or combo opener while the server decides the action.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -207,7 +207,7 @@ function Windup.begin(action)
     ray.FilterDescendantsInstances = {character}
     local now = os.clock()
     token = token % 2147483647 + 1
-    active = {token = token, action = if jab then "jab" else "heavy", character = character,
+    active = {token = token, action = if jab then jab.action else "heavy", character = character,
         shell = shell, root = root, humanoid = humanoid,
         animate = animate, profile = profile, bindings = bindings, started = now, requestedAt = serverNow,
         expiresAt = now + previewTime,
@@ -241,7 +241,8 @@ local function receiveProfile(packet, serverNow)
         and finite(jabPacket.readyAt) and jabPacket.contact > contactLead and jabPacket.duration >= jabPacket.contact
         and hasShoulderPose(jabPacket.pose) then
         jab = {pose = jabPacket.pose, contact = jabPacket.contact, duration = jabPacket.duration,
-            readyAt = jabPacket.readyAt, localReadyAt = -math.huge}
+            readyAt = jabPacket.readyAt, localReadyAt = -math.huge,
+            action = if type(jabPacket.action) == "string" then jabPacket.action else "jab"}
     end
     pending = {character = character, shell = packet.shell, generation = packet.generation,
         startsAt = packet.startsAt, endsAt = packet.endsAt, expiresAt = os.clock() + profileWaitTime,
@@ -278,7 +279,7 @@ local function receiveDecision(packet, serverNow)
         preview.cutoff = math.min(preview.cutoff, contactAt - contactLead)
         busyUntil = math.max(contactAt, busyUntil)
         local jab = preview.profile.jab
-        if preview.action == "jab" and jab.localReadyAt == preview.localReadyAt then
+        if jab and preview.action == jab.action and jab.localReadyAt == preview.localReadyAt then
             jab.localReadyAt = acceptedAt + jab.duration + lightChainTime
         end
         if studio then

@@ -139,6 +139,23 @@ local heelRetract = groundedPose({-.16, -.17, .02, 3, -1, 11}, {48, 12, -22}, {6
 local heelSettle = groundedPose({-.065, -.10, .012, 5, 5, 5}, {47, 12, -18}, {61, -16, 18},
 	{9, -5, 0, 0, 0, 0, .025}, leadBoot, {-5, -4, -2}, {-8, -9})
 
+-- Basic openers with a shorter recovery than the Technique kicks.
+local checkLoad = groundedPose({-.052, -.075, .072, 4, 11, 3}, {50, 12, -17},
+	{44, -9, 24, -.028, .028, .105}, rearBoot, leadBoot, {-4, -10, -3}, {-8, -12})
+local checkHit = groundedPose({-.025, -.073, -.13, 3, -17, 1}, {55, 12, -17},
+	{62, -12, 13, .085, .035, -.180}, rearBoot, leadBoot, {-4, 15, -2}, {-4, 13})
+local checkFold = groundedPose({-.038, -.099, -.027, 6, -8, 3}, {49, 11, -16},
+	{54, -14, 21, .035, .052, .038}, rearBoot, leadBoot, {-5, 6, -2}, {-8, 7})
+
+local toeLoad = groundedPose({.099, -.13, .048, 6, 7, -5}, {51, 12, -19}, {62, -16, 17},
+	rearBoot, {16, 12, -3, -.048, .015, .01, .092}, {-5, -7, 3}, {-14, -12})
+local toeHit = groundedPose({.08, -.11, -.15, 4, -12, -2}, {53, 14, -16}, {64, -18, 19},
+	rearBoot, {46, -1, -3, -.070, .045, -.07, .34}, {-4, 11, 2}, {-16, 11})
+local toeTuck = groundedPose({.09, -.12, -.04, 5, -3, -4}, {52, 12, -17}, {62, -16, 17},
+	rearBoot, {26, 7, -3, -.013, .033, -.038, .21}, {-4, 3, 3}, {-13, 7})
+local toeReturn = groundedPose({.055, -.075, .015, 4, 4, -3}, rightGuard, leftGuard,
+	rearBoot, {4, 8, 0, -.02, 0, -.01, .025}, {-4, -3, 2}, {-7, -4})
+
 local uppercutLoad = pose({0.06, -0.18, 0.055, 9, -13, -4}, {27, 7, -11, 0, 0.07}, {65, -20, 22}, {10, -7}, {-7, 12, 3}, {-7, 12})
 local uppercutDrive = pose({0.07, -0.10, -0.10, 7, 8, -3}, {68, 13, -17, 0.015, -0.14}, {64, -20, 22}, {10, -7}, {-5, -7, 2}, {-3, -9})
 local uppercutContact = pose({0.035, 0.01, -0.34, -4, 20, -3}, {119, 14, -21, 0.12, -0.29}, {65, -22, 22}, {11, -5}, {1, -17, 3}, {3, -17})
@@ -188,10 +205,44 @@ local saluteNod = pose({0.02, -0.04, 0, 5, 7, -2}, {88, 24, -22, 0.02}, {51, -15
 local winRaise = pose({0.05, 0.07, 0.025, -7, 13, -4}, {119, 7, -16, 0.04}, {67, -15, 14}, {7, -8}, {-5, -11, 4}, {6, -9})
 local winHold = pose({0.035, 0.045, 0.025, -4, 9, -2}, {108, 10, -15, 0.025}, {55, -14, 12}, {7, -6}, {-2, -8, 2}, {2, -5})
 
+-- Lantern Break shows both raised gauntlets before the single paired strike.
+local lanternBrace = groundedPose({0, -.23, .055, 12, 3, 0}, {55, 10, -17}, {61, -12, 16},
+	rearBoot, leadBoot, {-5, -3, 0}, {-19, -4})
+local lanternRaise = groundedPose({0, -.13, .08, 3, 0, 0}, {151, 5, 17, .06, -.04, .015}, {153, -5, -17, -.06, -.04, .015},
+	rearBoot, leadBoot, {4, 0, 0}, {-14, 0})
+local lanternFold = groundedPose({0, -.56, -.13, 28, 0, 0}, {72, 8, 10, .055, -.115, -.09}, {72, -8, -10, -.055, -.115, -.09},
+	rearBoot, leadBoot, {-2, 0, 0}, {-71, 0})
+local lanternHit = groundedPose({0, -1.25, -.50, 69, 0, 0}, {-30, 1, 9, .037, 0, .198}, {-30, -1, -9, -.037, 0, .198},
+	rearBoot, leadBoot, {-36, 0, 0}, {-130, 0})
+local lanternRebound = groundedPose({0, -.66, -.20, 41, 0, 0}, {8, 7, 8, .045, -.055, -.14}, {8, -7, -8, -.045, -.055, -.14},
+	rearBoot, leadBoot, {-21, 0, 0}, {-79, 0})
+local lanternRecover = groundedPose({0, -.24, -.11, 14, 4, -1}, {50, 11, -16}, {60, -15, 15},
+	rearBoot, leadBoot, {-6, -4, 1}, {-13, -5})
+
+-- A low left mitt and a delayed straight right each have their own contact.
+local festivalDraw = groundedPose({-.055, -.23, .04, 10, 25, 7}, {59, 15, -19}, {32, -5, 13, 0, -.025, .025},
+	rearBoot, leadBoot, {-7, -22, -4}, {-17, -18})
+local festivalLeft = groundedPose({-.065, -.25, -.33, 12, -20, 5}, {60, 19, -20}, {57, -13, 22, -.008, -.035, -.20},
+	rearBoot, leadBoot, {-8, 18, -4}, {-14, 20})
+local festivalSwitch = groundedPose({.045, -.17, -.11, 8, -14, -5}, {30, 5, -20, .005, -.035, .06}, {58, -19, 24, 0, .005, -.03},
+	rearBoot, leadBoot, {-6, 13, 4}, {-14, 15})
+local festivalCoil = groundedPose({.095, -.18, -.035, 5, -27, -8}, {28, 7, -16, .015, 0, .08}, {64, -19, 20},
+	rearBoot, leadBoot, {-4, 24, 5}, {-13, 23})
+local festivalRight = groundedPose({.075, -.16, -.36, 8, 24, -4}, {81, 13, -22, 0, .04, -.22}, {63, -19, 22},
+	rearBoot, leadBoot, {-7, -22, 3}, {-12, -19})
+local festivalFollow = groundedPose({.08, -.21, -.25, 13, 27, -6}, {67, 14, -21, 0, .018, -.12}, {63, -20, 22},
+	rearBoot, leadBoot, {-9, -24, 4}, {-17, -24})
+local festivalRecover = groundedPose({.035, -.12, -.09, 7, 13, -3}, {50, 11, -17}, {60, -15, 18},
+	rearBoot, leadBoot, {-6, -11, 2}, {-11, -11})
+
 local uppercutContactAt = 0.285
 local kickContactAt = .30
 local sweepContactAt = .35
 local heelContactAt = .48
+local checkContactAt = .17
+local toeContactAt = .25
+local lanternContactAt = .62
+local festivalContacts = table.freeze({.31, .64})
 local shuffleDuration = .50
 local shuffleStride = 1.40
 local groundedClips = {
@@ -226,6 +277,16 @@ groundedClips.reedSweep = {{0, sweepReady}, {.120, sweepLoad}, {.225, sweepChamb
 	{.455, sweepWithdraw}, {.600, sweepSettle}, {.740, sweepReady}}
 groundedClips.reedstoneHeel = {{0, sweepReady}, {.125, heelLoad}, {.265, heelLift}, {.365, heelChamber},
 	{heelContactAt, heelStrike}, {.55, heelFollow}, {.675, heelRetract}, {.825, heelSettle}, {.96, sweepReady}}
+groundedClips.reedCheck = {{0, sweepReady}, {.059, checkLoad}, {checkContactAt, checkHit},
+	{.248, checkFold}, {.40, sweepReady}}
+groundedClips.courtyardToe = {{0, sweepReady}, {.105, toeLoad}, {toeContactAt, toeHit},
+	{.334, toeTuck}, {.414, toeReturn}, {.51, sweepReady}}
+groundedClips.lanternBreak = {{0, sweepReady}, {.15, lanternBrace}, {.32, lanternRaise}, {.425, lanternRaise},
+	{.525, lanternFold}, {lanternContactAt, lanternHit}, {.665, lanternHit}, {.765, lanternRebound},
+	{1.04, lanternRecover}, {1.26, sweepReady}}
+groundedClips.festivalCross = {{0, sweepReady}, {.14, festivalDraw}, {festivalContacts[1], festivalLeft},
+	{.414, festivalSwitch}, {.50, festivalCoil}, {festivalContacts[2], festivalRight}, {.745, festivalFollow},
+	{.91, festivalRecover}, {1.12, sweepReady}}
 local floorClips = groundedRig.finish(groundedClips, {}, {}, {}, {}, {"shuffle"})
 
 local function placeBoot(offsets, joint, position)
@@ -292,6 +353,8 @@ local planted = {
 }
 local durations = {body = floorClips.Duration.body, reedSweep = floorClips.Duration.reedSweep,
 	reedstoneHeel = floorClips.Duration.reedstoneHeel,
+	reedCheck = floorClips.Duration.reedCheck, courtyardToe = floorClips.Duration.courtyardToe,
+	lanternBreak = floorClips.Duration.lanternBreak, festivalCross = floorClips.Duration.festivalCross,
 	strafeLeft = shuffleDuration, strafeRight = shuffleDuration}
 for action, frames in pairs(clips) do
 	durations[action] = frames[#frames][1]
@@ -305,6 +368,9 @@ Poses.Contact = table.freeze({
 	body = kickContactAt,
 	reedSweep = sweepContactAt,
 	reedstoneHeel = heelContactAt,
+	reedCheck = checkContactAt,
+	courtyardToe = toeContactAt,
+	lanternBreak = lanternContactAt, festivalCross = festivalContacts,
 	uppercut = uppercutContactAt,
 	heavy = 0.42,
 	reedstep = table.freeze({0.23, 0.42, 0.67}),
@@ -323,12 +389,45 @@ local heelBootPad = Vector3.new(.181279540, -1.394000053, .308999985)
 local heelPoint = rightHipPivot + artOrigin - mountedOrigin + heelBootPad
 local heelSupport = sweepReady.RootJoint * sweepReady[joints.leftLeg]
 local sweepSupport = sweepReady.RootJoint * sweepReady[joints.rightLeg]
+-- Points are fitted to the visible padding and left boot toe in the shipped shell.
+local checkPad = Vector3.new(-1.285499453, 1.460358978, -.640155733) - mountedOrigin
+local toePad = Vector3.new(-.641870856, .017307400, -.789945006) - mountedOrigin
+Poses.Skill = table.freeze({
+	reedCheck = table.freeze({damage = 11, radius = .42}),
+	courtyardToe = table.freeze({damage = 14, radius = .47, foot = true}),
+})
+local function glovePoint(key, joint, point)
+	return (key.RootJoint * key[joint]):PointToWorldSpace(point)
+end
+
+-- Exact fitted surface points in the unposed mount frame; hands share one floor hit.
+local lanternRightHand = Vector3.new(.905362455, -.664518336, -.088014749)
+local lanternLeftHand = Vector3.new(-.905362512, -.664518336, -.088014489)
+local festivalLeftMitt = Vector3.new(-1.316013487, -.671438435, -.551284544)
+local festivalRightMitt = Vector3.new(1.284692133, -.672629336, -.159515871)
+local lanternHands = table.freeze({
+	glovePoint(lanternHit, joints.rightArm, lanternRightHand),
+	glovePoint(lanternHit, joints.leftArm, lanternLeftHand),
+})
+local lanternCenter = lanternHands[1]:Lerp(lanternHands[2], .5)
+lanternCenter = Vector3.new(lanternCenter.X, -mountedOrigin.Y, lanternCenter.Z)
+Poses.UltimateSkill = table.freeze({
+	lanternBreak = table.freeze({damage = 29, center = lanternCenter, radius = 2.45, warningAt = .23}),
+	festivalCross = table.freeze({damage = table.freeze({12, 21}), radius = table.freeze({.45, .47})}),
+})
 Poses.Impact = table.freeze({
 	jab = table.freeze({Vector3.new(0.264, 0.595, -1.828)}),
 	cross = table.freeze({Vector3.new(-0.196, 0.361, -1.925)}),
 	body = table.freeze({(kickContact.RootJoint * kickContact[joints.rightLeg]):PointToWorldSpace(bootContact)}),
 	reedstoneHeel = table.freeze({(heelStrike.RootJoint * heelStrike[joints.rightLeg]):PointToWorldSpace(heelPoint)}),
+	lanternBreak = table.freeze({lanternCenter}),
+	festivalCross = table.freeze({
+		glovePoint(festivalLeft, joints.leftArm, festivalLeftMitt),
+		glovePoint(festivalRight, joints.rightArm, festivalRightMitt),
+	}),
 	reedSweep = table.freeze({(sweepContact.RootJoint * sweepContact[joints.leftLeg]):PointToWorldSpace(sweepPoint)}),
+	reedCheck = table.freeze({(checkHit.RootJoint * checkHit[joints.leftArm]):PointToWorldSpace(checkPad)}),
+	courtyardToe = table.freeze({(toeHit.RootJoint * toeHit[joints.leftLeg]):PointToWorldSpace(toePad)}),
 	uppercut = table.freeze({Vector3.new(0.432, 0.861, -1.896)}),
 	heavy = table.freeze({Vector3.new(-0.081, 0.323, -2.064)}),
 	reedstep = table.freeze({Vector3.new(0.139, -0.067, -2.001), Vector3.new(-0.187, 0.317, -2.000), Vector3.new(0.306, 0.764, -2.015)}),
@@ -347,6 +446,13 @@ function Poses.sample(action, ageSeconds)
 	elseif action == "reedstoneHeel" then
 		local offsets = floorClips.sample(action, ageSeconds)
 		offsets[joints.leftLeg] = offsets.RootJoint:ToObjectSpace(heelSupport)
+		return offsets
+	elseif action == "reedCheck" or action == "courtyardToe" or action == "lanternBreak" or action == "festivalCross" then
+		local offsets = floorClips.sample(action, ageSeconds)
+		offsets[joints.rightLeg] = offsets.RootJoint:ToObjectSpace(sweepSupport)
+		if action ~= "courtyardToe" then
+			offsets[joints.leftLeg] = offsets.RootJoint:ToObjectSpace(heelSupport)
+		end
 		return offsets
 	elseif action == "strafeLeft" or action == "strafeRight" then
 		return sampleShuffle(ageSeconds, if action == "strafeLeft" then -1 else 1)

@@ -49,10 +49,12 @@ function Windup.profile(actor, side, motors, startsAt, endsAt)
 
     local heavy = poseSample(side.kit, motors, "heavy", .14)
     if not heavy then return end
-    local jab = poseSample(side.kit, motors, "jab", .065)
+    local opener = Combatant.firstLight(side)
+    local jab = poseSample(side.kit, motors, opener, .065)
     if jab then
+        jab.action = opener
         jab.readyAt = math.max(startsAt, Combatant.jabReadyAt(side))
-        jab.duration = side.kit.poses.Duration.jab
+        jab.duration = side.kit.poses.Duration[opener]
     end
 
     -- The marker identifies the intended shell even when Roblox delivers a nil Instance reference.
@@ -65,7 +67,7 @@ end
 
 function Windup.decide(actor, side, startsAt, token, previousClip, now, action)
     if type(token) ~= "number" or not (token >= 1 and token <= maximumToken and token % 1 == 0) then return end
-    local expected = if action == "strike" then "jab" elseif action == "heavy" then "heavy" else nil
+    local expected = if action == "strike" then Combatant.firstLight(side) elseif action == "heavy" then "heavy" else nil
     if not expected then return end
     local shell = fighterShell(actor)
     local profile = actor.windupProfile

@@ -9,6 +9,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoTagTeam")
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
+local fighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -31,11 +32,20 @@ local darkTrack = Color3.fromRGB(37, 26, 30)
 local bold = Enum.Font.GothamBold
 local regular = Enum.Font.GothamMedium
 
-local earnedCues = {penguinTacticalCooling = "Technique cooling down", ridgeCooling = "Technique cooling down",
+local earnedCues = {ultimateCooling = "Ultimate cooling down", penguinTacticalCooling = "Technique cooling down", ridgeCooling = "Technique cooling down",
     emberCooling = "Technique cooling down"}
 for _, group in fighterTactics.ByKit do
     for _, option in group.options do
         earnedCues[option.id] = option.name
+    end
+end
+for _, loadout in fighterLoadouts.ByKit do
+    for _, slot in {loadout.basic, loadout.ultimate} do
+        for _, option in slot.options do
+            if option.id ~= slot.default then
+                earnedCues[option.id] = option.name
+            end
+        end
     end
 end
 local roster = {
@@ -462,7 +472,15 @@ local function showCombatActions(now, own, kit)
     actions.technique.Visible = enabled and techniqueName ~= nil
     actions.tag.Visible = live
     actions.leave.Visible = not match.resolvedAt
-    actions.strike.Text, actions.heavy.Text = binding("Strike", "E", "RT"), binding("Heavy", "R", "RB")
+    local choices = fighterLoadouts.ByKit[own.kitId]
+    local basic = fighterLoadouts.forKit(own.kitId, "basic", own.basic)
+    local strike = "Strike"
+    if basic and basic.id ~= choices.basic.default then
+        local width = actions.strike.AbsoluteSize.X
+        strike = if width > 0 and width < 100 then basic.compact or basic.name else basic.name
+    end
+    actions.strike.Text = binding(strike, "E", "RT")
+    actions.heavy.Text = binding("Heavy", "R", "RB")
     actions.guard.Text, actions.dodge.Text = binding("Guard", "Q", "LT"), binding(kit.dodge or "Dodge", "X", "LB")
     if techniqueName then
         local width = actions.technique.AbsoluteSize.X
@@ -472,7 +490,11 @@ local function showCombatActions(now, own, kit)
         cool(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
-    local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature
+    local ultimate = fighterLoadouts.forKit(own.kitId, "ultimate", own.ultimate)
+    local customUltimate = ultimate and ultimate.id ~= choices.ultimate.default
+    local compactName = if customUltimate then ultimate.compact else kit.compactSignature
+    local name = if customUltimate then ultimate.name else kit.signature
+    local signature = if compactName and width > 0 and width < (if customUltimate then 100 else 70) then compactName else name
     cool(actions.signature, signature, "F", "Y", match.nextSignature)
     local canTag = live and match.canTag == true
     local wait = seconds(match.tagReadyAt, now)

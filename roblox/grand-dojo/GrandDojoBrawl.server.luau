@@ -171,7 +171,8 @@ local function publish(match, kind, now)
         remote:FireClient(actor.player, kind, {matchId = match.id, startsAt = round.startsAt, endsAt = round.endsAt,
             resolvedAt = round.resolvedAt,
             playerHealth = side.playerHealth, maxHealth = side.playerMaxHealth,
-            kitId = actor.kit, tactical = side.tactical, alive = round.remaining,
+            kitId = actor.kit, tactical = side.tactical, basic = side.basic, ultimate = side.ultimate,
+            alive = round.remaining,
             total = SIZE, stage = match.stage, nextShrinkAt = nextShrink,
             warningAt = nextShrink and nextShrink - WARNING_SECONDS, eliminated = side.eliminated,
             spectatorRoot = actor.spectatorRoot,
@@ -209,7 +210,7 @@ local function start(now)
         local kit = Match.FighterKits[id]
         actors[index] = {player = player, root = waiting.root, kit = kit, nextInput = now, feedbackUntil = 0}
         entrants[index] = {fighter = fighters[id], kitId = kit, level = player:GetAttribute("FighterLevel"),
-            tactical = Match.tactical(player, kit)}
+            loadout = Match.loadout(player, kit)}
         sideFor[player] = index
     end
     matchId += 1

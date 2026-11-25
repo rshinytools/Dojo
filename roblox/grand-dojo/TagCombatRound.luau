@@ -7,7 +7,7 @@ local Tag = {INTRO = Spar.INTRO, DURATION = 90, OUTRO = Spar.OUTRO, TAG_COOLDOWN
 local timing = {intro = Tag.INTRO, duration = Tag.DURATION}
 
 local function newFighter(now, slot)
-    local side = Combatant.new(now, slot.fighter, slot.kitId, timing, slot.tactical)
+    local side = Combatant.new(now, slot.fighter, slot.kitId, timing, slot.loadout or slot.tactical)
     local maximum = Rules.health(slot.fighter.health)
     assert(maximum > 0 and maximum < math.huge, "Tag Team requires positive fighter health")
     side.kitId, side.element = slot.kitId, slot.fighter.element

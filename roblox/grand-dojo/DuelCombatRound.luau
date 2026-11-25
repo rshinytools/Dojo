@@ -172,7 +172,7 @@ local function resolveBatch(duel, time, batch)
             side.playerStunUntil = math.max(side.playerStunUntil, time + plan.stun)
             Combatant.play(side, plan.action, time)
         end
-        if plan.parried and not side.kit.signatureCooldown then
+        if plan.parried and not side.ultimateCooldown then
             side.signatureUntil = time + Combatant.PARRY_COUNTER_TIME
         end
         if plan.counterUntil then

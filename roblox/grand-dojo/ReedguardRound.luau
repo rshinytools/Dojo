@@ -16,6 +16,7 @@ local Abyss = require(script.Parent.AbyssFighterCombat)
 local Inferno = require(script.Parent.InfernoFighterCombat)
 local Storm = require(script.Parent.StormFighterCombat)
 local FighterTactics = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterTactics"))
+local FighterLoadouts = require(game:GetService("ReplicatedStorage"):WaitForChild("FighterLoadouts"))
 local apexTimeline = Apex.zoneMoves()
 local Round = {}
 local reactions = {hitHead = true, hitBody = true, block = true, parry = true, stagger = true}
@@ -26,10 +27,14 @@ Round.DURATION = 60
 Round.PARRY_WINDOW = .28
 Round.GUARD_RAISE = .055
 Round.GUARD_DURATION = .64
+local check, toe = Reedguard.Skill.reedCheck, Reedguard.Skill.courtyardToe
+local lantern, festival = Reedguard.UltimateSkill.lanternBreak, Reedguard.UltimateSkill.festivalCross
 Round.CLIPS = {
     jab = {{at = Reedguard.Contact.jab, damage = 13, zone = "head"}},
     cross = {{at = Reedguard.Contact.cross, damage = 14, zone = "body"}},
     body = {{at = Reedguard.Contact.body, damage = 15, zone = "body", foot = true, radius = .52}},
+    reedCheck = {{at = Reedguard.Contact.reedCheck, damage = check.damage, radius = check.radius, zone = "body"}},
+    courtyardToe = {{at = Reedguard.Contact.courtyardToe, damage = toe.damage, radius = toe.radius, zone = "body", foot = toe.foot}},
     uppercut = {{at = Reedguard.Contact.uppercut, damage = 16, zone = "head"}},
     reedSweep = {{at = Reedguard.Contact.reedSweep, damage = 13, zone = "body", foot = true, radius = .50}},
     reedstoneHeel = {{at = Reedguard.Contact.reedstoneHeel, damage = 20, zone = "body", foot = true, radius = .48,
@@ -39,6 +44,12 @@ Round.CLIPS = {
         {at = Reedguard.Contact.reedstep[1], damage = 9, zone = "body"},
         {at = Reedguard.Contact.reedstep[2], damage = 9, zone = "body"},
         {at = Reedguard.Contact.reedstep[3], damage = 14, zone = "head"},
+    },
+    lanternBreak = {{at = Reedguard.Contact.lanternBreak, damage = lantern.damage, zone = "body",
+        shape = "radial", center = lantern.center, radius = lantern.radius, lockedCenter = true}},
+    festivalCross = {
+        {at = Reedguard.Contact.festivalCross[1], damage = festival.damage[1], radius = festival.radius[1], zone = "body"},
+        {at = Reedguard.Contact.festivalCross[2], damage = festival.damage[2], radius = festival.radius[2], zone = "body"},
     },
 }
 
@@ -219,24 +230,31 @@ local residentByOpener = {
     ["Wind Court Return"] = "sablecrest",
     ["Harbor Sweep"] = "granite",
 }
-local combo = {jab = "cross", cross = "body"}
 local PARRY_COUNTER_TIME = 2.4
 
-local function newCombatant(now, fighter, kitId, timing, tactical)
+local function newCombatant(now, fighter, kitId, timing, loadout)
     kitId = kitId or "reedguard"
     local kit = kits[kitId]
     assert(kit, "Unknown combat kit")
-    local option = FighterTactics.forKit(kitId, tactical)
+    local selected = if type(loadout) == "table" then loadout else nil
+    local option = FighterTactics.forKit(kitId, if selected then selected.tactical else loadout)
+    local basic = FighterLoadouts.forKit(kitId, "basic", selected and selected.basic)
+    local ultimate = FighterLoadouts.forKit(kitId, "ultimate", selected and selected.ultimate)
+    local ultimateCooldown = (ultimate and ultimate.cooldown) or kit.signatureCooldown
     local startsAt = now + (timing and timing.intro or Round.INTRO)
     return {
         kit = kit,
         tactical = option and option.id,
         tacticalAction = option and option.action,
+        basic = basic and basic.id,
+        ultimate = ultimate and ultimate.id,
+        signature = if ultimate then ultimate.id else kit.signature,
+        ultimateCooldown = ultimateCooldown,
         introAt = now, startsAt = startsAt, endsAt = startsAt + (timing and timing.duration or Round.DURATION),
         playerHealth = fighter.health, playerMaxHealth = fighter.health,
         playerStunUntil = 0, nextGuard = startsAt, nextDodge = startsAt,
         guardFrom = 0, guardUntil = 0, signatureUntil = 0,
-        nextSignature = if kit.signatureCooldown then startsAt else nil,
+        nextSignature = if ultimateCooldown then startsAt else nil,
         nextSecondary = if kit.secondaryCooldown then startsAt else nil,
     }
 end
@@ -299,9 +317,20 @@ local function resolveTalon(sides, event, at)
     missTalon(attacker, at)
 end
 
+local function firstLight(round)
+    return round.basic or "jab"
+end
+
+local function continuation(round, action)
+    if action == firstLight(round) then return "cross" end
+    if action == "cross" then return "body" end
+    return nil
+end
+
 local function nextLight(round, at)
     local last = round.lastLight
-    local action = if last and at <= round.comboUntil then combo[last] or "jab" else "jab"
+    local nextAction = if last and at <= round.comboUntil then continuation(round, last) else nil
+    local action = nextAction or firstLight(round)
     round.lastLight, round.comboUntil = action, at + round.kit.poses.Duration[action] + .55
     play(round, action, at)
     return action
@@ -310,7 +339,7 @@ end
 local function jabReadyAt(round)
     local clipEnd = if round.clip then round.clip.endsAt else 0
     -- The continuation remains eligible on the exact expiry tick.
-    local comboEnd = if combo[round.lastLight] then round.comboUntil + .001 else 0
+    local comboEnd = if continuation(round, round.lastLight) then round.comboUntil + .001 else 0
     local ready = math.max(round.playerStunUntil, clipEnd, comboEnd)
     local hold = Storm.held(round, ready)
     return if hold then hold.endsAt + .001 else ready
@@ -349,14 +378,14 @@ function Round.act(round, action, now, direction)
     local secondary = if round.tacticalAction == "secondary" then round.tactical else kit.secondary
     if now < (round.rootedUntil or 0) then
         local attempted = if action == "secondary" then secondary
-            elseif action == "signature" then kit.signature elseif action == "dodge" then kit.dodge else nil
+            elseif action == "signature" then round.signature elseif action == "dodge" then kit.dodge else nil
         if attempted and inMotion(round, attempted) then
             return "snared"
         end
     end
     local current = round.clip
     if current and now < current.endsAt then
-        if action == "strike" and combo[current.action] and now >= current.endsAt - .19 then
+        if action == "strike" and continuation(round, current.action) and now >= current.endsAt - .19 then
             round.bufferedLight = true
         end
         -- The deflection can cancel into the earned rising combo after its pose reads.
@@ -391,26 +420,27 @@ function Round.act(round, action, now, direction)
         round.clip.direction = if direction == -1 then -1 else 1
         return secondary
     elseif action == "signature" then
-        if kit.signatureCooldown then
+        if round.ultimateCooldown then
             if now < round.nextSignature then
-                return kit.signatureCooling
+                return kit.signatureCooling or "ultimateCooling"
             end
-            round.nextSignature = now + kit.signatureCooldown
+            round.nextSignature = now + round.ultimateCooldown
         elseif now > round.signatureUntil then
             return "needParry"
         end
         round.signatureUntil, round.guardUntil = 0, 0
-        play(round, kit.signature, now)
-        if kit.frenzyTime then
+        local signature = round.signature
+        play(round, signature, now)
+        if signature == "unstoppableFrenzy" then
             round.frenzyFrom, round.frenzyUntil = now, now + kit.frenzyTime
-        elseif kit.signature == "apexPounce" then
+        elseif signature == "apexPounce" then
             round.trail = {startedAt = now, clip = round.clip, nextEvent = 1, apex = true, remainingDamage = 0}
-        elseif kit == kits.salamander then
+        elseif signature == "magmaTrail" then
             round.trail = {
                 startedAt = now, clip = round.clip, nextEvent = 1, planted = {}, remainingDamage = magma.damageBudget,
             }
         end
-        return kit.signature
+        return signature
     end
 end
 
@@ -465,19 +495,19 @@ local function resolveBotContact(round, at, fields, hit, _, move)
     return damage
 end
 
-local signatureBeat = {reedstep = 3, featherFlurry = 3, gustVortex = 2, unstoppableFrenzy = 4}
+local signatureBeat = {reedstep = 3, festivalCross = 2, featherFlurry = 3, gustVortex = 2, unstoppableFrenzy = 4}
 local groundedSignature = {
     reedstep = true, seismicChestPound = true, tadpoleTornado = true, gustVortex = true,
     tidalBellyFlop = true, staticCharge = true, apexPounce = true, jawsOfTheDeep = true,
-    unstoppableFrenzy = true,
+    unstoppableFrenzy = true, lanternBreak = true, festivalCross = true,
 }
 
-local function contactPresentation(kit, clip, move, index, fields)
+local function contactPresentation(round, clip, move, index, fields)
     local attack = clip.action
     if (attack == "body" or move.poseHold) and not clip.tagEntry then
         fields.poseHold = move.poseHold or .04
-        fields.holdKick = move.foot or kit == kits.rooster
-    elseif attack == kit.signature and not move.controlOnly
+        fields.holdKick = move.foot or round.kit == kits.rooster
+    elseif attack == round.signature and not move.controlOnly
         and (not signatureBeat[attack] or signatureBeat[attack] == index)
         and (attack ~= "tempestRoar" or move.shape == "stormThunder") then
         fields.signatureCast = clip.startedAt
@@ -542,7 +572,7 @@ local function contact(round, at, check, resolve, publishCast, multipleDefenders
             then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
-        contactPresentation(round.kit, clip, move, index, fields)
+        contactPresentation(round, clip, move, index, fields)
     end
     resolve(round, at, fields, hit, facing, move)
 end
@@ -674,7 +704,7 @@ local function advanceBot(round, at, distance, check)
         round.recoveryKind = result
         round.botAt = at + round.attack.recovery + (if parried then .56 else 0)
         if parried then
-            if not round.kit.signatureCooldown then
+            if not round.ultimateCooldown then
                 round.signatureUntil = at + PARRY_COUNTER_TIME
             end
             round.guardUntil = 0
@@ -743,6 +773,7 @@ Round.Combatant = table.freeze({
     new = newCombatant,
     play = play,
     jabReadyAt = jabReadyAt,
+    firstLight = firstLight,
     complete = completeClip,
     nextContacts = nextContacts,
     nextThreat = nextThreat,

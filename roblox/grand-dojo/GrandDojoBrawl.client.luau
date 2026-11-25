@@ -9,6 +9,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoBrawl")
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
+local fighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local ChampionshipPortraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
@@ -132,11 +133,20 @@ make("UISizeConstraint", notice, {MaxSize = Vector2.new(410, 42)})
 make("UIPadding", notice, {PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9)})
 style(notice)
 
-local earnedCues = {penguinTacticalCooling = "Technique cooling down", ridgeCooling = "Technique cooling down",
+local earnedCues = {ultimateCooling = "Ultimate cooling down", penguinTacticalCooling = "Technique cooling down", ridgeCooling = "Technique cooling down",
     emberCooling = "Technique cooling down"}
 for _, group in fighterTactics.ByKit do
     for _, option in group.options do
         earnedCues[option.id] = option.name
+    end
+end
+for _, loadout in fighterLoadouts.ByKit do
+    for _, slot in {loadout.basic, loadout.ultimate} do
+        for _, option in slot.options do
+            if option.id ~= slot.default then
+                earnedCues[option.id] = option.name
+            end
+        end
     end
 end
 local kits = {
@@ -248,7 +258,14 @@ local function updateActionLabels(now, kit)
         object.Text = if remaining > 0 then text .. "\n" .. tostring(remaining) .. "s" else hint(text, key, pad)
         object.TextColor3 = if remaining > 0 then muted else parchment
     end
-    actions.strike.Text = hint("Strike", "E", "RT")
+    local choices = fighterLoadouts.ByKit[match.kitId]
+    local basic = fighterLoadouts.forKit(match.kitId, "basic", match.basic)
+    local strike = "Strike"
+    if basic and basic.id ~= choices.basic.default then
+        local width = actions.strike.AbsoluteSize.X
+        strike = if width > 0 and width < 100 then basic.compact or basic.name else basic.name
+    end
+    actions.strike.Text = hint(strike, "E", "RT")
     actions.heavy.Text = hint("Heavy", "R", "RB")
     actions.guard.Text = hint("Guard", "Q", "LT")
     actions.dodge.Text = hint(kit.dodge or "Dodge", "X", "LB")
@@ -262,7 +279,11 @@ local function updateActionLabels(now, kit)
         cooldown(actions.technique, technique, "V", "↑", match.nextSecondary)
     end
     local width = actions.signature.AbsoluteSize.X
-    local signature = if kit.compactSignature and width > 0 and width < 70 then kit.compactSignature else kit.signature
+    local ultimate = fighterLoadouts.forKit(match.kitId, "ultimate", match.ultimate)
+    local customUltimate = ultimate and ultimate.id ~= choices.ultimate.default
+    local compactName = if customUltimate then ultimate.compact else kit.compactSignature
+    local name = if customUltimate then ultimate.name else kit.signature
+    local signature = if compactName and width > 0 and width < (if customUltimate then 100 else 70) then compactName else name
     cooldown(actions.signature, signature, "F", "Y", match.nextSignature)
     leave.Text = hint(if sendingLeave then "Leaving…" else "Leave", "C", "B")
 end

@@ -8,6 +8,7 @@ local PlayerProfiles = require(script.Parent:WaitForChild("PlayerProfiles"))
 local StarterFighters = require(script.Parent:WaitForChild("StarterFighters"))
 local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
+local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local RingProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
 local starterChoice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local sparringWon = script.Parent:WaitForChild("SparringWon")
@@ -268,6 +269,10 @@ local function projectProgress(player, data, profile)
     for fighterId, loadout in FighterTactics.ByFighter do
         player:SetAttribute(loadout.attribute, PlayerProfiles.tacticalFor(profile, fighterId))
     end
+    for fighterId, loadout in FighterLoadouts.ByFighter do
+        player:SetAttribute(loadout.basic.attribute, PlayerProfiles.basicFor(profile, fighterId))
+        player:SetAttribute(loadout.ultimate.attribute, PlayerProfiles.ultimateFor(profile, fighterId))
+    end
     local goal = (progress.nextLevelXp or progress.levelFloor) - progress.levelFloor
     local earned = math.clamp(progress.xp - progress.levelFloor, 0, goal)
     player:SetAttribute("FighterHudProgress", string.format("%d:%d:%d", progress.level, earned, goal))
@@ -291,19 +296,44 @@ local function syncStarterAvatar(player, data, character)
         player:SetAttribute("StarterSelectionError", "Your starter choice was saved, but its appearance could not load.")
         warn("[Grand Dojo] Starter shell could not mount for", data.selectedStarter)
     end
+    for fighterId, loadout in FighterLoadouts.ByFighter do
+        local selected = fighterId == data.selectedStarter
+        character:SetAttribute(loadout.basic.attribute, if selected then data.selectedBasic else nil)
+        character:SetAttribute(loadout.ultimate.attribute, if selected then data.selectedUltimate else nil)
+    end
     if not data.pendingStarterChoice then
         StarterFighters.release(character)
     end
 end
 
+local function storedChoiceMatches(stored, requested, default)
+    return requested == nil or stored == (if requested == default then nil else requested)
+end
+
+local function savedStarterChoice(profile, pending, selected, form)
+    if pending.first then
+        return selected ~= nil
+    end
+    if selected ~= pending.id or form ~= pending.form
+        or PlayerProfiles.tacticalFor(profile, selected) ~= pending.tactical
+        or PlayerProfiles.basicFor(profile, selected) ~= pending.basic
+        or PlayerProfiles.ultimateFor(profile, selected) ~= pending.ultimate then
+        return false
+    end
+    local fighter = profile.fighters[selected]
+    local loadout = FighterLoadouts.ByFighter[selected]
+    return not loadout or (storedChoiceMatches(fighter and fighter.equippedBasic, pending.requestedBasic, loadout.basic.default)
+        and storedChoiceMatches(fighter and fighter.equippedUltimate, pending.requestedUltimate, loadout.ultimate.default))
+end
+
 local function projectStarterChoice(player, data, profile)
     local selected = PlayerProfiles.activeFighter(profile)
     local form = if selected then PlayerProfiles.formFor(profile, selected) else FighterForms.BaseId
-    local tactical = PlayerProfiles.tacticalFor(profile, selected)
     local pending = data.pendingStarterChoice
-    local alreadySaved = pending and ((selected == pending.id and form == pending.form and tactical == pending.tactical)
-        or (pending.first and selected ~= nil))
+    local alreadySaved = pending and savedStarterChoice(profile, pending, selected, form)
     data.selectedStarter, data.selectedForm = selected, form
+    data.selectedBasic = PlayerProfiles.basicFor(profile, selected)
+    data.selectedUltimate = PlayerProfiles.ultimateFor(profile, selected)
     if not pending or alreadySaved then
         data.pendingStarterChoice = nil
         player:SetAttribute("StarterSelectionError", nil)
@@ -321,7 +351,7 @@ local function projectStarterChoice(player, data, profile)
     player:SetAttribute("StarterSelectionRequired", selected == nil)
 end
 
-local function tacticalLockedMessage(option)
+local function moveLockedMessage(option)
     return string.format("Reach level %d with this fighter to equip %s.", option.level, option.name)
 end
 
@@ -332,16 +362,19 @@ local function saveStarterChoice(player, data, token)
         profile, reason = profiles:commitStarterChoice(player.UserId, token, pending.id)
     else
         profile, reason = profiles:commitFighterSwitch(player.UserId, token, pending.id, pending.requestedForm,
-            pending.requestedTactical)
+            pending.requestedTactical, pending.requestedBasic, pending.requestedUltimate)
     end
-    if reason == "fighter locked" or reason == "form locked" or reason == "tactical locked" then
+    if reason == "fighter locked" or reason == "form locked" or reason == "tactical locked"
+        or reason == "basic locked" or reason == "ultimate locked" then
         data.pendingStarterChoice = nil
         if not (data.departed or shuttingDown) then
             player:SetAttribute("StarterSelectionPending", false)
             player:SetAttribute("ProgressStatus", "ready")
             player:SetAttribute("StarterSelectionError", if reason == "form locked"
                 then "Earn the required level with this fighter to equip the form."
-                elseif reason == "tactical locked" then tacticalLockedMessage(FighterTactics.get(pending.id, pending.requestedTactical))
+                elseif reason == "tactical locked" then moveLockedMessage(FighterTactics.get(pending.id, pending.requestedTactical))
+                elseif reason == "basic locked" then moveLockedMessage(FighterLoadouts.get(pending.id, "basic", pending.requestedBasic))
+                elseif reason == "ultimate locked" then moveLockedMessage(FighterLoadouts.get(pending.id, "ultimate", pending.requestedUltimate))
                 else "Reach the required fighter level to equip this fighter.")
             if player.Character then
                 StarterFighters.release(player.Character)
@@ -594,7 +627,8 @@ if switchPrompt then
     end)
 end
 
-starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, requestedForm, requestedTactical)
+starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, requestedForm, requestedTactical,
+    requestedBasic, requestedUltimate)
     local data = state[player]
     if not data or data.departed or shuttingDown or data.pendingStarterChoice then
         return
@@ -614,6 +648,12 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, 
     end
     local tacticalOption = FighterTactics.get(fighterId, requestedTactical)
     if requestedTactical ~= nil and (not switching or not tacticalOption) then
+        return
+    end
+    local basicOption = FighterLoadouts.get(fighterId, "basic", requestedBasic)
+    local ultimateOption = FighterLoadouts.get(fighterId, "ultimate", requestedUltimate)
+    if (requestedBasic ~= nil and (not switching or not basicOption))
+        or (requestedUltimate ~= nil and (not switching or not ultimateOption)) then
         return
     end
     if switching and (not player:GetAttribute("FighterSelectOpen") or not atFighterSelect(player)
@@ -641,13 +681,25 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, 
         return
     end
     if tacticalOption and not PlayerProfiles.canEquipTactical(data.profile, fighterId, requestedTactical) then
-        player:SetAttribute("StarterSelectionError", tacticalLockedMessage(tacticalOption))
+        player:SetAttribute("StarterSelectionError", moveLockedMessage(tacticalOption))
         return
     end
-    local equippedTactical = PlayerProfiles.tacticalFor(data.profile, fighterId)
-    local tactical = requestedTactical or equippedTactical
+    if basicOption and not PlayerProfiles.canEquipLoadout(data.profile, fighterId, "basic", requestedBasic) then
+        player:SetAttribute("StarterSelectionError", moveLockedMessage(basicOption))
+        return
+    end
+    if ultimateOption and not PlayerProfiles.canEquipLoadout(data.profile, fighterId, "ultimate", requestedUltimate) then
+        player:SetAttribute("StarterSelectionError", moveLockedMessage(ultimateOption))
+        return
+    end
+    local pending = {
+        id = fighterId, form = form, requestedForm = requestedForm, first = not switching,
+        tactical = requestedTactical or PlayerProfiles.tacticalFor(data.profile, fighterId), requestedTactical = requestedTactical,
+        basic = requestedBasic or PlayerProfiles.basicFor(data.profile, fighterId), requestedBasic = requestedBasic,
+        ultimate = requestedUltimate or PlayerProfiles.ultimateFor(data.profile, fighterId), requestedUltimate = requestedUltimate,
+    }
     local sameAppearance = fighterId == data.selectedStarter and form == data.selectedForm
-    if sameAppearance and tactical == equippedTactical then
+    if sameAppearance and savedStarterChoice(data.profile, pending, data.selectedStarter, data.selectedForm) then
         player:SetAttribute("FighterSelectOpen", false)
         return
     end
@@ -655,8 +707,7 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, 
         player:SetAttribute("StarterSelectionError", "This fighter's appearance could not load. Choose another fighter.")
         return
     end
-    data.pendingStarterChoice = {id = fighterId, form = form, requestedForm = requestedForm, tactical = tactical,
-        requestedTactical = requestedTactical, first = not switching}
+    data.pendingStarterChoice = pending
     player:SetAttribute("StarterSelectionError", nil)
     player:SetAttribute("StarterSelectionPending", true)
     player:SetAttribute("ProgressStatus", "saving")

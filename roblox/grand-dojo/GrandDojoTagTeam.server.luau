@@ -134,7 +134,9 @@ local function publish(match, event, now)
         local seat, side = round.lineup[index], round.sides[index]
         local backup = seat.slots[3 - seat.active]
         slots[index] = {kitId = side.kitId, tactical = side.tactical, health = side.playerHealth, maxHealth = side.playerMaxHealth,
+            basic = side.basic, ultimate = side.ultimate,
             backupKitId = backup.kitId, backupTactical = backup.tactical,
+            backupBasic = backup.basic, backupUltimate = backup.ultimate,
             backupHealth = backup.playerHealth, backupMaxHealth = backup.playerMaxHealth,
             userName = actor.player.DisplayName, eliminated = seat.out == true, entryAt = seat.entryAt,
             entryVersion = actor.entryVersion}
@@ -150,7 +152,7 @@ local function publish(match, event, now)
                 hitStop = Match.takeHitStop(actor),
                 focusIndex = actor.lastTarget,
                 canTag = Round.planTag(round, index, now) ~= nil and not seat.entryAt,
-                tactical = side.tactical, tagReadyAt = seat.nextTagAt,
+                tactical = side.tactical, basic = side.basic, ultimate = side.ultimate, tagReadyAt = seat.nextTagAt,
                 nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                 feedback = if now < actor.feedbackUntil then actor.feedback else nil})
             if not round.result and not seat.out and not seat.entryAt then
@@ -164,7 +166,7 @@ end
 
 local function kitEntry(player, id)
     local kit = Match.FighterKits[id]
-    return {fighter = catalog[id], kitId = kit, tactical = Match.tactical(player, kit)}
+    return {fighter = catalog[id], kitId = kit, loadout = Match.loadout(player, kit)}
 end
 
 local function teamMarker(actor, parent, team)

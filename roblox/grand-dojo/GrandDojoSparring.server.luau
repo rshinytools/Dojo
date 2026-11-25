@@ -37,7 +37,7 @@ local function publish(bout, kind, now)
         if bout.outroAt then "outro" else round.botPhase, if now < bout.messageUntil then bout.message else nil, round.botAt,
         (if bout.featured then FeaturedRound else Round).parryOpensAt(round), bout.arena.config.botId,
         round.playerMaxHealth, bout.arena.id, tell, round.introAt, bout.kit, round.nextSignature, round.nextSecondary,
-        Match.takeHitStop(bout), round.tactical)
+        Match.takeHitStop(bout), round.tactical, round.basic, round.ultimate)
     if bout.motion and not round.result then
         Windup.profile(bout, round, bout.motion.motors, round.startsAt, round.endsAt)
     end
@@ -130,8 +130,8 @@ local function begin(player, arena, now, retrying)
     telegraph.Name = "Attack tell"
     telegraph.Parent = arena.corner
     local kit, botId = Match.FighterKits[fighterId], arena.config.botId
-    local tactical = Match.tactical(player, kit)
-    local round = if kit then FeaturedRound.new(now, profile, fighter, kit, botId, tactical) else Round.new(now, profile, fighter)
+    local round = if kit then FeaturedRound.new(now, profile, fighter, kit, botId, Match.loadout(player, kit))
+        else Round.new(now, profile, fighter)
     local bout = {featured = kit ~= nil, kit = kit, botId = botId, arena = arena, player = player, root = root, fighterId = fighterId,
         bot = bot, profile = profile, cue = cue, joints = jointMap(bot), telegraph = telegraph,
         position = arena.botSpawn.Position, direction = arena.botSpawn.CFrame.LookVector,

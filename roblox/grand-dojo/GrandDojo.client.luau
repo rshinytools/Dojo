@@ -1554,7 +1554,10 @@ local playerPortrait = championshipPortraits.new(championshipHud.leftPortrait, f
 local opponentPortrait = championshipPortraits.new(championshipHud.rightPortrait, true, 12)
 local duelRound = false
 local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
-local matchPresentation = {showcase = false, steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)}
+local matchPresentation = {
+    showcase = false, steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player),
+    loadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts")),
+}
 matchPresentation.contacts = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 matchPresentation.windup = require(ReplicatedStorage:WaitForChild("CombatWindup"))
 function matchPresentation.playImpact(cue, point, attack)
@@ -1766,6 +1769,7 @@ local cooldownCues = {
     seismicCooling = {label = "Seismic", field = "nextSignature"},
     emberCooling = {field = "nextSecondary"},
     magmaCooling = {label = "Magma Trail", field = "nextSignature"},
+    ultimateCooling = {field = "nextSignature"},
 }
 local priorityCues = {
     uppercut = true, floeTurn = true, bellySlide = true, seismicChestPound = true,
@@ -1805,6 +1809,15 @@ for _, group in fighterTactics.ByKit do
         cues[option.id], priorityCues[option.id] = option.name, true
     end
 end
+for _, loadout in matchPresentation.loadouts.ByKit do
+    for _, slot in {loadout.basic, loadout.ultimate} do
+        for _, option in slot.options do
+            if option.id ~= slot.default then
+                cues[option.id], priorityCues[option.id] = option.name, true
+            end
+        end
+    end
+end
 
 local resultAwaitingReward = false
 
@@ -1827,7 +1840,11 @@ local function refreshSparControls(now)
     local keyboard = UserInputService.PreferredInput == Enum.PreferredInput.KeyboardAndMouse
     local gamepad = UserInputService.PreferredInput == Enum.PreferredInput.Gamepad
     local kit = matchPresentation.kit or showcaseKits.reedguard
-    strikeButton.Text = if keyboard then "Strike · E" elseif gamepad then "Strike · RT" else "Strike"
+    local strikeWidth = strikeButton.AbsoluteSize.X
+    local strikeLabel = if kit.compactStrike and strikeWidth > 0 and strikeWidth < 100 then kit.compactStrike
+        else kit.strikeLabel or "Strike"
+    strikeButton.TextWrapped = kit.strikeLabel ~= nil
+    strikeButton.Text = strikeLabel .. (if keyboard then " · E" elseif gamepad then " · RT" else "")
     guardButton.Text = if keyboard then "Guard · Q" elseif gamepad then "Guard · LT" else "Guard"
     leaveButton.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · Y" else "Leave"
     local clock = now or workspace:GetServerTimeNow()
@@ -1847,7 +1864,7 @@ local function refreshSparControls(now)
     combatButtons.signature.TextWrapped = kit.signatureCooldown ~= nil
     local cooling = if kit.signatureCooldown then cooldownSeconds(matchPresentation.nextSignature, clock) else 0
     local width = combatButtons.signature.AbsoluteSize.X
-    local short = kit.compactSignature and width > 0 and width < 70
+    local short = kit.compactSignature and width > 0 and width < (kit.signatureCompactWidth or 70)
     local signatureLabel = if short then kit.compactSignature else kit.signatureLabel
     local signatureCooldown = if short then signatureLabel .. "\n%ds" else kit.signatureCooldown
     combatButtons.signature.Text = if cooling > 0 then string.format(signatureCooldown, cooling)
@@ -1856,6 +1873,8 @@ local function refreshSparControls(now)
     combatButtons.exit.Text = if keyboard then "Leave · C" elseif gamepad then "Leave · B" else "Leave"
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(refreshSparControls)
+strikeButton:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshSparControls)
+combatButtons.signature:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshSparControls)
 refreshSparControls()
 
 layoutMatchControls = function()
@@ -1999,7 +2018,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, kitId, nextSignature, nextSecondary, tactical)
+local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, kitId, nextSignature, nextSecondary,
+    tactical, basic, ultimate)
     matchPresentation.windup.clear()
     duelRound = isDuel
     sparringActive = true
@@ -2013,12 +2033,28 @@ local function showMatchHud(isDuel, title, startsAt, introAt, ringId, opponent, 
     matchPresentation.roundResult = nil
     local kit = if matchPresentation.showcase then showcaseKits[kitId] or showcaseKits.reedguard else nil
     local option = fighterTactics.forKit(kitId, tactical)
-    if kit and option and kit.techniqueLabel ~= option.name then
+    local choices = matchPresentation.loadouts.ByKit[kitId]
+    local strike = matchPresentation.loadouts.forKit(kitId, "basic", basic)
+    local signature = matchPresentation.loadouts.forKit(kitId, "ultimate", ultimate)
+    local customStrike = strike and strike.id ~= choices.basic.default
+    local customSignature = signature and signature.id ~= choices.ultimate.default
+    if kit and ((option and kit.techniqueLabel ~= option.name) or customStrike or customSignature) then
         kit = table.clone(kit)
-        kit.techniqueAction = option.action
-        kit.techniqueName = option.id:gsub("^%l", string.upper)
-        kit.techniqueLabel, kit.compactTechnique, kit.wrapTechnique = option.name, option.compact, true
-        if option.action == "secondary" then kit.techniqueCooldown = option.name .. "\n%ds" end
+        if option and kit.techniqueLabel ~= option.name then
+            kit.techniqueAction = option.action
+            kit.techniqueName = option.id:gsub("^%l", string.upper)
+            kit.techniqueLabel, kit.compactTechnique, kit.wrapTechnique = option.name, option.compact, true
+            if option.action == "secondary" then kit.techniqueCooldown = option.name .. "\n%ds" end
+        end
+        if customStrike then
+            kit.strikeLabel, kit.compactStrike = strike.name, strike.compact
+        end
+        if customSignature then
+            kit.signatureName = signature.id:gsub("^%l", string.upper)
+            kit.signatureLabel, kit.compactSignature = signature.name, signature.compact
+            kit.signatureCooldown = signature.name .. "\n%ds"
+            kit.signatureCompactWidth = 100
+        end
     end
     matchPresentation.kit = kit
     matchPresentation.nextSignature = if type(nextSignature) == "number" then nextSignature else nil
@@ -2121,14 +2157,16 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     elseif movementLimited then
         sparHint.Text = cues[feedback]
     elseif matchPresentation.showcase and feedback == "parried" then
-        sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
+        sparHint.Text = if kit and kit.signatureName == showcaseKits.reedguard.signatureName then "Parried! Use Rising now."
+            else cues.parried
     elseif not parryCue and priorityCues[feedback] then
         sparHint.Text = if feedback == "tempestRoar" then matchPresentation.steering.hint else cues[feedback]
     elseif not parryCue and matchPresentation.steering:active(now) then
         sparHint.Text = matchPresentation.steering.hint
     elseif not parryCue and cooldownCue then
         local cooling = cooldownSeconds(matchPresentation[cooldownCue.field], now)
-        local label = cooldownCue.label or (kit and kit.techniqueLabel) or "Technique"
+        local label = cooldownCue.label or (kit and (if cooldownCue.field == "nextSignature" then kit.signatureLabel
+            else kit.techniqueLabel)) or "Technique"
         sparHint.Text = if cooling > 0 then string.format("%s ready in %ds", label, cooling) else label .. " ready"
     elseif phase == "windup" then
         sparHint.Text = if feedback == "guard" then "Guard up"
@@ -2200,7 +2238,7 @@ player:GetAttributeChangedSignal("SparringActive"):Connect(function()
 end)
 
 sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt,
-    id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary, hitStop, tactical)
+    id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary, hitStop, tactical, basic, ultimate)
     if kind == "spectatorImpacts" then
         if type(b) == "table" and not table.find(b, player.UserId) then
             matchPresentation.contacts.play({impacts = a}, workspace:GetServerTimeNow(), matchPresentation.playImpact)
@@ -2280,7 +2318,7 @@ sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, f
         return
     elseif kind == "begin" then
         showMatchHud(false, ringProgression.ById[ringId].name, startsAt, introAt, ringId, opponent, kitId,
-            nextSignature, nextSecondary, tactical)
+            nextSignature, nextSecondary, tactical, basic, ultimate)
     elseif kind ~= "state" or not sparringActive or duelRound then
         return
     end
@@ -2518,7 +2556,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
             duelUi.queued = false
             local title = if info.format == "ranked" then "Ranked Duel" elseif series then "Best of 3 Duel" else "Grand Dojo Duel"
             showMatchHud(true, title, info.startsAt, info.introAt,
-                "grand-dojo", info, info.kitId, info.nextSignature, info.nextSecondary, info.tactical)
+                "grand-dojo", info, info.kitId, info.nextSignature, info.nextSecondary, info.tactical, info.basic, info.ultimate)
         end
         if series then
             duelUi.score.Text = string.format("Round %d/%d · %d–%d", info.roundIndex, info.maxRounds,

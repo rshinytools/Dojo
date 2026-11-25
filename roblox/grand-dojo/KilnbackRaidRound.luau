@@ -51,7 +51,7 @@ function Raid.new(now, entrants, bossId)
     for index, entrant in entrants do
         assert(type(entrant.fighter.health) == "number" and entrant.fighter.health > 0
             and entrant.fighter.health < math.huge and entrant.kitId, "Invalid raid fighter")
-        local side = Fighter.new(now, entrant.fighter, entrant.kitId, timing, entrant.tactical)
+        local side = Fighter.new(now, entrant.fighter, entrant.kitId, timing, entrant.loadout or entrant.tactical)
         side.kitId = entrant.kitId
         side.contribution = {damage = 0, revives = 0, parries = 0}
         sides[index] = side
@@ -374,7 +374,7 @@ local function applyBossHit(round, event)
     side.guardUntil, side.bufferedLight = 0, false
     if event.kind == "parried" then
         side.contribution.parries += 1
-        if not side.kit.signatureCooldown then
+        if not side.ultimateCooldown then
             side.signatureUntil = event.at + Fighter.PARRY_COUNTER_TIME
         end
         Fighter.play(side, "parry", event.at)

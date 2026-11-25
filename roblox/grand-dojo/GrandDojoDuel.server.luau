@@ -13,6 +13,7 @@ local RankRules = require(script.Parent:WaitForChild("DuelRankRules"))
 local RankLedger = require(script.Parent:WaitForChild("DuelRankLedger"))
 local Presentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
+local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local studio = RunService:IsStudio()
 local rankStore = if studio then RankLedger.memoryStore()
     else DataStoreService:GetDataStore("BeastDojoDuelRatingsV1")
@@ -42,6 +43,15 @@ local tells = {
 for _, group in FighterTactics.ByKit do
     for _, option in group.options do
         tells[option.id] = option.name
+    end
+end
+for _, loadout in FighterLoadouts.ByKit do
+    for _, slot in {loadout.basic, loadout.ultimate} do
+        for _, option in slot.options do
+            if option.id ~= slot.default then
+                tells[option.id] = option.name
+            end
+        end
     end
 end
 local resultMessages = {
@@ -150,7 +160,7 @@ end
 local function actor(player, root)
     local id = player:GetAttribute("SelectedStarterFighter")
     local kit = Match.FighterKits[id]
-    return {player = player, root = root, kit = kit, fighter = fighters[id], tactical = Match.tactical(player, kit),
+    return {player = player, root = root, kit = kit, fighter = fighters[id], loadout = Match.loadout(player, kit),
         nextInput = 0, feedbackUntil = 0}
 end
 
@@ -183,6 +193,7 @@ local function publish(duel, kind, now)
             opponentHealth = rival.playerHealth, opponentMaxHealth = rival.playerMaxHealth,
             opponentName = opponent.player.DisplayName, opponentUserId = opponent.player.UserId, sideIndex = i,
             kitId = challenger.kit, opponentKitId = opponent.kit, tactical = side.tactical,
+            basic = side.basic, ultimate = side.ultimate,
             introAt = round.introAt, startsAt = round.startsAt, endsAt = round.endsAt,
             phase = if round.result then "outro" elseif attackAt then "windup" else "ready",
             attackAt = attackAt, parryOpensAt = opensAt, tell = tells[attack],
@@ -204,7 +215,7 @@ local function startRound(duel, now)
     local a, b = table.clone(duel.lineup[1]), table.clone(duel.lineup[2])
     duel.actors = {a, b}
     duel.round = Round.new(now, a.fighter, a.kit, b.fighter, b.kit, Series.timing(duel.series),
-        duel.series.format == "ranked", a.tactical, b.tactical)
+        duel.series.format == "ranked", a.loadout or a.tactical, b.loadout or b.tactical)
     duel.lastUpdate = now
     for i, side in duel.actors do
         Match.move(side.root, spawns[i].CFrame)

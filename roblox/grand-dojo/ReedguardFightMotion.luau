@@ -1,7 +1,6 @@
 -- Featured sparring uses the same authored frame for posing and contact.
 local Match = require(script.Parent.DojoMatchSupport)
 local Jump = require(game:GetService("ReplicatedStorage").ArenaJumpMotion)
-local Tactics = require(game:GetService("ReplicatedStorage").FighterTactics)
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local reedguardSupport = require(script.Parent.ReedguardDefeatSupport)
 local meshDefeatSupport = require(script.Parent.CombatDefeatSupport)
@@ -576,6 +575,7 @@ function Motion.close(bout)
     clearLane(state, "rushLane")
     clearLane(state, "returnLane")
     clearLane(state, "seismicWarning")
+    clearLane(state, "lanternWarning")
     if salamander(bout) then
         clearLane(state, "emberWarning")
         clearLane(state, "graniteWarning")
@@ -605,7 +605,7 @@ function Motion.close(bout)
 end
 
 function Motion.canAct(bout, action)
-    if action == "secondary" and Tactics.isPlanted(bout.round.tactical) then
+    if Match.plantedInput(bout.round, action) then
         return Motion.reactionGrounded(bout.root, bout.arena.floor)
     end
     local groundedOnly = (bout.motion.rosterHistory and (action == "dodge" or action == "secondary" or action == "signature"))
@@ -649,7 +649,7 @@ function Motion.locomotion(poses, state, root, forward, now, readOnly)
 end
 
 function Motion.canPlantStrike(kit, clip, root, floor)
-    return clip and ((kit == "reedguard" and clip.action == "body") or Tactics.isPlanted(clip.action))
+    return clip and ((kit == "reedguard" and clip.action == "body") or Match.plantedAction(clip.action))
         and math.abs(root.Position.Y - (floor + 2.13)) < .38 and math.abs(root.AssemblyLinearVelocity.Y) < 4
 end
 
@@ -2298,6 +2298,10 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
         local contact = nearestPoint(jointFrame(frame, groups, "Torso", joint) * joint.shell, joint.part.Size, center)
         return Match.flat(contact - center).Magnitude <= move.radius
             and contact.Y <= center.Y + 1.5 and not obstructed(bout, center, contact), center, "body"
+    elseif action == "lanternBreak" then
+        local origin = actorRootAt(bout, castStartedAt)
+        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(move.center), bout.arena.floor)
+        return ringSupport(bout, center) and botFloorContact(bout, frame, groups, center, move.radius), center, "body"
     elseif move.lockedCenter then
         local origin = state.dodgeFrom or actorRootAt(bout, castStartedAt)
         local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(move.center), bout.arena.floor)
@@ -2580,6 +2584,20 @@ function Motion.render(bout, now)
         command(bout, now)
     end
     local round, state = bout.round, bout.motion
+    local clip = round.clip
+    local lantern = Reedguard.UltimateSkill.lanternBreak
+    local showLantern = not bout.outroAt and clip and clip.action == "lanternBreak"
+        and now >= clip.startedAt + lantern.warningAt and now < clip.startedAt + Reedguard.Contact.lanternBreak
+    if showLantern and not state.lanternWarning then
+        local origin = actorRootAt(bout, clip.startedAt)
+        local center = Match.clampFloor(bout.arena.bounds, origin:PointToWorldSpace(lantern.center), bout.arena.floor)
+        if ringSupport(bout, center) then
+            state.lanternWarning = galleonContour(bout, "Lantern Break warning", center,
+                lantern.radius, nil, nil, Color3.fromRGB(255, 209, 120))
+        end
+    elseif not showLantern then
+        clearLane(state, "lanternWarning")
+    end
     local windupFlinch = residentWindupFlinch(bout, now)
     if bout.outroAt and round.playerHealth <= 0 then
         Jump.allow(bout.root.Parent, false)

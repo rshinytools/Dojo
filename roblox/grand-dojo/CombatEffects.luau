@@ -25,6 +25,8 @@ local tint = {
     burst = Color3.fromRGB(255, 143, 75),
 }
 local groundPulses = {
+    lanternBreak = {name = "Lantern Break floor pulse", color = Color3.fromRGB(255, 209, 120), initial = .9,
+        width = 4.9, compact = 4.0, life = .28},
     seismicChestPound = {name = "Seismic contact pulse", color = Color3.fromRGB(255, 183, 104), initial = 1.4,
         width = 8.5, compact = 5.9, life = .26},
     magmaTrail = {name = "Magma tile burst", color = tint.burst, initial = .65, width = 2.36, compact = 2.15, life = .30},
@@ -38,6 +40,8 @@ local groundPulses = {
         initial = 1.2, width = 8.5, compact = 5.9, life = .28},
 }
 local moveContactTint = {
+    reedCheck = Color3.fromRGB(205, 237, 168), courtyardToe = Color3.fromRGB(224, 215, 148),
+    festivalCross = Color3.fromRGB(255, 187, 127),
     reedSweep = Color3.fromRGB(187, 230, 143),
     reedstoneHeel = Color3.fromRGB(237, 199, 111),
     icecrestPalm = Color3.fromRGB(166, 221, 253),

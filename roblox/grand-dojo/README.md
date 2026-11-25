@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.339, train Reedguard to Level 5 or 10. Open Fighter Select, pick his Basic, Technique and Ultimate, then choose **Equip loadout**. In the ring, use **E** for the Basic opener, **V** for Technique and **F** for Ultimate. Touch and controller use the same equipped moves.
+
 In v0.338 every fighter has a default Technique and alternates at their own Level 5 and 10. The final four additions are Magma Grizzly Bear, Obsidian Hellhound, Golden Eagle and Celestial Storm Dragon. Equip a Technique in Fighter Select, then use **V**, **D-pad Up**, or the Technique control in the ring.
 
 In v0.337, select Honey Badger, Emerald Saber-Tooth, Great White Shark, or Abyssal Kraken after the account earns its first Level 10 fighter. Train and equip the new fighter’s Level 5 or 10 Technique in Fighter Select. Press **V**, **D-pad Up**, or the Technique control in a match.
