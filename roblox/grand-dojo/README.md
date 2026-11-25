@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.296, choose Reedguard and inspect his shorter tail in Festival Plaza. Stand in Juniper’s Bot Spar to see the leveled boots during the intro, idle, and guard. Look underneath the boots for soft contact shadows that fade during a jump.
+
 In v0.295, earn **Great White Shark** and **Abyssal Kraken** at Level 10. **V** or D-pad Up uses Reef Hook or Tide Grip. **F** or **Y** uses Jaws of the Deep or Tentacle Cataclysm. Tap **Hook**, **Jaws**, **Grip**, or **Slam** on touch. Watch the water ring as Shark dives and the four purple lanes before Kraken’s tentacles strike inward.
 
 In v0.294, earn **Honey Badger** and **Emerald Saber-Tooth** at Level 10. **V** or D-pad Up uses Burrow Hook or Jade Rake. **F** or **Y** uses Unstoppable Frenzy or Apex Pounce. Touch players use **Hook**, **Frenzy**, **Rake**, and **Pounce**. Defend through the swipes or move out of the marked landing.

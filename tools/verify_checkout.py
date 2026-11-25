@@ -30,7 +30,7 @@ def verify_place():
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SparringBots",
                 "CombatIntro", "CombatEffects", "CombatCueAssets", "CombatAudio", "CombatHealth", "ReedguardRound", "ReedguardFightMotion",
                 "ChampionshipHud", "ChampionshipPortraits", "ChampionshipBotPortraits",
-                "ReedguardCombatPoses", "JuniperCombatPoses",
+                "ReedguardCombatPoses", "ReedguardFootShadows", "JuniperCombatPoses",
                 "PenguinCombatPoses", "BrackenCombatPoses", "SilverbackCombatPoses", "SablecrestCombatPoses",
                 "FireSalamanderCombatPoses", "GraniteCombatPoses", "FrogCombatPoses", "OtterCombatPoses",
                 "FighterChoreography", "RoosterCombatPoses", "GliderCombatPoses", "SkyFighterCombat",

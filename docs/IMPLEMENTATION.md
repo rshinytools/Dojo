@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.295 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.296 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -10,6 +10,8 @@ The v0.295 Studio checkpoint is the starting point for new work. This repository
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
 
 ## Reedguard footing
+
+V0.296 shortens the equipped tail from 1.73 to 1.38 studs while preserving the attachment. Reedguard’s standing ring poses level both soles during idle, intro, salute, guard, block and the win pose. Two local contact shadows follow the sole positions and fade as each foot lifts. They add no lights and never affect collisions. The original shuffle and kick contacts pass the fitted mesh checks.
 
 V0.292 fits the invisible Festival Plaza spawn support to the sandstone surface and shortens Reedguard’s equipped tail by another 20 percent. Both feet settle on the canvas in his Bot Spar intro, idle and guard. The four Bot Spar entry marks use the shared rig’s settled root height. The original Blender source and mesh ID remain reusable.
 

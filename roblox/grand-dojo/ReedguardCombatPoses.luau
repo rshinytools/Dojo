@@ -178,6 +178,18 @@ local function bootPosition(offsets, joint)
 	return (offsets.RootJoint * offsets[joint]):PointToWorldSpace(soleCenter[joint])
 end
 
+local function plantStandingBoots(offsets)
+	local root = offsets.RootJoint
+	for joint, center in soleCenter do
+		local boot = root * offsets[joint]
+		local position = boot:PointToWorldSpace(center)
+		local forward = boot.LookVector
+		local level = CFrame.lookAt(position, position + Vector3.new(forward.X, 0, forward.Z))
+		offsets[joint] = root:ToObjectSpace(level * CFrame.new(-center))
+	end
+	return groundedRig.plantFeet(offsets, .003)
+end
+
 local function placeBoot(offsets, joint, position)
 	local delta = position - bootPosition(offsets, joint)
 	local localDelta = offsets.RootJoint:VectorToObjectSpace(Vector3.new(delta.X, 0, delta.Z))
@@ -297,7 +309,7 @@ function Poses.sample(action, ageSeconds)
 	end
 
 	offsets = offsets or table.clone(frames[#frames][2])
-	return if planted[action] then groundedRig.plantFeet(offsets, .008) else offsets
+	return if planted[action] then plantStandingBoots(offsets) else offsets
 end
 
 return table.freeze(Poses)
