@@ -14,3 +14,10 @@ Read [README.md](README.md), [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md), a
 - Use asset IDs and record creator, terms and release dependencies. Check Store assets detached in Studio first. Screen for scripts, confirm referenced assets load, and keep purchased models within the permissions that came with them.
 - If the owner-private Site checkout exists at `sites/beast-dojo-production/`, read the current Sites skill before editing it. After a meaningful package, update its evidence, decisions and changelog and regenerate and publish the same owner-private site. The public portable roadmap and handoff remain usable from a clone without that Site. The owner copy of the full workspace history is in `docs/local/AGENTS.owner.md` when available.
 - After a verified work package, stage related files only. Check the staged diff for sensitive data and large generated files, update the portable handoff, commit, and push to `origin/main` with an authorized account. Review any upstream changes and preserve history. This cadence follows completed work packages.
+
+## Public communications
+
+Credit Amulya as Beast Dojo’s creator and lead designer where a byline or role
+is useful. Omit optional AI attribution from audience-facing copy, trailers,
+store pages and community posts. Choose venues whose rules allow this approach.
+Retain private asset provenance and honor any applicable disclosure requirements.

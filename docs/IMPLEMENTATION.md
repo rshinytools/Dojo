@@ -203,11 +203,21 @@ Creator Hub marked game details and the content questionnaire complete on Novemb
 
 Creator Hub confirmed identity, 2-Step Verification and the 1,000 Robux Kids and Select publishing fee. At the owner's request, public evaluation began November 25, 2026, under the name Beast Dojo. Manage Audience verified public availability for players 16 and older and showed zero of 100 qualifying players at launch. Roblox tracks 100 qualifying unique players within 60 days and conducts a safety review before younger players can access the experience. [Play Beast Dojo](https://www.roblox.com/games/100084440818982/Beast-Dojo) · [Creator Hub evaluation](https://create.roblox.com/dashboard/creations/experiences/10778731970/manage-audience) · [Roblox Kids and Select eligibility](https://create.roblox.com/docs/production/publishing/kids-and-select)
 
-Use the Reedguard face icon and 16:9 illustrations already in `roblox/grand-dojo/art/experience-media/`. Check the cover against the approved build at phone size. Lead the supporting images with an actual Dojo Ring parry with Juniper, a wide look at the festival plaza, and a Cloudbreak jump. Open the 20–25 second gameplay preview on the parry and counter. Then show the city, the Lantern Relay and a Cloudbreak summit jump. End with the earned trophy and the Beast Dojo title. Capture the ring and Relay shots in the approved launch build. The Cloudbreak private-beta clip supplies usable gameplay footage now. [Roblox thumbnails and video previews](https://create.roblox.com/docs/production/publishing/thumbnails)
+The Reedguard face icon and existing cover art are in `roblox/grand-dojo/art/experience-media/`. The new **55-second gameplay trailer** is a 1920×1080 MP4 at 30 fps (75.4 MB). It opens on the city, follows the Lantern Relay, shows Reedguard sparring with Juniper and a published Cloudbreak summit run, visits the earned Lantern Keeper trophy, and closes above Grand Dojo City. The edit uses Roblox gameplay and Studio camera footage. The opening, Relay, trophy and final skyline were captured in v0.362. The spar and Cloudbreak excerpts use earlier gameplay recordings for those same activities. Creator Hub accepts a 60-second maximum for this listing. Creator Hub accepted the upload as asset `92133544879851` and showed **Video under review**, with a review window of up to 48 hours. Check public gallery playback after approval. [Roblox video guidelines](https://create.roblox.com/docs/production/publishing/thumbnails#videos)
 
-### Game description saved in Creator Hub
+### Game description verified on the public listing
 
-Explore six lantern-lit districts in Beast Dojo, from the Tideharbor waterfront to the bridges of Skywalk Peaks. Follow clues to hidden treasure, race the Lantern Relay, and see if you can clear all 24 stones in the Cloudbreak obstacle course. Visit the Dojo Ring to spar as an animal fighter and learn new moves. Display the trophies you earn in Trophy Hall.
+**🏮 Explore Beast Dojo**
+
+Wander six lantern-lit districts, from Tideharbor’s waterfront to the sky bridges of Skywalk Peaks. Follow hidden clues, explore side paths, and see what you find.
+
+- 💎 TREASURE HUNTS · Find district seals and open hidden caches.
+- 🏁 LANTERN RELAY · Race through the city’s lantern gates.
+- ⛰️ CLOUDBREAK · Cross 24 floating stones and ring the summit bell.
+- 🥊 DOJO RING · Pick an animal fighter, spar, and learn to parry.
+- 🏆 TROPHY HALL · See the trophies you’ve earned.
+
+Start in Grand Dojo City and open a City Map board to pick your first route.
 
 ### Organic outreach during the 16+ evaluation
 
@@ -220,6 +230,8 @@ Lead with Cloudbreak’s 24-stone challenge and the six-district world. Invite a
 | Short gameplay clips | [Video link](https://www.roblox.com/join/a2g4r) |
 
 Compare plays and playtime in Creator Analytics by Share Link. Track Kids and Select qualifying players separately in Manage Audience. Roblox considers playtime, account history and recent platform spending. The campaign starts organically with zero spend. Reserve the proposed $50–$100 for a later test after the early play sessions show which message attracts players who stay. [Roblox Share Links](https://create.roblox.com/docs/production/promotion/share-links) · [Acquisition analytics](https://create.roblox.com/docs/production/analytics/acquisition) · [Kids and Select evaluation](https://create.roblox.com/docs/production/publishing/kids-and-select)
+
+The [r/playmygame exploration post](https://www.reddit.com/comments/1y5kre2/) is live and asks how players choose and find their first activity. The [r/RobloxDevelopers Cloudbreak post](https://www.reddit.com/comments/1y5kmwt/) is live and asks about landing readability and the mobile camera. Both state the current age-checked 16+ access. Roblox DevForum Creations Feedback was checked while signed in. The category showed no new-topic control for the account, so there is no DevForum post. No paid promotion was started.
 
 ### Evidence for rights enforcement
 
