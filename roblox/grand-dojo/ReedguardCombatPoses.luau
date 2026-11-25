@@ -246,7 +246,12 @@ local clips = {
 }
 
 local looping = { stance = true, advance = true, retreat = true }
-local planted = {stance = true, guard = true, block = true, salute = true, intro = true, win = true}
+-- Grounded reactions shift the torso and gloves without levering the boots through the mat.
+local planted = {
+	stance = true, guard = true, block = true, parry = true,
+	hitHead = true, hitBody = true, stagger = true,
+	salute = true, intro = true, win = true,
+}
 local durations = {body = floorClips.Duration.body, strafeLeft = shuffleDuration, strafeRight = shuffleDuration}
 for action, frames in pairs(clips) do
 	durations[action] = frames[#frames][1]

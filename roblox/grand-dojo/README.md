@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.306, watch Reedguard’s boots when he takes a grounded hit or parries. His head, torso and gloves carry the recoil while both boots meet the mat.
+
 In v0.305, choose Reedguard, walk across the plaza and stop. His boots settle flat with clearer contact shadows. The same shorter tail fits Rookie, Warrior and Grandmaster.
 
 In v0.304, Dojo Brawl keeps a valid hit scheduled before the floor drops when the server updates late. Finish your move and get back onto the next safe band.
