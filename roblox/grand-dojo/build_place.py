@@ -109,6 +109,7 @@ from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
 from relay_approach import build_relay_runner
 from starter_fighter_assets import build_starter_fighter_visuals
+from defeat_mesh_support import build_defeat_mesh_support
 from reedguard_forms_art import build_reedguard_forms, compact_form_visuals
 from starter_evolution_art import build_starter_evolutions
 from early_roster_evolution_art import build_early_roster_evolutions
@@ -8121,6 +8122,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (scripts,"LocalScript","GrandDojoFireworks","GrandDojoFireworks.client.luau")]:
     script=item(parent,class_name,name)
     prop(script,"ProtectedString","Source",(HERE/file).read_text())
+support=item(server,"ModuleScript","CombatDefeatSupport")
+prop(support,"ProtectedString","Source",build_defeat_mesh_support())
 ET.indent(root, space="  ")
 ET.ElementTree(root).write(OUTPUT, encoding="utf-8", xml_declaration=True)
 print(f"{OUTPUT.name}: {sum(1 for _ in root.iter('Item'))} Roblox instances")
