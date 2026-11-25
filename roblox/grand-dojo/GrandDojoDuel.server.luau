@@ -15,6 +15,8 @@ local Presentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"
 local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local studio = RunService:IsStudio()
+local transport = require(script.Parent:WaitForChild("DuelTransportRuntime")).get(studio)
+local arenaDriver, sourceQueue, cityReturn
 local rankStore = if studio then RankLedger.memoryStore()
     else DataStoreService:GetDataStore("BeastDojoDuelRatingsV1")
 local ledger = RankLedger.new(rankStore, os.time, task.wait)
@@ -225,7 +227,7 @@ local function startRound(duel, now)
     publish(duel, if duel.series.roundIndex == 1 then "begin" else "round", now)
 end
 
-local function begin(format, first, firstRoot, second, secondRoot, now, ticket)
+local function begin(format, first, firstRoot, second, secondRoot, now, ticket, assignmentId)
     clearQueue(first)
     clearQueue(second)
     local telegraph = Instance.new("Folder")
@@ -234,7 +236,7 @@ local function begin(format, first, firstRoot, second, secondRoot, now, ticket)
     nextMatchId += 1
     local lineup = {actor(first, firstRoot), actor(second, secondRoot)}
     local duel = {series = Series.new(format), matchId = nextMatchId, lineup = lineup, rankTicket = ticket,
-        bounds = bounds, floor = floor, telegraph = telegraph}
+        bounds = bounds, floor = floor, telegraph = telegraph, assignmentId = assignmentId}
     active = duel
     for _, side in lineup do
         side.player:SetAttribute("DuelActive", true)
@@ -308,11 +310,24 @@ local function stop(duel, result, departing, walkover)
             local message = if walkover and result[i] == "win" then "Your opponent left the duel." else resultMessages[result[i]]
             remote:FireClient(player, "result", score(duel, i, {result = result[i], message = message,
                 opponentName = duel.actors[3 - i].player.DisplayName, ratingPending = counts,
-                presentationSequence = sequence}))
+                presentationSequence = sequence, crossServer = if duel.assignmentId then true else nil}))
         end
     end
     settleRank(duel, result, counts)
     updateQueues()
+    if duel.assignmentId and arenaDriver then
+        for _, side in duel.actors do
+            if side.player ~= departing and side.player.Parent == Players then cityReturn:offer(side.player, 4) end
+        end
+        task.spawn(function()
+            for _ = 1, 3 do
+                local record, reason = arenaDriver:finish(duel.assignmentId)
+                if record then arenaDriver:cleanupTickets(record) return end
+                if reason ~= "unavailable" then return end
+                task.wait(.4)
+            end
+        end)
+    end
 end
 
 local function forfeit(duel, index, reason, departing)
@@ -483,6 +498,7 @@ local function tryMatch(now)
 end
 
 local function cancelEntry(player)
+    if sourceQueue and sourceQueue:cancel(player) then closeOffer(player, true) return end
     joins[player] = nil
     clearQueue(player, "You left the duel queue.")
     closeOffer(player, true)
@@ -497,7 +513,7 @@ local function cancelEntry(player)
 end
 
 prompt.Triggered:Connect(function(player)
-    if queues[player] then
+    if queues[player] or (sourceQueue and sourceQueue:owns(player)) then
         cancelEntry(player)
         return
     end
@@ -505,7 +521,7 @@ prompt.Triggered:Connect(function(player)
     if not root then
         notice(player, "Stand by the queue sign between activities to join a duel.")
         return
-    elseif active or preparing or shuttingDown then
+    elseif shuttingDown or ((active or preparing) and not sourceQueue) then
         notice(player, "A duel is underway. This court opens when it ends.")
         return
     end
@@ -513,8 +529,8 @@ prompt.Triggered:Connect(function(player)
     local current = offers[player]
     local expiresAt = if current and current.root == root and now < current.expiresAt
         then current.expiresAt else now + OFFER_SECONDS
-    offers[player] = {root = root, expiresAt = expiresAt}
-    remote:FireClient(player, "offer", {expiresAt = expiresAt})
+    offers[player] = {root = root, expiresAt = expiresAt, across = sourceQueue ~= nil}
+    remote:FireClient(player, "offer", {expiresAt = expiresAt, across = if sourceQueue then true else nil})
 end)
 
 local function enqueue(player, root, format, now, points)
@@ -526,7 +542,9 @@ end
 
 local function joinQueue(player, format)
     local offer = offers[player]
-    if not offer or not Series.supports(format) or queues[player] or joins[player] then
+    local across = format == "crossCasual" and sourceQueue and offer and offer.across
+    if not offer or (not across and not Series.supports(format)) or queues[player] or joins[player]
+        or (sourceQueue and sourceQueue:owns(player)) then
         return
     end
     closeOffer(player, true)
@@ -534,6 +552,10 @@ local function joinQueue(player, format)
     local root = eligible(player, .4)
     if root ~= offer.root or now >= offer.expiresAt then
         notice(player, "Stand by the sign and choose a duel again.")
+        return
+    elseif across and not shuttingDown then
+        local accepted, message = sourceQueue:enroll(player, root)
+        if not accepted then notice(player, message) end
         return
     elseif active or preparing or shuttingDown then
         notice(player, "A duel is underway. This court opens when it ends.")
@@ -575,6 +597,9 @@ remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundI
         return
     elseif action == "cancel" then
         cancelEntry(player)
+        return
+    elseif action == "returnCity" then
+        if cityReturn then cityReturn:retry(player) end
         return
     elseif action ~= "leave" and not actions[action] then
         return
@@ -682,9 +707,124 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
+if transport then
+    local SourceQueue = require(script.Parent.DuelSourceQueue)
+    local CityReturn = require(script.Parent.DuelCityReturn)
+    local function present(player) return player.Parent == Players and not shuttingDown end
+    local function guid() return HttpService:GenerateGUID(false) end
+    local function stageRoot(player, paused)
+        if not present(player) or not prompt.Enabled then return nil end
+        if not paused then return eligible(player, 3.25) end
+        local root = Match.root(player)
+        return Match.near(root, entry, prompt.MaxActivationDistance + 3.25) and root or nil
+    end
+    local function preparedRoot(player)
+        local id = player:GetAttribute("SelectedStarterFighter")
+        if present(player) and not active and not preparing and transport.profiles:arenaReady(player)
+            and player:GetAttribute("DuelTransferHold")
+            and (player:GetAttribute("ProgressStatus") == "ready" or player:GetAttribute("ProgressStatus") == "saved")
+            and fighters[id] and Match.FighterKits[id] then
+            return Match.root(player)
+        end
+        return nil
+    end
+    local driver = transport:driver({
+        isPresent = present,
+        sourceEligible = function(player, seat, phase) return sourceQueue:eligible(player, seat, phase) end,
+        readyRoot = preparedRoot,
+        begin = function(first, firstRoot, second, secondRoot, assignmentId)
+            begin("casual", first, firstRoot, second, secondRoot, workspace:GetServerTimeNow(), nil, assignmentId)
+        end,
+    })
+    sourceQueue = SourceQueue.new(transport.tickets, transport.assignments, driver, transport.profiles, {
+        jobId = transport.jobId, root = stageRoot, now = os.time, guid = guid,
+        player = function(userId) return Players:GetPlayerByUserId(userId) end,
+        status = function(player, queued, expiresAt, stage, message, canCancel)
+            if player.Parent ~= Players then return end
+            player:SetAttribute("DuelQueued", if queued then true else nil)
+            remote:FireClient(player, "queue", {queued = queued, expiresAt = expiresAt, format = "crossCasual",
+                message = message, stage = stage, canCancel = canCancel})
+        end,
+    })
+    cityReturn = CityReturn.new({
+        present = present, now = os.time, guid = guid,
+        release = function(player, id) return transport.profiles:request(player, "return", id) end,
+        teleport = function(player, dispatch) return transport:returnToCity(player, dispatch) end,
+        status = function(player, phase, message)
+            if player.Parent == Players then remote:FireClient(player, "cityReturn", {phase = phase, message = message}) end
+        end,
+    })
+    transport:connectFailures(function(player, packet)
+        if packet.purpose == "casualDuel" then
+            sourceQueue:failed(player, packet.matchId, packet.dispatch)
+        elseif packet.purpose == "casualDuelReturn" then
+            cityReturn:failure(player, packet.dispatch)
+        end
+    end)
+    task.spawn(function()
+        while not shuttingDown do
+            sourceQueue:tick()
+            cityReturn:tick()
+            task.wait(.6)
+        end
+    end)
+    local function stageArenaArrival(player)
+        if not transport.privateId then return end
+        local bootDeadline = os.time() + 15
+        local role = transport:profileRole(player)
+        while role == "unknown" and present(player) and os.time() < bootDeadline do
+            task.wait(1)
+            role = transport:profileRole(player)
+        end
+        if not present(player) then return end
+        local joinData = player:GetJoinData()
+        if role ~= "arena" then
+            local payload = joinData and joinData.TeleportData
+            if role == "unknown" and type(payload) == "table" and payload.purpose == "casualDuel"
+                and payload.matchId == transport.privateId and joinData.SourceGameId == transport.universeId
+                and joinData.SourcePlaceId == transport.placeId then cityReturn:offer(player, 0) end
+            return
+        end
+        arenaDriver = driver
+        local assignment = transport.assignments:read(transport.privateId)
+        if not assignment then cityReturn:offer(player, 0) return end
+        local admitted = false
+        while present(player) and os.time() < assignment.deadline do
+            local record, reason = arenaDriver:acceptArrival(player, joinData)
+            if record then
+                admitted = true
+                break
+            elseif reason ~= "unavailable" and reason ~= "pending" and reason ~= "worker unavailable" then
+                break
+            end
+            task.wait(.5)
+        end
+        while admitted and present(player) and os.time() < assignment.deadline do
+            if arenaDriver.destination and arenaDriver.destination.started then return end
+            local record, reason = arenaDriver:tryStart()
+            if record or reason == "already started" then return end
+            if reason ~= "players not ready" and reason ~= "unavailable" then break end
+            task.wait(.3)
+        end
+        local terminal = transport.assignments:expire(assignment.id) or transport.assignments:read(assignment.id)
+        if terminal and (terminal.phase == "aborted" or terminal.phase == "finished") then
+            arenaDriver:cleanupTickets(terminal)
+        end
+        if present(player) and not (active and active.assignmentId == assignment.id
+            and (active.actors[1].player == player or active.actors[2].player == player)) then cityReturn:offer(player, 0) end
+    end
+    Players.PlayerAdded:Connect(function(player) task.spawn(stageArenaArrival, player) end)
+    for _, player in Players:GetPlayers() do task.spawn(stageArenaArrival, player) end
+end
+
 Players.PlayerRemoving:Connect(function(player)
     closeOffer(player, false)
-    cancelEntry(player)
+    if sourceQueue and sourceQueue:owns(player) then sourceQueue:removed(player) else cancelEntry(player) end
+    if cityReturn then cityReturn:remove(player) end
+    local reserved = arenaDriver and arenaDriver.destination
+    if not active and reserved and not reserved.started and reserved.seats[player.UserId] == player then
+        task.spawn(function() transport.assignments:abortDestination(reserved.matchId, transport.jobId, nil, "cancelled") end)
+    end
     if active then
         for i, side in active.actors do
             if side.player == player then

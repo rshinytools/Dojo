@@ -1120,7 +1120,7 @@ local function layout()
     compactProgress.Visible = compact and showingWorldHud and not panel.Visible and not cloudbreakStatus.Visible
     compactParcel.Visible = compactProgress.Visible and parcelObjective.Visible
     if duelUi.queue then
-        duelUi.queue.Visible = duelUi.queued == true and showingWorldHud and not panel.Visible
+        duelUi.queue.Visible = (duelUi.queued == true or duelUi.returnPhase ~= nil) and showingWorldHud and not panel.Visible
     end
 end
 
@@ -1974,7 +1974,9 @@ combatButtons.exit.Activated:Connect(function() sendSparAction("leave") end)
 for _, action in {"technique", "heavy", "dodge", "signature"} do
     combatButtons[action].Activated:Connect(function() sendSparAction(action) end)
 end
-retryButton.Activated:Connect(function() sparRemote:FireServer("retry") end)
+retryButton.Activated:Connect(function()
+    if duelUi.crossResult then duelRemote:FireServer("returnCity") else sparRemote:FireServer("retry") end
+end)
 exitButton.Activated:Connect(closeResult)
 local sparKeys = {
     [Enum.KeyCode.E] = "strike", [Enum.KeyCode.ButtonX] = "strike", [Enum.KeyCode.ButtonR2] = "strike",
@@ -2002,6 +2004,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
             duelUi.join("series")
         elseif input.KeyCode == Enum.KeyCode.Three then
             duelUi.join("ranked")
+        elseif input.KeyCode == Enum.KeyCode.Four and duelUi.across then
+            duelUi.join("crossCasual")
         end
     elseif sparPicker.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closePicker(true)
@@ -2013,7 +2017,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
         end
     elseif sparResult.Visible and input.KeyCode == Enum.KeyCode.ButtonB then
         closeResult()
-    elseif back and duelUi.queue and duelUi.queue.Visible then
+    elseif back and duelUi.queue and duelUi.queue.Visible and not duelUi.returnPhase and duelUi.canCancel ~= false then
         duelRemote:FireServer("cancel")
     end
 end)
@@ -2345,7 +2349,13 @@ do
     queue.Position, queue.Size = UDim2.new(.5, 0, 1, -64), UDim2.new(.92, 0, 0, 48)
     queue.TextSize, queue.Visible = 14, false
     make("UISizeConstraint", queue, {MaxSize = Vector2.new(258, 48)})
-    queue.Activated:Connect(function() duelRemote:FireServer("cancel") end)
+    queue.Activated:Connect(function()
+        if duelUi.returnPhase then
+            if duelUi.returnPhase == "waiting" or duelUi.returnPhase == "failed" then duelRemote:FireServer("returnCity") end
+        elseif duelUi.canCancel ~= false then
+            duelRemote:FireServer("cancel")
+        end
+    end)
     duelUi.queue = queue
 
     local picker = make("Frame", gui, {
@@ -2433,8 +2443,19 @@ do
         end
     end
 
-    function duelUi.open(expiresAt)
-        duelUi.expiresAt = expiresAt
+    function duelUi.open(expiresAt, across)
+        duelUi.expiresAt, duelUi.across = expiresAt, across == true
+        if duelUi.across and not duelUi.acrossChoice then
+            duelUi.acrossChoice = button(picker, "Casual across servers", false)
+            duelUi.acrossChoice.Position, duelUi.acrossChoice.Size = UDim2.new(0, 16, 1, -57), UDim2.new(1, -154, 0, 48)
+            duelUi.acrossChoice.TextSize, duelUi.acrossChoice.TextWrapped = 14, true
+            duelUi.acrossChoice.NextSelectionUp, duelUi.acrossChoice.NextSelectionRight = ranked, closeChoice
+            duelUi.acrossChoice.Activated:Connect(function() duelUi.join("crossCasual") end)
+        end
+        if duelUi.acrossChoice then duelUi.acrossChoice.Visible = duelUi.across end
+        ranked.NextSelectionDown = if duelUi.across then duelUi.acrossChoice else closeChoice
+        closeChoice.NextSelectionLeft = if duelUi.across then duelUi.acrossChoice else nil
+        keys.Text = if duelUi.across then "" else "1, 2 or 3 to choose"
         refreshRankStatus()
         picker.Visible = true
         restoreWorldPrompts()
@@ -2459,9 +2480,9 @@ do
     ranked.Activated:Connect(function() duelUi.join("ranked") end)
     closeChoice.Activated:Connect(function() duelUi.close(true) end)
     focusPicker()
-    for _, attribute in {"DuelRankStatus", "DuelRankPoints", "DuelRankDivision"} do
-        player:GetAttributeChangedSignal(attribute):Connect(refreshRankStatus)
-    end
+    player:GetAttributeChangedSignal("DuelRankStatus"):Connect(refreshRankStatus)
+    player:GetAttributeChangedSignal("DuelRankPoints"):Connect(refreshRankStatus)
+    player:GetAttributeChangedSignal("DuelRankDivision"):Connect(refreshRankStatus)
     UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(focusPicker)
     player.CharacterRemoving:Connect(function() duelUi.close(true) end)
 end
@@ -2475,7 +2496,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
             and not player:GetAttribute("StarterSelectionRequired") and not player:GetAttribute("FighterSelectOpen")
             and type(info.expiresAt) == "number" and info.expiresAt > workspace:GetServerTimeNow() then
             closeResult()
-            duelUi.open(info.expiresAt)
+            duelUi.open(info.expiresAt, info.across)
         end
     elseif kind == "offerClosed" then
         if type(info) ~= "table" or info.expiresAt == nil or duelUi.expiresAt == info.expiresAt then
@@ -2483,13 +2504,32 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         end
     elseif kind == "queue" then
         duelUi.close(false)
-        duelUi.queued = info.queued
-        duelUi.queue.Text = if info.format == "ranked" then "Waiting for Ranked · Leave"
+        duelUi.queued, duelUi.canCancel = info.queued, info.canCancel
+        duelUi.queue.Active = info.canCancel ~= false
+        duelUi.queue.Text = if info.format == "crossCasual" then
+            (if info.stage == "traveling" then "Traveling to Grand Dojo…"
+                elseif info.stage == "recovering" then "Restoring your progress…"
+                elseif info.stage == "preparing" then "Opponent found · Leave"
+                else "Finding opponent · Leave")
+            elseif info.format == "ranked" then "Waiting for Ranked · Leave"
             elseif info.format == "series" then "Waiting for Best of 3 · Leave" else "Waiting for Casual · Leave"
         layout()
         if info.message then
             flash(info.message)
         end
+    elseif kind == "cityReturn" then
+        if type(info) ~= "table" or (info.phase ~= "waiting" and info.phase ~= "launching"
+            and info.phase ~= "sent" and info.phase ~= "failed") then return end
+        duelUi.returnPhase = info.phase
+        local actionable = info.phase == "waiting" or info.phase == "failed"
+        local text = if info.phase == "failed" then "Retry city return"
+            elseif actionable then "Return to City" else "Returning to City…"
+        duelUi.queue.Text, duelUi.queue.Active = text, actionable
+        if duelUi.crossResult and sparResult.Visible then
+            retryButton.Text, retryButton.Active = text, actionable
+        end
+        if type(info.message) == "string" then flash(info.message) end
+        layout()
     elseif kind == "rating" then
         local matchId = info.matchId
         local previous = duelUi.pendingRatings[matchId]
@@ -2528,7 +2568,9 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         if ratingMatchId then
             duelUi.pendingRatings[ratingMatchId] = "waiting"
         end
-        showMatchResult(info.result, info.opponentName, detailText, false, ratingMatchId)
+        duelUi.crossResult = info.crossServer == true
+        showMatchResult(info.result, info.opponentName, detailText, duelUi.crossResult, ratingMatchId)
+        if duelUi.crossResult then retryButton.Text = "Return to City" end
         matchPresentation.matchId = nil
     elseif kind == "begin" or kind == "update" or kind == "round" then
         local showingDuel = sparringActive and duelRound
@@ -2553,7 +2595,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         end
         if reset then
             duelUi.close(false)
-            duelUi.queued = false
+            duelUi.queued, duelUi.crossResult, duelUi.returnPhase = false, nil, nil
             local title = if info.format == "ranked" then "Ranked Duel" elseif series then "Best of 3 Duel" else "Grand Dojo Duel"
             showMatchHud(true, title, info.startsAt, info.introAt,
                 "grand-dojo", info, info.kitId, info.nextSignature, info.nextSecondary, info.tactical, info.basic, info.ultimate)

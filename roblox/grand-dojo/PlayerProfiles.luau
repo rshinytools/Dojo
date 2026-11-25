@@ -8,6 +8,8 @@ PlayerProfiles.__index = PlayerProfiles
 
 local SCHEMA_VERSION = 1
 local LEASE_SECONDS = 120
+local MATCH_HANDOFF_SECONDS = 60
+local MAX_HANDOFF_SEQUENCE = 2147483647
 local FIRST_RELAY_XP = 80
 local REPEAT_RELAY_XP = 25
 local FIRST_DOJO_PRACTICE_XP = 20
@@ -155,6 +157,25 @@ local function validTraining(training, acceptsFighter)
     return true
 end
 
+local function validHandoffId(value)
+    return type(value) == "string" and #value <= 80 and value:match("^[%w_%-]+$") ~= nil
+end
+
+local function validLease(lease)
+    if lease == nil then return true end
+    if type(lease) ~= "table" or type(lease.token) ~= "string" or not whole(lease.expiresAt, 1, 1e12) then
+        return false
+    end
+    local handoff = lease.handoff
+    if handoff == nil then return true end
+    if type(handoff) ~= "table" or not validHandoffId(handoff.id) or not validHandoffId(handoff.destination)
+        or not whole(handoff.sequence, 1, MAX_HANDOFF_SEQUENCE) or not whole(handoff.deadline, 1, 1e12) then
+        return false
+    end
+    return handoff.state == "accepted" or handoff.state == "cancelled"
+        or handoff.state == "pending" and handoff.deadline == lease.expiresAt
+end
+
 local function valid(profile)
     if type(profile) ~= "table" or profile.schemaVersion ~= SCHEMA_VERSION
         or type(profile.fighters) ~= "table" or type(profile.trophies) ~= "table"
@@ -178,7 +199,6 @@ local function valid(profile)
             return false
         end
     end
-    local lease = profile.lease
     return (profile.dojoPracticeId == nil or validCompletionId(profile.dojoPracticeId))
         and (profile.firstSparWinId == nil or validCompletionId(profile.firstSparWinId))
         and validRewardReceipt(profile.lastRelayReward, FIRST_RELAY_XP, REPEAT_RELAY_XP, isStarter)
@@ -199,8 +219,9 @@ local function valid(profile)
         and (trophy == nil or type(trophy) == "table" and whole(trophy.earnedAt, 1, 1e12)
             and whole(trophy.criterionVersion, 1, 1e6))
         and (profile.kilnback == nil or validRaidReceipt(profile.kilnback))
-        and (lease == nil or type(lease) == "table" and type(lease.token) == "string"
-            and whole(lease.expiresAt, 1, 1e12))
+        and validLease(profile.lease)
+        and (profile.duelReturn == nil or type(profile.duelReturn) == "table"
+            and validHandoffId(profile.duelReturn.id) and validHandoffId(profile.duelReturn.token))
 end
 
 function PlayerProfiles.new(store, unixTime, wait)
@@ -372,6 +393,14 @@ function PlayerProfiles:_update(userId, mutate)
     return nil, "unavailable"
 end
 
+local function pendingHandoff(lease)
+    return lease.handoff and lease.handoff.state == "pending"
+end
+
+local function refreshLease(token, now, handoff)
+    return {token = token, expiresAt = now + LEASE_SECONDS, handoff = handoff}
+end
+
 function PlayerProfiles:open(userId, token)
     return self:_update(userId, function(current, now)
         local profile = if current == nil then newProfile() else current
@@ -379,11 +408,12 @@ function PlayerProfiles:open(userId, token)
             return nil, "invalid"
         end
         local lease = profile.lease
-        if lease and lease.expiresAt > now and lease.token ~= token then
+        local live = lease and lease.expiresAt > now
+        if live and (lease.token ~= token or pendingHandoff(lease)) then
             return nil, "busy"
         end
         local updated = table.clone(profile)
-        updated.lease = {token = token, expiresAt = now + LEASE_SECONDS}
+        updated.lease = refreshLease(token, now, if live then lease.handoff else nil)
         return updated
     end)
 end
@@ -394,6 +424,9 @@ function PlayerProfiles:_owned(userId, token, change, releasing)
             or current.lease.expiresAt <= now then
             return nil, "ownership"
         end
+        if pendingHandoff(current.lease) then
+            return nil, "transferring"
+        end
         local updated = table.clone(current)
         if change then
             local rejection = change(updated, now)
@@ -401,7 +434,7 @@ function PlayerProfiles:_owned(userId, token, change, releasing)
                 return nil, rejection
             end
         end
-        updated.lease = if releasing then nil else {token = token, expiresAt = now + LEASE_SECONDS}
+        updated.lease = if releasing then nil else refreshLease(token, now, current.lease.handoff)
         return updated
     end)
 end
@@ -412,6 +445,102 @@ end
 
 function PlayerProfiles:release(userId, token)
     return self:_owned(userId, token, nil, true)
+end
+
+local function validHandoffRequest(userId, token, id, destination)
+    return whole(userId, 1, 9e15) and validHandoffId(token) and validHandoffId(id) and validHandoffId(destination)
+end
+
+-- Called by the serial profile worker after pausing new grants and confirming pending writes.
+-- The destination and transfer ID are derived from an authorized match assignment on the server.
+function PlayerProfiles:prepareMatchHandoff(userId, token, id, destination, sequence, deadline)
+    if not validHandoffRequest(userId, token, id, destination)
+        or not whole(sequence, 1, MAX_HANDOFF_SEQUENCE) or not whole(deadline, 1, 1e12) then
+        return nil, "invalid handoff"
+    end
+    return self:_update(userId, function(current, now)
+        if not valid(current) then return nil, "invalid" end
+        local lease = current.lease
+        if not lease or lease.token ~= token or lease.expiresAt <= now then return nil, "ownership" end
+        if deadline <= now or deadline > now + MATCH_HANDOFF_SECONDS then return nil, "invalid deadline" end
+        local previous = lease.handoff
+        if previous and previous.id == id then
+            if previous.state == "pending" and previous.destination == destination
+                and previous.sequence == sequence and previous.deadline == deadline then
+                return current
+            end
+            return nil, "stale handoff"
+        end
+        if pendingHandoff(lease) then return nil, "transferring" end
+        if previous and previous.state == "cancelled" and sequence <= previous.sequence then
+            return nil, "stale handoff"
+        end
+        local updated = table.clone(current)
+        updated.lease = {token = token, expiresAt = deadline, handoff = {
+            id = id, destination = destination, sequence = sequence, deadline = deadline, state = "pending",
+        }}
+        return updated
+    end)
+end
+
+-- Accept only after the coordinator verifies this user's seat in the assigned physical destination job.
+function PlayerProfiles:acceptMatchHandoff(userId, token, id, destination)
+    if not validHandoffRequest(userId, token, id, destination) then return nil, "invalid handoff" end
+    return self:_update(userId, function(current, now)
+        if not valid(current) then return nil, "invalid" end
+        local lease = current.lease
+        local handoff = lease and lease.handoff
+        if not handoff or handoff.id ~= id or handoff.destination ~= destination then return nil, "stale handoff" end
+        if lease.expiresAt <= now then return nil, "expired" end
+        if handoff.state == "accepted" and lease.token == token then return current end
+        if handoff.state ~= "pending" or lease.token == token then return nil, "unavailable handoff" end
+        local accepted = table.clone(handoff)
+        accepted.state = "accepted"
+        local updated = table.clone(current)
+        updated.lease = refreshLease(token, now, accepted)
+        return updated
+    end)
+end
+
+function PlayerProfiles:cancelMatchHandoff(userId, token, id, destination)
+    if not validHandoffRequest(userId, token, id, destination) then return nil, "invalid handoff" end
+    return self:_update(userId, function(current, now)
+        if not valid(current) then return nil, "invalid" end
+        local lease = current.lease
+        if not lease or lease.token ~= token or lease.expiresAt <= now then return nil, "ownership" end
+        local handoff = lease.handoff
+        if not handoff or handoff.id ~= id or handoff.destination ~= destination then return nil, "stale handoff" end
+        if handoff.state == "cancelled" then return current end
+        if handoff.state ~= "pending" then return nil, "unavailable handoff" end
+        local cancelled = table.clone(handoff)
+        cancelled.state = "cancelled"
+        local updated = table.clone(current)
+        updated.lease = refreshLease(token, now, cancelled)
+        return updated
+    end)
+end
+
+-- Preserve an acknowledgement across a lost reply or a new city's subsequent open.
+function PlayerProfiles:releaseMatchReturn(userId, token, id)
+    if not whole(userId, 1, 9e15) or not validHandoffId(token) or not validHandoffId(id) then
+        return false, "invalid return"
+    end
+    local saved, reason = self:_update(userId, function(current, now)
+        if current == nil then return nil, "ownership" end
+        if not valid(current) then return nil, "invalid" end
+        local lease = current.lease
+        if current.duelReturn and current.duelReturn.id == id and current.duelReturn.token == token then
+            if not lease or lease.token ~= token then return current end
+            return nil, "stale return"
+        end
+        if not lease or lease.token ~= token or lease.expiresAt <= now then return nil, "ownership" end
+        if pendingHandoff(lease) then return nil, "transferring" end
+        local updated = table.clone(current)
+        updated.lease = nil
+        updated.duelReturn = {id = id, token = token}
+        return updated
+    end)
+    return saved ~= nil, reason
 end
 
 function PlayerProfiles:commitStarterChoice(userId, token, fighterId)

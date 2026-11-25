@@ -78,7 +78,8 @@ end
 local function hasConflictingActivity(player)
     return (player:GetAttribute("RelayNextGate") or 0) > 0 or player:GetAttribute("SparringActive") == true
         or player:GetAttribute("FighterSelectOpen") == true or player:GetAttribute("StarterSelectionPending") == true
-        or player:GetAttribute("DuelQueued") == true or player:GetAttribute("RingTrainingActive") ~= nil
+        or player:GetAttribute("DuelQueued") == true or player:GetAttribute("DuelTransferHold") == true
+        or player:GetAttribute("RingTrainingActive") ~= nil
         or player:GetAttribute("RingTrainingPending") == true
 end
 

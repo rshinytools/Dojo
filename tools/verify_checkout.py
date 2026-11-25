@@ -50,6 +50,8 @@ def verify_place():
                 "Cinder Terraces Ring", "Cloud-Top Temple", "Tideharbor practice ring",
                 "RingProgression", "GrandDojoRingTraining", "RingTrainingCompleted",
                 "GrandDojoDuel", "DuelCombatRound", "DuelSeries", "DuelRankLedger", "DuelRankRules",
+                "DuelTransportConfig", "DuelTransportRuntime", "DuelQueueTickets", "DuelAssignments",
+                "DuelAssignmentDriver", "DuelProfileBridge", "DuelSourceQueue", "DuelCityReturn",
                 "DuelFightMotion", "Duel Court", "JoinDuelPrompt",
                 "GrandDojoBrawl", "GrandDojoBrawlClient", "BrawlCombatRound", "BrawlFightMotion",
                 "Brawl Entry", "Brawl Court", "JoinBrawlPrompt", "Spectator Return",

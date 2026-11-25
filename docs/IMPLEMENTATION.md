@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.346 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.347 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -203,6 +203,16 @@ Each fighter brings the same named techniques, moves, health and cooldowns as in
 Two desktop Studio clients completed the exact v0.327 Best of 3 build at about 232–233 ms measured median round-trip latency. Both selected Reedguard and used the real Duel prompt and Best of 3 button after staging beside the sign. Both saw the first knockout, a three-second second-round countdown with a fresh fight camera, full 100 HP, and their own 1–0 or 0–1 score. Both mounted fresh windup profiles. Actual Jab and Heavy inputs showed the first local pose ahead of acknowledgment in both rounds. Both clients agreed on 13 and 22 damage at 180 and 420 ms from acceptance. A second knockout gave both clients the 2–0 result and restored normal city movement and camera.
 
 V0.276 two-endpoint Luau simulations of the actual server exercised a casual knockout, a 2–0 series sweep, a three-round 1–1 draw on time, stale input rejection, leave and disconnect handling, and zero progression writes. Desktop Studio and Galaxy A06 landscape touch simulation joined and cancelled both v0.276 queues. A separate one-client series used a fitted Fire Salamander stand-in to verify Silverback’s palm, parry and slam in both rounds, the 3-second second-round reset, the 2–0 recap and camera return.
+
+## Cross-server Casual staging
+
+V0.347 implements an opt-in Casual queue across servers. Two eligible players in separate city jobs can be assigned to the same reserved Grand Dojo Duel Court. The original Casual intro, moves, rules and result are reused. The return to Grand Dojo City waits for the profile release. Standalone Luau checks covered two origin queues, matching receipt versions, cancellation, lost replies, failed travel, expiration with MemoryStore unavailable, split destination jobs and safe return retries. The tests preserved XP, trophies and the next City server’s profile ownership. The new option stays disabled in the packaged checkpoint until the published private staging test is run.
+
+The gate lives in [DuelTransportConfig](../roblox/grand-dojo/DuelTransportConfig.luau). Set the exact private staging universe and place IDs in a staging-only build, and give its protocol a separate namespace. The source queue uses a Roblox MemoryStore ticket and a matching assignment. The progress worker remains the only owner of the profile token. Before either player leaves, both profiles must have a matching transfer receipt. The destination checks both profiles and the physical server before starting the original Casual bout. Regular City return uses a separate public-server teleport after a durable release receipt. [Roblox teleport routing](https://create.roblox.com/docs/projects/teleport)
+
+Run `python3 -B tools/verify_cross_server_duel.py luau` from the repository root with the standalone Luau runner. Published staging needs two eligible accounts in separate City jobs. Verify both arrivals in one physical server, the full Casual match and City return, a failed transfer, a late arrival and a later reconnect. Confirm touch and controller access to the new choice.
+
+The exact v0.346 Tag run verified four player entries, the Grizzly reserve and its 41-damage Heavy. Cinder Tap was attempted after knockback pushed the defender outside its reach. An updated test approaches again before attempting the move. The v0.346 eight-client Brawl test lost its local connection before recording match evidence. Staggered startup is prepared for the rerun. Latest-build full Tag and Brawl replays remain open.
 
 ## Grand Dojo Tag Team
 

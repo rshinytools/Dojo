@@ -22,6 +22,7 @@ local raidRemotes = {
 local raidTrophyNames = {kilnback = "Kiln Keeper", kraken = "Deepwater Team", phoenix = "Dawn Return"}
 
 local studio = RunService:IsStudio()
+local transport = require(script.Parent:WaitForChild("DuelTransportRuntime")).get(studio)
 local store = if studio then PlayerProfiles.memoryStore() else DataStoreService:GetDataStore("BeastDojoPlayerProfiles")
 local profiles = PlayerProfiles.new(store, os.time, task.wait)
 local shuttingDown = false
@@ -195,7 +196,8 @@ local RUN_LIMIT = 120
 local state = {}
 
 local function liveRoot(player)
-    if player:GetAttribute("StarterSelectionRequired") ~= false or player:GetAttribute("StarterSelectionPending") then
+    if player:GetAttribute("StarterSelectionRequired") ~= false or player:GetAttribute("StarterSelectionPending")
+        or player:GetAttribute("DuelTransferHold") then
         return nil
     end
     local character = player.Character
@@ -480,10 +482,34 @@ end
 local function serveProgress(player, data)
     local token = HttpService:GenerateGUID(false)
     local attempted = false
-    local nextRefresh, nextLoad = 0, 0
+    local nextRefresh, nextLoad, nextRoleCheck = 0, 0, 0
     while not (data.departed or shuttingDown) do
         local now = os.clock()
-        if data.profile == nil and now >= nextLoad then
+        local held = false
+        if transport then
+            if data.awaitingDuelRole and now >= nextRoleCheck then
+                local role = transport:profileRole(player)
+                if role ~= "unknown" then
+                    data.awaitingDuelRole = nil
+                    if role == "city" then transport.profiles:classifyCity(player) end
+                end
+                nextRoleCheck = os.clock() + 3
+            end
+            local transferred
+            held, transferred = transport.profiles:step(player, profiles, token, data.profile, pendingProgress(data))
+            attempted = attempted or transport.profiles:acceptAttempted(player)
+            if transferred then
+                data.profile = transferred
+                if not (data.departed or shuttingDown) then
+                    projectProgress(player, data, transferred)
+                    projectStarterChoice(player, data, transferred)
+                    player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "ready")
+                end
+                nextRefresh = os.clock() + math.random(38, 54)
+            end
+        end
+        if data.departed or shuttingDown then break end
+        if not held and data.profile == nil and now >= nextLoad then
             attempted = true
             data.profile = profiles:open(player.UserId, token)
             if data.departed or shuttingDown then
@@ -501,7 +527,7 @@ local function serveProgress(player, data)
                 nextLoad = os.clock() + math.random(8, 12)
             end
         end
-        if data.profile and (pendingProgress(data) or now >= nextRefresh) then
+        if not held and data.profile and (pendingProgress(data) or now >= nextRefresh) then
             if data.pendingStarterChoice then
                 data.profile = saveStarterChoice(player, data, token)
             elseif data.pendingRelay then
@@ -534,11 +560,12 @@ local function serveProgress(player, data)
         end
         task.wait(.4)
     end
-    if pendingProgress(data) and not data.profile then
+    local outbound = transport and transport.profiles:ownsOutbound(player)
+    if not outbound and pendingProgress(data) and not data.profile then
         attempted = true
         data.profile = profiles:open(player.UserId, token)
     end
-    if data.profile then
+    if not outbound and data.profile then
         if data.pendingStarterChoice then
             saveStarterChoice(player, data, token)
         end
@@ -557,9 +584,10 @@ local function serveProgress(player, data)
             end
         end
     end
-    if attempted then
+    if attempted and not outbound then
         profiles:release(player.UserId, token)
     end
+    if transport then transport.profiles:forget(player) end
     profileWorkers -= 1
 end
 
@@ -574,6 +602,7 @@ raidCompleted.Event:Connect(function(player, window, id, matchId, raidId)
         end
     end
     table.insert(data.pendingRaids, {window = window, id = id, matchId = matchId, raidId = raidId})
+    if transport then transport.profiles:receiptQueued(player) end
     player:SetAttribute("ProgressStatus", "saving")
 end)
 
@@ -582,6 +611,7 @@ sparringWon.Event:Connect(function(player, fighterId)
     if data and fighterId and fighterId == data.selectedStarter
         and not (data.departed or shuttingDown or data.pendingSparWin) then
         data.pendingSparWin = {id = HttpService:GenerateGUID(false), fighterId = fighterId}
+        if transport then transport.profiles:receiptQueued(player) end
         player:SetAttribute("FirstSparWinPending", true)
         player:SetAttribute("ProgressStatus", "saving")
     end
@@ -596,6 +626,7 @@ trainingCompleted.Event:Connect(function(player, drillId, fighterId)
     end
     if not data.pendingTraining then
         data.pendingTraining = {id = HttpService:GenerateGUID(false), drillId = drillId, fighterId = fighterId}
+        if transport then transport.profiles:receiptQueued(player) end
         player:SetAttribute("ProgressStatus", "saving")
     end
 end)
@@ -722,6 +753,12 @@ local function addPlayer(player)
     local data = {openUntil = 0, lastAction = 0, lastStrike = 0, targetStrikes = {}, nextChime = 1, lastChime = -math.huge,
         pendingRaids = {}}
     state[player] = data
+    if transport then
+        local role = transport:profileRole(player)
+        if data.departed or shuttingDown then return end
+        transport.profiles:register(player, role)
+        data.awaitingDuelRole = if role == "unknown" then true else nil
+    end
     player:SetAttribute("LanternKeeper", false)
     player:SetAttribute("RelayBest", 0)
     player:SetAttribute("FighterXp", 0)
@@ -937,6 +974,7 @@ local function finish(player, data, now)
         remote:FireClient(player, "finished", tenths / 10, false, true)
     else
         data.pendingRelay = {tenths = tenths, id = HttpService:GenerateGUID(false), fighterId = run.fighterId}
+        if transport then transport.profiles:receiptQueued(player) end
         player:SetAttribute("ProgressStatus", "saving")
         remote:FireClient(player, "notice", "Saving your Relay result…")
     end
