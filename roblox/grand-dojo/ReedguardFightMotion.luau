@@ -1,5 +1,6 @@
 -- Featured sparring uses the same authored frame for posing and contact.
 local Match = require(script.Parent.DojoMatchSupport)
+local Jump = require(game:GetService("ReplicatedStorage").ArenaJumpMotion)
 local Reedguard = require(script.Parent.ReedguardCombatPoses)
 local reedguardSupport = require(script.Parent.ReedguardDefeatSupport)
 local meshDefeatSupport = require(script.Parent.CombatDefeatSupport)
@@ -493,7 +494,7 @@ function Motion.open(bout)
     local state = {motors = {}, anchored = bout.root.Anchored, autoRotate = humanoid.AutoRotate,
         autoJump = humanoid.AutoJumpEnabled, walkSpeed = humanoid.WalkSpeed,
         animate = animate, animateDisabled = animate and animate.Disabled,
-        humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
+        character = character, humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
     if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit]
         or Heavy.kits[bout.kit] or Magma.kits[bout.kit] or Thunder.kits[bout.kit]
@@ -552,10 +553,12 @@ function Motion.open(bout)
     bout.root.Anchored = true
     state.holding = true
     bout.motion = state
+    Jump.open(character, bout.arena.floor)
 end
 
 function Motion.close(bout)
     local state = bout.motion
+    Jump.close(state.character)
     restoreDefeat(state)
     clearLane(state, "tornadoWarning")
     clearLane(state, "gustWarning")
@@ -2559,6 +2562,7 @@ function Motion.render(bout, now)
     local round, state = bout.round, bout.motion
     local windupFlinch = juniperWindupFlinch(bout, now)
     if bout.outroAt and round.playerHealth <= 0 then
+        Jump.allow(bout.root.Parent, false)
         setTravelHold(bout, true)
         renderPlayerDefeat(state, bout.root, bout.arena.floor, now - bout.outroAt)
     else
@@ -2578,6 +2582,8 @@ function Motion.render(bout, now)
             offsets = Motion.recoverReaction(round, state, offsets, now,
                 not bout.outroAt and action == "stance" and Motion.reactionGrounded(bout.root, bout.arena.floor))
         end
+        Jump.allow(bout.root.Parent, now >= round.startsAt and not bout.outroAt and not state.crossKnock
+            and not round.clip and not state.reactionAt)
         for name, joint in state.motors do
             joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest
         end

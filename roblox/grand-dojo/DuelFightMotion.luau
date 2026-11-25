@@ -1,5 +1,6 @@
 -- Native fighter motion, fitted contact volumes, and authored floor effects.
 local Match = require(script.Parent.DojoMatchSupport)
+local Jump = require(game:GetService("ReplicatedStorage").ArenaJumpMotion)
 local Debris = game:GetService("Debris")
 local FighterMotion = require(script.Parent.ReedguardFightMotion)
 local Geometry = FighterMotion.geometry
@@ -151,6 +152,7 @@ local function beginActor(duel, actor, index, brawl)
     end
     humanoid.AutoRotate, humanoid.AutoJumpEnabled = false, false
     setHeld(actor, true)
+    Jump.open(character, duel.floor)
 end
 
 function Motion.open(duel, brawl)
@@ -173,6 +175,7 @@ function Motion.remove(duel, index)
         return
     end
     actor.motionActive = false
+    Jump.close(actor.character)
     for _, joint in actor.motors do
         if joint.motor.Parent then
             joint.motor.C0 = joint.rest
@@ -890,6 +893,7 @@ function Motion.render(duel, now, historical)
             defeatAt = duel.round.resolvedAt
         end
         if defeatAt and actor.motionActive and actor.root.Parent == actor.character then
+            if not historical then Jump.allow(actor.character, false) end
             if actor.rise then
                 actor.rise = nil
                 Geometry.restoreDefeat(actor)
@@ -928,6 +932,13 @@ function Motion.render(duel, now, historical)
                 and not (duel.round.revives and duel.round.revives[index])
                 and FighterMotion.reactionGrounded(actor.root, duel.floor) and floorActive(duel, actor.root.Position, now)
             offsets = FighterMotion.recoverReaction(state, actor, offsets, now, canRecover)
+        end
+        if not historical then
+            local canJump = now >= duel.round.startsAt and not duel.round.resolvedAt
+                and not actor.knock and (actor.lift or 0) <= 0 and not actor.rise and not actor.cast
+                and not (duel.round.revives and duel.round.revives[index]) and not talonHold(duel, index, now)
+                and not state.clip and not actor.reactionAt
+            Jump.allow(actor.character, canJump)
         end
         for name, joint in actor.motors do
             joint.motor.C0 = (offsets[name] or CFrame.identity) * joint.rest
