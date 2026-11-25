@@ -11,6 +11,8 @@ local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCat
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
+local CombatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
+local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(32, 23, 27)
@@ -260,6 +262,7 @@ local tips = {
 }
 
 local offer, waiting, match
+local presentationState = {}
 local detached, leaving = false, false
 local lastMatchId, firstChoice, joinAt, noticeUntil = 0, nil, nil, 0
 local offerFeedback
@@ -636,6 +639,11 @@ local resultReasons = {
     simultaneous = "Both teams went down on the same beat.",
 }
 
+local function playImpact(cue, point, attack)
+    CombatEffects.play(cue, point, attack)
+    CombatAudio.impact(cue, point, attack)
+end
+
 remote.OnClientEvent:Connect(function(kind, data)
     if type(data) ~= "table" then
         return
@@ -655,7 +663,8 @@ remote.OnClientEvent:Connect(function(kind, data)
             return
         end
         if kind == "begin" then
-            if type(data.matchId) ~= "number" or data.matchId <= lastMatchId then
+            if type(data.matchId) ~= "number" or data.matchId <= lastMatchId
+                or not CombatPresentation.accept(presentationState, kind, data) then
                 return
             end
             lastMatchId = data.matchId
@@ -665,7 +674,7 @@ remote.OnClientEvent:Connect(function(kind, data)
             closeRecap()
             CombatAudio.prepare()
             CombatAudio.resetCountdown()
-        elseif not match or match.matchId ~= data.matchId then
+        elseif not match or match.matchId ~= data.matchId or not CombatPresentation.accept(presentationState, kind, data) then
             return
         end
         local old = match
@@ -681,7 +690,11 @@ remote.OnClientEvent:Connect(function(kind, data)
         Portraits.set(rivalPortrait, other.kitId)
         setRoster(data)
         if ownChanged then layout() end
+        CombatPresentation.play(data, workspace:GetServerTimeNow(), playImpact)
     elseif kind == "result" and match and data.matchId == match.matchId then
+        if not CombatPresentation.accept(presentationState, kind, data) then
+            return
+        end
         match, waiting = nil, nil
         leaving = false
         championship.left:Snap()

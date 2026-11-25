@@ -11,6 +11,8 @@ local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCat
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local ChampionshipPortraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
+local CombatEffects = require(ReplicatedStorage:WaitForChild("CombatEffects"))
+local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(19, 37, 40)
@@ -176,7 +178,8 @@ local tips = {
     stormThunder = "Thunder strike landed",
 }
 
-local waiting, match, lastResultId
+local waiting, match
+local presentationState = {}
 local noticeUntil, stageCueUntil = 0, 0
 local sendingLeave = false
 
@@ -382,6 +385,11 @@ local function noticeText(message)
     end
 end
 
+local function playImpact(cue, point, attack)
+    CombatEffects.play(cue, point, attack)
+    CombatAudio.impact(cue, point, attack)
+end
+
 remote.OnClientEvent:Connect(function(kind, data)
     if kind == "notice" then
         noticeText(if type(data) == "table" then data.message else data)
@@ -393,10 +401,10 @@ remote.OnClientEvent:Connect(function(kind, data)
             noticeText(data.message)
         end
     elseif kind == "begin" or kind == "update" then
+        if not CombatPresentation.accept(presentationState, kind, data) then
+            return
+        end
         if kind == "begin" then
-            if data.matchId == nil or data.matchId == lastResultId then
-                return
-            end
             waiting = nil
             if recap.Visible then
                 closeRecap()
@@ -404,10 +412,9 @@ remote.OnClientEvent:Connect(function(kind, data)
             sendingLeave, stageCueUntil = false, 0
             if not match or match.matchId ~= data.matchId then
                 CombatAudio.prepare()
+                CombatEffects.prepare()
                 CombatAudio.resetCountdown()
             end
-        elseif not match or match.matchId ~= data.matchId then
-            return
         elseif data.stage and match.stage and data.stage > match.stage then
             stageCueUntil = workspace:GetServerTimeNow() + 1.2
         end
@@ -420,11 +427,11 @@ remote.OnClientEvent:Connect(function(kind, data)
             ChampionshipPortraits.set(fighterPortrait, match.kitId)
             layout()
         end
+        CombatPresentation.play(data, workspace:GetServerTimeNow(), playImpact)
     elseif kind == "result" then
-        if not match or match.matchId ~= data.matchId or lastResultId == data.matchId then
+        if not CombatPresentation.accept(presentationState, kind, data) then
             return
         end
-        lastResultId = data.matchId
         match, waiting = nil, nil
         sendingLeave = false
         health:Snap()

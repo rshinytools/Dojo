@@ -5,7 +5,9 @@ local base = table.freeze({rookie})
 local roster = {}
 for _, id in {"reedguard-kangaroo", "penguin-brawler", "silverback-gorilla", "fire-salamander",
     "karate-frog", "river-otter", "rooster-kickboxer", "sugar-glider", "desert-scorpion", "pistol-shrimp",
-    "walrus-sumo", "snapping-tortoise", "armadillo-striker"} do
+    "walrus-sumo", "snapping-tortoise", "armadillo-striker", "komodo-dragon", "electric-owl", "bighorn-ram",
+    "honey-badger", "emerald-saber-tooth", "great-white-shark", "abyssal-kraken", "magma-grizzly-bear",
+    "obsidian-hellhound", "golden-eagle", "celestial-storm-dragon"} do
     roster[id] = table.freeze({
         rookie,
         table.freeze({id = "warrior", name = "Warrior", level = 5, visual = id .. "-warrior"}),

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.302 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.303 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -27,6 +27,10 @@ Choose an original starter on first join. Use the Fighter Select station between
 
 ### Fighter evolution forms
 
+In v0.303, all 24 fighters now have Rookie, Warrior and Grandmaster looks. Warrior and Grandmaster unlock at Levels 5 and 10 using each fighter’s own XP. The final 22 outfits reuse the original bodies, joint pivots and combat kits. The full library contains 48 outfits with 1,309 members, saving 3,792 instances compared with duplicating the base rigs. Desktop Studio equipped all 22 new outfits and checked the joints against each base rig. Golden Eagle Grandmaster landed two 20-damage Gale Rake counters in a full Juniper win worth 60 XP. Per-form moves, balance and published progression remain release work.
+
+Bot Spar and Duel place touch combat controls in two rows outside Roblox’s movement zone. Galaxy A06 landscape Studio checked all six button centers and confirmed a simulated Storm Claw activation. The equipped Storm Dragon Grandmaster landed a 21-damage counter before leaving the spar.
+
 V0.301 adds Warrior and Grandmaster outfits to Sugar Glider, Desert Scorpion, Pistol Shrimp, Walrus Sumo, Snapping Tortoise and Armadillo Striker. Thirteen fighters now have three looks. All 24 original base models and body pivots match v0.300. The 26 evolved outfits use 803 form-library instances, saving 1,604 instances compared with copying each whole body. Studio equipped all twelve new outfits and inspected the mounted fit. Glider Grandmaster landed Canopy Slip for 18 damage in a full 60 XP Juniper win. Walrus Warrior landed a 21-damage Harbor Palm. A Galaxy A06 simulated touch landed a 21-damage Plate Check as Armadillo Grandmaster. The 11 other evolution paths and move variants remain open.
 
 V0.300 added Warrior and Grandmaster to Penguin Brawler, Silverback Gorilla, Fire Salamander, Karate Frog, River Otter and Rooster Kickboxer. The form library stores each outfit’s new ornaments and reuses its single base mesh or Part rig in both preview and the arena. The current milestone levels are 5 and 10 per fighter. Outfits preserve the original collision, movement, animation and attack data. Published save restoration is release work.
@@ -34,6 +38,10 @@ V0.300 added Warrior and Grandmaster to Penguin Brawler, Silverback Gorilla, Fir
 The exact place retains all 24 base visuals. Fourteen outfits use 525 instances in the shared library, saving 528 instances compared with duplicating each complete model. Desktop Studio equipped both forms on six fighters and verified the unchanged joint transforms and ornament mounts. It rejected Warrior on a Level 4 Karate Frog even with a Level 10 fighter on the account. Penguin Warrior landed two 30-damage Belly Slides and earned 60 XP in a full win. Silverback Grandmaster landed a 20-damage Ridge Palm and Salamander Warrior landed an 18-damage Ember Sweep before those test bouts ended. Galaxy A06 landscape simulation used touch for both Frog equips and landed a 20-damage Lily Vault as Grandmaster.
 
 Brawl displays Element edge and Element resisted. The v0.301 Galaxy A06 Studio test used one player and seven upright practice stand-ins. A real simulated touch landed Ridge Palm on Penguin for 25 damage and showed Element edge. The next hit dealt 16 to Rooster and showed Element resisted. A third hit dealt 25 while the countdown to the first tile drop stayed visible. The native floor dropped and the result showed first place after the stand-ins exited. The earlier miss came from the test clones tipping over. Eight real clients and ring-out physics with moving opponents remain separate acceptance work.
+
+### Confirmed multiplayer combat feedback
+
+In v0.303, Duel, Tag Team and Brawl now package server-confirmed HP and impacts together. Clients apply health first and reject stale, duplicate or closed match updates. Spectators receive a separate relay. Match clients keep receiving nearby impacts after their local HUD closes, including after respawn. Tag Team publishes the outgoing fighter’s hit before the backup takes over. Two local Studio clients joined Casual Duel through the normal prompt. Two jabs dealt 13 damage at 180 ms from cast, and a heavy was parried for zero at 420 ms. Effect instances were created 5–36 ms after server contact. The sampled health text and impact differed by 1–34 ms on the jabs. The nearest defender pose match was 67–110 ms after contact. This sample tracks a later reference pose. Flinch onset still needs its own timing measurement. Four managed Studio clients joined Tag Team through the normal sign, selected Penguin as backup, and saw the same 20-damage jab and updated health. A manual tag replaced Reedguard with Penguin and updated all four roster HUDs. Two voluntary exits ended the match and all four clients displayed a recap and returned to the city. A Galaxy A06 Brawl simulation used one player and seven stand-ins. Three Ridge Palm contacts each delivered one packet and one visible contact effect. The HUD retained the advantage, resistance and floor-drop warnings, then displayed the result. Original audio asset playback, network delay and real hardware remain open.
 
 ### Two-client Duel timing baseline
 

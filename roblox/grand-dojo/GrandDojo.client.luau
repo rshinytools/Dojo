@@ -1554,6 +1554,11 @@ local opponentPortrait = championshipPortraits.new(championshipHud.rightPortrait
 local duelRound = false
 local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
 local matchPresentation = {showcase = false, steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)}
+matchPresentation.contacts = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
+function matchPresentation.playImpact(cue, point, attack)
+    combatEffects.play(cue, point, attack)
+    combatAudio.impact(cue, point, attack)
+end
 local showcaseKits = {
     reedguard = {challenger = "Reedguard Kangaroo", challengerShort = "Reedguard",
         techniqueAction = "uppercut", techniqueName = "Uppercut", techniqueLabel = "Uppercut",
@@ -1854,25 +1859,27 @@ layoutMatchControls = function()
     sparControls.Visible = ready
     local touch = UserInputService.TouchEnabled
     local safe = gui.AbsoluteSize
-    local compact = showcase and touch and safe.Y <= 430
-    local stacked = showcase and safe.X < 504
+    local touchCombat = showcase and touch
+    local landscape = touchCombat and safe.X >= safe.Y
+    local compact = touchCombat and safe.Y <= 430
+    local stacked = showcase and (touch or safe.X < 504)
     local rows = if stacked then 2 else 1
     local height = rows * 48 + (rows - 1) * 6
     championshipHud:Layout(safe.Y <= 430 or safe.X <= 570, duelUi.hasRounds(matchPresentation.format))
     local exitTop = if safe.X < 1240 and not matchPresentation.inIntro
         then sparHud.Position.Y.Offset + sparHud.Size.Y.Offset + 4 else 12
-    controlSize.MaxSize = Vector2.new(if stacked then 328 elseif compact then 360 elseif showcase then 540 else 394, height)
+    local width = if landscape then math.clamp(math.floor(safe.X * .40), 144, 204)
+        elseif stacked then 328 elseif showcase then 540 else 394
+    controlSize.MaxSize = Vector2.new(width, height)
     sparControls.Size = UDim2.new(if showcase then .94 else .82, 0, 0, height)
-    -- On landscape phones the short bottom strip sits between the native thumb controls.
-    local bottom = if compact and not stacked then 20 else 64
-    if showcase and touch and (stacked or not compact) then
-        bottom = math.clamp(math.round(safe.Y * .30), 90, 130)
-    end
+    -- The native movement area covers the left in landscape and the bottom in portrait.
+    local bottom = if landscape then math.clamp(math.round(safe.Y * .23), 66, 116)
+        elseif touchCombat then math.ceil(safe.Y * .44) + 8 else 64
     if showcase then
         local reservedTop = math.max(122, exitTop + combatButtons.exit.Size.Y.Offset + 4)
         bottom = math.min(bottom, math.max(0, safe.Y - height - reservedTop))
     end
-    sparControls.Position = UDim2.new(.5, 0, 1, -bottom)
+    sparControls.Position = UDim2.new(if landscape then .72 else .5, 0, 1, -bottom)
     local controls = if showcase then {strikeButton, combatButtons.heavy, guardButton, combatButtons.dodge,
         combatButtons.signature} else {strikeButton, guardButton, leaveButton}
     if hasTechnique then
@@ -2172,7 +2179,12 @@ end)
 
 sparRemote.OnClientEvent:Connect(function(kind, a, b, startsAt, endsAt, phase, feedback, botAt, parryOpensAt,
     id, playerMaxHealth, ringId, tell, introAt, kitId, nextSignature, nextSecondary)
-    if kind == "impact" then
+    if kind == "spectatorImpacts" then
+        if type(b) == "table" and not table.find(b, player.UserId) then
+            matchPresentation.contacts.play({impacts = a}, workspace:GetServerTimeNow(), matchPresentation.playImpact)
+        end
+        return
+    elseif kind == "impact" then
         combatEffects.play(a, b, startsAt)
         if endsAt ~= true then
             combatAudio.impact(a, b, startsAt)
@@ -2388,6 +2400,7 @@ do
     player.CharacterRemoving:Connect(function() duelUi.close(true) end)
 end
 
+duelUi.presentation = {}
 duelRemote.OnClientEvent:Connect(function(kind, info)
     if kind == "notice" then
         flash(info)
@@ -2437,7 +2450,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
             flash((detailText:gsub("\n", " · ")))
         end
     elseif kind == "result" then
-        if duelUi.hasRounds(info.format) and info.matchId ~= matchPresentation.matchId then
+        if not matchPresentation.contacts.accept(duelUi.presentation, kind, info) then
             return
         end
         resultAwaitingReward = false
@@ -2451,14 +2464,26 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         end
         showMatchResult(info.result, info.opponentName, detailText, false, ratingMatchId)
         matchPresentation.matchId = nil
-    elseif kind == "begin" or ((kind == "update" or kind == "round") and sparringActive and duelRound) then
+    elseif kind == "begin" or kind == "update" or kind == "round" then
+        local showingDuel = sparringActive and duelRound
+        if type(info) ~= "table" then
+            return
+        end
         local series = duelUi.hasRounds(info.format)
         local reset = kind ~= "update"
-        if kind ~= "begin" and duelUi.hasRounds(matchPresentation.format) then
+        if kind ~= "begin" and showingDuel and duelUi.hasRounds(matchPresentation.format) then
             local expected = matchPresentation.roundIndex + (if kind == "round" then 1 else 0)
             if info.format ~= matchPresentation.format or info.matchId ~= matchPresentation.matchId or info.roundIndex ~= expected then
                 return
             end
+        end
+        if not matchPresentation.contacts.accept(duelUi.presentation, kind, info) then
+            return
+        end
+        if kind ~= "begin" and not showingDuel then
+            -- Match recipients still own their cues after losing their local fight HUD.
+            matchPresentation.contacts.play(info, workspace:GetServerTimeNow(), matchPresentation.playImpact)
+            return
         end
         if reset then
             duelUi.close(false)
@@ -2476,6 +2501,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         local opponent = showcaseKits[info.opponentKitId]
         playerHealth:Set(info.playerHealth, info.playerMaxHealth, kit and kit.challengerShort, reset)
         botHealth:Set(info.opponentHealth, info.opponentMaxHealth, opponent and opponent.challengerShort or info.opponentName, reset)
+        matchPresentation.contacts.play(info, workspace:GetServerTimeNow(), matchPresentation.playImpact)
         if matchPresentation.showcase then
             updateMatchTimeline(info.startsAt, info.endsAt, info.phase, info.feedback, info.tell, info.attackAt,
                 info.parryOpensAt, info.nextSignature, info.nextSecondary, opponent and opponent.tint, nil,

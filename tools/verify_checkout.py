@@ -28,7 +28,7 @@ def digest(stream):
 def verify_place():
     required = {"Grand Dojo City", "Fighting Ring", "Trophy Hall", "Lantern Relay",
                 "Wind Court", "Wind Court side ramp", "CityRoutes", "PlayerProfiles", "GrandDojoSparring", "SparringBots",
-                "CombatIntro", "CombatEffects", "CombatCueAssets", "CombatAudio", "CombatHealth", "ReedguardRound", "ReedguardFightMotion",
+                "CombatIntro", "CombatEffects", "CombatCueAssets", "CombatAudio", "CombatPresentation", "CombatHealth", "ReedguardRound", "ReedguardFightMotion",
                 "ChampionshipHud", "ChampionshipPortraits", "ChampionshipBotPortraits",
                 "ReedguardCombatPoses", "ReedguardFootShadows", "JuniperCombatPoses",
                 "PenguinCombatPoses", "BrackenCombatPoses", "SilverbackCombatPoses", "SablecrestCombatPoses",
@@ -59,11 +59,7 @@ def verify_place():
                 "SolarRaid", "SolarRaidVisuals", "Solar Raid Entry", "Solar Raid Court", "JoinSolarRaidPrompt",
                 "Solar Phoenix",
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
-                "FighterForms", "FighterFormVisuals", "reedguard-kangaroo-warrior", "reedguard-kangaroo-grandmaster",
-                "penguin-brawler-grandmaster", "silverback-gorilla-grandmaster", "fire-salamander-grandmaster",
-                "karate-frog-grandmaster", "river-otter-grandmaster", "rooster-kickboxer-grandmaster",
-                "sugar-glider-grandmaster", "desert-scorpion-grandmaster", "pistol-shrimp-grandmaster",
-                "walrus-sumo-grandmaster", "snapping-tortoise-grandmaster", "armadillo-striker-grandmaster",
+                "FighterForms", "FighterFormVisuals",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander", "karate-frog", "river-otter",
                 "rooster-kickboxer", "sugar-glider",
@@ -88,6 +84,11 @@ def verify_place():
                 "Lantern Relay sandstone runner", "Lantern lane stepped gardens", "Relay music volume", "Cedar Foothill Walk", "Foothill overlook guardrail", "Skywalk road cedar banks",
                 "Cinder ravine clay terraces", "Frostglass snowy foothills", "Trophy Hall west blossom grove", "Western skyline peaks", "Whitewater crest streak", "Raised eave brass cheek", "Plum Lantern Walk", "EagleEye",
                 "Trophy Hall split stair", "Jade crossing hall ramp", "Snowbell Ridge", "Snowbell walkable surface"}
+    roster_path = ROOT / "design/fighters/starter-fighters"
+    starters = json.loads((roster_path / "roster.json").read_text(encoding="utf-8"))["fighters"]
+    earned = json.loads((roster_path / "earned-roster.json").read_text(encoding="utf-8"))
+    required.update(f"{fighter['id']}-{stage}" for fighter in starters + earned
+                    for stage in ("warrior", "grandmaster"))
     seen = set()
     routes = None
     notes = 0

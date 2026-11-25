@@ -10,6 +10,7 @@ local Series = require(script.Parent:WaitForChild("DuelSeries"))
 local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
 local RankRules = require(script.Parent:WaitForChild("DuelRankRules"))
 local RankLedger = require(script.Parent:WaitForChild("DuelRankLedger"))
+local Presentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local rankStore = if RunService:IsStudio() then RankLedger.memoryStore()
     else DataStoreService:GetDataStore("BeastDojoDuelRatingsV1")
 local ledger = RankLedger.new(rankStore, os.time, task.wait)
@@ -142,15 +143,19 @@ end
 
 local function publish(duel, kind, now)
     local round = duel.round
+    local snapshot = Presentation.snapshot(duel)
+    local recipients = {}
     for i, side in round.sides do
         local challenger, opponent = duel.actors[i], duel.actors[3 - i]
         if challenger.player.Parent ~= Players then
             continue
         end
+        table.insert(recipients, challenger.player.UserId)
         Match.syncStormAim(challenger.player, if not round.result then side else nil)
         local rival = round.sides[3 - i]
         local opensAt, attackAt, attack = Round.parryOpensAt(round, i)
         remote:FireClient(challenger.player, kind, score(duel, i, {
+            presentationSequence = snapshot.sequence, impacts = snapshot.impacts,
             playerHealth = side.playerHealth, playerMaxHealth = side.playerMaxHealth,
             opponentHealth = rival.playerHealth, opponentMaxHealth = rival.playerMaxHealth,
             opponentName = opponent.player.DisplayName, opponentUserId = opponent.player.UserId, sideIndex = i,
@@ -163,6 +168,7 @@ local function publish(duel, kind, now)
             elementEffect = if now < challenger.feedbackUntil then challenger.elementEffect else nil,
         }))
     end
+    Presentation.broadcast(effects, snapshot, recipients)
 end
 
 local function startRound(duel, now)
@@ -252,6 +258,7 @@ local function stop(duel, result, departing, walkover)
         or workspace:GetServerTimeNow() >= duel.round.startsAt)
     Motion.close(duel)
     duel.telegraph:Destroy()
+    local sequence = Presentation.resultSequence(duel)
     for i, side in duel.actors do
         local player = side.player
         if player ~= departing and player.Parent == Players then
@@ -263,7 +270,8 @@ local function stop(duel, result, departing, walkover)
             end
             local message = if walkover and result[i] == "win" then "Your opponent left the duel." else resultMessages[result[i]]
             remote:FireClient(player, "result", score(duel, i, {result = result[i], message = message,
-                opponentName = duel.actors[3 - i].player.DisplayName, ratingPending = counts}))
+                opponentName = duel.actors[3 - i].player.DisplayName, ratingPending = counts,
+                presentationSequence = sequence}))
         end
     end
     settleRank(duel, result, counts)
@@ -338,7 +346,7 @@ local function resolve(duel, now)
         end
         local cue = Match.contactCue(event)
         if cue then
-            effects:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
+            Presentation.collect(duel, cue, event.point, Match.effectAttack(event), event.at)
         end
     end
     local changed = #round.notices > 0
@@ -555,6 +563,9 @@ remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundI
     end
     -- A new input must not replace an earlier contact still due after a long frame.
     local changed = advance(duel, now)
+    if changed then
+        Motion.render(duel, now)
+    end
     local feedback = if not duel.round.result
         then Round.act(duel.round, index, action, now, Match.combatDirection(action, direction)) else nil
     if feedback then
@@ -608,6 +619,10 @@ RunService.Heartbeat:Connect(function()
     end
     local changed = advance(duel, now)
     if duel.round.result and now >= duel.round.outroAt then
+        if changed then
+            Motion.render(duel, now)
+            publish(duel, "update", now)
+        end
         if duel.series.result then
             stop(duel, duel.series.result)
         elseif Series.nextRound(duel.series) then

@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.303, every fighter has Rookie, Warrior and Grandmaster at **Fighter Select**. The fighter’s own XP unlocks the two outfits. Duel, Tag Team and Brawl deliver confirmed damage and effects in the same match update.
+
 In v0.301, preview three forms at **Fighter Select** for Reedguard, Penguin, Silverback, Salamander, Frog, Otter, Rooster, Glider, Scorpion, Shrimp, Walrus, Tortoise and Armadillo. Each fighter’s own XP unlocks Warrior at Level 5 and Grandmaster at Level 10. Equip an evolved form and open **Trophy Hall → Trophy Journal → Journey** to see **A New Form**. Each outfit uses the fighter’s existing Dojo Ring moves.
 
 In v0.298, **Golden Eagle** and **Celestial Storm Dragon** unlock at Level 10. **V** or D-pad Up uses Gale Rake or Storm Claw. **F** or **Y** uses Talon Drop or Tempest Roar. Move left or right during Tempest Roar to aim the beam, including with the touch movement stick. Watch the violet ground marker for the separate thunder strike.

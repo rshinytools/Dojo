@@ -7,6 +7,7 @@ local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
 local Motion = require(script.Parent:WaitForChild("BrawlFightMotion"))
 local Round = require(script.Parent:WaitForChild("BrawlCombatRound"))
 local fighters = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).ById
+local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local remote = ReplicatedStorage:WaitForChild("GrandDojoBrawl")
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local ring = workspace:WaitForChild("Grand Dojo City"):WaitForChild("Fighting Ring")
@@ -135,6 +136,8 @@ end
 local function publish(match, kind, now)
     local round = match.round
     local nextShrink = if match.stage < #deckState then round.startsAt + (match.stage + 1) * SHRINK_STEP else nil
+    local snapshot = CombatPresentation.snapshot(match)
+    local recipients = {}
     for index, actor in match.actors do
         if actor.returned or actor.player.Parent ~= Players then
             continue
@@ -147,8 +150,11 @@ local function publish(match, kind, now)
             total = SIZE, stage = match.stage, nextShrinkAt = nextShrink,
             warningAt = nextShrink and nextShrink - WARNING_SECONDS, eliminated = side.eliminated,
             placement = side.placement, feedback = if now < actor.feedbackUntil then actor.feedback else nil,
-            nextSignature = side.nextSignature, nextSecondary = side.nextSecondary})
+            nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
+            presentationSequence = snapshot.sequence, impacts = snapshot.impacts})
+        table.insert(recipients, actor.player.UserId)
     end
+    CombatPresentation.broadcast(effects, snapshot, recipients)
 end
 
 local function onFloor(point, reference, stage)
@@ -242,7 +248,8 @@ local function sendResult(match, index, result, departing)
     end
     local winner = round.result and round.result.winners[1]
     remote:FireClient(player, "result", {matchId = match.id, result = result, placement = round.sides[index].placement,
-        winnerName = winner and match.actors[winner].player.DisplayName, alive = round.remaining, total = SIZE})
+        winnerName = winner and match.actors[winner].player.DisplayName, alive = round.remaining, total = SIZE,
+        presentationSequence = CombatPresentation.resultSequence(match)})
 end
 
 local function stop(match)
@@ -312,7 +319,7 @@ local function advance(match, now)
             byAttacker[event.at] = true
         end
         if cue then
-            effects:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
+            CombatPresentation.collect(match, cue, event.point, Match.effectAttack(event), event.at)
         end
     end
     table.clear(match.round.notices)
@@ -403,6 +410,9 @@ remote.OnServerEvent:Connect(function(player, action, direction, id)
         return
     end
     local changed = advance(match, now)
+    if changed then
+        Motion.render(match, now)
+    end
     local feedback = Round.act(round, index, action, now, Match.combatDirection(action, direction))
     if feedback then
         setFeedback(actor, feedback, now)
@@ -439,6 +449,10 @@ RunService.Heartbeat:Connect(function()
     local exits = processExits(match, now)
     local hits = advance(match, now)
     if round.result and now >= round.outroAt then
+        if hits then
+            Motion.render(match, now)
+        end
+        publish(match, "update", now)
         stop(match)
         return
     end

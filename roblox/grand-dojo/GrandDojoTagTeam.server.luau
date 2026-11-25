@@ -11,6 +11,7 @@ local Round = require(script.Parent:WaitForChild("TagCombatRound"))
 local Equip = require(script.Parent:WaitForChild("StarterFighters"))
 local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
 local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
+local CombatPresentation = require(ReplicatedStorage:WaitForChild("CombatPresentation"))
 local catalog = fighterCatalog.ById
 local remote = ReplicatedStorage:WaitForChild("GrandDojoTagTeam")
 local effects = ReplicatedStorage:WaitForChild("GrandDojoSparring")
@@ -124,6 +125,9 @@ end
 
 local function publish(match, event, now)
     local round = match.round
+    local snapshot = CombatPresentation.snapshot(match)
+    local recipients = {}
+    match.lastPublish = now
     local slots = {}
     for index, actor in match.actors do
         local seat, side = round.lineup[index], round.sides[index]
@@ -139,12 +143,15 @@ local function publish(match, event, now)
             Match.syncStormAim(player, if not round.result and not side.eliminated then side else nil)
             remote:FireClient(player, event, {matchId = match.id, introAt = round.introAt, startsAt = round.startsAt,
                 endsAt = round.endsAt, resolvedAt = round.resolvedAt, slots = slots, selfIndex = index,
+                presentationSequence = snapshot.sequence, impacts = snapshot.impacts,
                 focusIndex = actor.lastTarget,
                 canTag = Round.planTag(round, index, now) ~= nil and not seat.entryAt,
                 tagReadyAt = seat.nextTagAt, nextSignature = side.nextSignature, nextSecondary = side.nextSecondary,
                 feedback = if now < actor.feedbackUntil then actor.feedback else nil})
+            table.insert(recipients, player.UserId)
         end
     end
+    CombatPresentation.broadcast(effects, snapshot, recipients)
 end
 
 local function kitEntry(id)
@@ -313,6 +320,7 @@ local function finishPlayer(match, index, result, departing)
     end
     local outcome = match.round.result
     remote:FireClient(player, "result", {matchId = match.id, result = result,
+        presentationSequence = CombatPresentation.resultSequence(match),
         reason = outcome and outcome.reason, winningTeam = outcome and outcome.winningTeam})
 end
 
@@ -377,7 +385,7 @@ local function advance(match, now)
             end
         end
         if cue then
-            effects:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
+            CombatPresentation.collect(match, cue, event.point, Match.effectAttack(event), event.at)
         end
     end
     table.clear(match.round.notices)
@@ -497,7 +505,12 @@ remote.OnServerEvent:Connect(function(player, action, value, id)
         or not Motion.canAct(match, index, action, now) or not Match.takeCombatInput(actor, action, value, now, .08) then
         return
     end
-    local changed = advance(match, now)
+    if advance(match, now) then
+        -- Show the outgoing fighter's reaction and HP before a manual swap replaces that slot.
+        Motion.render(match, now)
+        publish(match, "update", now)
+    end
+    local changed = false
     if action == "tag" then
         if swap(match, index, now) then
             changed = true
@@ -538,15 +551,18 @@ RunService.Heartbeat:Connect(function()
     if not match then
         return
     end
-    local changed = advance(match, now)
+    if advance(match, now) then
+        -- A late frame can resolve a hit and cross the forced entry or outro time.
+        Motion.render(match, now)
+        publish(match, "update", now)
+    end
     local transitioned = settleSeats(match, now)
     if match.round.result and now >= match.round.outroAt then
         stop(match)
         return
     end
     Motion.render(match, now)
-    if changed or transitioned or now - match.lastPublish >= .13 then
-        match.lastPublish = now
+    if transitioned or now - match.lastPublish >= .13 then
         publish(match, "update", now)
     end
 end)
