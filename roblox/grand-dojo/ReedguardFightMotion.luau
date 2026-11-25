@@ -1833,8 +1833,10 @@ local function botAction(bout, now)
         return "palm", now - round.botStartedAt, round.attack.windup
     elseif round.botPhase == "setup" then
         return "brace", now - round.botStartedAt, round.attack.setupTime
-    elseif round.botPhase == "recovery" and juniperPalmRecovery[round.recoveryKind] and now - round.recoveryStartedAt < .52 then
-        return juniperPalmRecovery[round.recoveryKind], now - round.recoveryStartedAt
+    end
+    local recovery = round.botPhase == "recovery" and juniperPalmRecovery[round.recoveryKind]
+    if recovery and (not bout.reactionAt or bout.reactionAt <= round.recoveryStartedAt) then
+        return recovery, now - round.recoveryStartedAt
     elseif bout.reactionAt and now - bout.reactionAt < .28 then
         return bout.reactionAction, now - bout.reactionAt
     end

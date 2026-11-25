@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.351 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.352 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -194,6 +194,8 @@ The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite
 
 ## Grand Dojo Duel formats
 
+V0.352 gives controller focus to the Duel queue’s Leave button when the action is available. The staged City return can focus Retry after a failed transfer or after closing the recap. Standalone inputs covered both rounds, controller and touch actions, preserving unrelated focus, and blocked cancellation. Physical devices and published staging remain open.
+
 V0.349 sends a confirmed Duel hit to the fighters and nearby spectators before the recap when resolving a pending hit during an exit. The existing result or walkover still settles once.
 
 V0.345 passed a full two-client Studio Ranked Duel at about 233 ms round trip. Both fighters began each round at 156 HP. Both clients saw two knockouts and rendered the fallen fighter within 0.09 studs of the canvas. Jab landed for 20 at 180 ms and Heavy for 34 at 420 ms in both rounds. The 2–0 match awarded one +16 and −16 rating change. Reopening Ranked showed 1216 and 1184, and both players returned to the city. This used temporary Studio rating data. V0.345 passed a two-client unranked Best of 3. After the first grounded knockout, both fighters received a fresh combat profile, a three-second countdown and 100 HP. The second knockout settled the 2–0 result, and both players closed their recaps and regained city controls.
@@ -221,7 +223,7 @@ Export a staging copy of the current checkpoint. Use a fresh `stage-` protocol f
 ```sh
 python3 -B tools/export_duel_staging.py \
   --universe-id "$DOJO_STAGE_UNIVERSE_ID" --place-id "$DOJO_STAGE_PLACE_ID" \
-  --protocol stage-v351-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
+  --protocol stage-v352-drill1 --output /tmp/Beast_Dojo_Casual_Stage.rbxlx
 ```
 
 The exporter checks the archive SHA-256 and prints both the original and staging file hashes. The v0.348 test verified that all 105,989 instances were preserved and only the transport config line changed. The gate rejected Studio, a different universe or place, and an empty server job. The original checkpoint retained its disabled gate. Publish the staging file to the recorded start place for the drill, with the previous staging version available for rollback. [Roblox teleport testing](https://create.roblox.com/docs/projects/teleport)
@@ -415,6 +417,8 @@ The intro names the actual fighters and warms their mesh textures while it plays
 Desktop Studio entered all 16 pairings through the native ring prompts, checked each resident intro and each starter's signature control, landed a starter technique, and observed a resident attack. All 16 ended with the normal player camera and movement restored. Fire Salamander defeated Juniper for 60 XP. The other 15 rounds ended after contact without a reward. Galaxy A06 landscape Studio separately completed Penguin versus Sablecrest for 60 XP after activating Belly-Slide Blitz with touch. Both test profiles used temporary activity XP to open the higher rings. Physical devices and published play remain open.
 
 ## Reedguard and Juniper combat
+
+V0.352 lets Juniper complete the authored return to guard after his Palm. The earlier 0.52-second cutoff moved the torso suddenly by up to 0.60 studs after a parry. Exact pose sampling confirms continuous playback at that cutoff. Later confirmed hits still interrupt the return. The configured hit and recovery deadlines keep their prior values. Native animation playback remains open. V0.352 resolves a scheduled Bot Spar hit before a player exits when the original fighter is still valid and on the mat. The exit has priority at the exact same timestamp. The fitted replay covered a lethal Heavy due 17 ms before disconnect, a lethal resident attack due first, a real miss, a reset, and one 60-XP receipt. An in-game Leave still presents an earlier confirmed hit before its recap. Published reconnect remains open.
 
 V0.351 plays Juniper’s grounded hit reaction when a guard break interrupts Shell Set. The earlier animation jumped the visible glove about 2.71 studs into a palm pose. The matched offline mesh comparison and exact round checks preserved damage, the 0.52-second recovery and standard palm outcomes. Native animation playback remains open. V0.351 queues one Bot Spar XP receipt before the profile closes when the round already recorded a win. A reset during the knockout outro also preserves that win. Standalone checks verified 60 XP for the first win, 30 for a distinct repeat, duplicate prevention and delayed notification. The shared profile handoff retained all 25 raid closure checks. Published reconnect remains open.
 

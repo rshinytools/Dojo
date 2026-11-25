@@ -1079,6 +1079,16 @@ local function updateCloudbreakText()
     cloudbreakProgress.Text = progress
 end
 
+function duelUi.focusQueue()
+    local queue = duelUi.queue
+    local selected = GuiService.SelectedObject
+    if queue.Visible and queue.Active and UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
+        if not selected then GuiService.SelectedObject = queue end
+    elseif selected == queue then
+        GuiService.SelectedObject = nil
+    end
+end
+
 local function layout()
     updateBoardHint()
     positionLocationHud()
@@ -1121,6 +1131,7 @@ local function layout()
     compactParcel.Visible = compactProgress.Visible and parcelObjective.Visible
     if duelUi.queue then
         duelUi.queue.Visible = (duelUi.queued == true or duelUi.returnPhase ~= nil) and showingWorldHud and not panel.Visible
+        duelUi.focusQueue()
     end
 end
 
@@ -2202,7 +2213,7 @@ function duelUi.focusSparModal()
         if selected ~= pickerClose and (selected ~= botStart or not canStart) then
             GuiService.SelectedObject = if canStart then botStart else pickerClose
         end
-    elseif sparResult.Visible and not duelUi.crossResult then
+    elseif sparResult.Visible then
         local canRetry = retryButton.Visible and retryButton.Active
         if selected ~= exitButton and (selected ~= retryButton or not canRetry) then
             GuiService.SelectedObject = if canRetry then retryButton else exitButton
@@ -2231,16 +2242,12 @@ local function showMatchResult(result, opponent, detail, showRetry, ratingMatchI
     duelUi.resultLimit.MaxSize = Vector2.new(416, resultHeight)
     retryButton.Visible = showRetry
     retryButton.Active = showRetry and not resultAwaitingReward
-    retryButton.Selectable = duelUi.crossResult or retryButton.Active
+    retryButton.Selectable = retryButton.Active
     retryButton.Text = if resultAwaitingReward then "Saving XP…" else "Retry"
     sparResult.Visible = true
     ProximityPromptService.Enabled = false
     layout()
-    if duelUi.crossResult and UserInputService.PreferredInput == Enum.PreferredInput.Gamepad then
-        GuiService.SelectedObject = if showRetry then retryButton else exitButton
-    else
-        duelUi.focusSparModal()
-    end
+    duelUi.focusSparModal()
 end
 
 local function clearInterruptedMatch()
@@ -2530,6 +2537,7 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         duelUi.close(false)
         duelUi.queued, duelUi.canCancel = info.queued, info.canCancel
         duelUi.queue.Active = info.canCancel ~= false
+        duelUi.queue.Selectable = duelUi.queue.Active
         duelUi.queue.Text = if info.format == "crossCasual" then
             (if info.stage == "traveling" then "Traveling to Grand Dojo…"
                 elseif info.stage == "recovering" then "Restoring your progress…"
@@ -2548,9 +2556,10 @@ duelRemote.OnClientEvent:Connect(function(kind, info)
         local actionable = info.phase == "waiting" or info.phase == "failed"
         local text = if info.phase == "failed" then "Retry city return"
             elseif actionable then "Return to City" else "Returning to City…"
-        duelUi.queue.Text, duelUi.queue.Active = text, actionable
+        duelUi.queue.Text, duelUi.queue.Active, duelUi.queue.Selectable = text, actionable, actionable
         if duelUi.crossResult and sparResult.Visible then
-            retryButton.Text, retryButton.Active = text, actionable
+            retryButton.Text, retryButton.Active, retryButton.Selectable = text, actionable, actionable
+            duelUi.focusSparModal()
         end
         if type(info.message) == "string" then flash(info.message) end
         layout()

@@ -285,6 +285,58 @@ for _, id in progression.Order do
     end)
 end
 
+local function stepShowcase(bout, now, distance, beforeExit)
+    FeaturedRound.step(bout.round, now, distance, function(action, move, time, index, castStartedAt)
+        return Motion.strike(bout, action, move, time, index, castStartedAt)
+    end, function(time)
+        return Motion.palm(bout, time)
+    end, beforeExit)
+end
+
+local function settleShowcaseExit(bout, now)
+    if bout.motion and not bout.round.result and Match.root(bout.player) == bout.root
+        and Match.inside(bout.arena.bounds, bout.root.Position) then
+        stepShowcase(bout, now, distanceFacing(bout), true)
+        return true
+    end
+    return false
+end
+
+local function presentShowcaseContacts(bout, now)
+    local round = bout.round
+    local hadImpact = #round.notices > 0
+    for _, event in round.notices do
+        Motion.impact(bout, event)
+        if event.source ~= "bot" and round.playerHealth > 0 then
+            Match.queueHitStop(bout, bout.kit, round.kit, event, bout.motion.motors, round.reaction)
+        end
+        local cue = Match.contactCue(event)
+        if cue then
+            remote:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
+        end
+        if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
+            local stormCue = Match.stormFeedback(event)
+            local kind = if stormCue then stormCue elseif event.frenzyResist then "frenzyResist"
+                elseif event.kind == "pull" then "gustPull"
+                elseif event.kind == "snare" then (if event.attack == "apexPounce" then "apexRootCaught" else "snareCaught")
+                else event.kind
+            bout.message, bout.messageUntil = if event.shockDuration then "shockLanded" else kind, now + .86
+        end
+        if RunService:IsStudio() then
+            bout.bot:SetAttribute("LastContactKind", event.kind)
+            bout.bot:SetAttribute("LastContactAttack", event.attack)
+            bout.bot:SetAttribute("LastContactIndex", event.index)
+            bout.bot:SetAttribute("LastContactCastAt", event.castStartedAt)
+            bout.bot:SetAttribute("LastContactDamage", event.damage)
+            bout.bot:SetAttribute("LastContactAt", event.at)
+            bout.bot:SetAttribute("RootedUntil", bout.round.botRootedUntil)
+            bout.bot:SetAttribute("ShockedUntil", if event.shockDuration then bout.round.botAt else nil)
+        end
+    end
+    table.clear(round.notices)
+    return hadImpact
+end
+
 remote.OnServerEvent:Connect(function(player, action, direction, windupToken)
     if type(action) ~= "string" then
         return
@@ -321,7 +373,10 @@ remote.OnServerEvent:Connect(function(player, action, direction, windupToken)
         return
     end
     if action == "leave" then
-        finish(bout, if bout.outroAt then bout.round.result else "left", now)
+        if settleShowcaseExit(bout, now) then
+            presentShowcaseContacts(bout, now)
+        end
+        finish(bout, "left", now)
     elseif bout.featured then
         if Match.root(player) ~= bout.root or not Match.inside(bout.arena.bounds, bout.root.Position)
             or not Motion.canAct(bout, action)
@@ -354,41 +409,8 @@ local function tickShowcase(bout, now, dt)
     local round = bout.round
     local distance = Motion.move(bout, now, dt)
     local before = round.botPhase
-    FeaturedRound.step(round, now, distance, function(action, move, time, index, castStartedAt)
-        return Motion.strike(bout, action, move, time, index, castStartedAt)
-    end, function(time)
-        return Motion.palm(bout, time)
-    end)
-    local hadImpact = #round.notices > 0
-    for _, event in round.notices do
-        Motion.impact(bout, event)
-        if event.source ~= "bot" and round.playerHealth > 0 then
-            Match.queueHitStop(bout, bout.kit, round.kit, event, bout.motion.motors, round.reaction)
-        end
-        local cue = Match.contactCue(event)
-        if cue then
-            remote:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
-        end
-        if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
-            local stormCue = Match.stormFeedback(event)
-            local kind = if stormCue then stormCue elseif event.frenzyResist then "frenzyResist"
-                elseif event.kind == "pull" then "gustPull"
-                elseif event.kind == "snare" then (if event.attack == "apexPounce" then "apexRootCaught" else "snareCaught")
-                else event.kind
-            bout.message, bout.messageUntil = if event.shockDuration then "shockLanded" else kind, now + .86
-        end
-        if RunService:IsStudio() then
-            bout.bot:SetAttribute("LastContactKind", event.kind)
-            bout.bot:SetAttribute("LastContactAttack", event.attack)
-            bout.bot:SetAttribute("LastContactIndex", event.index)
-            bout.bot:SetAttribute("LastContactCastAt", event.castStartedAt)
-            bout.bot:SetAttribute("LastContactDamage", event.damage)
-            bout.bot:SetAttribute("LastContactAt", event.at)
-            bout.bot:SetAttribute("RootedUntil", bout.round.botRootedUntil)
-            bout.bot:SetAttribute("ShockedUntil", if event.shockDuration then bout.round.botAt else nil)
-        end
-    end
-    table.clear(round.notices)
+    stepShowcase(bout, now, distance)
+    local hadImpact = presentShowcaseContacts(bout, now)
     if round.result then
         bout.outroAt = bout.outroAt or now
         if now >= bout.outroAt + FeaturedRound.OUTRO then
@@ -484,6 +506,7 @@ end)
 CombatHandoff.onProfileClose(function(player, now)
     local bout = activeByPlayer[player]
     if bout then
+        settleShowcaseExit(bout, now)
         finish(bout, "left", now, true)
     end
     rematches[player], offers[player], lastAction[player] = nil, nil, nil

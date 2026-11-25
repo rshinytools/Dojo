@@ -756,19 +756,21 @@ local function advanceBot(round, at, distance, check)
     end
 end
 
-function Round.step(round, now, distance, checkPlayer, checkBot)
+function Round.step(round, now, distance, checkPlayer, checkBot, beforeExit)
     if round.result or now < round.startsAt then
         return
     end
     local limit = math.min(now, round.endsAt)
-    if round.botPhase == "ready" and round.botAt < now - .2 and distance > round.resident.startRange then
+    if not beforeExit and round.botPhase == "ready" and round.botAt < now - .2 and distance > round.resident.startRange then
         round.botAt = now + .1
     end
     while not round.result do
         local contactAt, trailAt, completeAt = nextContacts(round)
         local burnAt = Magma.nextBurn(round)
-        local eventAt = math.min(contactAt, trailAt, completeAt, round.botAt, burnAt)
-        if eventAt > limit then
+        -- A closing round can finish scheduled attacks, including a committed setup.
+        local botAt = if beforeExit and round.botPhase == "ready" then math.huge else round.botAt
+        local eventAt = math.min(contactAt, trailAt, completeAt, botAt, burnAt)
+        if eventAt > limit or (beforeExit and eventAt == now) then
             break
         elseif eventAt == burnAt then
             for _, event in Magma.burnsAt(round, burnAt) do
@@ -787,7 +789,7 @@ function Round.step(round, now, distance, checkPlayer, checkBot)
             advanceBot(round, eventAt, distance, checkBot)
         end
     end
-    if not round.result and now >= round.endsAt then
+    if not round.result and (now > round.endsAt or (now == round.endsAt and not beforeExit)) then
         local lead = round.playerHealth * round.botMaxHealth - round.botHealth * round.playerMaxHealth
         round.result = if lead > 0 then "win" elseif lead < 0 then "loss" else "draw"
     end
