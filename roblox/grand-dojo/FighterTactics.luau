@@ -47,7 +47,8 @@ local byFighter = {
     ["karate-frog"] = {
         kit = "frog", attribute = "FrogTactical", default = "lilyVault",
         options = {
-            {id = "lilyVault", name = "Lily Vault", compact = "Vault", level = 1, action = "secondary"},
+            {id = "lilyVault", name = "Lily Vault", compact = "Vault", level = 1, action = "secondary",
+                description = "Hop forward and strike with the lead boot."},
             {id = "mudPalm", name = "Mud Palm", compact = "Palm", level = 5, action = "secondary", planted = true,
                 description = "A quick, grounded palm strike for close openings."},
             {id = "pondboundHeel", name = "Pondbound Heel", compact = "Heel", level = 10, action = "secondary", planted = true,
@@ -57,7 +58,8 @@ local byFighter = {
     ["river-otter"] = {
         kit = "otter", attribute = "OtterTactical", default = "eddyPalm",
         options = {
-            {id = "eddyPalm", name = "Eddy Palm", compact = "Palm", level = 1, action = "secondary"},
+            {id = "eddyPalm", name = "Eddy Palm", compact = "Palm", level = 1, action = "secondary",
+                description = "Slip to the side and follow with a pushing palm strike."},
             {id = "brookHook", name = "Brook Hook", compact = "Hook", level = 5, action = "secondary", planted = true,
                 description = "A short, quick hook that keeps both feet on the mat."},
             {id = "breakwaterPalm", name = "Breakwater Palm", compact = "Thrust", level = 10, action = "secondary", planted = true,
@@ -67,7 +69,8 @@ local byFighter = {
     ["rooster-kickboxer"] = {
         kit = "rooster", attribute = "RoosterTactical", default = "spurLift",
         options = {
-            {id = "spurLift", name = "Spur Lift", compact = "Spur", level = 1, action = "secondary"},
+            {id = "spurLift", name = "Spur Lift", compact = "Spur", level = 1, action = "secondary",
+                description = "Lift a toe into a quick rising strike."},
             {id = "perchPeck", name = "Perch Peck", compact = "Peck", level = 5, action = "secondary", planted = true,
                 description = "A quick beak dip for a close opening."},
             {id = "crestWheel", name = "Crest Wheel", compact = "Wheel", level = 10, action = "secondary", planted = true,
@@ -77,7 +80,8 @@ local byFighter = {
     ["sugar-glider"] = {
         kit = "glider", attribute = "GliderTactical", default = "canopySlip",
         options = {
-            {id = "canopySlip", name = "Canopy Slip", compact = "Slip", level = 1, action = "secondary"},
+            {id = "canopySlip", name = "Canopy Slip", compact = "Slip", level = 1, action = "secondary",
+                description = "Slip sideways and sweep a padded palm across."},
             {id = "boughSnap", name = "Bough Snap", compact = "Snap", level = 5, action = "secondary", planted = true,
                 description = "A short, quick palm from a folded guard."},
             {id = "sailSwipe", name = "Sail Swipe", compact = "Swipe", level = 10, action = "secondary", planted = true,

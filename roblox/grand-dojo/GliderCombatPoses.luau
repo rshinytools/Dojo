@@ -89,6 +89,42 @@ local sailHit = attackPose({-.075, -.26, -.27, -15, 35, -8}, {75, 18, -19, -.03,
 local sailFollow = attackPose({-.115, -.25, -.19, -17, 48, -7}, {64, 23, -35, -.11, .10, -.21},
     leftGuard, rightFoot, leftFoot, {10, -39, 5}, {14, -47, -9})
 
+local tapFold = attackPose({.012, -.20, .025, -8, -17, -4}, {28, 12, 24, .08, .125, .12}, leftGuard,
+    rightFoot, leftFoot, {8, 16, 3}, {-4, 24, 6})
+local tapHit = attackPose({.02, -.18, -.22, -14, 25, -4}, {68, 19, -11, -.12, .115, -.24},
+    {54, -17, 17, .05, .135, .055}, rightFoot, leftFoot, {11, -24, 4}, {9, -29, 7})
+local tapWithdraw = attackPose({-.01, -.16, -.08, -11, 15, -4}, {53, 17, 1, -.055, .125, -.065}, leftGuard,
+    rightFoot, leftFoot, {10, -14, 3}, {6, -14, -5})
+
+local toeDraw = attackPose({.075, -.24, .09, -7, 17, -7}, rightGuard, {48, -18, 37, .04, .09, .13},
+    rightFoot, {25, 13, -3, -.08, .06, .09, .09}, {8, -17, 5}, {-8, -23, 8})
+local toeHit = attackPose({.104, -.19, -.28, -9, -12, -12}, {47, 13, -19, -.05, .10, .04},
+    {52, -14, 44, .07, .10, .10}, rightFoot, {59, 8, 3, .04, .08, -.45, .27}, {9, 11, 8}, {14, 22, -8})
+local toeRecoil = attackPose({.108, -.20, -.095, -10, -4, -8}, rightGuard, {49, -16, 37, .06, .11, .055},
+    rightFoot, {38, 10, 0, -.05, .07, -.21, .19}, {10, 3, 6}, {12, 12, -8})
+local toeLand = attackPose({.03, -.17, -.035, -9, 8, -4}, rightGuard, leftGuard,
+    rightFoot, {9, 12, 0, -.045, 0, .10, .015}, {9, -8, 4}, {8, 13, -5})
+
+local clapGather = attackPose({0, -.24, .10, -8, 3, 2}, {34, 11, 48, .07, .14, .09},
+    {34, -11, -48, -.07, .14, .09}, rightFoot, leftFoot, {9, -3, -2}, {-6, 16, -6})
+local clapWide = attackPose({0, -.28, .06, -10, 0, 0}, {27, 9, 93, .09, .17, .085},
+    {27, -9, -93, -.09, .17, .085}, rightFoot, leftFoot, {12, 0, 0}, {-8, 10, -5})
+local clapClose = attackPose({0, -.19, -.32, -13, 0, 0}, {73, 28, -20, -.29, .075, -.25},
+    {73, -28, 20, .29, .075, -.25}, rightFoot, leftFoot, {13, 0, 0}, {12, 0, -5})
+local clapEase = attackPose({0, -.19, -.09, -13, 0, 0}, {59, 24, -10, -.095, .11, -.08},
+    {60, -24, 10, .095, .11, -.08}, rightFoot, leftFoot, {11, 0, 0}, {12, 0, -5})
+
+local wheelDraw = attackPose({.12, -.24, .10, -12, -37, -8}, {25, 9, 76, .085, .095, .19}, leftGuard,
+    rightFoot, leftFoot, {12, 34, 6}, {-11, 39, -12})
+local wheelFirst = attackPose({.02, -.25, -.31, -19, 31, -1}, {67, 13, -16, -.17, .095, -.30},
+    {40, -18, 9, .04, .11, .14}, rightFoot, leftFoot, {15, -27, 1}, {13, -39, -7})
+local wheelReverse = attackPose({-.145, -.33, .035, -16, 44, 8}, {56, 15, -18, -.065, .10, .06},
+    {27, 3, -78, -.095, .095, .17}, rightFoot, leftFoot, {14, -36, -5}, {-8, -42, 11})
+local wheelSecond = attackPose({-.06, -.19, -.35, -13, -36, 6}, {48, 12, -22},
+    {75, -19, 16, .19, .10, -.31}, rightFoot, leftFoot, {12, 32, -4}, {14, 40, 12})
+local wheelRecover = attackPose({-.07, -.22, -.13, -15, -22, 6}, rightGuard, {56, -26, 22, .07, .10, -.08},
+    rightFoot, leftFoot, {13, 19, -4}, {16, 24, 8})
+
 local folded = pose({-.035, -.38, .11, -17, 7, -3}, {28, 15, -17, -.035, .035, .18},
     {30, -17, 15, .03, .06, .16}, {9, -12, 0, .075, 0, .18, 0}, leftFoot,
     {13, -5, 3}, {-13, -11, -3})
@@ -133,7 +169,8 @@ local wingShow = pose({.015, -.10, -.01, -3, 5, 2}, {13, 13, 72, .07, .13, .07},
 
 local gustHits = table.freeze({.51, .83})
 local contact = {jab = .162, cross = .219, body = .257, heavy = .428, canopySlip = .28, gustVortex = gustHits,
-    boughSnap = .24, sailSwipe = .50}
+    boughSnap = .24, sailSwipe = .50, sailTap = .155, branchToe = .245,
+    canopyClap = .625, duskWheel = table.freeze({.30, .66})}
 local clips = {
     stance = {{0, ready}, {.48, settle}, {1.03, ready}},
     advance = {{0, ready}, {.14, glideStepRight}, {.28, ready}, {.423, glideStepLeft}, {.56, ready}},
@@ -149,6 +186,13 @@ local clips = {
     boughSnap = {{0, ready}, {.10, boughGather}, {contact.boughSnap, boughHit}, {.36, boughRetract}, {.60, ready}},
     sailSwipe = {{0, ready}, {.17, sailGather}, {.31, sailOpen}, {.37, sailOpen}, {contact.sailSwipe, sailHit},
         {.63, sailFollow}, {.78, gustFalloff}, {.94, ready}},
+    sailTap = {{0, ready}, {.069, tapFold}, {contact.sailTap, tapHit}, {.257, tapWithdraw}, {.40, ready}},
+    branchToe = {{0, ready}, {.107, toeDraw}, {contact.branchToe, toeHit}, {.339, toeRecoil},
+        {.422, toeLand}, {.50, ready}},
+    canopyClap = {{0, ready}, {.172, clapGather}, {.352, clapWide}, {.466, clapWide},
+        {contact.canopyClap, clapClose}, {.695, clapClose}, {.843, clapEase}, {1.22, ready}},
+    duskWheel = {{0, ready}, {.148, wheelDraw}, {contact.duskWheel[1], wheelFirst}, {.459, wheelReverse},
+        {.538, wheelReverse}, {contact.duskWheel[2], wheelSecond}, {.788, wheelRecover}, {1.15, ready}},
     gustVortex = {{0, ready}, {.15, folded}, {.242, wingLaunch}, {.382, swoop}, {gustHits[1], funnelPull},
         {.666, catchLanding}, {.751, catchLanding}, {gustHits[2], funnelBurst},
         {.988, gustFalloff}, {1.21, ready}},
@@ -170,6 +214,10 @@ local gustCenter = v(0, -2.60, -1.45)
 local function mountedContact(key, joint, surface)
     return (key.RootJoint * key[joint]):PointToWorldSpace(surface - v(0, mountedHeight, 0))
 end
+local forePad, rearPad = v(1.04, 1.93, -.5705), v(-1.04, 1.93, -.5705)
+local toePad = v(-.48, .123, -.8105)
+local clapPoint = mountedContact(clapClose, "Right Shoulder", forePad):Lerp(
+    mountedContact(clapClose, "Left Shoulder", rearPad), .5)
 local hits = {
     jab = {{jabHit, "Right Shoulder", rightPalm}},
     cross = {{crossHit, "Left Shoulder", leftPalm}},
@@ -179,8 +227,15 @@ local hits = {
     boughSnap = {mountedContact(boughHit, "Left Shoulder", v(-1.198955, 1.859494, -.503159))},
     sailSwipe = {mountedContact(sailHit, "Right Shoulder", v(1.235829, 1.889947, -.483435))},
     gustVortex = {gustCenter, gustCenter},
+    sailTap = {mountedContact(tapHit, "Right Shoulder", forePad)},
+    branchToe = {mountedContact(toeHit, "Left Hip", toePad)},
+    canopyClap = {clapPoint},
+    duskWheel = {mountedContact(wheelFirst, "Right Shoulder", forePad),
+        mountedContact(wheelSecond, "Left Shoulder", rearPad)},
 }
 local skills = {
+    sailTap = table.freeze({damage = 11, radius = .44}),
+    branchToe = table.freeze({damage = 14, radius = .47, foot = true}),
     canopySlip = table.freeze({damage = 18, radius = .49, shove = .48}),
     gustVortex = table.freeze({damage = table.freeze({0, 25}), radius = 3.0,
         shove = table.freeze({-1.28, 1.62}), center = gustCenter, warningAt = .24}),
@@ -190,4 +245,22 @@ local travel = {
     gustVortex = table.freeze({distance = .90, startsAt = .15, endsAt = .42, axis = "forward"}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep", "canopySlip"}, {boughSnap = true, sailSwipe = true})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep", "canopySlip"},
+    {boughSnap = true, sailSwipe = true, sailTap = true, canopyClap = true, duskWheel = true})
+local poses = table.clone(standard)
+poses.UltimateSkill = table.freeze({
+    canopyClap = table.freeze({damage = 31, radius = .54}),
+    duskWheel = table.freeze({damage = table.freeze({13, 20}), radius = table.freeze({.47, .50})}),
+})
+local rightHip = "Right Hip"
+local support = ready.RootJoint * ready[rightHip]
+
+function poses.sample(action, age, direction)
+    local offsets = standard.sample(action, age, direction)
+    if action == "branchToe" then
+        offsets[rightHip] = offsets.RootJoint:ToObjectSpace(support)
+    end
+    return offsets
+end
+
+return table.freeze(poses)

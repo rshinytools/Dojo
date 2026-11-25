@@ -1932,6 +1932,7 @@ function Motion.impact(duel, event)
     end
     local offset, duration, height
     local force, popHeight, spike = Sky.impulse(event)
+    local frogOrOtter = Frog.Skill[action] or Otter.Skill[action]
     if force then
         local center = if action == "gustVortex" then event.point else root.Position
         local outward = heading(center, target.root.Position, direction)
@@ -1960,10 +1961,9 @@ function Motion.impact(duel, event)
         offset, duration, height = outward * .38, .27, Silverback.Skill.seismicChestPound.popHeight
     elseif action == "magmaTrail" then
         offset, duration, height = Vector3.zero, .28, Salamander.Skill.magmaTrail.popHeight
-    elseif Frog.Skill[action] or Otter.Skill[action] then
-        local skill = Frog.Skill[action] or Otter.Skill[action]
+    elseif frogOrOtter and frogOrOtter.shove then
         local outward = heading(root.Position, target.root.Position, direction)
-        offset, duration, height = outward * skill.shove, .20, 0
+        offset, duration, height = outward * frogOrOtter.shove, .20, 0
     elseif duel.motion.brawl then
         local lift = action == "uppercut" or (action == "reedstep" and event.index == 3)
         local distance = if action == "heavy" then 1.25 elseif lift then .70 else .35

@@ -6,7 +6,7 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
-In v0.340, train Penguin, Silverback or Fire Salamander to their own Level 5 or 10. Pick a Basic, Technique and Ultimate in Fighter Select, then equip the loadout. In the ring, use **E** for Basic, **V** for Technique and **F** for Ultimate, or the corresponding controller or touch controls.
+Unlock Karate Frog, River Otter, Rooster and Sugar Glider by advancing any fighter to Levels 2, 3, 4 and 5 respectively. Train each fighter to their own Level 5 or 10 to unlock the new combat moves. Pick a Basic, Technique and Ultimate in Fighter Select, then equip the loadout. In the ring, use **E** for Basic, **V** for Technique and **F** for Ultimate, or the corresponding controller or touch controls.
 
 In v0.339, train Reedguard to Level 5 or 10. Open Fighter Select, pick his Basic, Technique and Ultimate, then choose **Equip loadout**. In the ring, use **E** for the Basic opener, **V** for Technique and **F** for Ultimate. Touch and controller use the same equipped moves.
 

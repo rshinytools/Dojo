@@ -195,8 +195,70 @@ local bow = pose({0, -.14, -.06, -26, 3, 1}, {35, 17, -18, -.055, .05, .05},
 local flourish = pose({.01, -.045, -.05, -5, 4, -3}, {97, 6, 20, .085, .095, -.09},
     {45, -11, -5, .015, .145, .09}, rightFoot, leftFoot, {3, -8, 5}, {9, -23, 4})
 
+-- River Otter keeps the support boot in its ready frame for these grounded strikes.
+local loadoutReady = table.clone(ready)
+local loadoutFeet = {}
+for joint, support in plantedFeet do
+    loadoutFeet[joint] = CFrame.new(0, .010, 0) * support
+    loadoutReady[joint] = ready.RootJoint:ToObjectSpace(loadoutFeet[joint])
+end
+
+local function heelPose(core, heel, right, left, head, rudder)
+    local frame = techniquePose(core, right, left, head, rudder)
+    frame["Left Hip"] = foot(frame.RootJoint, leftHip + mountPivot, leftSole, heel)
+    return frame
+end
+
+local runnelDraw = techniquePose({-.02, -.15, .055, -5, 22, 3}, {55, 15, -8, -.05, .16, .07},
+    {36, 4, 18, -.065, .12, .12}, {4, -19, -2}, {-6, -20, 2})
+local runnelHit = techniquePose({-.075, -.12, -.20, -11, -23, 5}, {58, 18, -9, -.04, .18, .08},
+    {65, -18, 8, .09, .10, -.255}, {9, 19, -4}, {3, 21, -3})
+local runnelFold = techniquePose({-.04, -.155, -.055, -8, -8, 3}, rightGuard,
+    {48, -15, 11, .065, .12, -.045}, {7, 8, -2}, {-4, 7, -2})
+
+-- The right sole holds the weight while the left heel turns into the body line.
+local currentLoad = heelPose({.14, -.24, .035, -3, 13, -9}, {34, 9, -1, .025, .06, .075, .34},
+    {60, 17, -12, -.06, .17, .04}, {53, -17, 15, .035, .16, .02}, {5, -12, 5}, {-9, -16, 9})
+local currentHit = heelPose({.11, -.13, -.27, 5, -3, -9}, {121, 12, 4, .07, .08, -.33, 1.86},
+    {59, 14, -14, -.065, .18, -.015}, {48, -16, 23, .03, .21, .06}, {0, 3, 5}, {-10, 14, 10})
+local currentFold = heelPose({.13, -.20, -.09, -3, 6, -8}, {48, 10, 2, .01, .02, -.04, .45},
+    rightGuard, {51, -17, 16, .04, .18, .05}, {5, -5, 5}, {-8, 6, 7})
+local currentSettle = heelPose({.075, -.16, -.035, -5, 9, -5}, {8, 11, 2, -.045, 0, .16, .065},
+    rightGuard, leftGuard, {5, -8, 4}, {-7, -4, 6})
+
+-- Estuary Ring gives an upright paired-hand warning before the padded hands meet the mat.
+local estuaryBrace = techniquePose({0, -.22, .055, -7, 0, 0}, {59, 17, -10, -.045, .15, .04},
+    {59, -17, 10, .045, .15, .04}, {8, 0, 0}, {-12, 0, 0})
+local estuaryRaise = techniquePose({0, -.12, .055, 2, 0, 0}, {150, 9, 21, .125, .035, .035},
+    {150, -9, -21, -.125, .035, .035}, {-2, 0, 0}, {-15, 0, 0})
+local estuaryFold = techniquePose({0, -.56, -.12, 27, 0, 0}, {58, 10, 13, .08, .015, -.075},
+    {58, -10, -13, -.08, .015, -.075}, {-18, 0, 0}, {-67, 0, 0})
+local estuaryHit = techniquePose({0, -1.26, -.64, 64, 0, 0}, {-40, 6, 12, .05, 0, .30},
+    {-40, -6, -12, -.05, 0, .30}, {-39, 0, 0}, {-135, 0, 0, 0, .018, -.12})
+local estuaryRise = techniquePose({0, -.65, -.24, 34, 0, 0}, {12, 9, 7, .055, .020, -.015},
+    {12, -9, -7, -.055, .020, -.015}, {-21, 0, 0}, {-78, 0, 0})
+local estuaryRecover = techniquePose({.015, -.26, -.075, 5, 5, -2}, {48, 13, -8, -.03, .11, .055},
+    {50, -15, 13, .04, .12, .025}, {-5, -4, 1}, {-26, -7, 2})
+
+-- River Rush alternates a sweeping right forearm and a crossing left glove from a fixed stance.
+local rushDraw = techniquePose({.11, -.22, .085, -10, -25, -9}, {42, -17, -23, .105, .13, .14},
+    {53, -16, 14, .025, .18, .075}, {8, 22, 5}, {-7, 27, 9})
+local rushRight = techniquePose({.105, -.16, -.22, -11, 33, -7}, {64, 31, 3, -.125, .12, -.22},
+    {56, -20, 18, .038, .19, .115}, {9, -29, 5}, {6, -30, -6})
+local rushSwitch = techniquePose({-.042, -.22, -.08, -11, 14, 5}, {51, 21, -10, -.035, .16, .025},
+    {35, -6, 19, -.075, .10, .145}, {8, -12, -3}, {-7, -8, 4})
+local rushLoad = techniquePose({-.11, -.28, .05, -12, 30, 8}, {54, 22, -15, -.04, .17, .08},
+    {27, 7, 21, -.095, .085, .18}, {9, -25, -5}, {-10, -27, -5})
+local rushLeft = techniquePose({-.105, -.24, -.29, -16, -33, 8}, {56, 24, -16, -.065, .17, .10},
+    {59, -31, 3, .12, .05, -.275}, {14, 29, -5}, {6, 28, -8})
+local rushCarry = techniquePose({-.085, -.27, -.18, -16, -38, 8}, rightGuard,
+    {49, -35, 8, .155, .085, -.145}, {14, 34, -5}, {4, 36, -8})
+local rushRecover = techniquePose({-.025, -.175, -.06, -7, -9, 4}, rightGuard,
+    {47, -18, 11, .055, .15, .005}, {7, 8, -3}, {-4, 7, -3})
+
 local releases = table.freeze({.38, .53, .68})
 local contact = table.freeze({jab = .163, cross = .223, body = .265, heavy = .427,
+    runnelTap = .16, currentHeel = .24, estuaryRing = .63, riverRush = table.freeze({.31, .65}),
     eddyPalm = .31, brookHook = .24, breakwaterPalm = .49, pebbleBarrage = releases})
 local clips = {
     stance = {{0, ready}, {.53, breathe}, {1.14, ready}},
@@ -204,6 +266,13 @@ local clips = {
     retreat = {{0, ready}, {.162, retreatRight}, {.324, ready}, {.486, retreatLeft}, {.648, ready}},
     sidestep = {{0, ready}, {.10, bank}, {.24, brake}, {.47, ready}},
     jab = {{0, ready}, {.071, jabLoad}, {contact.jab, jabHit}, {.264, breathe}, {.41, ready}},
+    runnelTap = {{0, loadoutReady}, {.072, runnelDraw}, {contact.runnelTap, runnelHit}, {.257, runnelFold}, {.40, loadoutReady}},
+    currentHeel = {{0, loadoutReady}, {.107, currentLoad}, {contact.currentHeel, currentHit}, {.352, currentFold},
+        {.442, currentSettle}, {.52, loadoutReady}},
+    estuaryRing = {{0, loadoutReady}, {.151, estuaryBrace}, {.328, estuaryRaise}, {.428, estuaryRaise}, {.527, estuaryFold},
+        {contact.estuaryRing, estuaryHit}, {.675, estuaryHit}, {.762, estuaryRise}, {1.025, estuaryRecover}, {1.26, loadoutReady}},
+    riverRush = {{0, loadoutReady}, {.147, rushDraw}, {contact.riverRush[1], rushRight}, {.436, rushSwitch},
+        {.514, rushLoad}, {contact.riverRush[2], rushLeft}, {.778, rushCarry}, {.961, rushRecover}, {1.15, loadoutReady}},
     cross = {{0, ready}, {.10, crossLoad}, {contact.cross, crossHit}, {.335, breathe}, {.50, ready}},
     body = {{0, ready}, {.127, bodyLoad}, {contact.body, bodyHit}, {.366, bodyLoad}, {.55, ready}},
     heavy = {{0, ready}, {.19, heavyLoad}, {.29, heavyLoad}, {contact.heavy, heavyHit}, {.53, heavyFollow}, {.80, ready}},
@@ -244,7 +313,30 @@ local function palmSurface(poseAtContact)
     return frame:PointToWorldSpace(Vector3.new(1.15, 1.99 - mountedRootHeight, -.34) + extension)
 end
 
+-- Surface points in the mounted rest frame, relative to the fighter root.
+local runnelPad = Vector3.new(-1.344932812, -.294430916, -.546741476)
+local heelPad = Vector3.new(-.580115031, -2.036728723, .034562452)
+local estuaryRightPad = Vector3.new(1.060324851, -.340927984, -.193112892)
+local estuaryLeftPad = Vector3.new(-1.060324851, -.340927984, -.193112892)
+local rushRightPad = Vector3.new(1.362515906, -.294318128, -.513163105)
+local rushLeftPad = Vector3.new(-1.417116842, -.232956051, -.453008354)
+local estuaryRight = point(estuaryHit, "Right Shoulder", estuaryRightPad)
+local estuaryLeft = point(estuaryHit, "Left Shoulder", estuaryLeftPad)
+local estuaryCenter = estuaryRight:Lerp(estuaryLeft, .5)
+estuaryCenter = Vector3.new(estuaryCenter.X, -mountedRootHeight, estuaryCenter.Z)
+Poses.UltimateSkill = table.freeze({
+    estuaryRing = table.freeze({damage = 29, radius = 2.40, center = estuaryCenter, warningAt = .22}),
+    riverRush = table.freeze({damage = table.freeze({13, 21}), radius = table.freeze({.44, .49})}),
+})
+
 Poses.Impact = table.freeze({
+    runnelTap = table.freeze({point(runnelHit, "Left Shoulder", runnelPad)}),
+    currentHeel = table.freeze({point(currentHit, "Left Hip", heelPad)}),
+    estuaryRing = table.freeze({estuaryCenter}),
+    riverRush = table.freeze({
+        point(rushRight, "Right Shoulder", rushRightPad),
+        point(rushLeft, "Left Shoulder", rushLeftPad),
+    }),
     jab = table.freeze({point(jabHit, "Right Shoulder", rightPalm)}),
     cross = table.freeze({point(crossHit, "Left Shoulder", leftPalm)}),
     body = table.freeze({point(bodyHit, "Right Shoulder", rightPalm)}),
@@ -262,6 +354,8 @@ local function aim(degrees)
 end
 
 Poses.Skill = table.freeze({
+    runnelTap = table.freeze({damage = 11, radius = .43}),
+    currentHeel = table.freeze({damage = 14, radius = .47, foot = true}),
     eddyPalm = table.freeze({damage = 19, radius = .45, shove = .48}),
     pebbleBarrage = table.freeze({warningAt = .18, range = 7.8, radius = .30, damage = 8, shove = .40,
         directions = table.freeze({aim(-9), aim(0), aim(9)})}),
@@ -276,6 +370,7 @@ function Poses.impact(action, index, direction)
 end
 
 local loops = {stance = true, advance = true, retreat = true}
+local fixedStance = {runnelTap = true, estuaryRing = true, riverRush = true}
 local feet = {["Right Hip"] = rightSole, ["Left Hip"] = leftSole}
 
 local function reflectTravel(frames)
@@ -332,14 +427,15 @@ function Poses.sample(action, age, direction)
     end
     local root = before[2].RootJoint:Lerp(after[2].RootJoint, weight)
     local result = {RootJoint = root}
-    local planted = action == "brookHook" or action == "breakwaterPalm"
+    local fixedLoadout = fixedStance[action] or action == "currentHeel"
+    local planted = action == "brookHook" or action == "breakwaterPalm" or fixedStance[action]
     for name, previous in before[2] do
         if name ~= "RootJoint" then
             local following = after[2][name]
             local offset = previous:Lerp(following, weight)
             local solePoints = feet[name]
-            if solePoints and planted then
-                offset = root:ToObjectSpace(plantedFeet[name])
+            if solePoints and (planted or (action == "currentHeel" and name == "Right Hip")) then
+                offset = root:ToObjectSpace((if fixedLoadout then loadoutFeet else plantedFeet)[name])
             elseif solePoints then
                 local oldY, newY = soleHeights[before[2]][name], soleHeights[after[2]][name]
                 local shift = oldY + (newY - oldY) * weight - lowest(root * offset, solePoints)

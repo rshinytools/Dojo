@@ -2716,6 +2716,7 @@ function Motion.impact(bout, event)
             duration = .26, height = if event.attack == "tidalBellyFlop" then .17 else 0,
             basis = CFrame.lookAlong(Vector3.zero, direction)}
     elseif damage then
+        local frogOrOtter = Frog.Skill[event.attack] or Otter.Skill[event.attack]
         if event.attack == "bellySlide" and penguin(bout) then
             local state = bout.motion
             local travel = state.playerTravel
@@ -2756,10 +2757,9 @@ function Motion.impact(bout, event)
                     state.crossKnock = shove
                 end
             end
-        elseif Frog.Skill[event.attack] or Otter.Skill[event.attack] then
-            local skill = Frog.Skill[event.attack] or Otter.Skill[event.attack]
+        elseif frogOrOtter and frogOrOtter.shove then
             local heading = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
-            bout.motion.crossKnock = {at = event.at, offset = heading * skill.shove, progress = 0,
+            bout.motion.crossKnock = {at = event.at, offset = heading * frogOrOtter.shove, progress = 0,
                 duration = .20, height = 0, basis = CFrame.lookAlong(Vector3.zero, heading)}
         end
     end

@@ -219,26 +219,90 @@ local wheelWithdraw = fitted({-.07, -.16, -.05, -1, 10, 4}, rightGuard, leftGuar
 local wheelSettle = fitted({-.025, -.125, -.02, -4, -6, 3}, rightGuard, leftGuard,
     nil, {2, 8, -3}, {-3, 9, -4})
 
+local tapDraw = fitted({.037, -.137, .065, -7, -21, -3}, {35, 9, -21, .018, .11, .137},
+    leftGuard, nil, {6, 20, 3}, {-6, 24, -4})
+local tapHit = fitted({.024, -.12, -.090, -9, 31, -2}, {87, 21, 1, -.081, .073, -.118},
+    {59, -15, 17, .035, .139, .032}, nil, {9, -24, 2}, {8, -28, 3})
+local tapBack = fitted({.026, -.13, -.035, -6, 9, -1}, {67, 20, -12, -.037, .12, -.043},
+    leftGuard, nil, {7, -8, 0}, {1, -10, 3})
+
+local toeTuck = fitted({-.069, -.155, .027, -7, -11, 6}, {52, 17, -24, -.025, .108, .064},
+    {59, -13, 20, .048, .145, .055}, {32, -7, 5, .088, .03, .111, .24},
+    {7, 13, -4}, {-7, 13, -5})
+local toeHit = fitted({-.052, -.123, -.133, -7, 13, 5}, {58, 24, -21, -.016, .11, -.022},
+    {56, -17, 21, .036, .129, .058}, {61, -6, 4, .04, .03, -.29, .61},
+    {7, -12, -3}, {7, -15, -6})
+local toeCollect = fitted({-.043, -.143, -.05, -7, 1, 4}, rightGuard,
+    {57, -16, 19, .046, .145, .045}, {28, -8, 3, .079, .04, -.113, .22},
+    {6, 2, -3}, {5, 5, -4})
+
+local hammerRaise = fitted({.014, .045, .155, 2, -3, 1}, {105, -1, -60, -.015, .19, .105},
+    {101, 1, 56, .03, .175, .123}, nil, {-4, 2, -2}, {9, 6, 1})
+local hammerLoad = fitted({.006, -.082, .127, -6, -2, 0}, {100, 5, -53, -.055, .185, .075},
+    {99, -4, 52, .051, .182, .075}, nil, {8, 1, 0}, {-2, 3, -1})
+local hammerDrive = fitted({.01, -.313, -.058, -18, -1, 1}, {73, 18, -24, -.143, .071, -.12},
+    {74, -17, 22, .136, .07, -.135}, nil, {16, 1, -1}, {-11, 0, -2})
+local hammerHit = fitted({.012, -.435, -.37, -25, 1, 2}, {45, 28, -9, -.277, -.105, -.247},
+    {46, -24, 9, .269, -.092, -.247}, nil, {18, 0, -3}, {-14, -4, -3})
+local hammerReceive = fitted({.009, -.383, -.155, -19, 2, 1}, {49, 21, -13, -.13, -.07, -.117},
+    {50, -21, 16, .147, -.057, -.115}, nil, {16, 0, -2}, {-9, -7, -2})
+local hammerEase = fitted({.017, -.22, -.075, -12, -7, 1}, rightGuard, leftGuard,
+    nil, {11, 7, -2}, {-7, 5, -2})
+
+local arcLoad = fitted({-.054, -.188, .10, -8, 30, 7}, {52, 17, -18, -.02, .151, .037},
+    {34, 18, -59, .286, -.075, .035}, nil, {7, -26, -5}, {-8, -29, -8})
+local arcLeft = fitted({-.036, -.173, -.238, -11, -28, 4}, {49, 10, -36, -.195, .022, .039},
+    {70, -19, 18, .095, .092, -.193}, nil, {11, 24, -4}, {7, 31, -6})
+local arcExchange = fitted({.094, -.197, -.03, -9, -34, -5}, {36, -19, 62, -.260, -.020, .025},
+    {47, -24, 23, .071, .137, -.051}, nil, {10, 30, 4}, {-6, 35, 7})
+local arcRight = fitted({.036, -.212, -.292, -12, 38, -4}, {74, 21, -17, -.144, .081, -.252},
+    {49, -19, 32, .031, .129, .078}, nil, {11, -34, 3}, {8, -39, 5})
+local arcEase = fitted({.048, -.212, -.139, -13, 37, -4}, {60, 24, -22, -.092, .111, -.086},
+    {55, -17, 26, .034, .145, .06}, nil, {13, -33, 3}, {7, -40, 6})
+
 local wheelLoadEnd, wheelReplantAt = .13, .885
-local tacticalContact = {perchPeck = .23, crestWheel = .48}
+local toeLoadEnd, toeReplantAt = .057, .476
+local tacticalContact = {perchPeck = .23, crestWheel = .48, roostTap = .16, sunspur = .25,
+    roostHammer = .64, sunriseArc = table.freeze({.31, .66})}
 local tacticalClips = {
     perchPeck = {{0, tacticalReady}, {.083, peckGather}, {.155, peckDip},
         {tacticalContact.perchPeck, peckHit}, {.33, peckRecoil}, {.60, tacticalReady}},
     crestWheel = {{0, tacticalReady}, {wheelLoadEnd, wheelCoil}, {.26, wheelChamber}, {.37, wheelSwing},
         {tacticalContact.crestWheel, wheelHit}, {.58, wheelThrough}, {.73, wheelWithdraw},
         {wheelReplantAt, wheelSettle}, {.94, tacticalReady}},
+    roostTap = {{0, tacticalReady}, {.061, tapDraw}, {tacticalContact.roostTap, tapHit},
+        {.254, tapBack}, {.41, tacticalReady}},
+    sunspur = {{0, tacticalReady}, {toeLoadEnd, tacticalReady}, {.135, toeTuck}, {tacticalContact.sunspur, toeHit},
+        {.356, toeCollect}, {toeReplantAt, tacticalReady}, {.52, tacticalReady}},
+    roostHammer = {{0, tacticalReady}, {.222, hammerRaise}, {.315, hammerRaise}, {.415, hammerLoad},
+        {.532, hammerDrive}, {tacticalContact.roostHammer, hammerHit}, {.752, hammerReceive},
+        {.979, hammerEase}, {1.26, tacticalReady}},
+    sunriseArc = {{0, tacticalReady}, {.141, arcLoad}, {tacticalContact.sunriseArc[1], arcLeft},
+        {.485, arcExchange}, {tacticalContact.sunriseArc[2], arcRight}, {.778, arcEase},
+        {1.16, tacticalReady}},
 }
 -- Forward-most surface samples of the upper beak and striking toe in their contact poses.
 local tacticalHits = {
     perchPeck = {{peckHit, "Neck", v(.000208800, 4.052779859, -1.061329187)}},
     crestWheel = {{wheelHit, rightHip, v(.478121938, .030394700, -.848528346)}},
+    roostTap = {{tapHit, "Right Shoulder", v(1.285693367, 1.853742603, -.529816818)}},
+    sunspur = {{toeHit, rightHip, v(.488790424, .048486406, -.879478918)}},
+    roostHammer = {{hammerHit, "Right Shoulder", v(1.305415222, 1.931539945, -.600217568)}},
+    sunriseArc = {{arcLeft, "Left Shoulder", v(-1.339865944, 1.909587000, -.550582439)},
+        {arcRight, "Right Shoulder", v(1.350961495, 1.923599768, -.541536094)}},
 }
 local tacticalSkills = {
     perchPeck = table.freeze({damage = 13, radius = .47}),
     crestWheel = table.freeze({damage = 21, radius = .49}),
+    roostTap = table.freeze({damage = 11, radius = .43}),
+    sunspur = table.freeze({damage = 14, radius = .47, foot = true}),
 }
 local tactical = mountedRig.finish(tacticalClips, tacticalContact, tacticalHits, tacticalSkills, {}, {})
 local poses = table.clone(standard)
+poses.UltimateSkill = table.freeze({
+    roostHammer = table.freeze({damage = 31, radius = .57}),
+    sunriseArc = table.freeze({damage = table.freeze({13, 20}), radius = table.freeze({.47, .53})}),
+})
 for _, field in {"Duration", "Contact", "Impact", "Skill"} do
     local values = table.clone(standard[field])
     for move, value in tactical[field] do
@@ -250,8 +314,10 @@ end
 function poses.sample(action, age, direction)
     if tacticalContact[action] then
         local time = age or 0
-        return plantTalons(tactical.sample(action, time, direction),
-            action == "perchPeck" or time <= wheelLoadEnd or time >= wheelReplantAt)
+        local both = if action == "crestWheel" then time <= wheelLoadEnd or time >= wheelReplantAt
+            elseif action == "sunspur" then time <= toeLoadEnd or time >= toeReplantAt
+            else true
+        return plantTalons(tactical.sample(action, time, direction), both)
     end
     return standard.sample(action, age, direction)
 end

@@ -102,6 +102,122 @@ local byFighter = {
             },
         },
     },
+    ["karate-frog"] = {
+        kit = "frog",
+        basic = {
+            attribute = "FrogBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start with a quick glove before the cross and body strike."},
+                {id = "pondTap", name = "Pond Tap", compact = "Pond", action = "strike", level = 5,
+                    planted = true,
+                    description = "Lead with a short left-glove tap from a low guard."},
+                {id = "bankKick", name = "Bank Kick", compact = "Kick", action = "strike", level = 10,
+                    planted = true,
+                    description = "Open with a low right kick while the left boot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "FrogUltimate", default = "tadpoleTornado",
+            options = {
+                {id = "tadpoleTornado", name = "Tadpole Tornado", compact = "Tornado", action = "signature", level = 1,
+                    description = "Wind up a spin that spreads a pulse across the mat."},
+                {id = "lilyCrash", name = "Lily Crash", compact = "Crash", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Raise both gloves, then drive them down for one body hit."},
+                {id = "marshBarrage", name = "Marsh Barrage", compact = "Marsh", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Land a low left glove and follow with a high right."},
+            },
+        },
+    },
+    ["river-otter"] = {
+        kit = "otter",
+        basic = {
+            attribute = "OtterBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Lead with a straight palm, then follow with two quick strikes."},
+                {id = "runnelTap", name = "Runnel Tap", compact = "Runnel", action = "strike", level = 5,
+                    planted = true,
+                    description = "Snap a short left palm forward to start the combo."},
+                {id = "currentHeel", name = "Current Heel", compact = "Heel", action = "strike", level = 10,
+                    planted = true,
+                    description = "Turn a low left heel forward while the right foot stays down."},
+            },
+        },
+        ultimate = {
+            attribute = "OtterUltimate", default = "pebbleBarrage",
+            options = {
+                {id = "pebbleBarrage", name = "Pebble Barrage", compact = "Pebbles", action = "signature", level = 1,
+                    description = "Send three skipping pebbles along different paths."},
+                {id = "estuaryRing", name = "Estuary Ring", compact = "Estuary", action = "signature", level = 5,
+                    planted = true, cooldown = 20, floorPulse = true,
+                    description = "Show a warning on the mat, then send a pulse from both palms."},
+                {id = "riverRush", name = "River Rush", compact = "Rush", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Strike high with the right palm, then low with the left."},
+            },
+        },
+    },
+    ["rooster-kickboxer"] = {
+        kit = "rooster",
+        basic = {
+            attribute = "RoosterBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start with a short wing strike before two follow-ups."},
+                {id = "roostTap", name = "Roost Tap", compact = "Roost", action = "strike", level = 5,
+                    planted = true,
+                    description = "Tap forward with the padded right wing to open the combo."},
+                {id = "sunspur", name = "Sunspur", compact = "Spur", action = "strike", level = 10,
+                    planted = true,
+                    description = "Snap out a low toe strike while the other foot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "RoosterUltimate", default = "featherFlurry",
+            options = {
+                {id = "featherFlurry", name = "Feather Flurry", compact = "Flurry", action = "signature", level = 1,
+                    description = "Close the gap with three quick wing strikes."},
+                {id = "roostHammer", name = "Roost Hammer", compact = "Hammer", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Raise both wings, then bring the right pad down for one heavy hit."},
+                {id = "sunriseArc", name = "Sunrise Arc", compact = "Arc", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Sweep the left wing inward, then follow with the right."},
+            },
+        },
+    },
+    ["sugar-glider"] = {
+        kit = "glider",
+        basic = {
+            attribute = "GliderBasic", default = "jab",
+            options = {
+                {id = "jab", name = "Jab Combo", compact = "Jab", action = "strike", level = 1,
+                    description = "Start with a straight palm before a cross and body strike."},
+                {id = "sailTap", name = "Sail Tap", compact = "Sail", action = "strike", level = 5,
+                    planted = true,
+                    description = "Unfold the right sleeve into a short opening palm strike."},
+                {id = "branchToe", name = "Branch Toe", compact = "Toe", action = "strike", level = 10,
+                    planted = true,
+                    description = "Kick low with the left toe while the right foot stays planted."},
+            },
+        },
+        ultimate = {
+            attribute = "GliderUltimate", default = "gustVortex",
+            options = {
+                {id = "gustVortex", name = "Gust Vortex", compact = "Vortex", action = "signature", level = 1,
+                    description = "Glide in and pull nearby fighters toward a burst of wind."},
+                {id = "canopyClap", name = "Canopy Clap", compact = "Clap", action = "signature", level = 5,
+                    planted = true, cooldown = 20,
+                    description = "Spread both sleeves, then close both palms for one hit."},
+                {id = "duskWheel", name = "Dusk Wheel", compact = "Dusk", action = "signature", level = 10,
+                    planted = true, cooldown = 20,
+                    description = "Swing the right palm inward, then reverse into a left palm strike."},
+            },
+        },
+    },
 }
 
 local byMove, byKit = {}, {}

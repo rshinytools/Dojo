@@ -146,6 +146,66 @@ local heelFold = heelPose({.14, -.26, .015, -9, -7, -11}, {53, 19, -12, -.035, .
 local heelSettle = heelPose({.055, -.23, -.02, -9, -13, -3}, rightGuard,
     leftGuard, {13, 8, -2, -.09, .218, -.12}, {7, 10, 2})
 
+-- The front toe ellipsoids set the lowest point of the right boot.
+local loadoutRight = CFrame.new(0, .027, 0) * plantedRight
+local loadoutReady = table.clone(groundedReady)
+loadoutReady["Right Hip"] = ready.RootJoint:ToObjectSpace(loadoutRight)
+
+local tapDraw = pose({0, -.20, 0, -6, -5, 2}, {52, 20, -11, -.03, .14, .10},
+    {43, -6, 12, .035, .08, .14}, rearFoot, frontFoot, {5, 4, -2})
+local tapHit = pose({0, -.22, 0, -8, -24, 3}, {55, 21, -14, -.02, .16, .09},
+    {73, -22, 13, .035, .09, -.175}, rearFoot, frontFoot, {7, 19, -2})
+local tapFold = pose({0, -.18, 0, -7, -14, 2}, rightGuard,
+    {68, -17, 14, .035, .085, -.04}, rearFoot, frontFoot, {6, 12, -2})
+
+local mountedRightHip = rightHip + Vector3.yAxis * (2.60 - 2.132)
+local function bankPose(core, right, left, swing, head)
+    local offsets = pose(core, right, left, rearFoot, frontFoot, head)
+    offsets["Right Hip"] = offsets.RootJoint:ToObjectSpace(around(mountedRightHip, swing) * loadoutRight)
+    return offsets
+end
+
+local bankLoad = bankPose({0, -.245, 0, -4, -23, 6}, {49, 22, -15, -.03, .14, .15},
+    {64, -14, 16, .045, .11, .06}, {3, 4, 0, -.025, .075, .05}, {6, 19, -4})
+local bankChamber = bankPose({0, -.20, 0, 1, -19, 9}, {52, 24, -18, -.03, .13, .13},
+    {62, -14, 17, .05, .13, .025}, {11, 10, -4, -.01, .26, .065}, {3, 16, -5})
+local bankHit = bankPose({0, -.15, 0, 4, -9, 7}, {55, 24, -15, -.035, .16, .15},
+    {60, -18, 19, .05, .13, -.025}, {22, 17, -7, -.08, .13, -.49}, {0, 7, -4})
+local bankTuck = bankPose({0, -.19, 0, 0, -12, 5}, {52, 22, -13, -.03, .15, .12},
+    {64, -15, 16, .045, .12, .015}, {12, 9, -4, -.04, .20, -.125}, {3, 10, -3})
+local bankPlant = bankPose({0, -.20, 0, -6, -15, 3}, rightGuard,
+    leftGuard, {3, 3, 0, -.01, .09, .005}, {5, 13, -2})
+
+local crashCrouch = pose({0, -.35, 0, -13, -10, 2}, {65, 24, -20, -.05, .19, .09},
+    {71, -19, 21, .045, .18, .06}, rearFoot, frontFoot, {10, 9, -2})
+local crashRaise = pose({0, -.035, 0, 4, -5, 1}, rightGuard, leftGuard, rearFoot, frontFoot, {-4, 4, -2})
+local mountedShoulderLift = Vector3.yAxis * (2.60 - 2.132)
+crashRaise["Right Shoulder"] = around(rightShoulder + mountedShoulderLift, {147, 13, -22, .05, .085, .18})
+crashRaise["Left Shoulder"] = around(leftShoulder + mountedShoulderLift, {145, -14, 22, -.05, .085, .17})
+local crashDrop = pose({0, -.29, 0, -10, -3, 1}, {110, 24, -18, -.09, .09, -.05},
+    {109, -24, 18, .09, .09, -.05}, rearFoot, frontFoot, {8, 3, -1})
+local crashHit = pose({0, -.39, 0, -19, 0, 0}, {79, 51, -13, -.14, .08, -.40},
+    {79, -51, 13, .14, .08, -.40}, rearFoot, frontFoot, {13})
+local crashFold = pose({0, -.33, 0, -15, -3, 1}, {72, 24, -20, -.06, .06, -.12},
+    {73, -22, 21, .06, .06, -.12}, rearFoot, frontFoot, {10, 3, -1})
+local crashRecover = pose({0, -.21, 0, -8, -11, 2}, {58, 22, -13, -.03, .12, .065},
+    {65, -16, 18, .045, .12, .035}, rearFoot, frontFoot, {7, 9, -2})
+
+local marshDraw = pose({0, -.305, 0, -10, 14, 7}, {59, 24, -19, -.045, .18, .10},
+    {26, -3, 14, .01, .045, .17}, rearFoot, frontFoot, {8, -10, -4})
+local marshLow = pose({0, -.39, 0, -14, -29, 5}, {58, 22, -17, -.03, .17, .12},
+    {54, -23, 14, .025, .025, -.26}, rearFoot, frontFoot, {11, 24, -4})
+local marshSwitch = pose({0, -.28, 0, -11, -22, -2}, {31, 4, -13, -.025, .055, .155},
+    {61, -19, 18, .035, .10, .025}, rearFoot, frontFoot, {9, 19, 1})
+local marshCoil = pose({0, -.25, 0, -8, -32, -8}, {38, 8, -13, -.03, .075, .18},
+    {67, -19, 20, .04, .11, .10}, rearFoot, frontFoot, {8, 26, 5})
+local marshHigh = pose({0, -.135, 0, -9, 31, -6}, {81, 21, -11, -.015, .13, -.33},
+    {61, -18, 18, .035, .12, .13}, rearFoot, frontFoot, {6, -25, 4})
+local marshFold = pose({0, -.20, 0, -12, 33, -5}, {71, 23, -14, -.045, .15, -.16},
+    {64, -16, 17, .035, .13, .085}, rearFoot, frontFoot, {9, -26, 3})
+local marshRecover = pose({0, -.18, 0, -7, 2, 0}, {57, 20, -14, -.03, .15, .025},
+    leftGuard, rearFoot, frontFoot, {6, -2, -1})
+
 local stepRight = pose({.12, -.12, -.10, -10, -18, -4}, {50, 17, -9, 0, .15, .04},
     leftGuard, {13, -13, -4, .07, 0, -.23, .15}, {3, 4, 2, -.12, 0, .12, 0}, {9, 16, 3})
 local stepLeft = pose({-.10, -.13, -.08, -10, -9, 5}, rightGuard,
@@ -205,7 +265,8 @@ local victory = pose({.04, -.09, -.06, -8, -8, -6}, {98, -4, -20, .11, .08, -.08
     {43, -4, 7, .035, .04, .11}, rearFoot, frontFoot, {5, 7, 4})
 
 local contact = table.freeze({jab = .158, cross = .218, body = .252, heavy = .418,
-    lilyVault = .34, mudPalm = .23, pondboundHeel = .48, tadpoleTornado = .53})
+    lilyVault = .34, mudPalm = .23, pondboundHeel = .48, tadpoleTornado = .53,
+    pondTap = .16, bankKick = .24, lilyCrash = .62, marshBarrage = table.freeze({.30, .64})})
 local clips = {
     stance = {{0, ready}, {.48, breathe}, {1.04, ready}},
     advance = {{0, ready}, {.135, stepRight}, {.27, ready}, {.405, stepLeft}, {.54, ready}},
@@ -220,6 +281,15 @@ local clips = {
     mudPalm = {{0, groundedReady}, {.10, mudLoad}, {contact.mudPalm, mudHit}, {.35, mudFold}, {.58, groundedReady}},
     pondboundHeel = {{0, groundedReady}, {.13, heelLoad}, {.255, heelLift}, {.354, heelCoil},
         {contact.pondboundHeel, heelHit}, {.55, heelFollow}, {.67, heelFold}, {.79, heelSettle}, {.91, groundedReady}},
+    pondTap = {{0, loadoutReady}, {.061, tapDraw}, {contact.pondTap, tapHit}, {.25, tapFold}, {.40, loadoutReady}},
+    bankKick = {{0, loadoutReady}, {.08, bankLoad}, {.15, bankChamber}, {contact.bankKick, bankHit},
+        {.32, bankTuck}, {.42, bankPlant}, {.51, loadoutReady}},
+    lilyCrash = {{0, loadoutReady}, {.151, crashCrouch}, {.33, crashRaise}, {.415, crashRaise},
+        {.52, crashDrop}, {contact.lilyCrash, crashHit}, {.69, crashHit}, {.80, crashFold},
+        {1.01, crashRecover}, {1.24, loadoutReady}},
+    marshBarrage = {{0, loadoutReady}, {.14, marshDraw}, {contact.marshBarrage[1], marshLow}, {.411, marshSwitch},
+        {.503, marshCoil}, {contact.marshBarrage[2], marshHigh}, {.754, marshFold}, {.925, marshRecover},
+        {1.15, loadoutReady}},
     tadpoleTornado = {{0, ready}, {.18, coil}, {.267, coil}, {.36, firstTurn}, {.438, fanTurn},
         {contact.tadpoleTornado, spinHit}, {.63, spinFollow}, {.75, spinBrake}, {.892, breathe}, {1.03, ready}},
     guard = {{0, cover}},
@@ -250,6 +320,12 @@ local vaultToes = point(vaultExtend, "Right Hip", rightToe):Lerp(point(vaultExte
 -- ellipsoid and the rear of the left webbed foot, relative to the mounted root.
 local mudPalmPad = Vector3.new(1.112025884, -.389241579, -.603075659)
 local pondboundHeelPad = Vector3.new(-.434351223, -2.080000000, -.085192073)
+local tapPad = Vector3.new(-1.361480214, -.349928068, -.507478986)
+local bankToe = Vector3.new(.240231107, -2.039362318, -.794673049)
+local crashRightPad = Vector3.new(1.240491354, -.382440214, -.580941602)
+local crashLeftPad = Vector3.new(-1.240491354, -.382440214, -.580941602)
+local marshLowPad = Vector3.new(-1.375324058, -.309931507, -.536141217)
+local marshHighPad = Vector3.new(1.366682581, -.348366705, -.493731118)
 local tornadoCenter = Vector3.new(0, floorY, 0)
 Poses.Impact = table.freeze({
     jab = table.freeze({point(jabHit, "Left Shoulder", leftFist)}),
@@ -260,12 +336,25 @@ Poses.Impact = table.freeze({
     mudPalm = table.freeze({point(mudHit, "Right Shoulder", mudPalmPad)}),
     pondboundHeel = table.freeze({point(heelHit, "Left Hip", pondboundHeelPad)}),
     tadpoleTornado = table.freeze({tornadoCenter}),
+    pondTap = table.freeze({point(tapHit, "Left Shoulder", tapPad)}),
+    bankKick = table.freeze({point(bankHit, "Right Hip", bankToe)}),
+    lilyCrash = table.freeze({point(crashHit, "Right Shoulder", crashRightPad)
+        :Lerp(point(crashHit, "Left Shoulder", crashLeftPad), .5)}),
+    marshBarrage = table.freeze({
+        point(marshLow, "Left Shoulder", marshLowPad), point(marshHigh, "Right Shoulder", marshHighPad),
+    }),
 })
 
 Poses.Skill = table.freeze({
+    pondTap = table.freeze({damage = 11, radius = .43}),
+    bankKick = table.freeze({damage = 14, radius = .47, foot = true}),
     lilyVault = table.freeze({damage = 20, radius = .48, shove = .56}),
     tadpoleTornado = table.freeze({center = tornadoCenter, radius = 3.2, warningAt = .18,
         deflectFrom = .36, deflectUntil = .69, damage = 28, shove = .94}),
+})
+Poses.UltimateSkill = table.freeze({
+    lilyCrash = table.freeze({damage = 31, radius = .48}),
+    marshBarrage = table.freeze({damage = table.freeze({12, 21}), radius = table.freeze({.45, .47})}),
 })
 Poses.Travel = table.freeze({
     lilyVault = table.freeze({distance = 1.65, startsAt = .18, endsAt = contact.lilyVault, axis = "forward"}),
@@ -321,13 +410,18 @@ function Poses.sample(action, age, direction)
     end
     local root = before[2].RootJoint:Lerp(after[2].RootJoint, weight)
     local isPalm, isHeel = action == "mudPalm", action == "pondboundHeel"
+    local isBank = action == "bankKick"
+    local bothPlanted = action == "pondTap" or action == "lilyCrash" or action == "marshBarrage"
     local result = {RootJoint = root}
     for name, previous in before[2] do
         if name ~= "RootJoint" then
             local following = after[2][name]
             local offset = previous:Lerp(following, weight)
             local solePoints = feet[name]
-            if solePoints and not (isPalm or isHeel) then
+            if isBank and name == "Right Hip" then
+                local beforeBoot, afterBoot = before[2].RootJoint * previous, after[2].RootJoint * following
+                offset = root:ToObjectSpace(beforeBoot:Lerp(afterBoot, weight))
+            elseif solePoints and not (bothPlanted or isPalm or isHeel or isBank) then
                 local oldY, newY = soleHeights[before[2]][name], soleHeights[after[2]][name]
                 local shift = oldY + (newY - oldY) * weight - lowest(root * offset, solePoints)
                 offset = CFrame.new(root:VectorToObjectSpace(Vector3.new(0, shift, 0))) * offset
@@ -335,11 +429,13 @@ function Poses.sample(action, age, direction)
             result[name] = offset
         end
     end
-    if isPalm or isHeel then
+    if bothPlanted then
+        result["Right Hip"] = root:ToObjectSpace(loadoutRight)
+    elseif isPalm or isHeel then
         result["Right Hip"] = root:ToObjectSpace(plantedRight)
-        if isPalm then
-            result["Left Hip"] = root:ToObjectSpace(plantedLeft)
-        end
+    end
+    if bothPlanted or isPalm or isBank then
+        result["Left Hip"] = root:ToObjectSpace(plantedLeft)
     end
     return result
 end
