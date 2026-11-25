@@ -136,7 +136,8 @@ local function publish(match, event, now)
         slots[index] = {kitId = side.kitId, tactical = side.tactical, health = side.playerHealth, maxHealth = side.playerMaxHealth,
             backupKitId = backup.kitId, backupTactical = backup.tactical,
             backupHealth = backup.playerHealth, backupMaxHealth = backup.playerMaxHealth,
-            userName = actor.player.DisplayName, eliminated = seat.out == true, entryAt = seat.entryAt}
+            userName = actor.player.DisplayName, eliminated = seat.out == true, entryAt = seat.entryAt,
+            entryVersion = actor.entryVersion}
     end
     for index, actor in match.actors do
         local player = actor.player
@@ -206,7 +207,7 @@ local function start(now)
             return
         end
         actors[index] = {player = player, root = waiting.root, ids = {waiting.primaryId, waiting.backupId},
-            forms = {primaryForm, backupForm}, nextInput = now, feedbackUntil = 0}
+            forms = {primaryForm, backupForm}, entryVersion = 1, nextInput = now, feedbackUntil = 0}
         entrants[index] = {primary = kitEntry(player, waiting.primaryId), backup = kitEntry(player, waiting.backupId)}
         sideFor[player] = index
     end
@@ -273,6 +274,7 @@ local function swap(match, index, now)
     local equipped = Equip.equip(actor.root.Parent, id, actor.forms[slot])
     local side, cue
     if equipped then
+        actor.entryVersion += 1
         side, cue = Round.swap(round, index, now, slot)
         if not side then
             local original = round.lineup[index].active
@@ -475,7 +477,7 @@ prompt.Triggered:Connect(function(player)
     remote:FireClient(player, "offer", {primaryId = offer.primaryId, expiresAt = offer.expiresAt, backupIds = backupIds})
 end)
 
-remote.OnServerEvent:Connect(function(player, action, value, id, windupToken)
+remote.OnServerEvent:Connect(function(player, action, value, id, windupToken, entryVersion)
     local now = workspace:GetServerTimeNow()
     if action == "cancel" then
         clearQueue(player, "You left the Tag Team queue.")
@@ -513,14 +515,22 @@ remote.OnServerEvent:Connect(function(player, action, value, id, windupToken)
         return
     end
     local round, actor = match.round, match.actors[index]
-    if round.result or now < round.startsAt or Match.root(player) ~= actor.root
-        or not Motion.canAct(match, index, action, now) or not Match.takeCombatInput(actor, action, value, now, .08) then
+    local steering = action == "stormSteer"
+    local nextAllowed = if steering then actor.nextSteer or 0 else actor.nextInput
+    if entryVersion ~= actor.entryVersion or round.result or now < round.startsAt or now < nextAllowed
+        or (steering and value ~= -1 and value ~= 0 and value ~= 1) or Match.root(player) ~= actor.root
+        or not Motion.canAct(match, index, action, now) then
         return
     end
     if advance(match, now) then
         -- Show the outgoing fighter's reaction and HP before a manual swap replaces that slot.
         Motion.render(match, now)
         publish(match, "update", now)
+    end
+    -- Resolve pending contacts first, then confirm this input still belongs to the active fighter.
+    if entryVersion ~= actor.entryVersion or round.result or Match.root(player) ~= actor.root
+        or not Motion.canAct(match, index, action, now) or not Match.takeCombatInput(actor, action, value, now, .08) then
+        return
     end
     local changed = false
     if action == "tag" then

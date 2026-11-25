@@ -761,7 +761,8 @@ layout = function()
     local rosterRoom = footerY - rosterY - reserve - minimumBody - gap * 2
     local fittedRows = math.max(1, math.floor((rosterRoom + cardGap) / (cardHeight + cardGap)))
     local rows = math.ceil(#order / columns)
-    local visibleRows = math.min(rows, fittedRows, if tall and not compact then 3 else 2)
+    local maximumRosterRows = if compact and switching and not tall then 1 elseif tall and not compact then 3 else 2
+    local visibleRows = math.min(rows, fittedRows, maximumRosterRows)
     local rosterHeight = visibleRows * (cardHeight + cardGap) - cardGap
     local scrollRoster = rows > visibleRows
     local scrollbarWidth = if scrollRoster then 7 else 0
@@ -820,12 +821,14 @@ layout = function()
     if tacticalBar.Visible then
         local gapBetween = 4
         local stacked = detailWidth - textPad - controlsWidth - 9 < 144
-        tacticalBar.Size = UDim2.new(1, -9, 0, if stacked then 112 else 64)
-        tacticalHeading.TextSize = if compact then 12 else 13
+        local headerHeight = if compact then 0 else 20
+        tacticalBar.LayoutOrder = if compact then 0 else 3
+        tacticalBar.Size = UDim2.new(1, -9, 0, headerHeight + (if stacked then 92 else 44))
+        tacticalHeading.Visible = not compact
         for index, tile in tacticalButtons do
             local control = tile.control
-            control.Position = if stacked then UDim2.fromOffset(0, 20 + (index - 1) * 48)
-                else UDim2.new((index - 1) * .5, (index - 1) * gapBetween * .5, 0, 20)
+            control.Position = if stacked then UDim2.fromOffset(0, headerHeight + (index - 1) * 48)
+                else UDim2.new((index - 1) * .5, (index - 1) * gapBetween * .5, 0, headerHeight)
             control.Size = if stacked then UDim2.new(1, 0, 0, 44) else UDim2.new(.5, -gapBetween * .5, 0, 44)
             control.TextSize = if compact or detailWidth < 310 then 12 else 14
             local previous = if index == 2 then tacticalButtons[1].control else control

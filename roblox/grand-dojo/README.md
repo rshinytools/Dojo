@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.330, use Tag Team and switch fighters with **T** or **Tag In**. An action still in transit from the outgoing fighter expires at the swap.
+
 In v0.329, earn Reedguard Level 5 and visit Fighter Select. Choose **Reed Sweep**, confirm it, and press **V** in the ring. The regular Technique control also works with touch or D-pad Up. Switch back to Uppercut at Fighter Select whenever you prefer.
 
 In v0.328, start a server with two Studio clients. Choose **Ranked** at the 1v1 sign on both clients, then play through the series to see the Rank Points recap. Studio ratings use the current test server’s memory.

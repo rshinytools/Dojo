@@ -569,13 +569,13 @@ local function send(action, direction)
         return
     end
     local own = match.slots[match.selfIndex]
-    if not combatReady(workspace:GetServerTimeNow()) or own.eliminated then
+    if not combatReady(workspace:GetServerTimeNow()) or own.eliminated or type(own.entryVersion) ~= "number" then
         return
     end
     if action == "tag" then
         if match.canTag then
             CombatWindup.clear()
-            remote:FireServer("tag", nil, match.matchId)
+            remote:FireServer("tag", nil, match.matchId, nil, own.entryVersion)
         end
         return
     end
@@ -595,7 +595,7 @@ local function send(action, direction)
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
         direction = if root and humanoid and humanoid.MoveDirection:Dot(root.CFrame.RightVector) < -.2 then -1 else 1
     end
-    remote:FireServer(action, direction, match.matchId, CombatWindup.begin(action))
+    remote:FireServer(action, direction, match.matchId, CombatWindup.begin(action), own.entryVersion)
 end
 
 for action, buttonNode in actions do
@@ -693,7 +693,7 @@ remote.OnClientEvent:Connect(function(kind, data)
         rivalIndex = pickRival(data)
         local own, other = data.slots[data.selfIndex], data.slots[rivalIndex]
         local prior = old and old.slots[old.selfIndex]
-        local ownChanged = not prior or prior.kitId ~= own.kitId
+        local ownChanged = not prior or prior.kitId ~= own.kitId or prior.entryVersion ~= own.entryVersion
         if ownChanged or own.eliminated or data.resolvedAt or own.health < prior.health then CombatWindup.clear() end
         local rivalChanged = not old or previousRival ~= rivalIndex or old.slots[rivalIndex].kitId ~= other.kitId
         championship.left:Set(own.health, own.maxHealth, fighterName(own.kitId), ownChanged)
