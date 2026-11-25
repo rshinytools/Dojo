@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.301 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.302 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -10,6 +10,8 @@ The v0.301 Studio checkpoint is the starting point for new work. This repository
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
 
 ## Reedguard footing
+
+V0.302 shortens the tail from 1.38 to 1.24 studs and preserves its thickness and attachment. The change carries through Rookie, Warrior and Grandmaster. The two contact shadows are easier to read when Reedguard stands in the plaza or holds his pose at a match intro. Duel, Tag Team and Brawl now place fighters at the same fitted standing height used for Bot Spar. Desktop Studio sampled the boots at Festival Plaza spawn and on the promenade. A two-client Casual Duel measured the soles within 0.04 studs of the canvas during the intro and registered two jabs and a parry. Studio checked all fourteen multiplayer entry markers and Reedguard’s Bot Spar intro, idle and guard. Live Roblox and physical-device checks remain open.
 
 V0.296 shortens the equipped tail from 1.73 to 1.38 studs while preserving the attachment. Reedguard’s standing ring poses level both soles during idle, intro, salute, guard, block and the win pose. Two local contact shadows follow the sole positions and fade as each foot lifts. They add no lights and never affect collisions. The original shuffle and kick contacts pass the fitted mesh checks.
 

@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
+local opacity = {.07, .11, .16, .23}
 local fighterId = "reedguard-kangaroo"
 local source = ReplicatedStorage:WaitForChild("StarterFighterVisuals"):WaitForChild(fighterId)
 local soles = {}
@@ -25,7 +26,7 @@ folder.Parent = workspace
 local function makeShadow(name)
     local plate = Instance.new("Part")
     plate.Name = name
-    plate.Size = Vector3.new(.94, .01, 1.31)
+    plate.Size = Vector3.new(1.02, .01, 1.42)
     plate.Anchored = true
     plate.CanCollide = false
     plate.CanTouch = false
@@ -85,7 +86,11 @@ RunService.Heartbeat:Connect(function(dt)
     local shell = character and character:FindFirstChild("Starter Fighter Shell")
     local isReedguard = shell and shell:GetAttribute("FighterId") == fighterId
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-    local active = isReedguard and humanoid and humanoid.FloorMaterial ~= Enum.Material.Air
+    local root = humanoid and humanoid.RootPart
+    -- Intro holds anchor the root, so a nearby floor ray can supply contact
+    -- while the Humanoid temporarily reports Air.
+    local active = isReedguard and humanoid and (humanoid.FloorMaterial ~= Enum.Material.Air
+        or (root and root.Anchored))
         and humanoid:GetState() ~= Enum.HumanoidStateType.Swimming
     for name, shadow in shadows do
         local foot = active and shell:FindFirstChild(name)
@@ -106,7 +111,7 @@ RunService.Heartbeat:Connect(function(dt)
             local tangent = if forward.Magnitude > .01 then forward.Unit else normal:Cross(Vector3.xAxis).Unit
             shadow.plate.CFrame = CFrame.lookAt(center, center + tangent, normal)
             for index, layer in shadow.layers do
-                layer.BackgroundTransparency = 1 - fade * (.045 + index * .043)
+                layer.BackgroundTransparency = 1 - fade * opacity[index]
             end
         end
     end

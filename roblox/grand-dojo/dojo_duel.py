@@ -1,5 +1,7 @@
 """Grand Dojo's local 1v1 court, east of the resident Bot Spar mat."""
 
+from district_dojo_rings import PLAYER_STAND_HEIGHT
+
 
 def build_dojo_duel(ring, floor, ring_offset, *, item, part, prop, sign, wood, metal):
     court = item(ring, "Model", "Duel Court")
@@ -48,8 +50,8 @@ def build_dojo_duel(ring, floor, ring_offset, *, item, part, prop, sign, wood, m
     prop(prompt, "float", "HoldDuration", .20)
 
     # The two fighters face each other across the empty mat.
-    marker("First Spawn", (x, floor + 2.22, z + 4.55))
-    marker("Second Spawn", (x, floor + 2.22, z - 4.55), yaw=180)
+    marker("First Spawn", (x, floor + PLAYER_STAND_HEIGHT, z + 4.55))
+    marker("Second Spawn", (x, floor + PLAYER_STAND_HEIGHT, z - 4.55), yaw=180)
     marker("First Return", (x - 2.35, floor + 2.22, 14.84), yaw=180)
     marker("Second Return", (x + 2.35, floor + 2.22, 14.84), yaw=180)
     return court

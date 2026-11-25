@@ -12,7 +12,7 @@ In v0.298, **Golden Eagle** and **Celestial Storm Dragon** unlock at Level 10. *
 
 In v0.297, earn **Magma Grizzly Bear** and **Obsidian Hellhound** at Level 10. Press **V** or D-pad Up for Basalt Backhand or Cinder Lunge. Press **F** or **Y** for Eruption Slam or Hellfire Stampede. Touch players use **Basalt**, **Erupt**, **Lunge**, and **Clones**. Each pillar rises in sequence, and the two hounds run across marked lanes in opposite directions.
 
-In v0.296, choose Reedguard and inspect his shorter tail in Festival Plaza. Stand in Juniper’s Bot Spar to see the leveled boots during the intro, idle, and guard. Look underneath the boots for soft contact shadows that fade during a jump.
+In v0.302, choose Reedguard and inspect the shorter tail and stronger boot shadows in Festival Plaza. Duel, Tag Team and Brawl start at the shared rig’s fitted standing height. Juniper’s Bot Spar also uses leveled boots during its intro, idle and guard.
 
 In v0.295, earn **Great White Shark** and **Abyssal Kraken** at Level 10. **V** or D-pad Up uses Reef Hook or Tide Grip. **F** or **Y** uses Jaws of the Deep or Tentacle Cataclysm. Tap **Hook**, **Jaws**, **Grip**, or **Slam** on touch. Watch the water ring as Shark dives and the four purple lanes before Kraken’s tentacles strike inward.
 

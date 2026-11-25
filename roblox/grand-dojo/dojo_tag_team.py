@@ -2,6 +2,8 @@
 
 from math import cos, pi, sin
 
+from district_dojo_rings import PLAYER_STAND_HEIGHT
+
 
 def build_dojo_tag_team(ring, *, item, part, prop, sign, showcase_tree, wood, slate, metal, neon, fabric,
                         triangle, limestone=None):
@@ -50,7 +52,7 @@ def build_dojo_tag_team(ring, *, item, part, prop, sign, showcase_tree, wood, sl
     marker(court, "Floor Origin", 0, 0, 0)
     marks = item(court, "Folder", "Spawn Marks")
     for index, (x, z, yaw) in enumerate(((12, 6, 90), (12, -6, 90), (-12, 6, -90), (-12, -6, -90)), 1):
-        marker(marks, f"Seat {index}", x, 2.30, z, yaw=yaw)
+        marker(marks, f"Seat {index}", x, PLAYER_STAND_HEIGHT, z, yaw=yaw)
 
     # A single collision plane keeps all foot, dash and ground-effect heights consistent.
     detail(court, "Stable Tag canvas", 0, -.32, 0, (40.4, .64, 40.4), "C8A98A", material=limestone, collide=True)

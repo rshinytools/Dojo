@@ -2,6 +2,8 @@
 
 from math import atan2, cos, degrees, pi, sin
 
+from district_dojo_rings import PLAYER_STAND_HEIGHT
+
 
 def build_dojo_brawl(ring, *, item, part, prop, sign, showcase_tree, garden_prop, wood, slate, metal, neon):
     entry = item(ring, "Model", "Brawl Entry")
@@ -47,7 +49,7 @@ def build_dojo_brawl(ring, *, item, part, prop, sign, showcase_tree, garden_prop
         angle = 2 * pi * seat / 8
         x, z = 17 * cos(angle), 17 * sin(angle)
         yaw = degrees(atan2(x, z))
-        detail(spawns, f"Seat {seat + 1}", x, 2.30, z, (.2, .2, .2),
+        detail(spawns, f"Seat {seat + 1}", x, PLAYER_STAND_HEIGHT, z, (.2, .2, .2),
                "FCB46B", transparency=1, yaw=yaw)
 
     tiles = item(court, "Folder", "Tiles")

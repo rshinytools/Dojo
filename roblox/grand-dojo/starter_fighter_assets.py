@@ -198,13 +198,14 @@ def build_fighter_visual_models(library, visual_assets, *, item, part, prop, ass
         model = item(library, "Model", fighter_id)
         for name, (mesh_id, texture_id, channel, size, mesh_size, cframe, pivot) in groups.items():
             if fighter_id == "reedguard-kangaroo" and name == "Tail":
-                # Resize toward the attachment so the shorter tail stays connected to the body.
-                scale = .48
-                center = tuple(cframe[i] + (1 - scale) * sum(cframe[3 + 3 * i + j] * pivot[j]
-                                                           for j in range(3)) for i in range(3))
+                # Shorten the tail from its attachment while retaining its fitted thickness.
+                scales = (.48, .48, .43)
+                scaled_pivot = tuple(value * scale for value, scale in zip(pivot[:3], scales))
+                center = tuple(cframe[i] + sum(cframe[3 + 3 * i + j] * (pivot[j] - scaled_pivot[j])
+                                               for j in range(3)) for i in range(3))
                 cframe = (*center, *cframe[3:])
-                size = tuple(value * scale for value in size)
-                pivot = (*(value * scale for value in pivot[:3]), *pivot[3:])
+                size = tuple(value * scale for value, scale in zip(size, scales))
+                pivot = (*scaled_pivot, *pivot[3:])
             group = part(model, name, cframe[:3], size, "FFFFFF", class_name="MeshPart", collide=False)
             frame_property = group.find("Properties/CoordinateFrame[@name='CFrame']")
             group.find("Properties").remove(frame_property)
