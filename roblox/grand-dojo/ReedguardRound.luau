@@ -10,6 +10,7 @@ local Sky = require(script.Parent.SkyFighterCombat)
 local EmberAqua = require(script.Parent.EmberAquaCombat)
 local Heavy = require(script.Parent.HeavyFighterCombat)
 local Magma = require(script.Parent.MagmaFighterCombat)
+local Thunder = require(script.Parent.ThunderFighterCombat)
 local Round = {}
 
 Round.INTRO = 10
@@ -166,6 +167,9 @@ for id, kit in Heavy.kits do
     kits[id] = kit
 end
 for id, kit in Magma.kits do
+    kits[id] = kit
+end
+for id, kit in Thunder.kits do
     kits[id] = kit
 end
 
@@ -348,6 +352,10 @@ local function resolveBotContact(round, at, fields, hit, _, move)
     if guardBroken then
         round.botPhase, round.recoveryStartedAt = "recovery", at
         round.recoveryKind, round.botAt = "hit", at + .52
+    elseif not brace and move and move.shockDuration then
+        round.botPhase, round.recoveryStartedAt = "recovery", at
+        round.recoveryKind, round.botAt = "shocked", at + move.shockDuration
+        fields.shockDuration = move.shockDuration
     elseif not brace and move and move.burnDamage then
         Magma.ignite(round, nil, 0, round, at, move.burnDamage)
     end
@@ -378,7 +386,8 @@ local function contact(round, at, check, resolve, publishCast)
     end
     local hit, point, resolvedZone, facing
     if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
-        or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" or move.shape == "breath" then
+        or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" or move.shape == "breath"
+        or move.thunder then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -397,7 +406,7 @@ local function contact(round, at, check, resolve, publishCast)
     end
     local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
         rootDuration = move.rootDuration,
-        castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak then clip.startedAt else nil}
+        castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak or move.thunder then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
     end

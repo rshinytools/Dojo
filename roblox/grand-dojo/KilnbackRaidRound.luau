@@ -337,6 +337,8 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
             local scale = if core then 1.64 elseif round.coreExposed then 1.18 else .72
             fields.kind, fields.damage = if core then "counter" else "strike", math.max(1, math.round(baseDamage * scale))
             fields.core, fields.burnDamage = core, move.burnDamage
+            -- Recovery may be extended without canceling a committed boss attack or its hazard.
+            fields.shockDuration = if not round.attack then move.shockDuration else nil
             table.insert(hits, fields)
             return baseDamage
         end
@@ -391,6 +393,9 @@ local function applyHits(round, hits)
             round.sides[event.attacker].contribution.damage += event.damage
             if event.damage > 0 and event.burnDamage then
                 Magma.ignite(round, event.attacker, 0, round, event.at, event.burnDamage)
+            end
+            if event.damage > 0 and event.shockDuration then
+                round.nextAttackAt = math.max(round.nextAttackAt, event.at + event.shockDuration)
             end
         else
             applyBossHit(round, event)

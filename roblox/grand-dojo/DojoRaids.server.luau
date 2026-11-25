@@ -356,8 +356,8 @@ local function mount(encounter)
                     Motion.raidImpact(match, event.defender, origin, event.at, 1.15)
                 end
             elseif event.source == "player" then
-                cue(match.actors[event.attacker], if event.core
-                    then "core" else event.kind, now)
+                cue(match.actors[event.attacker], if event.shockDuration then "shockLanded"
+                    elseif event.core then "core" else event.kind, now)
             elseif event.source == "team" then
                 cue(match.actors[event.attacker], event.kind, now)
                 cue(match.actors[event.defender], event.kind, now)

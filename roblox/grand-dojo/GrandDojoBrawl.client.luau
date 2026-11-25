@@ -166,6 +166,7 @@ local tips = {
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     ricochetBounce = "Shell rebounds",
     guardBroken = "Guard broken", burn = "Heat lingers",
+    shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
 }
 
 local waiting, match, lastResultId
@@ -279,8 +280,8 @@ local function refresh()
         cue.Text = if match.placement then string.format("Placed %d · Watch or leave", match.placement) else "Watch or leave"
     elseif seconds > 0 then
         cue.Text, cue.TextColor3 = string.format("Starts in %d", math.ceil(seconds)), gold
-    elseif match.feedback == "snared" then
-        cue.Text, cue.TextColor3 = tips.snared, gold
+    elseif match.feedback == "snared" or match.feedback == "shocked" then
+        cue.Text, cue.TextColor3 = tips[match.feedback], gold
     elseif type(nextShrinkAt) == "number" and type(warningAt) == "number" and now >= warningAt and now < nextShrinkAt then
         cue.Text, cue.TextColor3 = string.format("Floor drops in %ds · Move inward", math.ceil(nextShrinkAt - now)), gold
     elseif now < stageCueUntil then

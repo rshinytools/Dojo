@@ -17,6 +17,7 @@ local Fields = require(script.Parent.ArenaFields)
 local Heavy = require(script.Parent.HeavyFighterCombat)
 local Ricochet = require(script.Parent.RingRicochet)
 local Magma = require(script.Parent.MagmaFighterCombat)
+local Thunder = require(script.Parent.ThunderFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
@@ -54,6 +55,9 @@ for id, kit in Heavy.kits do
     playerKits[id] = kit
 end
 for id, kit in Magma.kits do
+    playerKits[id] = kit
+end
+for id, kit in Thunder.kits do
     playerKits[id] = kit
 end
 
@@ -311,7 +315,8 @@ function Motion.open(bout)
         animate = animate, animateDisabled = animate and animate.Disabled,
         humanoid = humanoid, playerPoses = playerKit.poses, botPoses = resident.poses,
         spacing = spacing, diameter = diameter, originalPair = originalPair}
-    if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit] or Heavy.kits[bout.kit] or Magma.kits[bout.kit] then
+    if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit]
+        or Heavy.kits[bout.kit] or Magma.kits[bout.kit] or Thunder.kits[bout.kit] then
         state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
     end
     for _, name in tracked do
@@ -905,7 +910,8 @@ local function moveCommittedSkill(bout, now, clip, age)
     local state, root = bout.motion, bout.root
     local action = clip and not bout.outroAt and clip.action
     local roll = rolls[action]
-    local active = action == "tidalBellyFlop" or action == "volcanicBreath" or roll ~= nil
+    local thunder = Thunder.skills[action]
+    local active = action == "tidalBellyFlop" or action == "volcanicBreath" or roll ~= nil or thunder ~= nil
     local cast = state.heavyCast
     if cast and (not active or cast.clip ~= clip) then
         Fields.clearVisuals(cast)
@@ -916,7 +922,8 @@ local function moveCommittedSkill(bout, now, clip, age)
     end
     local arena = bout.arena
     if not cast then
-        local origin = root.CFrame
+        local origin = if thunder then CFrame.lookAlong(root.Position,
+            directionTo(root.Position, bout.position, root.CFrame.LookVector)) else root.CFrame
         cast = {clip = clip, origin = origin}
         state.heavyCast = cast
         if action == "tidalBellyFlop" then
@@ -929,7 +936,19 @@ local function moveCommittedSkill(bout, now, clip, age)
             end)
         end
     end
-    if cast.rollPath then
+    if thunder then
+        local origin, position = cast.origin, root.Position
+        local function step(target)
+            local delta = stopAtActor(position, Match.flat(target - position), bout.position, 1.91)
+            return safeTravel(bout, position, position + delta, CFrame.new(position) * origin.Rotation,
+                Vector3.new(1.52, 2.18, 1.38), state.arenaCast)
+        end
+        local offset = rosterTravel(state.playerPoses, action, age, clip.direction)
+        local nextPosition = step(origin:PointToWorldSpace(offset))
+        local landing = step(origin.Position + origin.LookVector * thunder.travel.distance)
+        Match.move(root, CFrame.new(nextPosition) * origin.Rotation)
+        Thunder.present(cast, bout.telegraph, arena.floor, age, landing, true)
+    elseif cast.rollPath then
         if age >= roll.windup then
             Match.move(root, Ricochet.frameAt(cast.rollPath, age - roll.windup))
         end
@@ -1648,7 +1667,24 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     end
     local state, root = bout.motion, actorRootAt(bout, time)
     local frame, groups = botPose(bout, time)
-    if move.shape == "ricochet" then
+    if move.thunder then
+        local cast = state.heavyCast
+        if not cast or cast.clip.startedAt ~= castStartedAt then
+            return false
+        end
+        local center = groundPoint(bout, root.Position)
+        local radius = Thunder.radius(Thunder.skills[action], cast.origin.Position, center)
+        Thunder.burst(cast, bout.telegraph, center, radius)
+        for _, name in {"Left Leg", "Right Leg"} do
+            local joint = bout.joints[name]
+            local point = nearestPoint(jointFrame(frame, groups, name, joint) * joint.shell, joint.part.Size, center)
+            if Match.flat(point - center).Magnitude <= radius and point.Y <= center.Y + .78
+                and not obstructed(bout, center, point) then
+                return true, center, "body"
+            end
+        end
+        return false, center
+    elseif move.shape == "ricochet" then
         local cast = state.heavyCast
         if not cast or not cast.rollPath or cast.clip.startedAt ~= castStartedAt then
             return false
@@ -2037,6 +2073,9 @@ function Motion.impact(bout, event)
         bout.reactionAt = event.at
         bout.reactionAction = if event.zone == "head" then "headHit" else "bodyHit"
     end
+    if event.shockDuration and bout.round.botHealth > 0 then
+        Thunder.shock(bout.bot, bout.telegraph, event.shockDuration)
+    end
     local force, height, spike = Sky.impulse(event)
     if force and (damage or event.kind == "pull") then
         local state = bout.motion
@@ -2052,6 +2091,10 @@ function Motion.impact(bout, event)
         bout.motion.crossKnock = {at = event.at, offset = heading * EmberAqua.shove[event.attack],
             progress = 0, duration = if event.attack == "cavitationCannon" then .34 else .20, height = 0,
             basis = CFrame.lookAlong(Vector3.zero, heading)}
+    elseif damage and Thunder.shove[event.attack] then
+        local direction = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
+        bout.motion.crossKnock = {at = event.at, offset = direction * Thunder.shove[event.attack], progress = 0,
+            duration = .24, height = 0, basis = CFrame.lookAlong(Vector3.zero, direction)}
     elseif damage and Magma.shove[event.attack] then
         local forward = actorRootAt(bout, event.at).LookVector
         local direction = if event.attack == "meteorRoll" then forward else directionTo(bout.root.Position, bout.position, forward)

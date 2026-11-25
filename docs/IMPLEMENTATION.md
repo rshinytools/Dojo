@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.292 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.293 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -19,7 +19,15 @@ Desktop Studio sampled Reedguard’s boots on the plaza and Grand Dojo canvas. T
 
 After the splash, first-time players can preview Reedguard Kangaroo, Penguin Brawler, Silverback Gorilla and Fire Salamander. The same four original Blender exports supply 27 mesh groups and four baked color atlases for the animated previews and playable avatars. A fighter’s homeland, story, style and proposed combat kit appear beside the preview. The server saves the confirmed choice in the existing profile. Studio Play verified all four mesh previews and their pose changes on desktop. Separate fresh sessions covered confirmation, city movement and respawn for each fighter across desktop and Galaxy A06 landscape and portrait simulation. Local profile tests covered legacy XP and trophies, lease ownership, unavailable storage and accepted writes with lost replies. Published DataStore rejoin and physical devices remain open.
 
-Choose an original starter on first join. Use the Fighter Select station between activities to preview all fourteen playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+Choose an original starter on first join. Use the Fighter Select station between activities to preview all sixteen playable fighters. The four starters are free from the start. The account unlocks Karate Frog at Level 2, River Otter at Level 3, Rooster Kickboxer at Level 4, Sugar Glider at Level 5, Desert Scorpion at Level 6, Pistol Shrimp at Level 7, Walrus Sumo at Level 8 Snapping Tortoise at Level 9, and Armadillo Striker and Komodo Dragon at Level 10, based on the highest level earned by any fighter. Browse with the desktop arrow keys and Enter, or tap the fighter and confirmation button. Studio loads a fresh test profile on each stop and restart. Each fighter retains its XP and the account retains earned fighter and ring access. In Bot Spar, the selected fighter determines player moves, health, and cooldowns. The ring determines the resident, their moves, and where the fight takes place.
+
+### Electric Owl and Bighorn Ram
+
+Electric Owl starts with 98 HP. Wing Sweep deals 18 damage at the fitted wing pad. Thunder Dive lifts the Owl into a tucked dive, lands after .66 seconds and deals 24 base damage to grounded opponents in the marked circle. A clean hit shocks for 1.2 seconds. Guard or parry prevents the shock. A Raid boss in recovery can be delayed without canceling its committed hazards.
+
+Bighorn Ram starts with 134 HP. Horn Check deals 20 damage at the leading horn. Static Charge builds from a crouch into a straight run, then deals 29 base damage on the grounded brace. The blast radius grows from 1.85 to 3.55 studs according to actual travel. Both signatures stop at combatants, walls and the arena edge. Group combat also checks whether the arena floor still supports each landing.
+
+Desktop Studio verified Owl’s keyboard Thunder Dive, Wing Sweep, knockout and 60 XP. Galaxy A06 landscape Studio simulation verified Ram’s Charge tap, 15 damage through a brace, 29 on a clean charge, Horn Check and the 60 XP win. Both fighters used temporary Level 10 account profiles. Exact Luau fixtures cover the move clocks and defense in Spar, Duel, Tag, Brawl and Raid.
 
 ### Karate Frog and River Otter
 

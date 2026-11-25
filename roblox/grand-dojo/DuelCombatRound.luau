@@ -85,6 +85,9 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
         if landed and move.burnDamage then
             fields.burnDamage = math.max(1, math.round(move.burnDamage * (if matchup then matchup.damageScale else 1)))
         end
+        if landed then
+            fields.shockDuration = move.shockDuration
+        end
         table.insert(batch, {notice = fields, direct = move.shape ~= "tile" and move.shape ~= "wave" and not move.projectile})
         -- The authored Magma Trail budget spends unscaled move damage.
         return baseDamage
@@ -115,7 +118,11 @@ local function resolveBatch(duel, time, batch)
             defender.damage += event.damage
             local head = event.zone == "head"
             if event.kind ~= "burn" then
-                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4, HIT_STUN)
+                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4,
+                    event.shockDuration or HIT_STUN)
+                if event.shockDuration then
+                    defender.shock = math.max(defender.shock or 0, event.shockDuration)
+                end
                 if event.burnDamage then
                     Magma.ignite(duel, event.attacker, event.defender, duel.sides[event.defender], time, event.burnDamage)
                 end
@@ -149,6 +156,9 @@ local function resolveBatch(duel, time, batch)
         end
         if plan.counterUntil then
             side.counterUntil = plan.counterUntil
+        end
+        if plan.shock and side.playerHealth > 0 then
+            side.shockedUntil = math.max(side.shockedUntil or 0, time + plan.shock)
         end
         if plan.rootTime and side.playerHealth > 0 then
             Combatant.applyRoot(side, time, plan.rootTime)

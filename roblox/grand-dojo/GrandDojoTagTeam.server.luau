@@ -330,6 +330,9 @@ local function advance(match, now)
         elseif event.kind == "snare" then
             feedback(attacker, "snareCaught", now)
             feedback(match.actors[event.defender], "snared", now)
+        elseif event.shockDuration then
+            feedback(attacker, "shockLanded", now)
+            feedback(match.actors[event.defender], "shocked", now)
         elseif event.kind == "guardBroken" or event.kind == "burn" then
             feedback(attacker, event.kind, now)
             feedback(match.actors[event.defender], event.kind, now)

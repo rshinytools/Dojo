@@ -340,7 +340,7 @@ local function tickShowcase(bout, now, dt)
         end
         if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
             local kind = if event.kind == "pull" then "gustPull" elseif event.kind == "snare" then "snareCaught" else event.kind
-            bout.message, bout.messageUntil = kind, now + .86
+            bout.message, bout.messageUntil = if event.shockDuration then "shockLanded" else kind, now + .86
         end
         if RunService:IsStudio() then
             bout.bot:SetAttribute("LastContactKind", event.kind)
@@ -350,6 +350,7 @@ local function tickShowcase(bout, now, dt)
             bout.bot:SetAttribute("LastContactDamage", event.damage)
             bout.bot:SetAttribute("LastContactAt", event.at)
             bout.bot:SetAttribute("RootedUntil", bout.round.botRootedUntil)
+            bout.bot:SetAttribute("ShockedUntil", if event.shockDuration then bout.round.botAt else nil)
         end
     end
     table.clear(round.notices)

@@ -403,5 +403,87 @@
         "counter": "Leave the marked arc or face Komodo and guard against the sweep."
       }
     ]
+  },
+  {
+    "id": "electric-owl",
+    "name": "Electric Owl",
+    "shortName": "Electric Owl",
+    "title": "Mistline Signal Keeper",
+    "home": "Skywalk Peaks · Mistline Crossing",
+    "element": "Sky",
+    "rarity": "Rare",
+    "role": "Agile",
+    "style": "Quick wing strikes and a lightning dive",
+    "health": 98,
+    "normal_hit": 14,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "owl",
+      "techniqueCue": "wingSweep",
+      "signatureCue": "thunderDive",
+      "techniqueCoolingCue": "wingCooling",
+      "signatureCoolingCue": "thunderCooling",
+      "compactTechnique": "Sweep",
+      "compactSignature": "Dive",
+      "tint": "B9D8FE",
+      "cardStyle": "Close wing sweeps and a lightning landing",
+      "initials": "EO",
+      "previewPose": {"right": -30, "left": 24, "lean": -9, "roll": -7, "lift": 0.16, "step": 0.16, "legs": 5}
+    },
+    "story": "Electric Owl watches the crossing lanterns when fog covers the lower trails. A storm once put out every light on the rope bridge. Owl carried the signal rope across and rang the far bell until every traveler reached shelter. In the dojo, Owl practices the same quick descent and precise landing.",
+    "quote": "Pick your landing before you take flight.",
+    "powers": [
+      {
+        "name": "Wing Sweep",
+        "effect": "Sweep a leading wing across close range for 18 damage.",
+        "counter": "Back out of the sweep or time a parry."
+      },
+      {
+        "name": "Thunder Dive",
+        "effect": "Blink forward and dive into the marked landing. A clean hit shocks the opponent for 1.2 seconds. Bosses resist shock during their committed attacks.",
+        "counter": "Step outside the landing circle or defend as Owl touches down."
+      }
+    ]
+  },
+  {
+    "id": "bighorn-ram",
+    "name": "Bighorn Ram",
+    "shortName": "Bighorn Ram",
+    "title": "The Switchback Warden",
+    "home": "Skywalk Peaks · Wind Court",
+    "element": "Sky",
+    "rarity": "Rare",
+    "role": "Heavy",
+    "style": "Braced horn checks and a charging burst",
+    "health": 134,
+    "normal_hit": 14,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "ram",
+      "techniqueCue": "hornCheck",
+      "signatureCue": "staticCharge",
+      "techniqueCoolingCue": "hornCooling",
+      "signatureCoolingCue": "staticCooling",
+      "compactTechnique": "Horn",
+      "compactSignature": "Charge",
+      "tint": "F1CD91",
+      "cardStyle": "Braced horn checks and a distance-powered burst",
+      "initials": "BR",
+      "previewPose": {"right": -29, "left": -24, "lean": -15, "roll": 5, "lift": 0.06, "step": 0.19, "legs": 8}
+    },
+    "story": "Bighorn knows the sound of every wind chime on the ridge. When loose stones threaten the switchbacks, Ram closes the trail and braces the guide posts until the road crew arrives. His sparring charge starts with the same planted breath he takes before moving a heavy stone.",
+    "quote": "Measure the path. Then move.",
+    "powers": [
+      {
+        "name": "Horn Check",
+        "effect": "Plant the lead hoof and drive into close range for 20 damage.",
+        "counter": "Step to the side as Ram lowers his head."
+      },
+      {
+        "name": "Static Charge",
+        "effect": "Rush down the marked lane and release a circular burst. The farther Ram actually travels, the wider the burst.",
+        "counter": "Leave the lane and the marked stopping point before Ram braces."
+      }
+    ]
   }
 ]

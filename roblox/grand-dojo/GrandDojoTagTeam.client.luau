@@ -250,6 +250,7 @@ local tips = {
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     ricochetBounce = "Shell rebounds",
     guardBroken = "Guard broken", burn = "Heat lingers",
+    shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
 }
 
 local offer, waiting, match
@@ -520,7 +521,7 @@ local function refresh()
         championship.hint.Text = tips[match.feedback] or earnedCues[match.feedback] or ""
         if match.feedback == "tagIn" or match.feedback == "tagStrike" or match.feedback == "parried" then
             championship.hint.TextColor3 = mint
-        elseif match.feedback == "snared" then
+        elseif match.feedback == "snared" or match.feedback == "shocked" then
             championship.hint.TextColor3 = gold
         end
     end

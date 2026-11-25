@@ -232,6 +232,7 @@ local feedback = {
     snared = "Snared briefly", snareCaught = "Cinder Snare landed",
     ricochetBounce = "Shell rebounds",
     guardBroken = "Guard broken", burn = "Heat lingers",
+    shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},

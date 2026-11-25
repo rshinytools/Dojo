@@ -13,6 +13,7 @@ local Fields = require(script.Parent.ArenaFields)
 local Heavy = require(script.Parent.HeavyFighterCombat)
 local Ricochet = require(script.Parent.RingRicochet)
 local Magma = require(script.Parent.MagmaFighterCombat)
+local Thunder = require(script.Parent.ThunderFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 
 local Motion = {}
@@ -36,6 +37,8 @@ local sideStep = {
     tortoise = {distance = 1.91, time = .27, start = .03},
     armadillo = {distance = 1.95, time = .27, start = .03},
     komodo = {distance = 2.36, time = .24, start = .03},
+    owl = {distance = 2.58, time = .23, start = .02},
+    ram = {distance = 2.17, time = .27, start = .035},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -276,6 +279,18 @@ local function intendedPosition(duel, actor, opponent, origin, target, lowered, 
     return arenaTravel(duel, current, current + desired, frame, box)
 end
 
+local function thunderTravel(duel, actor, other, origin, target, at)
+    -- Unlike ordinary knockback, the charged landing stays on supported arena floor.
+    local point = Match.clampFloor(duel.bounds, target, origin.Y)
+    local landing = intendedPosition(duel, actor, other, origin, point, 0, 1.91)
+    if duel.floorActive then
+        return Thunder.floorEnd(actor.root.Position, landing, function(sample)
+            return floorActive(duel, sample, at)
+        end)
+    end
+    return landing
+end
+
 local function slideGuide(duel, actor, origin, distance)
     local start = floorPoint(duel, origin.Position)
     local feet = CFrame.new(start + Vector3.new(0, .76, 0)) * origin.Rotation
@@ -455,11 +470,16 @@ local function moveCast(duel, actor, other, cast, now)
         local target = origin:PointToWorldSpace(pathOffset(cast, at - clip.startedAt, other))
         local delta = target - current
         if delta.Magnitude > .005 then
-            local maxStep = (if action == "lilyVault" then 22 else 18) * (at - cast.movedAt)
-            local bounded = current + delta.Unit * math.min(delta.Magnitude, maxStep)
-            local low = action == "bellySlide"
-            local position = intendedPosition(duel, actor, other, origin, bounded,
-                if low then 1.23 elseif action == "magmaTrail" then .38 else 0, if low then 1.55 else 1.79)
+            local position
+            if Thunder.skills[action] then
+                position = thunderTravel(duel, actor, other, origin, target, at)
+            else
+                local maxStep = (if action == "lilyVault" then 22 else 18) * (at - cast.movedAt)
+                local bounded = current + delta.Unit * math.min(delta.Magnitude, maxStep)
+                local low = action == "bellySlide"
+                position = intendedPosition(duel, actor, other, origin, bounded,
+                    if low then 1.23 elseif action == "magmaTrail" then .38 else 0, if low then 1.55 else 1.79)
+            end
             if (position - current).Magnitude > .005 then
                 Match.move(actor.root, CFrame.new(position) * origin.Rotation)
             end
@@ -505,7 +525,7 @@ local function updateActor(duel, index, now)
     local planting = (clip and plantedActions[clip.action])
         or FighterMotion.canPlantKick(state.kitId, clip, root, duel.floor)
     local live = now >= duel.round.startsAt and not duel.round.resolvedAt
-    local rooted = now < (state.rootedUntil or 0)
+    local rooted = now < math.max(state.rootedUntil or 0, state.shockedUntil or 0)
     if brawl then
         actor.humanoid.AutoRotate = live and not clip and not actor.knock and actor.wasAutoRotate
         if live and not floorActive(duel, root.Position, now) then
@@ -558,6 +578,11 @@ local function updateActor(duel, index, now)
                 local ray = workspace:Raycast(mouth, direction * range, duel.motion.arenaCast)
                 return if ray then ray.Distance else range
             end)
+        elseif Thunder.skills[clip.action] then
+            local origin = actor.cast.origin
+            local target = origin.Position + origin.LookVector * Thunder.skills[clip.action].travel.distance
+            local landing = thunderTravel(duel, actor, other, origin, target, now)
+            Thunder.present(actor.cast, actor.fx, duel.floor, now - clip.startedAt, landing, floorActive(duel, landing, now))
         elseif actor.cast.field then
             local field = actor.cast.field
             Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
@@ -786,13 +811,24 @@ local function pebbleSegment(duel, actor, move, index, castStartedAt)
 end
 
 local function radialCenter(duel, actor, root, move, at, castStartedAt)
+    if move.thunder then
+        local cast = actor.cast
+        if not cast or cast.clip.startedAt ~= castStartedAt or cast.movedAt < at - .001 then
+            return nil
+        end
+        local center = floorPoint(duel, root.Position)
+        if not floorActive(duel, center, at) then return nil end
+        local radius = Thunder.radius(Thunder.skills[cast.clip.action], cast.origin.Position, center)
+        Thunder.burst(cast, actor.fx, center, radius)
+        return center, radius
+    end
     if not move.lockedCenter then
-        return floorPoint(duel, root:PointToWorldSpace(move.center))
+        return floorPoint(duel, root:PointToWorldSpace(move.center)), move.radius
     end
     local cast = actor.cast
     local center = if cast and cast.clip.startedAt == castStartedAt and cast.fieldCenter then cast.fieldCenter
         else Match.clampFloor(duel.bounds, clockFrame(actor, castStartedAt):PointToWorldSpace(move.center), duel.floor)
-    return if floorActive(duel, center, at) then center else nil
+    return (if floorActive(duel, center, at) then center else nil), move.radius
 end
 
 local function fieldFor(duel, actor, move, at, castStartedAt)
@@ -916,11 +952,11 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     end
     local fan = move.shape == "fan"
     if fan or move.shape == "radial" then
-        local center = radialCenter(duel, actor, root, move, at, castStartedAt)
+        local center, radius = radialCenter(duel, actor, root, move, at, castStartedAt)
         if not center then
             return false
         end
-        local hit, guardFacing = floorContact(duel, other, at, target, center, move.radius, if fan then root.LookVector else nil,
+        local hit, guardFacing = floorContact(duel, other, at, target, center, radius, if fan then root.LookVector else nil,
             move.halfAngle)
         return hit ~= nil, if fan then hit or center else center, "body", guardFacing
     end
@@ -976,6 +1012,7 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
         return plantMagma(brawl, actor, move, at, index, castStartedAt)
     end
     local center, point, previous, breathDirection
+    local radius = move.radius
     if move.shape == "breath" then
         center, breathDirection = breathFrame(actor, move, castStartedAt)
         if not center then return {} end
@@ -1012,7 +1049,7 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
         end
         return if closest then {closest} else {}, finish
     elseif fan or move.shape == "radial" then
-        center = radialCenter(brawl, actor, root, move, at, castStartedAt)
+        center, radius = radialCenter(brawl, actor, root, move, at, castStartedAt)
         if not center then
             return {}
         end
@@ -1038,8 +1075,8 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
             hit, facing = breathContact(brawl, other, at, target, move, center, breathDirection)
             zone = "body"
         elseif center then
-            if Match.flat(target.Position - center).Magnitude <= move.radius + 3 then
-                hit, facing = floorContact(brawl, other, at, target, center, move.radius,
+            if Match.flat(target.Position - center).Magnitude <= radius + 3 then
+                hit, facing = floorContact(brawl, other, at, target, center, radius,
                     if fan then root.LookVector else nil, move.halfAngle)
                 if hit and not fan then
                     hit = center
@@ -1118,6 +1155,7 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
         return plantMagma(raid, actor, move, at, index, castStartedAt)
     end
     local center, point, previous, effect, breathDirection
+    local radius = move.radius
     if move.shape == "breath" then
         center, breathDirection = breathFrame(actor, move, castStartedAt)
         if not center then return false end
@@ -1134,7 +1172,7 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
             return false, point
         end
     elseif fan or move.shape == "radial" then
-        center = radialCenter(raid, actor, root, move, at, castStartedAt)
+        center, radius = radialCenter(raid, actor, root, move, at, castStartedAt)
         if not center then
             return false
         end
@@ -1151,7 +1189,7 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
         elseif center then
             local near = Geometry.nearestPoint(frame, size, center + Vector3.new(0, .45, 0))
             local delta = Match.flat(near - center)
-            if delta.Magnitude <= move.radius and (not fan or delta.Magnitude <= .03
+            if delta.Magnitude <= radius and (not fan or delta.Magnitude <= .03
                 or delta.Unit:Dot(root.LookVector) >= math.cos(move.halfAngle)) then
                 hit = near
             end
@@ -1261,6 +1299,9 @@ function Motion.impact(duel, event)
     local attacker, target = duel.actors[event.attacker], duel.actors[event.defender]
     local root = clockFrame(attacker, event.at)
     local direction = root.LookVector
+    if event.shockDuration and not duel.round.sides[event.defender].eliminated then
+        Thunder.shock(target.character, target.fx, event.shockDuration)
+    end
     local offset, duration, height
     local force, popHeight, spike = Sky.impulse(event)
     if force then
@@ -1272,6 +1313,8 @@ function Motion.impact(duel, event)
         local center = if action == "cavitationCannon" and field then field.center else root.Position
         offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
             (if action == "cavitationCannon" then .34 else .20), 0
+    elseif Thunder.shove[action] then
+        offset, duration, height = heading(root.Position, target.root.Position, direction) * Thunder.shove[action], .24, 0
     elseif Magma.shove[action] then
         offset, duration, height = heading(root.Position, target.root.Position, direction) * Magma.shove[action],
             .24, if action == "meteorRoll" then .32 else 0

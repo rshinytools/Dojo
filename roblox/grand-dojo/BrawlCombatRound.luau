@@ -191,6 +191,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
                 notice.damage = math.round(fields.damage * matchup.damageScale)
                 notice.elementEffect, notice.knockbackScale = matchup.elementEffect, matchup.knockbackScale
                 if move.burnDamage then notice.burnDamage = math.max(1, math.round(move.burnDamage * matchup.damageScale)) end
+                notice.shockDuration = move.shockDuration
                 spent = fields.damage
             end
             notice.detached = move.shape == "tile" or move.shape == "wave" or move.projectile ~= nil
@@ -227,7 +228,11 @@ local function resolveBatch(round, at, notices, eliminateMany)
             defender.damage += event.damage
             local head = event.zone == "head"
             if event.kind ~= "burn" then
-                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4, HIT_STUN)
+                reaction(defender, if head then "hitHead" else "hitBody", if head then 5 else 4,
+                    event.shockDuration or HIT_STUN)
+                if event.shockDuration then
+                    defender.shock = math.max(defender.shock or 0, event.shockDuration)
+                end
                 if event.burnDamage then
                     Magma.ignite(round, event.attacker, event.defender, round.sides[event.defender], at, event.burnDamage)
                 end
@@ -265,6 +270,9 @@ local function resolveBatch(round, at, notices, eliminateMany)
             end
             if plan.counterUntil then
                 side.counterUntil = plan.counterUntil
+            end
+            if plan.shock and side.playerHealth > 0 then
+                side.shockedUntil = math.max(side.shockedUntil or 0, at + plan.shock)
             end
             if plan.rootTime and side.playerHealth > 0 then
                 Combatant.applyRoot(side, at, plan.rootTime)
