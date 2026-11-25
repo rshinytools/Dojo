@@ -20,6 +20,9 @@ local MAX_INACTIVITY = 150
 local MIN_EXPERT_TIME = 8
 local HORIZONTAL_RATE = 28
 local REPLICATION_ALLOWANCE = 4.8
+local MAX_EDGE_REACH = .36
+local EDGE_HEIGHT_TOLERANCE = .3
+local EDGE_VERTICAL_SPEED = 5
 local MASTERY_ID = "mastery-sky"
 local MOVE_AMPLITUDE = 1.05
 local MOVE_FREQUENCY = 2 * math.pi / 5.2
@@ -159,12 +162,34 @@ expertPrompt.Triggered:Connect(function(player)
 end)
 
 local function standingOn(root, humanoid, index)
-    local heightAbove = root.Position.Y - platformTop(platforms[index]).Y
+    local platform = platforms[index]
+    local heightAbove = root.Position.Y - platformTop(platform).Y
     if heightAbove < .6 or heightAbove > 4.1 or humanoid.FloorMaterial == Enum.Material.Air then
         return false
     end
-    local hit = workspace:Raycast(root.Position, Vector3.new(0, -4.2, 0), standingRays[index])
-    return hit ~= nil and hit.Instance == platforms[index]
+    local ray = standingRays[index]
+    local down = Vector3.new(0, -4.2, 0)
+    if workspace:Raycast(root.Position, down, ray) then
+        return true
+    end
+
+    -- A grounded fighter can have its center just outside a stone while its feet still overlap it.
+    local half = platform.Size * .5
+    local offset = platform.CFrame:PointToObjectSpace(root.Position)
+    local inset = Vector3.new(math.clamp(offset.X, -half.X + .02, half.X - .02), offset.Y,
+        math.clamp(offset.Z, -half.Z + .02, half.Z - .02))
+    local reach = math.min(MAX_EDGE_REACH, math.min(root.Size.X, root.Size.Z) * .5)
+    if (offset - inset).Magnitude > reach or math.abs(root.AssemblyLinearVelocity.Y) > EDGE_VERTICAL_SPEED then
+        return false
+    end
+    local standingHeight = root.Size.Y * .5 + humanoid.HipHeight
+    if humanoid.RigType == Enum.HumanoidRigType.R6 then
+        local leg = humanoid.Parent:FindFirstChild("Left Leg")
+        if not (leg and leg:IsA("BasePart")) then return false end
+        standingHeight += leg.Size.Y
+    end
+    return math.abs(heightAbove - standingHeight) <= EDGE_HEIGHT_TOLERANCE
+        and workspace:Raycast(platform.CFrame:PointToWorldSpace(inset), down, ray) ~= nil
 end
 
 local function recover(player, run, now)
@@ -276,8 +301,12 @@ bellPrompt.Triggered:Connect(function(player)
         return
     end
     lastAction[player] = now
-    if run.nextPad <= LANDING_COUNT or not standingOn(root, humanoid, LANDING_COUNT) then
-        notice(player, "Land on every stone in order before ringing the bell.")
+    if run.nextPad <= LANDING_COUNT then
+        notice(player, string.format("Stone %d of %d is still missing. Land on each stone in order.", run.nextPad, LANDING_COUNT))
+        return
+    end
+    if not standingOn(root, humanoid, LANDING_COUNT) then
+        notice(player, "Stand on the summit platform to ring the bell.")
         return
     end
     clearRun(player)
@@ -297,6 +326,8 @@ bellPrompt.Triggered:Connect(function(player)
         bellSound:Play()
     end
     local seconds = math.round(elapsed * 10) / 10
+    local clean = not run.recoveredFromFall
+    local clearText = if clean then "Cloudbreak clean clear" else "Cloudbreak clear with recovery"
     local best = player:GetAttribute("SkywalkExpertBest")
     if not best or seconds < best then
         player:SetAttribute("SkywalkExpertBest", seconds)
@@ -304,11 +335,11 @@ bellPrompt.Triggered:Connect(function(player)
     if player:GetAttribute("SkywalkExpertEarned") ~= true then
         player:SetAttribute("SkywalkExpertEarned", true)
         player:SetAttribute("SkywalkExpertRewardId", MASTERY_ID)
-        notice(player, string.format("Cloudbreak clear · %.1fs · Saving your reward", seconds))
+        notice(player, string.format("%s · %.1fs · Saving your reward", clearText, seconds))
     else
-        notice(player, string.format("Cloudbreak Expert clear · %.1fs", seconds))
+        notice(player, string.format("%s · %.1fs", clearText, seconds))
     end
-    adventureCleared:Fire(player, seconds, not run.recoveredFromFall)
+    adventureCleared:Fire(player, seconds, clean)
 end)
 
 returnPrompt.Triggered:Connect(function(player)

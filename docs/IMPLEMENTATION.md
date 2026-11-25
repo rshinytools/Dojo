@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.359 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.360 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -179,7 +179,9 @@ Training Festival opens for 12 minutes each half hour. Any three different eligi
 
 Cloudbreak Expert stops the clock on landing 24, with the summit bell required to verify the clear. Clean and recovered bests save separately. A first clear awards Skywalk Peaks Master, the wearable Summit Sash, and 85 XP. The fitted route uses the existing 24 landings and six stages. In a guided Studio playtest, the real landing checks recorded 26.1 seconds across all 24 landings. The summit bell saved 85 XP, the Skywalk Peaks Master trophy and the equipped Summit Sash to the isolated Studio profile. The exact-source replay also verified a 28.1-second clean route and that a separate 12.6-second bell delay adds no time. V0.357 was published to the existing Beast Dojo - Private Beta start place with private access. Roblox Player opened the Training Festival board and countdown, walked to Skywalk Peaks, started Expert and returned the avatar to staging after a fall.
 
-V0.357 discarded a validated 228.1-second clear because the reward handler capped results at 120 seconds. V0.358 uses one time validator for the event, reward mutation, and save migration. In published Roblox Player, a 181.0-second Expert clear with recovery earned 85 XP, Skywalk Peaks Master, and the Summit Sash. After leaving and rejoining, Trophy Hall showed the trophy as Earned and Adventure Journal showed the sash still equipped and the 181.0-second record. V0.359 corrects the Trophy Journal total. A fresh private-beta join showed Skywalk Peaks Master as Earned and 1 of 30 earned in the header. A player-controlled, server-validated 20–30 second clean clear with video remains open.
+V0.357 discarded a validated 228.1-second clear because the reward handler capped results at 120 seconds. V0.358 uses one time validator for the event, reward mutation, and save migration. In published Roblox Player, a 181.0-second Expert clear with recovery earned 85 XP, Skywalk Peaks Master, and the Summit Sash. After leaving and rejoining, Trophy Hall showed the trophy as Earned and Adventure Journal showed the sash still equipped and the 181.0-second record. V0.359 corrects the Trophy Journal total. A fresh private-beta join showed Skywalk Peaks Master as Earned and 1 of 30 earned in the header.
+
+The v0.359 baseline completed all 24 stones with a 25.2-second clean result in isolated Studio using native character movement and jumps. A separate Studio edge reproduction held Reedguard on the first stone for 28 frames with the root center 0.12 studs outside. The center ray missed and the server credited no landing. V0.360 adds a tight grounded-edge fallback with height, vertical velocity, and support checks, and reports the missing stone at the bell. A replay of the exact recorded contact passed in the standalone landing regression, alongside rejection of wider gaps, airborne passes, wrong-height support and falls. The recorded 20–30 second clear on the published private beta remains open.
 
 ## Shared city and personal trophy rooms
 
