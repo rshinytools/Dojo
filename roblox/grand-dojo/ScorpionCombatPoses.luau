@@ -9,12 +9,16 @@ local function sole(side)
     }
 end
 
-local rig = Choreography.new(2.60, {
+local pivots = {
     Neck = v(0, 3.10, -.04),
     ["Right Shoulder"] = v(.81, 2.97, .01), ["Left Shoulder"] = v(-.81, 2.97, .01),
     ["Right Hip"] = v(.46, 1.53, .03), ["Left Hip"] = v(-.46, 1.53, .03),
     TailJoint = v(0, 1.80, .52),
-}, sole(1), sole(-1))
+}
+local rightSole, leftSole = sole(1), sole(-1)
+local rig = Choreography.new(2.60, pivots, rightSole, leftSole)
+local mountedHeight = 2.132
+local tacticPose = Choreography.new(mountedHeight, pivots, rightSole, leftSole).pose
 local pose = rig.pose
 
 local rightGuard, leftGuard = {44, 13, -20, .02, .13, .09}, {51, -19, 19, -.02, .11, .04}
@@ -64,6 +68,30 @@ local tailSweep = pose({-.105, -.16, -.245, -10, 41, -3}, {66, 17, -6, -.11, .09
 local tailReturn = pose({.05, -.32, -.105, -16, 23, -7}, {50, 17, -16, -.08, .03, -.045},
     leftGuard, rearFoot, leadFoot, {14, -22, 5}, {11, -28, 3})
 
+-- Open both claws beside the jacket, then close them across the body line.
+-- The lower right claw gives the single strike a clear contact surface.
+local pincerLoad = tacticPose({.06, -.36, .075, -14, -11, -5}, {27, 9, -9, .20, .07, .16},
+    {39, -7, 9, -.20, .10, .14}, rearFoot, leadFoot, {17, 9, 3}, {9, 18, -11})
+local pincerClose = tacticPose({.035, -.28, -.235, -12, 13, -3}, {56, 20, -20, -.11, .04, -.17},
+    {61, -26, 31, .10, .09, -.095}, rearFoot, leadFoot, {13, -12, 2}, {20, -14, 4})
+local pincerFold = tacticPose({.04, -.30, -.08, -13, 3, -4}, {50, 18, -28, .03, .08, -.045},
+    {58, -21, 27, -.035, .10, .065}, rearFoot, leadFoot, {13, -1, 2}, {16, -5, -3})
+
+-- Let the tail travel around the right flank. Its rounded upper armor
+-- presents a broad sideways surface while the claws stay behind the strike.
+local lashLoad = tacticPose({-.08, -.34, .14, -11, -21, 6}, {44, 16, -29, .04, .11, .11},
+    {49, -16, 28, -.07, .12, .10}, rearFoot, leadFoot, {14, 18, -4}, {9, 29, -25})
+local lashCoil = tacticPose({-.13, -.37, .13, -11, -31, 8}, {28, 5, -36, .06, .09, .15},
+    {47, -14, 24, -.075, .13, .13}, rearFoot, leadFoot, {14, 26, -5}, {-4, 39, -59})
+local lashDrive = tacticPose({-.14, -.32, -.07, -12, -16, 9}, {30, 9, -35, .025, .09, .14},
+    {52, -19, 20, -.09, .11, .11}, rearFoot, leadFoot, {14, 15, -4}, {-48, 13, -46, .125, 0, 0})
+local lashContact = tacticPose({-.60, -.25, -.52, -11, 3, 8}, {34, 12, -32, .015, .09, .12},
+    {53, -20, 20, -.065, .12, .10}, rearFoot, leadFoot, {12, -2, -4}, {-108, -20, -53, .30, .015, -.08})
+local lashThrough = tacticPose({-.28, -.31, -.15, -10, 8, 7}, {37, 14, -31, .025, .10, .12},
+    {54, -20, 22, -.045, .12, .10}, rearFoot, leadFoot, {11, -10, -4}, {-103, -25, -52, .36, 0, 0})
+local lashFold = tacticPose({-.044, -.30, .04, -9, -2, 4}, {42, 14, -26, .02, .12, .10},
+    leftGuard, rearFoot, leadFoot, {11, 4, -1}, {-40, 23, -49, .10, 0, 0})
+
 local snareGather = pose({0, -.38, .13, -5, 2, 0}, {47, -13, -6, -.11, .14, .10},
     {47, 13, 6, .11, .14, .10}, {7, -25, 0, .17, 0, .16, 0}, {7, 25, 0, -.17, 0, -.105, 0},
     {7, -2, 0}, {-13, 0, 0})
@@ -91,7 +119,7 @@ local bow = pose({.005, -.36, -.095, -29, 0, 0}, {31, 17, -14, -.045, .015, .06}
 local victory = pose({-.005, -.11, -.06, 0, 8, 0}, {78, 10, -41, .085, .16, -.14},
     {79, -12, 42, -.085, .16, -.14}, rearFoot, leadFoot, {5, -8, 0}, {21, 7, 0})
 
-local contact = {jab = .16, cross = .23, body = .275, heavy = .43, tailFeint = .31, cinderSnare = .86}
+local contact = {jab = .16, cross = .23, body = .275, heavy = .43, tailFeint = .31, sandPincer = .23, duneLash = .49, cinderSnare = .86}
 local clips = {
     stance = {{0, ready}, {.46, sift}, {.92, ready}},
     advance = {{0, ready}, {.15, reachLead}, {.31, sift}, {.46, reachRear}, {.62, ready}},
@@ -102,6 +130,9 @@ local clips = {
     body = {{0, ready}, {.136, scoopLoad}, {contact.body, scoopHit}, {.39, sift}, {.57, ready}},
     heavy = {{0, ready}, {.18, heavyLoad}, {.29, heavyLoad}, {contact.heavy, heavySweep}, {.54, heavyFollow}, {.81, ready}},
     tailFeint = {{0, ready}, {.11, tailSlip}, {.212, tailSlip}, {contact.tailFeint, tailSweep}, {.405, tailReturn}, {.67, ready}},
+    sandPincer = {{0, ready}, {.10, pincerLoad}, {contact.sandPincer, pincerClose}, {.34, pincerFold}, {.58, ready}},
+    duneLash = {{0, ready}, {.15, lashLoad}, {.29, lashCoil}, {.405, lashDrive}, {contact.duneLash, lashContact},
+        {.585, lashThrough}, {.735, lashFold}, {.94, ready}},
     cinderSnare = {{0, ready}, {.22, snareGather}, {.362, snareMarks}, {.69, snareMarks},
         {contact.cinderSnare, snareSnap}, {.97, snareSnap}, {1.16, ready}},
     guard = {{0, cover}},
@@ -118,12 +149,18 @@ local clips = {
 
 local rightTip, leftTip = v(1.14, 1.96, -.97), v(-1.14, 1.96, -.97)
 local vertices = table.freeze({v(-2.6, -2.6, -1.55), v(2.6, -2.6, -1.55), v(0, -2.6, -6.2)})
+-- Keep the contact pads on the original native ellipsoids in mounted space.
+local function mountedContact(key, joint, artPoint)
+    return (key.RootJoint * key[joint]):PointToWorldSpace(artPoint - Vector3.yAxis * mountedHeight)
+end
 local hits = {
     jab = {{jabPinch, "Right Shoulder", rightTip}},
     cross = {{crossCut, "Left Shoulder", leftTip}},
     body = {{scoopHit, "Right Shoulder", rightTip}},
     heavy = {{heavySweep, "Left Shoulder", leftTip}},
     tailFeint = {{tailSweep, "Right Shoulder", rightTip}},
+    sandPincer = {mountedContact(pincerClose, "Right Shoulder", v(1.199490452, 1.885044817, -.961241258))},
+    duneLash = {mountedContact(lashContact, "TailJoint", v(.075320563, 3.949417832, 1.255634070))},
     cinderSnare = {v(0, -2.6, -3.1)},
 }
 local skills = {
@@ -132,4 +169,18 @@ local skills = {
 }
 local travel = {tailFeint = table.freeze({axis = "lateral", distance = .81, startsAt = .105, endsAt = .26})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep", "tailFeint"})
+local planted = {sandPincer = true, duneLash = true}
+local poses = table.clone(rig.finish(clips, contact, hits, skills, travel, {"sidestep", "tailFeint"}, planted))
+local sample = poses.sample
+function poses.sample(action, age, direction)
+    local offsets = sample(action, age, direction)
+    if planted[action] then
+        -- Match the native padded feet, which extend past the legacy sole samples.
+        local up = offsets.RootJoint:VectorToObjectSpace(Vector3.yAxis)
+        offsets["Right Hip"] = CFrame.new(up * .021) * offsets["Right Hip"]
+        offsets["Left Hip"] = CFrame.new(up * .010) * offsets["Left Hip"]
+    end
+    return offsets
+end
+
+return table.freeze(poses)

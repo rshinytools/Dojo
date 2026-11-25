@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.335, equip Desert Scorpion, Pistol Shrimp, Walrus Sumo, or Snapping Tortoise. Train that fighter to Level 5 and Level 10 to earn two Technique choices. Use Fighter Select to equip one, then press **V**, **D-pad Up**, or the Technique control in a match.
+
 In v0.334, equip Karate Frog, River Otter, Rooster Kickboxer, or Sugar Glider. Train that fighter to Level 5 and Level 10 to earn two Technique choices. Use Fighter Select to equip one, then press **V**, **D-pad Up**, or the Technique control in a match.
 
 In v0.333, reach Level 10 with Reedguard or Penguin and use Fighter Select to equip **Reedstone Heel** or **Glacier Press**. Press **V**, **D-pad Up**, or the Technique control in the ring. In phone landscape, swipe sideways on the fighter cards to browse the roster.

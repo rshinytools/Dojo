@@ -82,6 +82,46 @@ local byFighter = {
                 description = "A wide wing windup into a sweeping palm strike."},
         },
     },
+    ["desert-scorpion"] = {
+        kit = "scorpion", attribute = "ScorpionTactical", default = "tailFeint",
+        options = {
+            {id = "tailFeint", name = "Tail Feint", compact = "Feint", level = 1, action = "secondary"},
+            {id = "sandPincer", name = "Sand Pincer", compact = "Pincer", level = 5, action = "secondary", planted = true,
+                description = "A quick claw strike for an opening at close range."},
+            {id = "duneLash", name = "Dune Lash", compact = "Lash", level = 10, action = "secondary", planted = true,
+                description = "A slower tail sweep that reaches across the body line."},
+        },
+    },
+    ["pistol-shrimp"] = {
+        kit = "shrimp", attribute = "ShrimpTactical", default = "clawDash",
+        options = {
+            {id = "clawDash", name = "Claw Dash", compact = "Dash", level = 1, action = "secondary"},
+            {id = "jetSnap", name = "Jet Snap", compact = "Snap", level = 5, action = "secondary", planted = true,
+                description = "A fast strike with the smaller claw and a short recoil."},
+            {id = "tidebreakerClaw", name = "Tidebreaker Claw", compact = "Claw", level = 10, action = "secondary", planted = true,
+                description = "Both claws wind up before the larger claw strikes."},
+        },
+    },
+    ["walrus-sumo"] = {
+        kit = "walrus", attribute = "WalrusTactical", default = "harborPalm",
+        options = {
+            {id = "harborPalm", name = "Harbor Palm", compact = "Palm", level = 1, action = "secondary"},
+            {id = "whiskerCheck", name = "Whisker Check", compact = "Check", level = 5, action = "secondary", planted = true,
+                description = "A short head dip that catches a nearby opening."},
+            {id = "basinPress", name = "Basin Press", compact = "Press", level = 10, action = "secondary", planted = true,
+                description = "A slow, wide windup into a two-flipper press."},
+        },
+    },
+    ["snapping-tortoise"] = {
+        kit = "tortoise", attribute = "TortoiseTactical", default = "shellCheck",
+        options = {
+            {id = "shellCheck", name = "Shell Check", compact = "Shell", level = 1, action = "secondary"},
+            {id = "quickSnap", name = "Quick Snap", compact = "Snap", level = 5, action = "secondary", planted = true,
+                description = "A short beak strike from a steady guard."},
+            {id = "rampartBash", name = "Rampart Bash", compact = "Bash", level = 10, action = "secondary", planted = true,
+                description = "A planted turn that brings the rounded shell around."},
+        },
+    },
 }
 
 local byKit, byId = {}, {}

@@ -9,12 +9,13 @@ local function sole(side)
     }
 end
 
-local rig = Choreography.new(2.60, {
+local pivots = {
     Neck = v(0, 3.14, -.07),
     ["Right Shoulder"] = v(.97, 2.93, .13), ["Left Shoulder"] = v(-.97, 2.93, .13),
     ["Right Hip"] = v(.56, 1.46, .06), ["Left Hip"] = v(-.56, 1.46, .06),
     TailJoint = v(0, 1.65, 1.0),
-}, sole(1), sole(-1))
+}
+local rig = Choreography.new(2.60, pivots, sole(1), sole(-1))
 local pose = rig.pose
 
 local rightGuard, leftGuard = {53, 18, -14, -.10, .045, .01}, {51, -16, 16, .09, .05, .005}
@@ -152,4 +153,94 @@ local travel = {
     shellCheck = table.freeze({axis = "forward", distance = .48, startsAt = .16, endsAt = .31}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+
+-- Fit the additional strikes to the mounted combat root. Keep both rounded soles
+-- grounded at contact and let the trunk move independently.
+local mountedRig = Choreography.new(2.132, pivots, sole(1), sole(-1))
+local leftHip, rightHip = "Left Hip", "Right Hip"
+local leftPlant = CFrame.new(0, .019, 0) * ready.RootJoint * ready[leftHip]
+local rightPlant = CFrame.new(0, .019, 0) * ready.RootJoint * ready[rightHip]
+
+local function smooth(alpha)
+    local weight = math.clamp(alpha, 0, 1)
+    return weight * weight * (3 - 2 * weight)
+end
+
+local function plantFeet(offsets, action, age)
+    local root = offsets.RootJoint
+    offsets[leftHip] = root:ToObjectSpace(leftPlant)
+    local rear = rightPlant
+    if action == "rampartBash" then
+        -- Set the right foot in front before the shell comes through, then reset it.
+        local enter, leave = (age - .15) / .25, (age - .64) / .28
+        local planted = smooth(enter) - smooth(leave)
+        local lift = .18 * (math.sin(math.pi * math.clamp(enter, 0, 1)) ^ 2
+            + math.sin(math.pi * math.clamp(leave, 0, 1)) ^ 2)
+        rear = CFrame.new(-.40 * planted, lift, -.82 * planted) * rightPlant
+    end
+    offsets[rightHip] = root:ToObjectSpace(rear)
+    return offsets
+end
+
+local function fitted(core, right, left, head, tail)
+    return mountedRig.pose(core, right, left, rearFoot, leadFoot, head, tail)
+end
+
+local snapGather = fitted({.025, -.25, .074, -4, -12, 2}, rightGuard, leftGuard,
+    {21, 9, -2, 0, .01, .08}, {2, 10, 2})
+local snapHit = fitted({.035, -.34, -.22, -17, -2, 0}, {50, 18, -15, -.105, .05, .09},
+    {48, -17, 16, .105, .05, .09}, {-24, 3, 0, 0, -.04, -.26}, {9, 9, 0})
+local snapRecoil = fitted({.018, -.32, -.125, -10, -7, 2}, rightGuard, leftGuard,
+    {-4, 6, -3, 0, .016, -.07}, {5, 12, 2})
+
+local bashLoad = fitted({-.068, -.34, .14, -10, -38, 7}, {46, 20, -18, -.10, .09, .13},
+    {62, -13, 19, .075, .12, .07}, {17, 27, -3, 0, -.105, .10}, {11, 24, -5})
+local bashStart = fitted({-.13, -.36, .05, -8, 8, 3}, {43, 19, -20, -.13, .08, .14},
+    {60, -15, 19, .086, .10, .10}, {18, -8, -5, 0, -.16, .15}, {18, 11, -8})
+local bashHit = fitted({-.27, -.26, -.60, -8, 83, -2}, {46, 16, -23, -.21, .13, .19},
+    {55, -17, 17, .08, .08, .13}, {15, -42, -6, 0, -.14, .14}, {14, -30, 10})
+local bashThrough = fitted({-.31, -.28, -.42, -6, 91, -4}, {48, 15, -22, -.17, .10, .14},
+    {58, -17, 15, .09, .11, .12}, {16, -40, -6, 0, -.135, .14}, {14, -36, 5})
+local bashWithdraw = fitted({-.14, -.30, -.055, -7, 25, 0}, rightGuard, leftGuard,
+    {12, -21, -3, 0, -.035, .055}, {11, -19, 3})
+
+local tacticalContact = {quickSnap = .23, rampartBash = .51}
+local tacticalClips = {
+    quickSnap = {{0, ready}, {.095, snapGather}, {tacticalContact.quickSnap, snapHit},
+        {.315, snapRecoil}, {.60, ready}},
+    rampartBash = {{0, ready}, {.17, bashLoad}, {.295, bashLoad}, {.38, bashStart},
+        {tacticalContact.rampartBash, bashHit}, {.59, bashThrough}, {.77, bashWithdraw}, {.97, ready}},
+}
+-- Surface samples come from the blunt beak and broad shell rim at full contact.
+local tacticalHits = {
+    quickSnap = {{snapHit, "Neck", v(.004858011, 3.751437919, -1.071198672)}},
+    rampartBash = {bashHit.RootJoint:PointToWorldSpace(v(1.271194983, .558756863, .507326925))},
+}
+local tacticalSkills = {
+    quickSnap = table.freeze({damage = 14, radius = .50}),
+    rampartBash = table.freeze({damage = 22, radius = .56, shove = 1.12}),
+}
+local tactical = mountedRig.finish(tacticalClips, tacticalContact, tacticalHits, tacticalSkills, {}, {})
+local poses = table.clone(standard)
+for _, field in {"Duration", "Contact", "Impact", "Skill"} do
+    local values = table.clone(standard[field])
+    for move, value in tactical[field] do
+        values[move] = value
+    end
+    poses[field] = table.freeze(values)
+end
+
+function poses.sample(action, age, direction)
+    if tacticalContact[action] then
+        return plantFeet(tactical.sample(action, age, direction), action, age or 0)
+    end
+    return standard.sample(action, age, direction)
+end
+
+function poses.impact(action, index, direction)
+    local source = if tacticalContact[action] then tactical else standard
+    return source.impact(action, index, direction)
+end
+
+return table.freeze(poses)

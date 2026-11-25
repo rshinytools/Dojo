@@ -9,13 +9,17 @@ local function sole(side)
     }
 end
 
-local rig = Choreography.new(2.60, {
+local pivots = {
     Neck = v(0, 3.16, -.06),
     ["Right Shoulder"] = v(1.02, 2.98, .03), ["Left Shoulder"] = v(-1.02, 2.98, .03),
     ["Right Hip"] = v(.58, 1.48, .03), ["Left Hip"] = v(-.58, 1.48, .03),
     TailJoint = v(0, 1.55, .57),
-}, sole(1), sole(-1))
+}
+local rightSole, leftSole = sole(1), sole(-1)
+local rig = Choreography.new(2.60, pivots, rightSole, leftSole)
 local pose = rig.pose
+local mountedHeight = 2.132
+local attackPose = Choreography.new(mountedHeight, pivots, rightSole, leftSole).pose
 
 local rightGuard, leftGuard = {48, 15, -18, -.06, .045, .02}, {46, -17, 17, .075, .055, -.06}
 local rearFoot, leadFoot = {3, -23, 0, .17, 0, .15, 0}, {5, 25, 0, -.16, 0, -.16, 0}
@@ -64,6 +68,21 @@ local palmDrive = pose({.015, -.085, -.27, -7, 29, -3}, {70, 20, -10, -.16, .13,
 local palmSettle = pose({.045, -.255, -.13, -15, 15, -4}, {56, 19, -14, -.12, .08, -.095},
     leftGuard, rearFoot, {8, 23, 0, -.17, 0, -.24, 0}, {16, -14, 4}, {14, -20, 5})
 
+local whiskerLoad = attackPose({.045, -.24, .105, -8, -8, -1}, {53, 19, -25, -.08, .10, .08},
+    {52, -20, 25, .08, .10, .07}, rearFoot, leadFoot, {2, 8, 0, .02, .06, .13}, {2, 12, -3})
+local whiskerHit = attackPose({.035, -.27, -.33, -20, -6, 0}, {55, 15, -27, .04, .12, -.035},
+    {55, -15, 28, -.04, .12, -.03}, rearFoot, leadFoot, {-3, 9, 0, .045, .02, -.16}, {15, 8, 0})
+local whiskerReturn = attackPose({.035, -.29, -.095, -11, -5, 1}, rightGuard, leftGuard,
+    rearFoot, leadFoot, {10, 7, 1, .025, .025, -.085}, {9, 9, 1})
+local basinLoad = attackPose({-.065, -.38, .17, -10, -12, 5}, {14, 1, -36, .16, .10, .26},
+    {16, 3, 35, -.17, .095, .25}, rearFoot, leadFoot, {12, 14, -3}, {-5, 14, -4})
+local basinBrace = attackPose({-.055, -.43, .20, -12, -10, 5}, {38, 5, -55, .23, .15, .28},
+    {35, -3, 52, -.23, .15, .31}, rearFoot, leadFoot, {18, 12, -2}, {-9, 15, -6})
+local basinHit = attackPose({.025, -.26, -.30, -13, 4, -3}, {70, 6, -31, -.31, .11, -.46},
+    {73, -6, 36, .32, .115, -.43}, rearFoot, leadFoot, {9, -3, 1}, {17, -6, 3})
+local basinFollow = attackPose({.035, -.34, -.19, -17, 8, -5}, {59, 10, -34, -.195, .085, -.31},
+    {60, -8, 39, .215, .09, -.28}, rearFoot, leadFoot, {13, -6, 3}, {19, -9, 4})
+
 local crouchFeet = {17, -27, 0, .18, 0, .14, 0}
 local crouchOther = {17, 27, 0, -.18, 0, -.13, 0}
 local leapGather = pose({0, -.52, .095, -15, 0, 0}, {11, 10, -33, .12, .055, .15},
@@ -99,7 +118,8 @@ local bow = pose({0, -.39, -.105, -28, 0, 0}, {32, 16, -19, -.035, .03, .08},
 local salute = pose({.02, -.08, -.04, -3, -12, 1}, {73, 8, -31, .14, .135, -.04},
     {64, -11, 29, -.13, .12, -.04}, rearFoot, leadFoot, {4, 12, -1}, {14, 9, 3})
 
-local contact = {jab = .175, cross = .239, body = .284, heavy = .448, harborPalm = .32, tidalBellyFlop = .84}
+local contact = {jab = .175, cross = .239, body = .284, heavy = .448, harborPalm = .32, tidalBellyFlop = .84,
+    whiskerCheck = .27, basinPress = .53}
 local clips = {
     stance = {{0, ready}, {.49, breath}, {1.0, ready}},
     advance = {{0, ready}, {.17, stepLeft}, {.34, breath}, {.51, stepRight}, {.69, ready}},
@@ -111,6 +131,9 @@ local clips = {
     heavy = {{0, ready}, {.196, heavyDraw}, {.307, heavyDraw}, {contact.heavy, heavyPress}, {.56, follow}, {.84, ready}},
     harborPalm = {{0, ready}, {.13, palmDraw}, {.205, palmDraw}, {contact.harborPalm, palmDrive},
         {.43, palmSettle}, {.68, ready}},
+    whiskerCheck = {{0, ready}, {.11, whiskerLoad}, {contact.whiskerCheck, whiskerHit}, {.41, whiskerReturn}, {.65, ready}},
+    basinPress = {{0, ready}, {.19, basinLoad}, {.33, basinBrace}, {.39, basinBrace}, {contact.basinPress, basinHit},
+        {.64, basinFollow}, {.79, breath}, {1.0, ready}},
     tidalBellyFlop = {{0, ready}, {.18, leapGather}, {.30, leapGather}, {.40, leapPush}, {.58, leapApex},
         {.735, plunge}, {contact.tidalBellyFlop, splash}, {.93, splash}, {1.045, seatPlant}, {1.22, ready}},
     guard = {{0, cover}},
@@ -127,12 +150,17 @@ local clips = {
 
 local rightPalm, leftPalm = v(1.37, 1.80, -.814), v(-1.37, 1.80, -.814)
 local splashCenter = v(0, -2.60, 0)
+local function mountedContact(key, joint, surface)
+    return (key.RootJoint * key[joint]):PointToWorldSpace(surface - v(0, mountedHeight, 0))
+end
 local hits = {
     jab = {{jabPress, "Right Shoulder", rightPalm}},
     cross = {{crossPress, "Left Shoulder", leftPalm}},
     body = {{bodyDrive, "Right Shoulder", rightPalm}},
     heavy = {{heavyPress, "Left Shoulder", leftPalm}},
     harborPalm = {{palmDrive, "Right Shoulder", rightPalm}},
+    whiskerCheck = {mountedContact(whiskerHit, "Neck", v(.020257, 3.973706, -1.016074))},
+    basinPress = {mountedContact(basinHit, "Right Shoulder", v(1.536502, 1.679633, -.727501))},
     tidalBellyFlop = {splashCenter},
 }
 local skills = {
@@ -144,4 +172,4 @@ local travel = {
     tidalBellyFlop = table.freeze({axis = "forward", distance = 1.36, startsAt = .34, endsAt = .79}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {whiskerCheck = true, basinPress = true})

@@ -1791,9 +1791,8 @@ for _, fighter in fighterCatalog.ById do
         end
         cues[combat.signatureCue], priorityCues[combat.signatureCue] = combat.signature, true
         if combat.techniqueCoolingCue then
-            cooldownCues[combat.techniqueCoolingCue] = {
-                label = if fighterTactics.ByKit[combat.kit] then nil else combat.technique, field = "nextSecondary",
-            }
+            -- Several kits share a cue. The timeline reads the equipped technique's label.
+            cooldownCues[combat.techniqueCoolingCue] = {field = "nextSecondary"}
         end
         if combat.signatureCoolingCue then
             cooldownCues[combat.signatureCoolingCue] = {label = combat.signature, field = "nextSignature"}

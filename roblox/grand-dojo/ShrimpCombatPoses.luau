@@ -9,13 +9,17 @@ local function sole(side)
     }
 end
 
-local rig = Choreography.new(2.60, {
+local pivots = {
     Neck = v(0, 3.11, -.04),
     ["Right Shoulder"] = v(.76, 2.91, .01), ["Left Shoulder"] = v(-.76, 2.91, .01),
     ["Right Hip"] = v(.42, 1.48, .035), ["Left Hip"] = v(-.42, 1.48, .035),
     TailJoint = v(0, 1.62, .48),
-}, sole(1), sole(-1))
+}
+local rightSole, leftSole = sole(1), sole(-1)
+local rig = Choreography.new(2.60, pivots, rightSole, leftSole)
 local pose = rig.pose
+local mountedRootHeight = 2.132
+local techniquePose = Choreography.new(mountedRootHeight, pivots, rightSole, leftSole).pose
 
 local snapGuard, leadGuard = {41, 13, -13, -.03, .10, .10}, {63, -18, 17, .065, .14, .025}
 local rearFoot, leadFoot = {2, -16, -2, .10, 0, .23, 0}, {5, 10, 2, -.10, 0, -.22, 0}
@@ -63,6 +67,26 @@ local dashSnap = pose({-.005, -.14, -.24, -15, 38, -2}, {61, 14, -2, -.045, .07,
 local dashBrake = pose({-.05, -.31, -.085, -19, 25, 4}, {48, 13, -17, -.035, .07, -.13},
     leadGuard, rearFoot, leadFoot, {21, -25, -3}, {14, -30, -8})
 
+local jetLoad = techniquePose({-.085, -.18, .09, -6, 26, 7}, {54, 13, -12, -.04, .14, .05},
+    {35, -1, 27, -.04, .10, .17}, rearFoot, leadFoot, {7, -24, -4}, {4, -29, -9})
+local jetHit = techniquePose({-.025, -.16, -.21, -11, -27, 4}, {49, 15, -13, -.05, .13, .09},
+    {67, -24, 0, .14, .045, -.24}, rearFoot, leadFoot, {13, 25, -3}, {13, 24, -6})
+local jetRecoil = techniquePose({.035, -.16, .095, 8, -16, -5}, {58, 13, -17, -.06, .14, .045},
+    {53, -17, 16, .025, .14, .10}, rearFoot, leadFoot, {-8, 14, 5}, {-7, 25, 5})
+local jetFold = techniquePose({-.015, -.18, .025, -6, 6, 0}, snapGuard,
+    {57, -16, 18, .04, .14, .045}, rearFoot, leadFoot, {8, -5, 0}, {4, -9, -3})
+
+local tideLower = techniquePose({.08, -.30, .09, -13, -7, -5}, {37, 8, -20, .075, .07, .11},
+    {48, -12, 23, -.045, .06, .095}, rearFoot, leadFoot, {13, 7, 4}, {-7, 18, 8})
+local tideLoad = techniquePose({.09, -.46, .18, -18, -33, -7}, {24, 0, -34, .18, .07, .18},
+    {38, 11, 31, -.12, .04, .15}, rearFoot, leadFoot, {20, 30, 5}, {-12, 38, 10})
+local tideDrive = techniquePose({.055, -.36, -.055, -21, -1, -5}, {42, 15, -22, .012, .04, .035},
+    {59, -18, 19, .075, .105, .01}, rearFoot, leadFoot, {16, 2, 4}, {8, 14, 2})
+local tideHit = techniquePose({.025, -.24, -.26, -17, 29, -5}, {62, 22, -12, -.11, .015, -.105},
+    {47, -16, 23, .06, .18, .12}, rearFoot, leadFoot, {16, -27, 3}, {21, -35, -2})
+local tideFold = techniquePose({-.105, -.28, -.07, -11, 39, 7}, {53, 19, -16, -.16, .12, -.04},
+    {52, -16, 21, .07, .14, .08}, rearFoot, leadFoot, {14, -34, -5}, {16, -48, -8})
+
 local cannonPlant = pose({.085, -.36, .15, -14, -30, -6}, {25, 10, -33, .13, .02, .25},
     {51, -9, 25, .06, .085, .12}, {9, -28, 0, .16, 0, .20, 0}, {8, 24, 0, -.16, 0, -.23, 0},
     {17, 26, 8}, {-8, 43, 15})
@@ -96,7 +120,8 @@ local bow = pose({-.01, -.30, -.075, -26, 5, 1}, {31, 12, -16, -.025, .07, .045}
 local victory = pose({.012, -.018, -.025, 0, 21, 5}, {84, 15, -34, .035, .17, -.17},
     {77, -20, 27, -.035, .14, -.04}, rearFoot, leadFoot, {3, -19, -2}, {25, -20, -9})
 
-local contact = {jab = .155, cross = .215, body = .258, heavy = .403, clawDash = .285, cavitationCannon = .68}
+local contact = {jab = .155, cross = .215, body = .258, heavy = .403, clawDash = .285,
+    jetSnap = .23, tidebreakerClaw = .51, cavitationCannon = .68}
 local clips = {
     stance = {{0, ready}, {.39, bob}, {.83, ready}},
     advance = {{0, ready}, {.133, leadShuffle}, {.27, bob}, {.401, rearShuffle}, {.55, ready}},
@@ -108,6 +133,9 @@ local clips = {
     heavy = {{0, ready}, {.175, heavyLoad}, {.29, heavyLoad}, {contact.heavy, heavyHit}, {.525, heavyRecoil}, {.79, ready}},
     clawDash = {{0, ready}, {.11, dashCollect}, {.175, dashCollect}, {contact.clawDash, dashSnap},
         {.41, dashBrake}, {.655, ready}},
+    jetSnap = {{0, ready}, {.081, jetLoad}, {contact.jetSnap, jetHit}, {.284, jetRecoil}, {.41, jetFold}, {.57, ready}},
+    tidebreakerClaw = {{0, ready}, {.13, tideLower}, {.25, tideLoad}, {.32, tideLoad}, {.425, tideDrive},
+        {contact.tidebreakerClaw, tideHit}, {.635, tideFold}, {.77, jetFold}, {.95, ready}},
     cavitationCannon = {{0, ready}, {.20, cannonPlant}, {.42, cannonCharge}, {.60, cannonCharge},
         {contact.cavitationCannon, cannonFire}, {.76, cannonRecoil}, {.94, cannonSettle}, {1.13, bob}, {1.36, ready}},
     guard = {{0, cover}},
@@ -123,12 +151,23 @@ local clips = {
 }
 
 local snapTip, leadTip = v(1.20, 1.94, -1.15), v(-1.03, 1.96, -.65)
+-- Solve the leading point of the shipped ellipsoid claw finger in mount coordinates.
+local function clawSurface(authored, joint, center, halfSize, yaw, roll)
+    local frame = authored.RootJoint * authored[joint] * CFrame.new(center - v(0, mountedRootHeight, 0))
+        * CFrame.Angles(0, math.rad(yaw), math.rad(roll))
+    local normal = frame:VectorToObjectSpace(-Vector3.zAxis)
+    local scaled = normal * halfSize
+    return frame:PointToWorldSpace(scaled * halfSize / scaled.Magnitude)
+end
+
 local hits = {
     jab = {{jabHit, "Left Shoulder", leadTip}},
     cross = {{crossHit, "Right Shoulder", snapTip}},
     body = {{bodyHit, "Left Shoulder", leadTip}},
     heavy = {{heavyHit, "Right Shoulder", snapTip}},
     clawDash = {{dashSnap, "Right Shoulder", snapTip}},
+    jetSnap = {clawSurface(jetHit, "Left Shoulder", v(-1.137, 1.969, -.469), v(.1965, .180, .2295), 18, 0)},
+    tidebreakerClaw = {clawSurface(tideHit, "Right Shoulder", v(1.411, 1.976, -.869), v(.2655, .2265, .310), -25, 15)},
     cavitationCannon = {{cannonFire, "Right Shoulder", snapTip}},
 }
 local skills = {
@@ -137,4 +176,4 @@ local skills = {
 }
 local travel = {clawDash = table.freeze({axis = "forward", distance = 1.18, startsAt = .11, endsAt = .28})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {jetSnap = true, tidebreakerClaw = true})
