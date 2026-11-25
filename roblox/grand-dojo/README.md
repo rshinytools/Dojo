@@ -6,6 +6,8 @@ The existing 4.93-stud Reedguard rig is the movement carrier beneath the selecte
 
 ## What to try
 
+In v0.314, stand on Festival Plaza’s flagstones or start the Lantern Timing drill and watch Reedguard settle onto both boots. The same shorter tail fits all three forms. In Dojo Brawl, a fighter knocked out at an edge can settle inward onto the remaining tiles.
+
 In v0.312, watch a fighter’s arms, boots and tail settle when a confirmed hit takes their health to zero. Floor contact follows the equipped art.
 
 In v0.311, Brawl survivors finish on the remaining deck, including a champion who was at the edge when a deciding hit resolved. Earlier knockback and lift end before the victory pose.

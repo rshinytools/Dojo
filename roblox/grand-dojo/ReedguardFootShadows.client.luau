@@ -5,8 +5,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
-local opacity = {.08, .12, .20, .34}
-local visualFloorLift = { ["Grand Dojo Spawn"] = .020, ["Promenade mortar bed"] = .079 }
+local opacity = {.12, .17, .27, .41}
+-- The flagstones sit above the invisible spawn pad and the smooth promenade bed.
+local soleLift = { ["Grand Dojo Spawn"] = .030, ["Promenade mortar bed"] = .068 }
+local shadowLift = { ["Grand Dojo Spawn"] = .024, ["Promenade mortar bed"] = .079 }
 local fighterId = "reedguard-kangaroo"
 local source = ReplicatedStorage:WaitForChild("StarterFighterVisuals"):WaitForChild(fighterId)
 local soles = {}
@@ -27,7 +29,7 @@ folder.Parent = workspace
 local function makeShadow(name)
     local plate = Instance.new("Part")
     plate.Name = name
-    plate.Size = Vector3.new(.94, .01, 1.34)
+    plate.Size = Vector3.new(1.08, .01, 1.48)
     plate.Anchored = true
     plate.CanCollide = false
     plate.CanTouch = false
@@ -79,7 +81,7 @@ local function idleJoint(character, humanoid, root)
     -- The ring owns its own poses. Defer to locomotion as soon as the player moves.
     if not root or root.Anchored
         or not animate or animate.Disabled or player:GetAttribute("SparringActive")
-        or player:GetAttribute("RingTrainingActive") or humanoid.FloorMaterial == Enum.Material.Air
+        or humanoid.FloorMaterial == Enum.Material.Air
         or humanoid:GetState() ~= Enum.HumanoidStateType.Running or humanoid.Sit
         or humanoid.MoveDirection.Magnitude > .01 or root.AssemblyLinearVelocity.Magnitude > .5 then
         return nil
@@ -87,31 +89,45 @@ local function idleJoint(character, humanoid, root)
     return root:FindFirstChild("RootJoint")
 end
 
-local function findFootTargets(root, joint, shell)
-    local torsoRest = root.CFrame * joint.C0 * joint.C1:Inverse()
-    for leg, sole in soles do
-        local side = if leg == "Left Leg" then "Left" else "Right"
-        local hip = joint.Part1:FindFirstChild(side .. " Hip")
-        local foot = shell:FindFirstChild(leg)
-        local weld = foot and foot:FindFirstChildOfClass("Weld")
-        if not (hip and weld and weld.Part0 == hip.Part1) then
-            return false
-        end
-        -- Sample from the unanimated bind pose so planting never feeds back into the next ray.
-        local hipRest = torsoRest * hip.C0
-        local footRest = hipRest * hip.C1:Inverse() * weld.C0 * weld.C1:Inverse()
-        local point = footRest:PointToWorldSpace(sole.point)
-        local floor = workspace:Raycast(point + Vector3.yAxis * .40, -Vector3.yAxis * .80, ray)
-        if not floor or floor.Normal.Y < .90 or math.abs(point.Y - floor.Position.Y) > .32 then
-            return false
-        end
-        local forward = footRest:VectorToWorldSpace(sole.forward)
-        local tangent = forward - floor.Normal * forward:Dot(floor.Normal)
-        local restSole = CFrame.lookAt(point, point + forward)
-        local planted = CFrame.lookAt(floor.Position, floor.Position + tangent, floor.Normal)
-        plantedFeet[hip] = planted * restSole:ToObjectSpace(hipRest)
+local function footFloor(probe, center)
+    local floor = workspace:Raycast(probe + Vector3.yAxis * .40, -Vector3.yAxis * .80, ray)
+    if not floor or floor.Normal.Y < .90 then
+        return nil
     end
-    return true
+    local distance = (center - floor.Position):Dot(floor.Normal) / floor.Normal.Y
+    if math.abs(distance) > .32 then
+        return nil
+    end
+    return floor, center - Vector3.yAxis * distance
+end
+
+local function footTarget(hip, foot, sole, torsoRest)
+    local weld = foot and foot:FindFirstChildOfClass("Weld")
+    if not (hip and weld and weld.Part0 == hip.Part1) then
+        return nil
+    end
+    -- Use the unanimated boot to keep the next ray independent of the planted pose.
+    local hipRest = torsoRest * hip.C0
+    local footRest = hipRest * hip.C1:Inverse() * weld.C0 * weld.C1:Inverse()
+    local point = footRest:PointToWorldSpace(sole.point)
+    local forward = footRest:VectorToWorldSpace(sole.forward)
+    local floor, center = footFloor(point, point)
+    if not floor then
+        -- The toe or heel can still carry weight when the sole center is over a gap.
+        floor, center = footFloor(point + forward * .38, point)
+        if not floor then
+            floor, center = footFloor(point - forward * .36, point)
+        end
+        if not floor then
+            return nil
+        end
+    end
+    local normal = floor.Normal
+    local tangent = forward - normal * forward:Dot(normal)
+    local restSole = CFrame.lookAt(point, point + forward)
+    local contact = center + normal * (soleLift[floor.Instance.Name] or 0)
+    local planted = CFrame.lookAt(contact, contact + tangent, normal)
+    return planted * restSole:ToObjectSpace(hipRest)
 end
 
 RunService.PreSimulation:Connect(function(dt)
@@ -149,8 +165,15 @@ RunService.Heartbeat:Connect(function(dt)
     local root = humanoid and humanoid.RootPart
     table.clear(plantedFeet)
     local joint = isReedguard and idleJoint(character, humanoid, root)
-    if joint and joint.Part1 and not findFootTargets(root, joint, shell) then
-        table.clear(plantedFeet)
+    if joint and joint.Part1 then
+        local torsoRest = root.CFrame * joint.C0 * joint.C1:Inverse()
+        for name, sole in soles do
+            local side = if name == "Left Leg" then "Left" else "Right"
+            local hip = joint.Part1:FindFirstChild(side .. " Hip")
+            if hip then
+                plantedFeet[hip] = footTarget(hip, shell:FindFirstChild(name), sole, torsoRest)
+            end
+        end
     end
     -- Intro holds anchor the root, so a nearby floor ray can supply contact
     -- while the Humanoid temporarily reports Air.
@@ -162,8 +185,7 @@ RunService.Heartbeat:Connect(function(dt)
         local sole = soles[name]
         local position = foot and foot.CFrame:PointToWorldSpace(sole.point)
         local floor = position and workspace:Raycast(position + Vector3.yAxis * .18, -Vector3.yAxis * .54, ray)
-        -- The smooth walking surfaces sit below the visible sandstone faces.
-        local lift = floor and visualFloorLift[floor.Instance.Name] or 0
+        local lift = floor and shadowLift[floor.Instance.Name] or 0
         local floorGap = if floor then position.Y - floor.Position.Y else math.huge
         local fade = if floor and floor.Normal.Y >= .65
             then math.clamp(1 - (floorGap - lift) / .26, 0, 1)

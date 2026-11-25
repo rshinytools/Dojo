@@ -33,6 +33,8 @@ Motion.lockedWalkSpeed = 5
 
 local fallSeconds = .57
 local defaultFall = Vector3.new(math.rad(86), 0, math.rad(8))
+local landingTurns = {0, math.pi / 2, -math.pi / 2, math.pi}
+local maxLandingSlide = 2.2
 local function fallRotation(pitch, yaw, roll)
     return CFrame.Angles(math.rad(pitch), math.rad(yaw), math.rad(roll))
 end
@@ -188,25 +190,26 @@ local function verticalHalfExtent(frame, size)
         + math.abs(frame.LookVector.Y) * size.Z) * .5
 end
 
-local function partBottom(frame, size, shape, points)
-    local direction = frame:VectorToObjectSpace(Vector3.yAxis)
+local function partMinimum(frame, size, shape, points, axis)
+    local direction = frame:VectorToObjectSpace(axis)
+    local center = frame.Position:Dot(axis)
     if points then
         local bottom = math.huge
         for _, point in points do
             bottom = math.min(bottom, direction:Dot(point))
         end
-        return frame.Y + bottom
+        return center + bottom
     end
     local half = direction * size * .5
     local x, y, z = half.X, half.Y, half.Z
     if shape == Enum.PartType.Ball then
-        return frame.Y - half.Magnitude
+        return center - half.Magnitude
     elseif shape == Enum.PartType.Cylinder then
-        return frame.Y - math.abs(x) - math.sqrt(y * y + z * z)
+        return center - math.abs(x) - math.sqrt(y * y + z * z)
     elseif shape == Enum.PartType.Wedge then
-        return frame.Y - math.abs(x) + math.min(-y - z, -y + z, y + z)
+        return center - math.abs(x) + math.min(-y - z, -y + z, y + z)
     end
-    return frame.Y - math.abs(x) - math.abs(y) - math.abs(z)
+    return center - math.abs(x) - math.abs(y) - math.abs(z)
 end
 
 local function defeatSnapshot(base, parts, floor, rotation, shell, imported)
@@ -226,7 +229,7 @@ local function defeatSnapshot(base, parts, floor, rotation, shell, imported)
             end
         end
         support[part] = {size = size, shape = shape, points = points}
-        bottom = math.min(bottom, partBottom(frame, size, shape, points))
+        bottom = math.min(bottom, partMinimum(frame, size, shape, points, Vector3.yAxis))
         top = math.max(top, frame.Y + verticalHalfExtent(frame, size))
         pieces[part] = base:ToObjectSpace(frame)
     end
@@ -273,17 +276,73 @@ local function stagePlayerDefeat(defeat, shell, motors, joints, tailTurn)
     end
 end
 
+local function defeatFrame(defeat, progress, yaw)
+    local rotation = defeat.rotation * progress
+    local turn = yaw * progress
+    local drift = .64 * progress
+    local frame = defeat.base * CFrame.new(math.sin(turn) * drift, 0, math.cos(turn) * drift) * CFrame.new(defeat.pivot)
+        * CFrame.Angles(0, rotation.Y + turn, 0) * CFrame.Angles(rotation.X, 0, rotation.Z) * CFrame.new(-defeat.pivot)
+    if defeat.neutralRoot then
+        frame *= defeat.firstJoint:Lerp(defeat.neutralRoot, progress) * defeat.inverseRoot
+    end
+    return frame
+end
+
+local function planLanding(defeat, deck)
+    local best, bestCost = nil, math.huge
+    -- Test only the final pose, with the same mesh/primitive supports used to place it vertically.
+    for _, yaw in landingTurns do
+        local frame = defeatFrame(defeat, 1, yaw)
+        local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+        for part, relative in defeat.pieces do
+            local limb = defeat.partLimbs and defeat.partLimbs[part]
+            local piece = if limb then frame * limb.parent * limb.target * limb.undo * relative else frame * relative
+            local support = defeat.support[part]
+            local size, shape, points = support.size, support.shape, support.points
+            minX = math.min(minX, partMinimum(piece, size, shape, points, Vector3.xAxis))
+            maxX = math.max(maxX, -partMinimum(piece, size, shape, points, -Vector3.xAxis))
+            minZ = math.min(minZ, partMinimum(piece, size, shape, points, Vector3.zAxis))
+            maxZ = math.max(maxZ, -partMinimum(piece, size, shape, points, -Vector3.zAxis))
+        end
+        if minX == math.huge then
+            minX, maxX, minZ, maxZ = frame.X, frame.X, frame.Z, frame.Z
+        end
+        local lowX, highX = deck.minX - minX, deck.maxX - maxX
+        local lowZ, highZ = deck.minZ - minZ, deck.maxZ - maxZ
+        if lowX > highX or lowZ > highZ then continue end
+        local dx, dz = math.clamp(0, lowX, highX), math.clamp(0, lowZ, highZ)
+        local slide = Vector3.new(dx, 0, dz)
+        local cost = slide.Magnitude + math.abs(yaw) * .55
+        if slide.Magnitude <= maxLandingSlide and cost < bestCost then
+            bestCost = cost
+            best = {yaw = yaw, slide = slide, minX = minX + dx, maxX = maxX + dx,
+                minZ = minZ + dz, maxZ = maxZ + dz}
+            if cost == 0 then break end
+        end
+    end
+    return best
+end
+
+local function defeatFits(state, deck)
+    local defeat = state.defeat
+    if not defeat then return true end
+    local landing = defeat.landing
+    return landing ~= nil and landing.minX >= deck.minX - .001 and landing.maxX <= deck.maxX + .001
+        and landing.minZ >= deck.minZ - .001 and landing.maxZ <= deck.maxZ + .001
+end
+
 local function fallenFrame(defeat, age)
     if defeat.settledFrame then
         return defeat.settledFrame
     end
     local phase = math.clamp(age / fallSeconds, 0, 1)
     local progress = phase * phase * (3 - 2 * phase)
-    local rotation = defeat.rotation * progress
-    local frame = defeat.base * CFrame.new(0, 0, .64 * progress) * CFrame.new(defeat.pivot)
-        * CFrame.Angles(0, rotation.Y, 0) * CFrame.Angles(rotation.X, 0, rotation.Z) * CFrame.new(-defeat.pivot)
+    local landing = defeat.landing
+    local frame = defeatFrame(defeat, progress, if landing then landing.yaw else 0)
+    if landing then
+        frame += landing.slide * progress
+    end
     if defeat.neutralRoot then
-        frame *= defeat.firstJoint:Lerp(defeat.neutralRoot, progress) * defeat.inverseRoot
         for _, limb in defeat.limbs do
             local pose = limb.start:Lerp(limb.target, progress)
             limb.delta = limb.parent * pose * limb.undo
@@ -300,7 +359,7 @@ local function fallenFrame(defeat, age)
         end
         local piece = if limb then frame * limb.delta * relative else frame * relative
         local support = defeat.support[part]
-        bottom = math.min(bottom, partBottom(piece, support.size, support.shape, support.points))
+        bottom = math.min(bottom, partMinimum(piece, support.size, support.shape, support.points, Vector3.yAxis))
     end
     if bottom == math.huge then
         bottom = frame.Y - 2.5 + 1.65 * progress
@@ -314,7 +373,7 @@ local function fallenFrame(defeat, age)
     return result
 end
 
-local function renderPlayerDefeat(state, root, floor, age)
+local function renderPlayerDefeat(state, root, floor, age, deck)
     local joint = state.motors.RootJoint
     if not joint then
         return
@@ -334,13 +393,18 @@ local function renderPlayerDefeat(state, root, floor, age)
                 if reedguard then Reedguard.Defeat.joints else relaxedJoints, tailTurns[id])
         end
         defeat.collisions = {}
+        state.defeat = defeat
+        -- Only animate an already eliminated, supported Brawl fighter if there is somewhere to land.
+        if deck then
+            defeat.landing = planLanding(defeat, deck)
+            if not defeat.landing then return end
+        end
         for _, part in character:GetDescendants() do
             if part:IsA("BasePart") and part.CanCollide then
                 table.insert(defeat.collisions, part)
                 part.CanCollide = false
             end
         end
-        state.defeat = defeat
     end
     joint.motor.C0 = root.CFrame:ToObjectSpace(fallenFrame(defeat, age)) * defeat.firstJoint
 end
@@ -2488,6 +2552,7 @@ Motion.geometry = table.freeze({
     groundLanes = groundLanes,
     clipGroundLane = clipGroundLane,
     renderPlayerDefeat = renderPlayerDefeat,
+    defeatFits = defeatFits,
     restoreDefeat = restoreDefeat,
     defeatSeconds = fallSeconds + .35,
 })

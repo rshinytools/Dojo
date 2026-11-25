@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.312 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.314 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -10,6 +10,8 @@ The v0.312 Studio checkpoint is the starting point for new work. This repository
 4. Check the appropriate phase before deciding which functionality a task should change. Record evidence for the exact build you tested.
 
 ## Reedguard footing
+
+V0.314 plants Reedguard’s local idle boots on the visible plaza stone and keeps the adjustment active during the Lantern Timing drill. Each boot can find support independently. Two wider floor shadows make his stance easier to read. Tail depth fell from 1.038 to 0.951 studs across all three forms, using the same joint and thickness. Desktop Studio measured toe, center and heel near the visible arrival flagstone, and repeated the check on the promenade, red bridge and live drill. At spawn the six sole samples were within 0.007 studs of the visible stone. The drill’s maximum toe-to-heel spread dropped from 0.069 studs to below 0.001 studs. Published play and physical-device checks remain open.
 
 V0.309 aligns each local Reedguard boot to the support beneath it while he stands still. It adjusts the visible pose and yields to walking, jumping and combat. The equipped tail keeps its attachment and thickness and shortens from 1.124 to 1.038 studs in all three forms. At the red bridge shoulder, the previous idle showed 0.118 studs of clearance at one end of a sampled boot. Desktop and Galaxy A06 landscape Studio measured the revised boot points within 0.002 studs of the deck. Desktop verified both headings, plaza spawn, the promenade after a keyboard walk, and that contact shadows clear during a jump. Published play and physical-device checks remain open.
 
@@ -257,6 +259,8 @@ The separate ranked store claims each player’s rating before the match. It rec
 Exact-source tests covered 16 ranked and 16 casual contact pairings, the element cycle, rating-gap expansion, asynchronous pairing cancellation, one rating per result, lost writes, partial recovery and stale retries. Desktop Studio and the Galaxy A06 landscape simulator joined and cancelled the actual Ranked queue and loaded Bronze at 1200. A separate one-client desktop series against a fitted Fire Salamander stand-in verified normalized HP and impact timing, a 2–0 result, and the recap changing from saving to Bronze at 1216. It used the exact rating ledger on a separate test memory store. Published DataStore operation, real two-player matchmaking, ranked tuning, physical devices and cross-server queues remain open. [Repeatable ledger checks](../tools/verify_ranked_ledger.py)
 
 ## Combat presentation
+
+V0.314 keeps Brawl’s final knockout pose over the active mat. The visible body turns or shifts slightly toward usable floor when settling at an edge. The character’s gameplay position stays fixed. Desktop Studio staged a deciding Ridge Palm near the boundaries of the 81-tile and nine-tile mats, using one player and fitted stand-ins. In both replays, the visible shell ended 0.068 studs inside the physical edge and 0.045 studs above a live tile, followed by the champion recap and arena reset.
 
 V0.279 applies the Festival Championship HUD to Bot Spar, all Duel formats and Brawl. Teal and red health bars drain toward server-confirmed damage. A gold trail briefly shows the size of each hit. Gold-framed 3D busts use the original fighter meshes and baked colors. The clock sits between the two fighters, with round scores for Best of 3 and Ranked. Brawl uses one health bar alongside the number of players still fighting and the floor-drop warning. Reduce Motion and VR snap the bar to the latest HP. Portraits use at most two static mesh groups per fighter and fall back to initials while loading or if the assets are unavailable.
 

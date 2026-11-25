@@ -26,13 +26,22 @@ local marks = court:WaitForChild("Spawn Marks")
 local SIZE, QUEUE_SECONDS = 8, 70
 local SHRINK_STEP, WARNING_SECONDS = 15, 3
 local PLAYABLE_HALVES = {22.5, 17.5, 12.5, 7.5}
+local KNOCKOUT_EDGE_CLEARANCE = .08
 local RESULT_EDGE_CLEARANCE = 2
 local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true, stormSteer = true,
     dodge = true, signature = true}
 local breaking = Color3.fromRGB(235, 155, 81)
 local deckState, queue = {}, {}
+local knockoutDecks = {}
 local active
 local matchId, nextCourtCheck = 0, 0
+
+for index, half in PLAYABLE_HALVES do
+    local center = bounds.Position
+    local extent = half - KNOCKOUT_EDGE_CLEARANCE
+    knockoutDecks[index] = {minX = center.X - extent, maxX = center.X + extent,
+        minZ = center.Z - extent, maxZ = center.Z + extent}
+end
 
 for index, band in shrinkBands do
     deckState[index] = {}
@@ -207,6 +216,9 @@ local function start(now)
     function match.floorActive(point, at)
         local stage = if at and at ~= match.outgoingFloorAt then floorStageAt(round, at) else match.stage
         return onFloor(point, bounds.Position, stage)
+    end
+    function match.knockoutDeck()
+        return knockoutDecks[match.stage + 1]
     end
     function match.resultStand(frame)
         local center, position = bounds.Position, frame.Position

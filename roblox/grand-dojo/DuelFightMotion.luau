@@ -245,6 +245,7 @@ function Motion.holdsKnockout(match, index, now)
         and (round.result ~= nil or state.downed or now < state.eliminatedAt + defeatSeconds)
         and (not match.floorActive or (actor.root.Position.Y >= match.floor + 1.12
             and floorActive(match, actor.root.Position)))
+        and (not match.knockoutDeck or Geometry.defeatFits(actor, match.knockoutDeck()))
 end
 
 function Motion.canAct(duel, side, action, now)
@@ -871,7 +872,8 @@ function Motion.render(duel, now, historical)
                 actor.knock, actor.lift = nil, nil
                 setHeld(actor, true)
             end
-            Geometry.renderPlayerDefeat(actor, actor.root, duel.floor, now - defeatAt)
+            local deck = if duel.knockoutDeck then duel.knockoutDeck() else nil
+            Geometry.renderPlayerDefeat(actor, actor.root, duel.floor, now - defeatAt, deck)
             continue
         elseif not activeActor(duel, index) then
             continue
