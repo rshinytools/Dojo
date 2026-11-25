@@ -16,6 +16,10 @@ local plate, roll = Armadillo.Skill.plateCheck, Armadillo.Skill.meteorRoll
 local rake, breath = Komodo.Skill.tailRake, Komodo.Skill.volcanicBreath
 local armadillo = strikes(Armadillo, 14, 15, 16, 24)
 armadillo.plateCheck = {{at = Armadillo.Contact.plateCheck, damage = plate.damage, radius = plate.radius, zone = "body"}}
+for _, id in {"rivetPalm", "kilnShoulder"} do
+    local skill = Armadillo.Skill[id]
+    armadillo[id] = {{at = Armadillo.Contact[id], damage = skill.damage, radius = skill.radius, zone = "body"}}
+end
 armadillo.meteorRoll = {}
 for index = 1, 24 do
     local first, last = roll.rollSeconds * (index - 1) / 24, roll.rollSeconds * index / 24
@@ -25,6 +29,9 @@ end
 
 local komodo = strikes(Komodo, 14, 15, 15, 23)
 komodo.tailRake = {{at = Komodo.Contact.tailRake, damage = rake.damage, radius = rake.radius, foot = true, zone = "body"}}
+local snap, heel = Komodo.Skill.ashenSnap, Komodo.Skill.cinderHeel
+komodo.ashenSnap = {{at = Komodo.Contact.ashenSnap, damage = snap.damage, radius = snap.radius, zone = "head"}}
+komodo.cinderHeel = {{at = Komodo.Contact.cinderHeel, damage = heel.damage, radius = heel.radius, foot = true, zone = "body"}}
 komodo.volcanicBreath = {}
 for index, sample in breath.samples do
     komodo.volcanicBreath[index] = {at = sample.age, shape = "breath", direction = sample.direction,
@@ -36,11 +43,11 @@ Magma.kits = table.freeze({
     armadillo = {poses = Armadillo, clips = armadillo, mixedSpacing = 2.55,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = 1.02,
         signature = "meteorRoll", signatureCooldown = 8.8, signatureCooling = "meteorCooling",
-        secondary = "plateCheck", secondaryCooldown = 3.5, secondaryCooling = "plateCooling"},
+        secondaryCooldown = 3.5, secondaryCooling = "plateCooling"},
     komodo = {poses = Komodo, clips = komodo, mixedSpacing = 2.59,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .86,
         signature = "volcanicBreath", signatureCooldown = 8.5, signatureCooling = "breathCooling",
-        secondary = "tailRake", secondaryCooldown = 3.5, secondaryCooling = "rakeCooling"},
+        secondaryCooldown = 3.5, secondaryCooling = "rakeCooling"},
 })
 Magma.roll = roll
 Magma.shove = table.freeze({plateCheck = plate.shove, meteorRoll = roll.shove, tailRake = rake.shove, volcanicBreath = breath.shove})

@@ -63,6 +63,28 @@ local wingHit = pose({.015, -.155, -.245, -8, 32, 4}, {69, 17, -5, -.12, .13, -.
 local wingFollow = pose({-.07, -.255, -.12, -11, 43, 7}, {56, 37, -17, -.17, .06, -.11},
     leftGuard, rear, lead, {11, -36, -5}, {-14, -41, 12})
 
+local flickLoad = pose({.030, -.13, .102, -6, 5, -3}, {38, -17, 25, .018, .067, .12},
+    leftGuard, rear, lead, {6, -5, 2}, {-9, 6, 2})
+local flickDrive = pose({.045, -.155, -.06, -9, 18, -3}, {59, 4, 29, .02, .083, .01},
+    leftGuard, rear, lead, {9, -18, 1}, {-10, -15, 4})
+local flickHit = pose({.022, -.18, -.035, -10, 36, -4}, {108, 15, -10, .025, .045, -.035},
+    {58, -13, -19, .075, .065, -.045}, rear, lead, {10, -31, 2}, {-12, -26, 6})
+local flickCatch = pose({.014, -.16, -.08, -8, 22, -4}, {72, 15, 12, -.03, .085, -.067},
+    leftGuard, rear, lead, {8, -20, 2}, {-9, -15, 4})
+
+local clapOpen = pose({-.085, -.13, .13, -4, 18, 4}, {53, -18, 96, -.115, .027, -.05},
+    {51, 24, -99, .082, .037, .021}, rear, lead, {4, -16, -3}, {-7, -12, -3})
+local clapSink = pose({-.07, -.28, .084, -13, 11, 2}, {51, -16, 83, -.086, .040, .023},
+    {48, 22, -89, .089, .042, .037}, rear, lead, {12, -11, -2}, {-17, -9, -2})
+local clapClose = pose({-.04, -.27, -.035, -12, -8, 3}, {59, 11, 54, -.092, .047, -.06},
+    {61, -10, -55, .120, .032, -.082}, rear, lead, {12, 9, -2}, {-16, 5, -4})
+local clapHit = pose({-.045, -.20, -.28, -10, -32, 1}, {76, 16, 19, -.065, .037, -.085},
+    {77, -23, 16, .10, .09, -.21}, rear, lead, {10, 29, 0}, {-12, 19, -3})
+local clapThrough = pose({-.075, -.25, -.16, -13, -42, 5}, {68, 24, 12, -.058, .037, -.029},
+    {70, -27, 11, .088, .05, -.13}, rear, lead, {13, 38, -4}, {-14, 33, -6})
+local clapSettle = pose({-.038, -.185, -.055, -9, -14, 1}, {59, 18, 20}, {63, -18, -10},
+    rear, lead, {9, 13, -2}, {-8, 11, -3})
+
 local blinkCrouch = pose({0, -.39, .115, -18, 0, 0}, {30, -16, 47}, {29, 19, -45},
     {11, -19, 0, .10, 0, .20, .018}, {11, 17, 0, -.075, 0, -.14, .018}, {18, 0, 0}, {-20, 0, 0})
 local wingLaunch = pose({.02, .47, -.055, -8, 0, 3}, {46, -14, 61}, {45, 15, -59},
@@ -95,7 +117,8 @@ local spread = pose({0, -.04, -.025, 0, 0, 0}, {55, -11, 91}, {53, 11, -91},
 local salute = pose({.045, -.09, -.02, -4, 18, -4}, {54, -21, 81}, {63, -18, -10},
     rear, lead, {3, -18, 3}, {-8, -14, 3})
 
-local contact = {jab = .159, cross = .219, body = .268, heavy = .411, wingSweep = .28, thunderDive = .66}
+local contact = {jab = .159, cross = .219, body = .268, heavy = .411, wingSweep = .28, quillFlick = .23,
+    thunderclapWing = .50, thunderDive = .66}
 local clips = {
     stance = {{0, ready}, {.52, breathe}, {1.04, ready}},
     advance = {{0, ready}, {.14, stepLead}, {.28, ready}, {.43, stepRear}, {.58, ready}},
@@ -107,6 +130,10 @@ local clips = {
     heavy = {{0, ready}, {.185, heavyLoad}, {.282, heavyLoad}, {contact.heavy, heavyHit}, {.532, heavyEase}, {.79, ready}},
     wingSweep = {{0, ready}, {.133, wingOpen}, {.219, wingDrive}, {contact.wingSweep, wingHit},
         {.377, wingFollow}, {.528, breathe}, {.63, ready}},
+    quillFlick = {{0, ready}, {.074, flickLoad}, {.147, flickDrive}, {contact.quillFlick, flickHit},
+        {.331, flickCatch}, {.59, ready}},
+    thunderclapWing = {{0, ready}, {.188, clapOpen}, {.287, clapOpen}, {.369, clapSink}, {.429, clapClose},
+        {contact.thunderclapWing, clapHit}, {.605, clapThrough}, {.77, clapSettle}, {.93, ready}},
     thunderDive = {{0, ready}, {.16, blinkCrouch}, {.24, blinkCrouch}, {.36, wingLaunch}, {.47, diveTuck},
         {.57, diveExtend}, {contact.thunderDive, diveLand}, {.77, diveLand}, {.89, diveEase}, {1.08, ready}},
     guard = {{0, cover}},
@@ -130,9 +157,13 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightWing}}, cross = {{crossHit, "Left Shoulder", leftWing}},
     body = {{bodyHit, "Right Shoulder", rightWing}}, heavy = {{heavyHit, "Left Shoulder", leftWing}},
     wingSweep = {{wingHit, "Right Shoulder", rightWing}}, thunderDive = {landing},
+    quillFlick = {{flickHit, "Right Shoulder", v(1.209000446, 1.683555397, .615635893)}},
+    thunderclapWing = {{clapHit, "Left Shoulder", v(-1.450220854, 1.870888828, -.521817631)}},
 }
 local skills = {
     wingSweep = table.freeze({damage = 18, radius = .57, shove = .67}),
+    quillFlick = table.freeze({damage = 14, radius = .47}),
+    thunderclapWing = table.freeze({damage = 22, radius = .54}),
     thunderDive = table.freeze({damage = 24, shove = .66, stun = 1.20}),
 }
 local travel = {
@@ -140,4 +171,5 @@ local travel = {
     thunderDive = table.freeze({axis = "forward", distance = 5.60, startsAt = .24, endsAt = .66}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"},
+    {quillFlick = true, thunderclapWing = true})

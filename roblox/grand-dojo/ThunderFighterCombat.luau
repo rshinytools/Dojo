@@ -20,14 +20,23 @@ end
 
 local owlMoves = kitMoves(Owl, {13, 14, 15, 21}, "wingSweep", "thunderDive")
 local ramMoves = kitMoves(Ram, {14, 15, 16, 24}, "hornCheck", "staticCharge")
+local function addGroundTechniques(moves, poses, ids)
+    for _, id in ids do
+        local skill = poses.Skill[id]
+        moves[id] = {{at = poses.Contact[id], damage = skill.damage, radius = skill.radius, zone = "body"}}
+    end
+end
+addGroundTechniques(owlMoves, Owl, {"quillFlick", "thunderclapWing"})
+addGroundTechniques(ramMoves, Ram, {"stoneTap", "ridgelineDrive"})
+
 Thunder.kits = table.freeze({
     owl = {poses = Owl, clips = owlMoves, mixedSpacing = 2.48,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .76,
-        secondary = "wingSweep", secondaryCooldown = 3.1, secondaryCooling = "wingCooling",
+        secondaryCooldown = 3.1, secondaryCooling = "wingCooling",
         signature = "thunderDive", signatureCooldown = 8.4, signatureCooling = "thunderCooling"},
     ram = {poses = Ram, clips = ramMoves, mixedSpacing = 2.58,
         dodge = "sidestep", dodgeCue = "dodge", dodgeCooldown = .98,
-        secondary = "hornCheck", secondaryCooldown = 3.5, secondaryCooling = "hornCooling",
+        secondaryCooldown = 3.5, secondaryCooling = "hornCooling",
         signature = "staticCharge", signatureCooldown = 8.8, signatureCooling = "staticCooling"},
 })
 
@@ -40,6 +49,7 @@ Thunder.skills = table.freeze({
 Thunder.shove = table.freeze({
     wingSweep = Owl.Skill.wingSweep.shove, thunderDive = Owl.Skill.thunderDive.shove,
     hornCheck = Ram.Skill.hornCheck.shove, staticCharge = Ram.Skill.staticCharge.shove,
+    ridgelineDrive = Ram.Skill.ridgelineDrive.shove,
 })
 
 function Thunder.radius(skill, origin, landing)

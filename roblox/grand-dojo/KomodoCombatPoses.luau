@@ -65,6 +65,26 @@ local tailFollow = pose({-.105, -.27, -.16, -13, 39, 8}, {57, 17, -32, .12, .1, 
 local tailReset = pose({-.04, -.32, -.055, -13, 22, 7}, rightGuard, leftGuard,
     rear, lead, {14, -24, -3}, {-14, 293, 10})
 
+local snapLoad = pose({.052, -.25, .11, -4, -13, 5}, {52, 14, -20, -.06, .12, .11},
+    {57, -15, 17, .09, .11, .085}, rear, lead, {21, 10, -3, 0, .035, .10}, {-9, 19, 5})
+local snapHit = pose({.038, -.13, -.27, -12, 1, 1}, {53, 15, -18, -.045, .07, .11},
+    {56, -17, 19, .075, .085, .095}, rear, lead, {0, -1, -3, 0, .10, -.27}, {4, 2, -2})
+local snapFold = pose({.025, -.28, -.06, -8, -7, 3}, rightGuard, leftGuard,
+    rear, lead, {-3, 7, -2, 0, -.03, -.065}, {-4, 12, 2})
+
+local heelLoad = pose({-.12, -.30, .085, -9, -22, 10}, {40, 21, -20, -.07, .10, .15},
+    {60, -17, 20, .055, .16, .025}, rear, lead, {11, 20, -6}, {-3, 31, 11})
+local heelLift = pose({-.19, -.19, .045, 4, -15, 12}, {32, 17, -27, .08, .08, .20},
+    {59, -17, 20, .08, .14, .045}, {56, -14, 3, .15, .13, .12}, lead, {-3, 14, -8}, {11, 30, 10})
+local heelChamber = pose({-.205, -.12, -.005, 9, 0, 11}, {37, 12, -30, .11, .065, .19},
+    {57, -20, 19, .075, .14, .055}, {79, -3, 4, .17, .23, .02}, lead, {-7, 1, -8}, {12, 18, 8})
+local heelHit = pose({-.18, -.055, -.30, 9, 21, 8}, {32, 17, -28, .11, .09, .16},
+    {64, -19, 22, .08, .14, .09}, {111, 4, 1, .12, .39, -.23}, lead, {-9, -18, -6}, {8, -13, 4})
+local heelFollow = pose({-.208, -.12, -.175, 7, 25, 10}, {36, 15, -23, .10, .055, .15},
+    {61, -17, 20, .075, .12, .08}, {102, 1, 0, .155, .22, -.12}, lead, {-6, -20, -7}, {7, -18, 6})
+local heelWithdraw = pose({-.15, -.23, .025, -4, -1, 8}, rightGuard, leftGuard,
+    {54, -11, 2, .17, .13, .055}, lead, {5, 1, -6}, {1, 12, 7})
+
 local breathFeet = {8, -21, 0, .19, 0, .19, .017}
 local breathLead = {12, 16, 0, -.16, 0, -.26, .017}
 local inhale = pose({-.07, -.25, .13, 3, 11, 5}, {45, 14, -25, .06, .085, .12},
@@ -97,7 +117,7 @@ local raised = pose({-.008, -.10, -.055, -2, 8, 0}, {78, 8, -37, .10, .14, -.12}
 
 local breathTimes = table.freeze({.58, .78, .98})
 local contact = {jab = .164, cross = .232, body = .276, heavy = .437, tailRake = .36,
-    volcanicBreath = breathTimes}
+    volcanicBreath = breathTimes, ashenSnap = .25, cinderHeel = .49}
 local clips = {
     stance = {{0, ready}, {.47, breathe}, {.94, ready}},
     advance = {{0, ready}, {.16, stepLead}, {.32, breathe}, {.49, stepRear}, {.65, ready}},
@@ -109,6 +129,9 @@ local clips = {
     heavy = {{0, ready}, {.185, heavyLoad}, {.29, heavyLoad}, {contact.heavy, heavyHit}, {.55, heavyEase}, {.82, ready}},
     tailRake = {{0, ready}, {.15, tailDraw}, {.238, tailPass}, {contact.tailRake, tailHit},
         {.45, tailFollow}, {.59, tailReset}, {.75, ready}},
+    ashenSnap = {{0, ready}, {.10, snapLoad}, {contact.ashenSnap, snapHit}, {.355, snapFold}, {.59, ready}},
+    cinderHeel = {{0, ready}, {.13, heelLoad}, {.24, heelLift}, {.362, heelChamber}, {contact.cinderHeel, heelHit},
+        {.555, heelFollow}, {.68, heelWithdraw}, {.94, ready}},
     volcanicBreath = {{0, ready}, {.21, inhale}, {.39, inhale}, {breathTimes[1], flameLeft},
         {breathTimes[2], flameCenter}, {breathTimes[3], flameRight}, {1.12, breathEase}, {1.34, ready}},
     guard = {{0, cover}},
@@ -125,10 +148,16 @@ local clips = {
 
 local rightFist, leftFist = v(1.18, 1.88, -.77), v(-1.18, 1.88, -.77)
 local mouth, tailTip = v(0, 3.58, -1.38), v(.18, .94, 2.65)
+-- The rounded muzzle's leading surface and the center line of the flat heel.
+local muzzle = snapHit.RootJoint * snapHit.Neck
+local muzzleRadius = v(.4405, .2025, .202)
+local front = muzzle:VectorToObjectSpace(-Vector3.zAxis) * muzzleRadius
+local snapPoint = muzzle:PointToWorldSpace(v(0, 3.675 - rootHeight, -1.193) + front * muzzleRadius / front.Magnitude)
 local hits = {
     jab = {{jabHit, "Right Shoulder", rightFist}}, cross = {{crossHit, "Left Shoulder", leftFist}},
     body = {{bodyHit, "Right Shoulder", rightFist}}, heavy = {{heavyHit, "Left Shoulder", leftFist}},
     tailRake = {{tailHit, "TailJoint", tailTip}}, volcanicBreath = {},
+    ashenSnap = {snapPoint}, cinderHeel = {{heelHit, "Right Hip", v(.50, .012, .135)}},
 }
 local samples = {}
 for index, key in {flameLeft, flameCenter, flameRight} do
@@ -141,9 +170,24 @@ for index, key in {flameLeft, flameCenter, flameRight} do
 end
 local skills = {
     tailRake = table.freeze({damage = 21, radius = .58, shove = 1.0}),
+    ashenSnap = table.freeze({damage = 14, radius = .40}),
+    cinderHeel = table.freeze({damage = 22, radius = .46}),
     volcanicBreath = table.freeze({warningAt = .21, radius = 4.65, halfAngle = math.rad(17),
         damage = 22, burnDamage = 3, shove = .78, samples = table.freeze(samples)}),
 }
 local travel = {tailRake = table.freeze({axis = "forward", distance = .24, startsAt = .18, endsAt = .34})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+local standard = rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {ashenSnap = true})
+local poses = table.clone(standard)
+local leftHip = "Left Hip"
+local plantedLeft = ready.RootJoint * ready[leftHip]
+
+function poses.sample(action, age, direction)
+    local offsets = standard.sample(action, age, direction)
+    if action == "cinderHeel" then
+        offsets[leftHip] = offsets.RootJoint:ToObjectSpace(plantedLeft)
+    end
+    return offsets
+end
+
+return table.freeze(poses)

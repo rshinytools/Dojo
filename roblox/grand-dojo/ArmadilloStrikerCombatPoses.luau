@@ -61,6 +61,29 @@ local plateHit = pose({.02, -.24, -.29, -14, 27, -7}, {53, 9, -24, -.11, .07, -.
 local plateEase = pose({.05, -.31, -.17, -21, 21, -8}, {46, 14, -26, -.095, .03, -.16}, leftGuard,
     rear, lead, {19, -19, 7}, {16, -24, 4})
 
+-- Keep the left palm compact as the chest turns through the target.
+local rivetLoad = pose({-.07, -.29, .09, -11, 13, 6}, {53, 16, -20, -.025, .12, .11},
+    {29, -3, 9, .06, .065, .17}, rear, lead, {12, -11, -4}, {8, -12, 5})
+local rivetHit = pose({-.015, -.245, -.09, -10, -25, 4}, {56, 17, -23, -.045, .13, .13},
+    {55, -16, 14, .09, .10, -.10}, rear, lead, {11, 23, -3}, {12, 18, -3})
+local rivetFold = pose({-.045, -.27, -.035, -10, -14, 4}, {54, 17, -20, -.035, .12, .09},
+    {50, -17, 15, .08, .11, -.02}, rear, lead, {11, 13, -2}, {10, 11, -2})
+
+-- Turn the plated shoulder through the strike while the glove folds behind
+-- the lip and the muzzle turns away, leaving the armor to lead the silhouette.
+local kilnLoad = pose({-.115, -.30, .10, -12, -25, 8}, {36, 7, -20, -.045, .11, .16},
+    {59, -15, 20, .10, .10, .01}, rear, lead, {13, 22, -4}, {9, 23, -6})
+local kilnCoil = pose({-.155, -.40, .125, -15, -40, 12}, {21, 11, -21, -.075, .09, .11},
+    {59, -11, 23, .095, .10, .045}, rear, lead, {16, 32, -6}, {9, 33, -8})
+local kilnTuck = pose({-.08, -.35, .025, -14, 15, 9}, {-14, 10, -25, -.035, .12, .01},
+    {45, -22, 18, .075, .12, .135}, rear, lead, {12, -13, -7}, {10, -12, -4})
+local kilnHit = pose({.13, -.18, -.45, -16, 73, -8}, {-36, 11, -25, -.025, .11, -.025},
+    {27, -26, 17, .09, .095, .21}, rear, lead, {15, -16, 8, .065, -.10, .13}, {14, -30, 8})
+local kilnFollow = pose({.095, -.29, -.355, -14, 77, -6}, {-28, 14, -21, -.04, .095, .015},
+    {31, -20, 17, .08, .08, .17}, rear, lead, {11, -17, 5, .04, -.065, .09}, {15, -30, 7})
+local kilnEase = pose({.045, -.31, -.065, -13, 24, -2}, {27, 13, -18, -.04, .08, .055},
+    leftGuard, rear, lead, {12, -16, 2}, {13, -20, 4})
+
 local fold = pose({0, -.43, .07, 4, 0, 0}, {47, 15, -24, -.17, -.05, .24},
     {47, -15, 24, .17, -.05, .24}, {27, -17, 0, .07, .045, .22, .023},
     {27, 17, 0, -.07, .045, .22, .023}, {-27, 0, 0, 0, -.20, .26}, {-24, 0, 0, 0, .21, -.14})
@@ -89,7 +112,7 @@ local bow = pose({0, -.33, -.11, -27, 0, 0}, {34, 16, -16, -.035, .04, .08},
 local raised = pose({0, -.08, -.065, -5, 1, 0}, {74, 7, -31, .11, .11, -.10},
     {73, -7, 31, -.11, .11, -.10}, rear, lead, {4, -1, 0}, {12, 1, 0})
 
-local contact = {jab = .174, cross = .237, body = .29, heavy = .46, plateCheck = .33, meteorRoll = .39}
+local contact = {jab = .174, cross = .237, body = .29, heavy = .46, plateCheck = .33, rivetPalm = .25, kilnShoulder = .52, meteorRoll = .39}
 local rollSeconds = .95
 local rollEnds = contact.meteorRoll + rollSeconds
 local clips = {
@@ -103,6 +126,9 @@ local clips = {
     heavy = {{0, ready}, {.20, heavyLoad}, {.32, heavyLoad}, {contact.heavy, heavyHit}, {.57, heavyEase}, {.85, ready}},
     plateCheck = {{0, ready}, {.14, plateLoad}, {.205, plateLoad}, {contact.plateCheck, plateHit},
         {.445, plateEase}, {.71, ready}},
+    rivetPalm = {{0, ready}, {.10, rivetLoad}, {contact.rivetPalm, rivetHit}, {.37, rivetFold}, {.62, ready}},
+    kilnShoulder = {{0, ready}, {.15, kilnLoad}, {.29, kilnCoil}, {.40, kilnTuck}, {contact.kilnShoulder, kilnHit},
+        {.64, kilnFollow}, {.81, kilnEase}, {.98, ready}},
     meteorRoll = {{0, ready}, {.20, fold}, {contact.meteorRoll, tucked}, {rollEnds, tucked},
         {rollEnds + .30, tucked}, {rollEnds + .44, unroll}, {rollEnds + .61, ready}},
     guard = {{0, cover}},
@@ -131,9 +157,14 @@ local hits = {
     jab = {{jabHit, "Right Shoulder", rightFist}}, cross = {{crossHit, "Left Shoulder", leftFist}},
     body = {{bodyHit, "Right Shoulder", rightFist}}, heavy = {{heavyHit, "Left Shoulder", leftFist}},
     plateCheck = {{plateHit, "Right Shoulder", forearm}},
+    -- Rounded parts in the shipped shell, in the rest floor frame.
+    rivetPalm = {{rivetHit, "Left Shoulder", v(-1.542710051, 1.738834120, -.663426084)}},
+    kilnShoulder = {{kilnHit, "Right Shoulder", v(1.499209984, 3.050060771, .027655620)}},
     meteorRoll = {tucked.RootJoint:PointToWorldSpace(shellCenter)},
 }
 local skills = {
+    rivetPalm = table.freeze({damage = 15, radius = .46}),
+    kilnShoulder = table.freeze({damage = 24, radius = .51}),
     plateCheck = table.freeze({damage = 21, radius = .52, shove = .95}),
     meteorRoll = table.freeze({windup = contact.meteorRoll, rollSeconds = rollSeconds, rootHeight = rootHeight,
         speed = 10.55, wheelRadius = 1.12, radius = 1.05, damage = 30, shove = 1.65,
@@ -142,4 +173,4 @@ local skills = {
 }
 local travel = {plateCheck = table.freeze({axis = "forward", distance = .47, startsAt = .16, endsAt = .31})}
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {rivetPalm = true, kilnShoulder = true})

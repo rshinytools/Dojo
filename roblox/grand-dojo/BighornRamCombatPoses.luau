@@ -64,6 +64,21 @@ local hornHit = pose({0, -.38, -.29, -23, -16, 0}, {39, 10, -23, .05, .03, .07},
 local hornFollow = pose({-.07, -.33, -.19, -15, 21, 7}, rightGuard, {55, -20, 18},
     rear, lead, {-7, 19, -5}, {-14, -21, 8})
 
+local tapLoad = pose({-.07, -.29, .09, -10, -22, 4}, {31, 11, -15, .04, .04, .19},
+    leftGuard, rear, lead, {11, 21, -3}, {-10, 23, 4})
+local tapHit = pose({-.08, -.26, -.22, -9, 24, 1}, {61, 16, -15, -.22, .105, -.25},
+    {52, -17, 16, .08, .09, .06}, rear, lead, {10, -24, -1}, {-11, -28, 4})
+local tapReturn = pose({.015, -.23, -.025, -8, 8, -2}, {48, 10, -15, -.09, .10, -.055},
+    leftGuard, rear, lead, {9, -8, 2}, {-10, -10, 1})
+local driveDraw = pose({-.045, -.40, .19, -10, 34, 8}, {29, 16, -27, .12, .03, .20},
+    {34, -17, 26, -.13, .01, .24}, rear, lead, {16, -22, -8}, {-15, -30, 4})
+local driveSet = pose({.085, -.47, .12, -23, 22, 6}, {28, 12, -25, .12, .025, .19},
+    {31, -17, 27, -.12, .02, .20}, rear, lead, {-8, -11, -4}, {-16, -28, 3})
+local driveHit = pose({-.12, -.50, -.43, -35, -12, -3}, {28, 11, -24, .10, .04, .17},
+    {30, -17, 26, -.10, .035, .12}, rear, lead, {-15, -8, -2, 0, 0, -.16}, {-16, 21, 4})
+local driveFollow = pose({-.09, -.40, -.23, -23, -25, -2}, {36, 11, -23, .06, .05, .10},
+    {40, -15, 24, -.07, .06, .07}, rear, lead, {-3, 17, 6}, {-18, 27, 5})
+
 local crouchRear = {8, -17, 0, .15, 0, .29, .018}
 local crouchLead = {13, 12, 0, -.12, 0, -.285, .018}
 local tuckedRight, tuckedLeft = {32, 8, -16, .055, .08, .17}, {34, -10, 17, -.065, .065, .17}
@@ -96,7 +111,8 @@ local hornSalute = pose({.038, -.095, -.015, 5, -15, 5}, {76, 4, -22, -.045, .13
 local chestRaise = pose({0, -.05, -.04, 5, 0, 0}, {78, -6, -32, .14, .16, -.08},
     {77, 6, 32, -.13, .15, -.07}, rear, lead, {-6, 0, 0}, {-14, 0, 0})
 
-local contact = {jab = .173, cross = .237, body = .283, heavy = .439, hornCheck = .31, staticCharge = .68}
+local contact = {jab = .173, cross = .237, body = .283, heavy = .439, hornCheck = .31, staticCharge = .68,
+    stoneTap = .26, ridgelineDrive = .51}
 local clips = {
     stance = {{0, ready}, {.61, breathe}, {1.22, ready}},
     advance = {{0, ready}, {.17, stepLead}, {.34, breathe}, {.52, stepRear}, {.69, ready}},
@@ -108,6 +124,9 @@ local clips = {
     heavy = {{0, ready}, {.198, heavyLoad}, {.293, heavyLoad}, {contact.heavy, heavyHit}, {.557, heavyEase}, {.845, ready}},
     hornCheck = {{0, ready}, {.143, hornWindup}, {.224, hornDrive}, {contact.hornCheck, hornHit},
         {.417, hornFollow}, {.53, breathe}, {.681, ready}},
+    stoneTap = {{0, ready}, {.119, tapLoad}, {contact.stoneTap, tapHit}, {.329, tapReturn}, {.63, ready}},
+    ridgelineDrive = {{0, ready}, {.212, driveDraw}, {.362, driveSet}, {contact.ridgelineDrive, driveHit},
+        {.635, driveFollow}, {.78, breathe}, {.98, ready}},
     staticCharge = {{0, ready}, {.15, chargeLoad}, {.20, chargeLoad}, {.32, chargeRear},
         {.43, chargeLead}, {.54, chargeRear}, {.62, chargeLead}, {contact.staticCharge, chargeBrace},
         {.80, chargeBrace}, {.98, chargeRecover}, {1.18, ready}},
@@ -126,19 +145,25 @@ local clips = {
 local rightGlove, leftGlove = v(1.25, 1.879, -.831), v(-1.25, 1.879, -.831)
 -- The near edge of the left horn leads when the head twists into the check.
 local hornFront = v(-1.173, 4.162, -.732)
+local tapSurface = v(1.461488234, 1.848089717, -.782245873)
+local driveSurface = v(-1.172631842, 4.184012159, -.706066774)
 local hits = {
     jab = {{jabHit, "Right Shoulder", rightGlove}}, cross = {{crossHit, "Left Shoulder", leftGlove}},
     body = {{bodyHit, "Right Shoulder", rightGlove}}, heavy = {{heavyHit, "Left Shoulder", leftGlove}},
     hornCheck = {{hornHit, "Neck", hornFront}},
     staticCharge = {v(0, -rootHeight, 0)},
+    stoneTap = {{tapHit, "Right Shoulder", tapSurface}},
+    ridgelineDrive = {{driveHit, "Neck", driveSurface}},
 }
 local skills = {
     hornCheck = table.freeze({damage = 20, radius = .60, shove = .96}),
     staticCharge = table.freeze({damage = 29, shove = 1.35}),
+    stoneTap = table.freeze({damage = 15, radius = .48}),
+    ridgelineDrive = table.freeze({damage = 24, radius = .58, shove = 1.12}),
 }
 local travel = {
     hornCheck = table.freeze({axis = "forward", distance = .38, startsAt = .17, endsAt = .30}),
     staticCharge = table.freeze({axis = "forward", distance = 6.85, startsAt = .20, endsAt = .68}),
 }
 
-return rig.finish(clips, contact, hits, skills, travel, {"sidestep"})
+return rig.finish(clips, contact, hits, skills, travel, {"sidestep"}, {stoneTap = true, ridgelineDrive = true})
