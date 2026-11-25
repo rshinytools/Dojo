@@ -731,5 +731,87 @@
         "counter": "Leave the marked lane or defend as each clone passes."
       }
     ]
+  },
+  {
+    "id": "golden-eagle",
+    "name": "Golden Eagle",
+    "shortName": "Eagle",
+    "title": "Cloudstep Wayfinder",
+    "home": "Skywalk Peaks · Cloud-Top Temple",
+    "element": "Sky",
+    "rarity": "Epic",
+    "role": "Beast",
+    "style": "Quick wing strikes and a carrying dive",
+    "health": 112,
+    "normal_hit": 15,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "eagle",
+      "techniqueCue": "galeRake",
+      "signatureCue": "talonDrop",
+      "techniqueCoolingCue": "galeCooling",
+      "signatureCoolingCue": "talonCooling",
+      "compactTechnique": "Gale",
+      "compactSignature": "Drop",
+      "tint": "F4D584",
+      "cardStyle": "Quick wing strikes and a carrying dive",
+      "initials": "GE",
+      "previewPose": {"right": 22, "left": -33, "lean": -12, "roll": 7, "lift": 0.1, "step": 0.15, "legs": 7}
+    },
+    "story": "Golden Eagle scouts the Cloudstep Pass when cloud hides the next bridge. The temple guides hang a gold ribbon along each safe route Eagle finds. In the ring, Eagle reads the open space before committing to a dive.",
+    "quote": "Leave yourself room to land.",
+    "powers": [
+      {
+        "name": "Gale Rake",
+        "effect": "Sweep a fitted wing strike for 20 damage.",
+        "counter": "Step outside the wing arc or guard the swing."
+      },
+      {
+        "name": "Talon Drop",
+        "effect": "Catch an opponent, carry them briefly and drop them for 28 damage.",
+        "counter": "Clear the approach or defend before the grab."
+      }
+    ]
+  },
+  {
+    "id": "celestial-storm-dragon",
+    "name": "Celestial Storm Dragon",
+    "shortName": "Dragon",
+    "title": "Wind Court Stormkeeper",
+    "home": "Skywalk Peaks · Wind Court",
+    "element": "Sky",
+    "rarity": "Mythic",
+    "role": "Heavy",
+    "style": "Measured claw strikes and a steerable lightning beam",
+    "health": 148,
+    "normal_hit": 16,
+    "unlockLevel": 10,
+    "combat": {
+      "kit": "dragon",
+      "techniqueCue": "stormClaw",
+      "signatureCue": "tempestRoar",
+      "techniqueCoolingCue": "clawCooling",
+      "signatureCoolingCue": "tempestCooling",
+      "compactTechnique": "Claw",
+      "compactSignature": "Roar",
+      "tint": "D1C3FA",
+      "cardStyle": "Heavy claws and a steerable storm beam",
+      "initials": "CD",
+      "previewPose": {"right": -26, "left": 17, "lean": -8, "roll": 8, "lift": 0.08, "step": 0.12, "legs": 6}
+    },
+    "story": "Dragon keeps the Wind Court weather chimes and closes the high paths when storm clouds gather. The temple apprentices learn to read the chime rhythm before they go out. In the ring, a marked strike follows the beam's last sound.",
+    "quote": "Watch where the light lands.",
+    "powers": [
+      {
+        "name": "Storm Claw",
+        "effect": "Step into a measured claw strike for 21 damage.",
+        "counter": "Step back or defend as the claw sweeps forward."
+      },
+      {
+        "name": "Tempest Roar",
+        "effect": "Use movement controls to steer five 6-damage beam pulses left or right. A separate marked thunder strike deals 10 damage.",
+        "counter": "Leave the beam lane and the marked thunder circle."
+      }
+    ]
   }
 ]

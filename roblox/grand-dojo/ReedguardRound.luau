@@ -14,6 +14,7 @@ local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
 local Abyss = require(script.Parent.AbyssFighterCombat)
 local Inferno = require(script.Parent.InfernoFighterCombat)
+local Storm = require(script.Parent.StormFighterCombat)
 local apexTimeline = Apex.zoneMoves()
 local Round = {}
 
@@ -185,6 +186,9 @@ end
 for id, kit in Inferno.kits do
     kits[id] = kit
 end
+for id, kit in Storm.kits do
+    kits[id] = kit
+end
 
 local residents = {
     juniper = {startRange = 3.65, attackLabel = "palm"},
@@ -249,6 +253,28 @@ local function play(round, action, at)
     end
     local duration = if action == "guard" then Round.GUARD_DURATION else round.kit.poses.Duration[action]
     round.clip = {action = action, startedAt = at, endsAt = at + duration, nextContact = 1}
+    if action == "tempestRoar" then
+        round.clip.steerEndsAt = at + Storm.tempest.channelEnd
+    end
+end
+
+local function missTalon(side, at)
+    play(side, Storm.talon.missAction, at - Storm.talon.grabAt)
+end
+
+local function resolveTalon(sides, event, at)
+    if not event.talonGrab then return end
+    local attacker, defender = sides[event.attacker], sides[event.defender]
+    local clip = attacker.clip
+    if not clip or clip.action ~= "talonDrop" or clip.startedAt ~= event.castStartedAt then
+        if event.kind == "talonCarry" then event.kind = "miss" end
+        return
+    end
+    if event.kind == "talonCarry" then
+        if defender and Storm.latch(attacker, defender, event.defender, at) then return end
+        event.kind = "miss"
+    end
+    missTalon(attacker, at)
 end
 
 local function nextLight(round, at)
@@ -262,7 +288,7 @@ end
 local function inMotion(side, action)
     local travel = side.kit.poses.Travel
     return action == side.kit.dodge or action == "fortressRicochet" or action == "meteorRoll"
-        or action == "apexPounce" or action == "jawsOfTheDeep" or (travel and travel[action] ~= nil)
+        or action == "apexPounce" or action == "jawsOfTheDeep" or action == "talonDrop" or (travel and travel[action] ~= nil)
 end
 
 local function applyRoot(side, at, duration)
@@ -275,13 +301,17 @@ end
 local function interruptFixedTravel(side)
     local action = side.clip and side.clip.action
     if action == "fortressRicochet" or action == "meteorRoll" or action == "tidalBellyFlop"
-        or action == "apexPounce" or action == "jawsOfTheDeep" then
+        or action == "apexPounce" or action == "jawsOfTheDeep" or action == "talonDrop" then
         side.clip, side.bufferedLight = nil, false
     end
 end
 
 function Round.act(round, action, now, direction)
-    if round.result or now < round.startsAt or now >= round.endsAt or now < round.playerStunUntil then
+    if round.result or now < round.startsAt or now >= round.endsAt or now < round.playerStunUntil or Storm.held(round, now) then
+        return
+    end
+    if action == "stormSteer" then
+        Storm.steer(round.clip, direction, now)
         return
     end
     local kit = round.kit
@@ -352,6 +382,21 @@ function Round.act(round, action, now, direction)
 end
 
 local function resolveBotContact(round, at, fields, hit, _, move)
+    if move and move.shape == "talonGrab" then
+        local brace = hit and round.botPhase == "setup" and round.attack.brace
+        if hit and not brace then
+            round.clip.talonTarget = 0
+            round.botPhase, round.recoveryStartedAt, round.recoveryKind = "recovery", at, "talon"
+            round.botAt = round.clip.startedAt + Storm.talon.impactAt + .38
+            fields.damage = 0
+            report(round, "talonCarry", at, fields)
+        else
+            missTalon(round, at)
+            fields.damage = 0
+            report(round, if brace then "braced" else "miss", at, fields)
+        end
+        return 0
+    end
     if not hit then
         report(round, "miss", at, fields)
         return 0
@@ -393,6 +438,7 @@ local function contact(round, at, check, resolve, publishCast, multipleDefenders
     local move = attacks[clip.nextContact]
     local index = clip.nextContact
     clip.nextContact += 1
+    if move.shape == "talonThrow" and clip.talonTarget == nil then return end
     if move.projectile then
         index = move.projectile
         clip.projectiles = clip.projectiles or {}
@@ -406,7 +452,7 @@ local function contact(round, at, check, resolve, publishCast, multipleDefenders
     local hit, point, resolvedZone, facing
     if publishCast or round.kit == kits.salamander or move.projectile or move.lockedCenter
         or move.shape == "snare" or move.shape == "wave" or move.shape == "ricochet" or move.shape == "breath"
-        or move.thunder or move.apex or move.abyss or move.shape == "tentacle" or move.detached then
+        or move.thunder or move.apex or move.abyss or move.shape == "tentacle" or move.detached or Storm.isCast(clip.action) then
         hit, point, resolvedZone, facing = check(clip.action, move, at, index, clip.startedAt)
     else
         hit, point, resolvedZone = check(clip.action, move, at, index)
@@ -433,9 +479,11 @@ local function contact(round, at, check, resolve, publishCast, multipleDefenders
         clip.connected = true
     end
     local fields = {attack = clip.action, index = index, point = point, projectile = move.projectile, controlOnly = move.controlOnly,
-        rootDuration = move.rootDuration,
+        rootDuration = move.rootDuration, stormThunder = if move.shape == "stormThunder" then true else nil,
+        talonGrab = if move.shape == "talonGrab" then true else nil,
         castStartedAt = if publishCast or move.shape == "breath" or move.guardBreak or move.thunder
-            or move.apex or move.abyss or move.shape == "tentacle" or move.detached then clip.startedAt else nil}
+            or move.apex or move.abyss or move.shape == "tentacle" or move.detached or Storm.isCast(clip.action)
+            then clip.startedAt else nil}
     if hit then
         fields.zone, fields.damage = resolvedZone or move.zone, move.damage
     end
@@ -519,7 +567,7 @@ local function nextThreat(round)
     if attacks then
         for index = clip.nextContact, #attacks do
             local strike = attacks[index]
-            if not strike.launch and not (strike.singleHit and clip.connected)
+            if not strike.launch and strike.shape ~= "talonThrow" and not (strike.singleHit and clip.connected)
                 and not (strike.projectile and clip.projectiles and clip.projectiles[strike.projectile]) then
                 earliest, action = clip.startedAt + strike.at, clip.action
                 break
@@ -641,6 +689,9 @@ Round.Combatant = table.freeze({
     applyRoot = applyRoot,
     interruptFixedTravel = interruptFixedTravel,
     advanceTrail = advanceTrail,
+    missTalon = missTalon,
+    resolveTalon = resolveTalon,
+    held = Storm.held,
     unstoppable = Apex.unstoppable,
     submerged = Abyss.submerged,
     PARRY_COUNTER_TIME = PARRY_COUNTER_TIME,

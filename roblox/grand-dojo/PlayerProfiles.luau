@@ -24,6 +24,7 @@ local EXPANDED_UNLOCKS = {
     ["honey-badger"] = 10, ["emerald-saber-tooth"] = 10,
     ["great-white-shark"] = 10, ["abyssal-kraken"] = 10,
     ["magma-grizzly-bear"] = 10, ["obsidian-hellhound"] = 10,
+    ["golden-eagle"] = 10, ["celestial-storm-dragon"] = 10,
 }
 local STARTER_PROGRESS = {relay = "lastRelayReward", spar = "lastSparReward", training = "ringTraining"}
 local ROSTER_PROGRESS = {relay = "lastRosterRelayReward", spar = "lastRosterSparReward", training = "rosterTraining"}

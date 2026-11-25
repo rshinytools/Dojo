@@ -20,6 +20,7 @@ local groundPitch = {
     thunderDive = 1.35, staticCharge = .80, apexPounce = 1.22,
     jawsOfTheDeep = 1.10, tentacleCataclysm = .76,
     eruptionSlam = .74, hellfireStampede = 1.21,
+    talonDrop = 1.12, tempestRoar = 1.27, stormThunder = .69,
     pulse = .87, sweep = .98, undertow = .90, cataclysm = .82, solarFlare = 1.13,
 }
 local heavyPitch = {
@@ -28,12 +29,14 @@ local heavyPitch = {
     plateCheck = .93, meteorRoll = .78, tailRake = 1.02, volcanicBreath = .88, hornCheck = .89, burrowHook = 1.08,
     reefHook = 1.04, tideGrip = .92,
     basaltBackhand = .81, cinderLunge = 1.14,
+    stormClaw = .83,
     ["Kiln Rush"] = .98, ["Wind Court Return"] = 1.08, ["Harbor Sweep"] = .88,
 }
 local lightPitch = {
     jab = 1.06, cross = .98, body = .94, uppercut = 1.02, reedstep = .92, emberSweep = 1.12,
     eddyPalm = .89, pebbleBarrage = 1.25, canopySlip = 1.16, featherFlurry = 1.20,
     tailFeint = 1.03, clawDash = .92, wingSweep = 1.19, unstoppableFrenzy = 1.30, jadeRake = 1.12,
+    galeRake = 1.32,
     ["Kiln Jab"] = .96, ["Wind Jab"] = 1.10,
 }
 local countdownPitch = {1.10, 1.02, .96}

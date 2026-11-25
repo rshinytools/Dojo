@@ -118,6 +118,7 @@ from thunder_roster_art import build_thunder_roster_visuals
 from apex_roster_art import build_apex_roster_visuals
 from abyss_roster_art import build_abyss_roster_visuals
 from inferno_roster_art import build_inferno_roster_visuals
+from storm_roster_art import build_storm_roster_visuals
 from skywalk_foothill import build_skywalk_foothill
 from skywalk_road_bank import build_skywalk_road_bank
 from reedfall_arrival_backdrop import build_reedfall_arrival_backdrop
@@ -7802,6 +7803,7 @@ build_thunder_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, v
 build_apex_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_abyss_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 build_inferno_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
+build_storm_roster_visuals(fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 server_storage=item(root,"ServerStorage","ServerStorage")
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
@@ -8063,12 +8065,16 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","MagmaGrizzlyBearCombatPoses","MagmaGrizzlyBearCombatPoses.luau"),
                                     (server,"ModuleScript","ObsidianHellhoundCombatPoses","ObsidianHellhoundCombatPoses.luau"),
                                     (server,"ModuleScript","InfernoFighterCombat","InfernoFighterCombat.luau"),
+                                    (server,"ModuleScript","GoldenEagleCombatPoses","GoldenEagleCombatPoses.luau"),
+                                    (server,"ModuleScript","CelestialStormDragonCombatPoses","CelestialStormDragonCombatPoses.luau"),
+                                    (server,"ModuleScript","StormFighterCombat","StormFighterCombat.luau"),
                                     (server,"ModuleScript","RingRicochet","RingRicochet.luau"),
                                     (server,"ModuleScript","GraniteCombatPoses","GraniteCombatPoses.luau"),
                                     (storage,"ModuleScript","CombatIntro","CombatIntro.luau"),
                                     (storage,"ModuleScript","CombatEffects","CombatEffects.luau"),
                                     (storage,"ModuleScript","CombatCueAssets","CombatCueAssets.luau"),
                                     (storage,"ModuleScript","CombatAudio","CombatAudio.luau"),
+                                    (storage,"ModuleScript","StormSteering","StormSteering.luau"),
                                     (storage,"ModuleScript","CombatHealth","CombatHealth.luau"),
                                     (storage,"ModuleScript","ChampionshipHud","ChampionshipHud.luau"),
                                     (storage,"ModuleScript","ChampionshipPortraits","ChampionshipPortraits.luau"),

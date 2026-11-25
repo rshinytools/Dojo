@@ -18,6 +18,7 @@ local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
 local Abyss = require(script.Parent.AbyssFighterCombat)
 local Inferno = require(script.Parent.InfernoFighterCombat)
+local Storm = require(script.Parent.StormFighterCombat)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 local targetedSkills = {apexPounce = Apex.pounce, jawsOfTheDeep = Abyss.jaws}
 
@@ -28,7 +29,7 @@ local travelActions = {sidestep = true, floeTurn = true, bellySlide = true, magm
     fortressRicochet = true, meteorRoll = true, apexPounce = true, jawsOfTheDeep = true}
 local plantedActions = {seismicChestPound = true, ridgePalm = true, emberSweep = true, tadpoleTornado = true,
     pebbleBarrage = true, cinderSnare = true, cavitationCannon = true, volcanicBreath = true, unstoppableFrenzy = true,
-    tentacleCataclysm = true, eruptionSlam = true, hellfireStampede = true}
+    tentacleCataclysm = true, eruptionSlam = true, hellfireStampede = true, talonDropMiss = true}
 local sideStep = {
     reedguard = {distance = 2.45, time = .23, start = 0},
     silverback = {distance = 2.23, time = .29, start = .045},
@@ -51,6 +52,8 @@ local sideStep = {
     kraken = {distance = 2.03, time = .285, start = .035},
     grizzly = {distance = 1.97, time = .28, start = .036},
     hellhound = {distance = 2.56, time = .225, start = .025},
+    eagle = {distance = 2.61, time = .22, start = .023},
+    dragon = {distance = 2.23, time = .26, start = .03},
 }
 local blue = Color3.fromRGB(105, 213, 249)
 local gold = Color3.fromRGB(255, 206, 115)
@@ -222,6 +225,18 @@ local function floorActive(duel, point, at)
     return not duel.floorActive or duel.floorActive(point, at)
 end
 
+local function talonHold(duel, index, at)
+    local hold = Storm.held(duel.round.sides[index], at)
+    if hold then
+        for attacker, state in duel.round.sides do
+            if state == hold.attacker and activeActor(duel, attacker) then
+                return hold, attacker
+            end
+        end
+    end
+    return nil
+end
+
 function Motion.holdsKnockout(match, index, now)
     local actor, round = match.actors[index], match.round
     local state = round.sides[index]
@@ -233,7 +248,8 @@ end
 
 function Motion.canAct(duel, side, action, now)
     local actor = duel.actors[side]
-    if not activeActor(duel, side) or not Match.inside(duel.bounds, actor.root.Position) then
+    if not activeActor(duel, side) or not Match.inside(duel.bounds, actor.root.Position)
+        or talonHold(duel, side, now or duel.motion.at) then
         return false
     end
     local root = actor.root
@@ -568,6 +584,54 @@ local function moveKnock(duel, actor, other, now)
     end
 end
 
+local function stormCast(actor, castStartedAt)
+    local cast = actor.cast
+    return if cast and cast.clip.startedAt == castStartedAt then cast.storm else nil
+end
+
+local function beamEndpoint(duel, from, to)
+    local delta = to - from
+    if delta.Magnitude <= .005 then return from end
+    local hit = workspace:Raycast(from, delta, duel.motion.contactCast or duel.motion.arenaCast)
+    return if hit then hit.Position else to
+end
+
+local function stormBeam(duel, cast, at)
+    return Storm.beam(cast, at, function(from, to) return beamEndpoint(duel, from, to) end)
+end
+
+local function clipTalonTravel(duel, grabber, victim, from, to, width, at)
+    local target = Match.clampFloor(duel.bounds, to, from.Y)
+    local delta = target - from
+    for index, other in duel.actors do
+        if other ~= grabber and other ~= victim and activeActor(duel, index)
+            and math.abs(from.Y - other.root.Position.Y) < 2.45 then
+            delta = Geometry.stopAtActor(from, delta, other.root.Position, (width + 1.65) * .5)
+        end
+    end
+    local finish = arenaTravel(duel, from, from + delta, CFrame.new(from), Vector3.new(width, 2.10, width))
+    if not duel.floorActive then return finish end
+    return if floorActive(duel, from, at) then Thunder.floorEnd(from, finish, function(point)
+        return floorActive(duel, point, at)
+    end) else from
+end
+
+local function talonFrames(duel, attacker, defender, cast, at)
+    local grabber, victim = duel.actors[attacker], duel.actors[defender]
+    local grabAt = cast.clip.startedAt + Storm.talon.grabAt
+    if not cast.path then
+        Storm.planTalon(cast, clockFrame(grabber, grabAt), clockFrame(victim, grabAt), function(from, to, width)
+            return clipTalonTravel(duel, grabber, victim, from, to, width, grabAt)
+        end, duel.floor + 2.132)
+    end
+    local fighterFrame, victimFrame = Storm.carry(cast, at)
+    if fighterFrame and victimFrame and floorActive(duel, fighterFrame.Position, at)
+        and floorActive(duel, victimFrame.Position, at) then
+        return fighterFrame, victimFrame
+    end
+    return nil
+end
+
 local function updateActor(duel, index, now)
     local actor = duel.actors[index]
     local brawl = duel.motion.brawl
@@ -581,10 +645,19 @@ local function updateActor(duel, index, now)
     end
     local travel = clip and state.kit.poses.Travel and state.kit.poses.Travel[clip.action]
     local traveling = clip and (travelActions[clip.action] or (travel and travel.axis))
-    local planting = (clip and plantedActions[clip.action])
+    local special = clip and Storm.isCast(clip.action)
+    local planting = (clip and (plantedActions[clip.action] or special))
         or FighterMotion.canPlantKick(state.kitId, clip, root, duel.floor)
     local live = now >= duel.round.startsAt and not duel.round.resolvedAt
     local rooted = now < math.max(state.rootedUntil or 0, state.shockedUntil or 0)
+    if live and talonHold(duel, index, now) and floorActive(duel, root.Position, now) then
+        clearCast(actor)
+        actor.knock, actor.lift = nil, nil
+        actor.humanoid.AutoRotate = false
+        setHeld(actor, true)
+        remember(actor, now)
+        return
+    end
     if brawl then
         actor.humanoid.AutoRotate = live and not clip and not actor.knock and actor.wasAutoRotate
         if live and not floorActive(duel, root.Position, now) then
@@ -629,6 +702,9 @@ local function updateActor(duel, index, now)
                     return clipInfernoLane(duel, from, to, width, now)
                 end)
                 actor.cast.warning = Inferno.showWarnings(actor.cast.inferno, actor.fx)
+            elseif special then
+                actor.cast.storm = Storm.begin(clip.action, duel, origin, clip)
+                actor.cast.warning = Storm.show(actor.cast.storm, actor.fx)
             elseif clip.action == "gustVortex" then
                 actor.cast.fieldCenter = Match.clampFloor(duel.bounds, origin:PointToWorldSpace(Sky.gust.center), duel.floor)
             elseif clip.action == "cinderSnare" then
@@ -671,6 +747,14 @@ local function updateActor(duel, index, now)
             Abyss.windupLanes(actor.cast, now - clip.startedAt)
         elseif actor.cast.inferno then
             Inferno.presentEchoes(actor.cast.inferno, now - clip.startedAt)
+        elseif actor.cast.storm then
+            local storm = actor.cast.storm
+            local beam
+            if clip.action == "tempestRoar" then
+                Match.move(root, Storm.aim(storm, now))
+                beam = stormBeam(duel, storm, now)
+            end
+            Storm.present(storm, now, beam, function(point) return floorActive(duel, point, now) end)
         elseif actor.cast.field then
             local field = actor.cast.field
             Fields.updateCast(actor.fx, actor.cast, now - clip.startedAt, now, EmberAqua,
@@ -699,6 +783,25 @@ function Motion.move(duel, now)
             updateActor(duel, index, now)
         end
     end
+    -- Move both roots after normal updates so roster iteration cannot overwrite
+    -- the held fighter's position or the grabber's committed heading.
+    if duel.round.resolvedAt then return end
+    for defender, victim in duel.actors do
+        if activeActor(duel, defender) then
+            local hold, attacker = talonHold(duel, defender, now)
+            local grabber = attacker and duel.actors[attacker]
+            local cast = grabber and stormCast(grabber, hold.clip.startedAt)
+            if cast and floorActive(duel, victim.root.Position, now) then
+                local fighterFrame, victimFrame = talonFrames(duel, attacker, defender, cast, now)
+                if fighterFrame then
+                    Match.move(grabber.root, fighterFrame)
+                    Match.move(victim.root, victimFrame)
+                    remember(grabber, now)
+                    remember(victim, now)
+                end
+            end
+        end
+    end
 end
 
 local function poseAt(duel, index, now, readOnly)
@@ -710,6 +813,8 @@ local function poseAt(duel, index, now, readOnly)
         action, age = if result == "win" then "win" else "stance", now - round.resolvedAt
     elseif now < round.startsAt then
         action, age = "intro", now - round.introAt
+    elseif talonHold(duel, index, now) then
+        action, age = "hitBody", .13 + math.sin(now * 16) * .045
     elseif state.clip then
         if not readOnly then actor.shuffle = nil end
         action, age, direction = state.clip.action, now - state.clip.startedAt, state.clip.direction
@@ -779,7 +884,7 @@ end
 local function defenderVolumes(duel, index, at, root, facing)
     local state, actor = duel.round.sides[index], duel.actors[index]
     if Abyss.submerged(state, at) then return {} end
-    local guard = facing and state.guardUntil >= at and at >= state.guardFrom + .055
+    local guard = facing and not talonHold(duel, index, at) and state.guardUntil >= at and at >= state.guardFrom + .055
     return Geometry.fittedVolumes(actor.character, root, actor.motors, poseAt(duel, index, at, true), guard)
 end
 
@@ -1000,6 +1105,90 @@ local function infernoContact(duel, defender, target, move, shape, at)
     return nil, facing
 end
 
+local function talonGrabContact(duel, defender, root, target, point, radius, at)
+    local facing = defenderFacing(target, root.Position)
+    if not Match.inside(duel.bounds, root.Position) or not Match.inside(duel.bounds, target.Position)
+        or not floorActive(duel, target.Position, at) or talonHold(duel, defender, at) or not inFront(root, target) then
+        return nil, facing
+    end
+    local closest, distance = nil, math.huge
+    for _, volume in defenderVolumes(duel, defender, at, target, facing) do
+        if volume.zone ~= "head" then
+            local near = Geometry.nearestPoint(volume.frame, volume.size, point)
+            local gap = (near - point).Magnitude
+            if gap <= radius and gap < distance and not obstructed(duel, root.Position, near) then
+                closest, distance = near, gap
+            end
+        end
+    end
+    return closest, facing
+end
+
+local function talonLanding(duel, attacker, defender, at, castStartedAt)
+    if not activeActor(duel, defender) then return nil end
+    local grabber, victim = duel.actors[attacker], duel.actors[defender]
+    local cast = stormCast(grabber, castStartedAt)
+    if not cast or cast.clip.talonTarget ~= defender then return nil end
+    local hold, holder = talonHold(duel, defender, at)
+    if not hold or holder ~= attacker or hold.clip ~= cast.clip then return nil end
+    local fighterFrame, landing = talonFrames(duel, attacker, defender, cast, at)
+    if landing and Match.inside(duel.bounds, landing.Position) then
+        local point = floorPoint(duel, landing.Position)
+        if not cast.landed then
+            cast.landed = true
+            -- Late frames still show both fighters touch down. Leave the
+            -- pre-reaction history available to the rest of the strike batch.
+            Match.move(grabber.root, fighterFrame)
+            Match.move(victim.root, landing)
+            Storm.flash(cast, "talonThrow", grabber.fx, point)
+        end
+        return point
+    end
+    return nil
+end
+
+local function tempestShape(duel, actor, move, at, castStartedAt)
+    local cast = stormCast(actor, castStartedAt)
+    if not cast then return nil end
+    if move.shape == "stormThunder" then
+        local center = Storm.thunder(cast, at, function(point) return floorActive(duel, point, at) end)
+        if center and floorActive(duel, center, at) then
+            Storm.flash(cast, "stormThunder", actor.fx, center)
+            return center
+        end
+        return nil
+    end
+    local beam = stormBeam(duel, cast, at)
+    return if beam and (beam.finish - beam.start).Magnitude > .035 then beam else nil
+end
+
+local function beamHit(duel, beam, frame, size, radius)
+    local hit, from = Storm.beamContact(beam, frame, size, Geometry.nearestPoint, radius)
+    if hit then
+        local delta = hit - from
+        if delta.Magnitude <= .005
+            or not workspace:Raycast(from, delta, duel.motion.contactCast or duel.motion.arenaCast) then
+            return hit
+        end
+    end
+    return nil
+end
+
+local function tempestContact(duel, defender, target, move, shape, at)
+    if not Match.inside(duel.bounds, target.Position) or not floorActive(duel, target.Position, at) then
+        return nil, false
+    end
+    if move.shape == "stormThunder" then
+        return floorContact(duel, defender, at, target, shape, move.radius)
+    end
+    local facing = defenderFacing(target, shape.start)
+    for _, volume in defenderVolumes(duel, defender, at, target, facing) do
+        local hit = beamHit(duel, shape, volume.frame, volume.size, move.radius)
+        if hit then return hit, facing end
+    end
+    return nil, facing
+end
+
 local function apexZoneContact(duel, actor, defender, target, move, at, castStartedAt)
     local zone = actor.apexZone
     if not zone or zone.startedAt ~= castStartedAt or zone.caught[defender]
@@ -1091,6 +1280,19 @@ function Motion.strike(duel, side, action, move, at, index, castStartedAt)
     local actor = duel.actors[side]
     local root = clockFrame(actor, at)
     local target = clockFrame(duel.actors[other], at)
+    if move.shape == "talonGrab" then
+        local point = clipPoint(duel, side, root, action, index)
+        local hit, facing = talonGrabContact(duel, other, root, target, point, move.radius, at)
+        return hit ~= nil, hit or point, "body", facing
+    elseif move.shape == "talonThrow" then
+        local point = talonLanding(duel, side, other, at, castStartedAt)
+        return point ~= nil, point, "body", false
+    elseif move.shape == "stormBeam" or move.shape == "stormThunder" then
+        local shape = tempestShape(duel, actor, move, at, castStartedAt)
+        if not shape then return false end
+        local hit, facing = tempestContact(duel, other, target, move, shape, at)
+        return hit ~= nil, hit or (if move.shape == "stormBeam" then shape.finish else shape), "body", facing
+    end
     if move.shape == "eruption" or move.shape == "echo" then
         local shape = infernoGeometry(duel, actor, move, at, index, castStartedAt)
         if not shape then return false end
@@ -1179,6 +1381,41 @@ function Motion.strikeGroup(brawl, side, action, move, at, index, castStartedAt)
     end
     local actor = brawl.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "talonGrab" then
+        local point = clipPoint(brawl, side, root, action, index)
+        local closest, distance = nil, math.huge
+        for other, defender in brawl.actors do
+            if other ~= side and (not brawl.enemies or brawl.enemies(side, other)) and activeActor(brawl, other) then
+                local target = clockFrame(defender, at)
+                local gap = (target.Position - root.Position).Magnitude
+                if gap < distance then
+                    local hit, facing = talonGrabContact(brawl, other, root, target, point, move.radius, at)
+                    if hit then
+                        closest, distance = {defender = other, point = hit, zone = "body", facing = facing}, gap
+                    end
+                end
+            end
+        end
+        return (if closest then {closest} else {}), point
+    elseif move.shape == "talonThrow" then
+        local cast = stormCast(actor, castStartedAt)
+        local defender = cast and cast.clip.talonTarget
+        local point = defender and talonLanding(brawl, side, defender, at, castStartedAt)
+        return if point then {{defender = defender, point = point, zone = "body", facing = false}} else {}
+    elseif move.shape == "stormBeam" or move.shape == "stormThunder" then
+        local shape = tempestShape(brawl, actor, move, at, castStartedAt)
+        local contacts = {}
+        if not shape then return contacts end
+        for other, opponent in brawl.actors do
+            if other ~= side and (not brawl.enemies or brawl.enemies(side, other)) and activeActor(brawl, other) then
+                local point, facing = tempestContact(brawl, other, clockFrame(opponent, at), move, shape, at)
+                if point then
+                    table.insert(contacts, {defender = other, point = point, zone = "body", facing = facing})
+                end
+            end
+        end
+        return contacts, if move.shape == "stormBeam" then shape.finish else shape
+    end
     if move.shape == "eruption" or move.shape == "echo" then
         local shape = infernoGeometry(brawl, actor, move, at, index, castStartedAt)
         local contacts = {}
@@ -1361,6 +1598,34 @@ function Motion.strikeRaid(raid, side, action, move, at, index, castStartedAt)
     end
     local actor = raid.actors[side]
     local root = clockFrame(actor, at)
+    if move.shape == "talonThrow" then return false end
+    if move.shape == "talonGrab" or move.shape == "stormBeam" or move.shape == "stormThunder" then
+        local grab, beam = move.shape == "talonGrab", move.shape == "stormBeam"
+        local shape = if grab then clipPoint(raid, side, root, action, index)
+            else tempestShape(raid, actor, move, at, castStartedAt)
+        if not shape then return false end
+        local targets = if raid.round.coreExposed then raid.exposedBossVolumes else raid.bossVolumes
+        for _, volume in targets do
+            local frame, size = volume.part.CFrame, volume.part.Size
+            local hit
+            if beam then
+                hit = beamHit(raid, shape, frame, size, move.radius)
+            elseif grab then
+                local nearest = Geometry.nearestPoint(frame, size, shape)
+                if (nearest - shape).Magnitude <= move.radius and not obstructed(raid, root.Position, nearest) then
+                    hit = nearest
+                end
+            else
+                local nearest = Geometry.nearestPoint(frame, size, shape + Vector3.yAxis * .24)
+                if nearest.Y <= shape.Y + .78 and Match.flat(nearest - shape).Magnitude <= move.radius
+                    and not obstructed(raid, shape, nearest + Vector3.yAxis * .12) then
+                    hit = nearest
+                end
+            end
+            if hit then return true, hit, volume.zone end
+        end
+        return false, if beam then shape.finish else shape
+    end
     if move.shape == "eruption" or move.shape == "echo" then
         local shape = infernoGeometry(raid, actor, move, at, index, castStartedAt)
         if not shape then return false end
@@ -1592,8 +1857,8 @@ function Motion.impact(duel, event)
         local center = if action == "cavitationCannon" and field then field.center else root.Position
         offset, duration, height = heading(center, target.root.Position, direction) * EmberAqua.shove[action],
             (if action == "cavitationCannon" then .34 else .20), 0
-    elseif Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] or Inferno.shove[action] then
-        local force = Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] or Inferno.shove[action]
+    elseif Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] or Inferno.shove[action] or Storm.shove[action] then
+        local force = Thunder.shove[action] or Apex.shove[action] or Abyss.shove[action] or Inferno.shove[action] or Storm.shove[action]
         offset, duration, height = heading(root.Position, target.root.Position, direction) * force, .24, 0
     elseif Magma.shove[action] then
         offset, duration, height = heading(root.Position, target.root.Position, direction) * Magma.shove[action],

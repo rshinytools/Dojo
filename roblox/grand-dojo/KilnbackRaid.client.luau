@@ -10,6 +10,7 @@ local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCat
 local Health = require(ReplicatedStorage:WaitForChild("CombatHealth"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
+local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(33, 23, 27)
 local wood = Color3.fromRGB(69, 41, 39)
@@ -235,6 +236,8 @@ local feedback = {
     shockLanded = "Thunder shock landed", shocked = "Shocked briefly",
     frenzyResist = "Frenzy keeps you planted",
     submerged = "Attack evaded underwater",
+    talonCarry = "Talon Drop · Carrying", talonDropMiss = "Talon Drop missed",
+    stormThunder = "Thunder strike landed",
 }
 local attackCues = {
     pulse = {name = "Kiln Pulse", hint = "Clear the ring"},
@@ -489,6 +492,8 @@ local function refreshCue(own, now)
         message, color = copy.moving .. " · " .. copy.safe, amber
     elseif descending then
         message, color = string.format("Dawn Landing · %.1fs", attack.landAt - now), amber
+    elseif steering:active(now) and match.feedback ~= "stormThunder" then
+        message = steering.hint
     elseif not match.bossAirborne and match.vulnerableUntil and now < match.vulnerableUntil then
         message = string.format("%s exposed · %.1fs", matchRaid.target, match.vulnerableUntil - now)
         color = mint
@@ -572,7 +577,7 @@ local function closeRecap()
     refresh()
 end
 
-local function send(action)
+local function send(action, direction)
     if not match or not matchRaid or detached or leaving then
         return
     end
@@ -595,7 +600,6 @@ local function send(action)
     local kit = kits[own.kitId] or kits.reedguard
     if action == "technique" then action = kit.techniqueAction end
     if not action then return end
-    local direction
     if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -775,6 +779,8 @@ UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(function()
 end)
 local elapsed = 0
 RunService.Heartbeat:Connect(function(dt)
+    local own = localSlot()
+    steering:step(actions.signature.Visible and own and own.kitId == "dragon", send)
     elapsed += dt
     if elapsed >= .10 then
         elapsed = 0

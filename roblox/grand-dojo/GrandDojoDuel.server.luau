@@ -28,7 +28,7 @@ local OFFER_SECONDS, QUEUE_SECONDS, PREPARE_SECONDS = 12, 55, 16
 local OUTSIDE_GRACE = 1.65
 local formatLabels = {casual = "Casual", series = "Best of 3", ranked = "Ranked"}
 
-local actions = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true,
+local actions = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true, stormSteer = true,
     dodge = true, signature = true}
 local tells = {
     jab = "Jab", cross = "Cross", body = "Body strike", heavy = "Heavy strike",
@@ -147,6 +147,7 @@ local function publish(duel, kind, now)
         if challenger.player.Parent ~= Players then
             continue
         end
+        Match.syncStormAim(challenger.player, if not round.result then side else nil)
         local rival = round.sides[3 - i]
         local opensAt, attackAt, attack = Round.parryOpensAt(round, i)
         remote:FireClient(challenger.player, kind, score(duel, i, {
@@ -305,7 +306,13 @@ local function resolve(duel, now)
         Motion.impact(duel, event)
         local a, b = duel.actors[event.attacker], duel.actors[event.defender]
         local kind = event.kind
-        if kind == "parried" or kind == "blocked" then
+        local stormCue = Match.stormFeedback(event)
+        if stormCue then
+            setFeedback(a, stormCue, now, event.elementEffect)
+            if stormCue ~= "talonDropMiss" then
+                setFeedback(b, if stormCue == "talonCarry" then "talonCaught" else "hit", now)
+            end
+        elseif kind == "parried" or kind == "blocked" then
             setFeedback(a, if kind == "parried" then "attackParried" else "attackBlocked", now)
             setFeedback(b, if event.deflected then "projectileDeflected" else kind, now)
         elseif kind == "pull" then
@@ -331,7 +338,7 @@ local function resolve(duel, now)
         end
         local cue = Match.contactCue(event)
         if cue then
-            effects:FireAllClients("impact", cue, event.point, event.attack)
+            effects:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
         end
     end
     local changed = #round.notices > 0
@@ -542,15 +549,14 @@ remote.OnServerEvent:Connect(function(player, action, direction, matchId, roundI
     end
     local now = workspace:GetServerTimeNow()
     local side = duel.actors[index]
-    if now < duel.round.startsAt or now < side.nextInput or duel.round.result or not onMat(side)
-        or not Motion.canAct(duel, index, action) then
+    if now < duel.round.startsAt or duel.round.result or not onMat(side)
+        or not Motion.canAct(duel, index, action) or not Match.takeCombatInput(side, action, direction, now, .08) then
         return
     end
-    side.nextInput = now + .08
     -- A new input must not replace an earlier contact still due after a long frame.
     local changed = advance(duel, now)
     local feedback = if not duel.round.result
-        then Round.act(duel.round, index, action, now, if direction == -1 then -1 else 1) else nil
+        then Round.act(duel.round, index, action, now, Match.combatDirection(action, direction)) else nil
     if feedback then
         setFeedback(side, feedback, now)
     end

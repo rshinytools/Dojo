@@ -29,6 +29,7 @@ end
 
 local function publish(bout, kind, now)
     local round = bout.round
+    Match.syncStormAim(bout.player, if not round.result then round else nil)
     local tell = if round.botPhase == "setup" then round.attack.setup
         elseif round.botPhase == "windup" then round.attack.name else nil
     remote:FireClient(bout.player, kind, round.playerHealth, round.botHealth, round.startsAt, round.endsAt,
@@ -48,6 +49,7 @@ local function finish(bout, result, now, disconnected)
         Match.clearPose(bout.arms)
     end
     player:SetAttribute("SparringActive", nil)
+    Match.syncStormAim(player, nil)
     player:SetAttribute("ActiveDojoRing", nil)
     if disconnected then
         return
@@ -268,10 +270,12 @@ remote.OnServerEvent:Connect(function(player, action, direction)
         return
     end
     local now = workspace:GetServerTimeNow()
-    if now - (lastAction[player] or -math.huge) < .095 then
-        return
+    if action ~= "stormSteer" then
+        if now - (lastAction[player] or -math.huge) < .095 then
+            return
+        end
+        lastAction[player] = now
     end
-    lastAction[player] = now
     if action == "accept" then
         local offer = offers[player]
         if offer and now < offer.untilAt then
@@ -300,7 +304,8 @@ remote.OnServerEvent:Connect(function(player, action, direction)
         finish(bout, if bout.outroAt then bout.round.result else "left", now)
     elseif bout.featured then
         if Match.root(player) ~= bout.root or not Match.inside(bout.arena.bounds, bout.root.Position)
-            or not Motion.canAct(bout, action) then
+            or not Motion.canAct(bout, action)
+            or (action == "stormSteer" and not Match.takeCombatInput(bout, action, direction, now, .095)) then
             return
         end
         local feedback = FeaturedRound.act(bout.round, action, now, direction)
@@ -336,10 +341,12 @@ local function tickShowcase(bout, now, dt)
         Motion.impact(bout, event)
         local cue = Match.contactCue(event)
         if cue then
-            remote:FireAllClients("impact", cue, event.point, event.attack)
+            remote:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
         end
         if event.attack ~= "magmaTrail" or (event.damage or 0) > 0 then
-            local kind = if event.frenzyResist then "frenzyResist" elseif event.kind == "pull" then "gustPull"
+            local stormCue = Match.stormFeedback(event)
+            local kind = if stormCue then stormCue elseif event.frenzyResist then "frenzyResist"
+                elseif event.kind == "pull" then "gustPull"
                 elseif event.kind == "snare" then (if event.attack == "apexPounce" then "apexRootCaught" else "snareCaught")
                 else event.kind
             bout.message, bout.messageUntil = if event.shockDuration then "shockLanded" else kind, now + .86

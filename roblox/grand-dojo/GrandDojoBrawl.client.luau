@@ -11,6 +11,7 @@ local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCat
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local ChampionshipPortraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
+local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(19, 37, 40)
 local jade = Color3.fromRGB(28, 53, 52)
@@ -170,6 +171,8 @@ local tips = {
     frenzyResist = "Frenzy keeps you planted",
     apexRooted = "Rooted by Apex Pounce", apexRootCaught = "Pounce mark caught your foe",
     submerged = "Attack evaded underwater",
+    talonCarry = "Talon Drop · Carrying", talonCaught = "Caught by Talon Drop", talonDropMiss = "Talon Drop missed",
+    stormThunder = "Thunder strike landed",
 }
 
 local waiting, match, lastResultId
@@ -289,6 +292,8 @@ local function refresh()
         cue.Text, cue.TextColor3 = string.format("Floor drops in %ds · Move inward", math.ceil(nextShrinkAt - now)), gold
     elseif now < stageCueUntil then
         cue.Text, cue.TextColor3 = "The safe floor shrank", gold
+    elseif steering:active(now) and match.feedback ~= "stormThunder" then
+        cue.Text = steering.hint
     else
         local text = tips[match.feedback] or earnedCues[match.feedback]
         cue.Text = text or ""
@@ -308,7 +313,7 @@ local function closeRecap()
     refresh()
 end
 
-local function send(action)
+local function send(action, direction)
     if not match or match.detached or sendingLeave then
         return
     end
@@ -328,7 +333,6 @@ local function send(action)
     if not action then
         return
     end
-    local direction
     if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -462,6 +466,7 @@ UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(function() health
 
 local elapsed = 0
 RunService.Heartbeat:Connect(function(dt)
+    steering:step(controls.Visible and match and match.kitId == "dragon", send)
     elapsed += dt
     if elapsed >= .12 then
         elapsed = 0

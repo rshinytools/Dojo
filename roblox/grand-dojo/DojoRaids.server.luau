@@ -14,7 +14,8 @@ local districts = workspace:WaitForChild("Grand Dojo City"):WaitForChild("Connec
 local PERIOD, ENROLLMENT, SEATS = 1200, 120, Round.SIZE
 local REVIVE_DISTANCE = 5.65
 local studio = RunService:IsStudio()
-local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true, dodge = true, signature = true}
+local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true, dodge = true,
+    signature = true, stormSteer = true}
 local ROTATION_LENGTH = 3
 local studioWindow = 0
 
@@ -166,6 +167,7 @@ local function mount(encounter)
         for index, actor in match.actors do
             local player, side = actor.player, round.sides[index]
             if not actor.returned and player.Parent == Players then
+                Match.syncStormAim(player, if not round.result and not side.eliminated then side else nil)
                 local revive = round.revives[index]
                 send(player, kind, {matchId = match.id, introAt = round.introAt, startsAt = round.startsAt,
                     endsAt = round.endsAt, resolvedAt = round.resolvedAt, bossHealth = round.bossHealth,
@@ -356,15 +358,15 @@ local function mount(encounter)
                     Motion.raidImpact(match, event.defender, origin, event.at, 1.15)
                 end
             elseif event.source == "player" then
-                cue(match.actors[event.attacker], if event.shockDuration then "shockLanded"
-                    elseif event.core then "core" else event.kind, now)
+                cue(match.actors[event.attacker], Match.stormFeedback(event)
+                    or (if event.shockDuration then "shockLanded" elseif event.core then "core" else event.kind), now)
             elseif event.source == "team" then
                 cue(match.actors[event.attacker], event.kind, now)
                 cue(match.actors[event.defender], event.kind, now)
             end
             if code then
                 local playedAtHazard = event.source == "boss" and event.kind == "hit"
-                effects:FireAllClients("impact", code, event.point, event.attack, playedAtHazard)
+                effects:FireAllClients("impact", code, event.point, Match.effectAttack(event), playedAtHazard)
             end
         end
         table.clear(round.notices)
@@ -451,11 +453,10 @@ local function mount(encounter)
             return
         end
         local actor, round = match.actors[index], match.round
-        if round.result or now < round.startsAt or now < actor.nextInput or not liveSide(match, index)
-            or not Motion.canAct(match, index, action, now) then
+        if round.result or now < round.startsAt or not liveSide(match, index)
+            or not Motion.canAct(match, index, action, now) or not Match.takeCombatInput(actor, action, value, now, .075) then
             return
         end
-        actor.nextInput = now + .075
         local changed = advance(match, now)
         if action == "revive" then
             if type(value) == "number" and value % 1 == 0 and value >= 1 and value <= SEATS and canReachForRevive(match, index, value)
@@ -464,7 +465,7 @@ local function mount(encounter)
                 changed = true
             end
         else
-            local result = Round.act(round, index, action, now, if value == -1 then -1 else 1)
+            local result = Round.act(round, index, action, now, Match.combatDirection(action, value))
             if result then
                 cue(actor, result, now)
                 changed = true

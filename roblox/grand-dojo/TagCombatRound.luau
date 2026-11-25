@@ -60,7 +60,7 @@ function Tag.planTag(round, index, now)
         end
     elseif now < line.nextTagAt then
         return nil, nil, "tagCooling"
-    elseif now < side.playerStunUntil or (side.clip and now < side.clip.endsAt)
+    elseif now < side.playerStunUntil or Combatant.held(side, now) or (side.clip and now < side.clip.endsAt)
         or (side.trail and side.trail.remainingDamage > 0) then
         -- Let every committed contact and planted burst finish before a voluntary swap.
         return nil, nil, "tagBusy"
@@ -71,6 +71,7 @@ end
 local function clearAttack(side)
     side.clip, side.trail, side.lastLight, side.bufferedLight = nil, nil, nil, false
     side.guardUntil, side.counterUntil = 0, nil
+    side.talonHold = nil
 end
 
 function Tag.swap(round, index, now, expectedSlot)

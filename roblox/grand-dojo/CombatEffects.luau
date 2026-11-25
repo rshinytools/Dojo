@@ -50,6 +50,11 @@ local moveContactTint = {
     eruptionSlam = Color3.fromRGB(255, 193, 102),
     cinderLunge = Color3.fromRGB(255, 124, 103),
     hellfireStampede = Color3.fromRGB(244, 144, 198),
+    galeRake = Color3.fromRGB(255, 225, 138),
+    talonDrop = Color3.fromRGB(255, 193, 92),
+    stormClaw = Color3.fromRGB(197, 171, 255),
+    tempestRoar = Color3.fromRGB(147, 198, 250),
+    stormThunder = Color3.fromRGB(217, 181, 255),
 }
 
 local folder

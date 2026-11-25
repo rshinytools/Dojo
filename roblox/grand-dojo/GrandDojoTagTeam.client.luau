@@ -11,6 +11,7 @@ local fighterCatalog = require(ReplicatedStorage:WaitForChild("StarterFighterCat
 local ChampionshipHud = require(ReplicatedStorage:WaitForChild("ChampionshipHud"))
 local Portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local CombatAudio = require(ReplicatedStorage:WaitForChild("CombatAudio"))
+local steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)
 
 local ink = Color3.fromRGB(32, 23, 27)
 local lacquer = Color3.fromRGB(67, 40, 40)
@@ -254,6 +255,8 @@ local tips = {
     frenzyResist = "Frenzy keeps you planted",
     apexRooted = "Rooted by Apex Pounce", apexRootCaught = "Pounce mark caught your foe",
     submerged = "Attack evaded underwater",
+    talonCarry = "Talon Drop · Carrying", talonCaught = "Caught by Talon Drop", talonDropMiss = "Talon Drop missed",
+    stormThunder = "Thunder strike landed",
 }
 
 local offer, waiting, match
@@ -520,6 +523,9 @@ local function refresh()
     elseif own.health == 0 then
         championship.hint.Text = if own.entryAt then "Knockout · Backup is entering" else "Knockout"
         championship.hint.TextColor3 = gold
+    elseif steering:active(now) and match.feedback ~= "stormThunder"
+        and match.feedback ~= "snared" and match.feedback ~= "shocked" then
+        championship.hint.Text = steering.hint
     else
         championship.hint.Text = tips[match.feedback] or earnedCues[match.feedback] or ""
         if match.feedback == "tagIn" or match.feedback == "tagStrike" or match.feedback == "parried" then
@@ -538,7 +544,7 @@ local function closeRecap()
     refresh()
 end
 
-local function send(action)
+local function send(action, direction)
     if not match or detached or leaving then
         return
     end
@@ -570,7 +576,6 @@ local function send(action)
     if not action then
         return
     end
-    local direction
     if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -726,6 +731,8 @@ gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
 
 local elapsed = 0
 RunService.Heartbeat:Connect(function(dt)
+    local own = match and match.slots[match.selfIndex]
+    steering:step(actions.signature.Visible and own and own.kitId == "dragon", send)
     elapsed += dt
     if elapsed >= .10 then
         elapsed = 0

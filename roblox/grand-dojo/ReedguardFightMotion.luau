@@ -21,6 +21,8 @@ local Thunder = require(script.Parent.ThunderFighterCombat)
 local Apex = require(script.Parent.ApexFighterCombat)
 local Abyss = require(script.Parent.AbyssFighterCombat)
 local Inferno = require(script.Parent.InfernoFighterCombat)
+local Storm = require(script.Parent.StormFighterCombat)
+local Eagle = require(script.Parent.GoldenEagleCombatPoses)
 local rolls = {fortressRicochet = Heavy.roll, meteorRoll = Magma.roll}
 local TweenService = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
@@ -70,6 +72,9 @@ for id, kit in Abyss.kits do
     playerKits[id] = kit
 end
 for id, kit in Inferno.kits do
+    playerKits[id] = kit
+end
+for id, kit in Storm.kits do
     playerKits[id] = kit
 end
 
@@ -329,7 +334,7 @@ function Motion.open(bout)
         spacing = spacing, diameter = diameter, originalPair = originalPair}
     if bout.kit == "frog" or bout.kit == "otter" or Sky.kits[bout.kit] or EmberAqua.kits[bout.kit]
         or Heavy.kits[bout.kit] or Magma.kits[bout.kit] or Thunder.kits[bout.kit]
-        or Apex.kits[bout.kit] or Abyss.kits[bout.kit] or Inferno.kits[bout.kit] then
+        or Apex.kits[bout.kit] or Abyss.kits[bout.kit] or Inferno.kits[bout.kit] or Storm.kits[bout.kit] then
         state.rosterHistory = {{at = bout.round.introAt, position = bout.root.CFrame}}
     end
     for _, name in tracked do
@@ -533,6 +538,20 @@ end
 
 local function groundPoint(bout, position)
     return Vector3.new(position.X, bout.arena.floor, position.Z)
+end
+
+local function ringSupport(bout, point)
+    local center = groundPoint(bout, point)
+    local hit = workspace:Raycast(center + Vector3.yAxis * .94, -Vector3.yAxis * 1.76, bout.motion.arenaCast)
+    return hit and hit.Normal.Y > .64 and math.abs(hit.Position.Y - center.Y) <= .38
+end
+
+local function stormBeam(bout, cast, at)
+    return Storm.beam(cast, at, function(from, to)
+        local travel = to - from
+        local hit = travel.Magnitude > .005 and workspace:Raycast(from, travel, bout.motion.arenaCast)
+        return if hit then hit.Position else to
+    end)
 end
 
 local function clipGroundLane(center, edge, parameters, hasFloor, width)
@@ -945,9 +964,10 @@ local function moveCommittedSkill(bout, now, clip, age)
     local jaws = action == "jawsOfTheDeep"
     local cataclysm = action == "tentacleCataclysm"
     local inferno = Inferno.isCast(action)
+    local storm = Storm.isCast(action)
     local targeted = if pounce then Apex.pounce elseif jaws then Abyss.jaws else nil
     local active = action == "tidalBellyFlop" or action == "volcanicBreath" or roll ~= nil
-        or thunder ~= nil or targeted ~= nil or cataclysm or inferno
+        or thunder ~= nil or targeted ~= nil or cataclysm or inferno or storm
     local cast = state.heavyCast
     if cast and (not active or cast.clip ~= clip) then
         Fields.clearVisuals(cast)
@@ -958,7 +978,7 @@ local function moveCommittedSkill(bout, now, clip, age)
     end
     local arena = bout.arena
     if not cast then
-        local origin = if thunder or cataclysm or inferno then CFrame.lookAlong(root.Position,
+        local origin = if thunder or cataclysm or inferno or storm then CFrame.lookAlong(root.Position,
             directionTo(root.Position, bout.position, root.CFrame.LookVector)) else root.CFrame
         cast = {clip = clip, origin = origin}
         state.heavyCast = cast
@@ -974,11 +994,13 @@ local function moveCommittedSkill(bout, now, clip, age)
         elseif inferno then
             cast.inferno = Inferno.plan(action, arena, origin, function(from, to, width)
                 return clipGroundLane(from, to, state.arenaCast, function(point)
-                    local support = workspace:Raycast(point + Vector3.yAxis * .94, -Vector3.yAxis * 1.76, state.arenaCast)
-                    return support and support.Normal.Y > .64 and math.abs(support.Position.Y - arena.floor) <= .38
+                    return ringSupport(bout, point)
                 end, width)
             end)
             cast.warning = Inferno.showWarnings(cast.inferno, bout.telegraph)
+        elseif storm then
+            cast.storm = Storm.begin(action, arena, origin, clip)
+            cast.warning = Storm.show(cast.storm, bout.telegraph)
         elseif action == "tidalBellyFlop" then
             local target = origin.Position + origin.LookVector * Heavy.flopTravel.distance
             cast.landing = safeTravel(bout, origin.Position, target, origin, Vector3.new(1.84, 2.2, 1.5), state.arenaCast)
@@ -1008,6 +1030,22 @@ local function moveCommittedSkill(bout, now, clip, age)
         Abyss.windupLanes(cast, age)
     elseif inferno then
         Inferno.presentEchoes(cast.inferno, age)
+    elseif storm then
+        local skill = cast.storm
+        local isTempest = action == "tempestRoar"
+        local beam = if isTempest then stormBeam(bout, skill, now) else nil
+        if isTempest then
+            local aim, yaw = Storm.aim(skill, now)
+            Match.move(root, aim)
+            if RunService:IsStudio() then bout.player:SetAttribute("StormSteerYaw", math.deg(yaw)) end
+        elseif clip.talonTarget == 0 then
+            local carrier, held = Storm.carry(skill, now)
+            if carrier and held then
+                Match.move(root, carrier)
+                bout.position, bout.direction = held.Position, held.LookVector
+            end
+        end
+        Storm.present(skill, now, beam, function(point) return ringSupport(bout, point) end)
     elseif thunder then
         local origin, position = cast.origin, root.Position
         local function step(target)
@@ -1751,7 +1789,49 @@ function Motion.strike(bout, action, move, time, index, castStartedAt)
     end
     local state, root = bout.motion, actorRootAt(bout, time)
     local frame, groups = botPose(bout, time)
-    if move.shape == "apexCone" then
+    if Storm.isCast(action) then
+        local cast = state.heavyCast and state.heavyCast.storm
+        if not cast or cast.clip.startedAt ~= castStartedAt then return false end
+        if move.shape == "talonGrab" then
+            local right, left = Eagle.talonsAt(Storm.talon.grabAt)
+            local point = cast.origin:PointToWorldSpace((right + left) * .5)
+            for _, name in {"Torso", "Left Leg", "Right Leg"} do
+                local joint = bout.joints[name]
+                local target = jointFrame(frame, groups, name, joint) * joint.shell
+                local near = nearestPoint(target, joint.part.Size, point)
+                if (near - point).Magnitude <= move.radius and not obstructed(bout, cast.origin.Position, near) then
+                    Storm.planTalon(cast, cast.origin, CFrame.lookAlong(bout.position, bout.direction),
+                        function(from, to, width)
+                            return clipGroundLane(from, to, state.arenaCast,
+                                function(p) return ringSupport(bout, p) end, width)
+                        end, bout.arena.floor)
+                    return true, near, "body"
+                end
+            end
+            return false, point
+        elseif move.shape == "talonThrow" then
+            local owner, victim = Storm.carry(cast, time)
+            if cast.clip.talonTarget ~= 0 or not victim or not ringSupport(bout, victim.Position) then return false end
+            Match.move(bout.root, owner)
+            bout.position, bout.direction = victim.Position, victim.LookVector
+            Storm.flash(cast, move.shape, bout.telegraph, victim.Position)
+            return true, groundPoint(bout, victim.Position), "body"
+        elseif move.shape == "stormThunder" then
+            local point = Storm.thunder(cast, time, function(p) return ringSupport(bout, p) end)
+            if not point or not ringSupport(bout, point) then return false end
+            Storm.flash(cast, move.shape, bout.telegraph, point)
+            return botFloorContact(bout, frame, groups, point, move.radius), point, "body"
+        else
+            local beam = stormBeam(bout, cast, time)
+            for _, name in {"Torso", "Head", "Left Leg", "Right Leg"} do
+                local joint = bout.joints[name]
+                local target = jointFrame(frame, groups, name, joint) * joint.shell
+                local hit, from = Storm.beamContact(beam, target, joint.part.Size, nearestPoint, move.radius)
+                if hit and not obstructed(bout, from, hit) then return true, hit, "body" end
+            end
+            return false, beam.finish
+        end
+    elseif move.shape == "apexCone" then
         local from, direction = Apex.swipeFrame(root, move)
         for _, name in {"Torso", "Head", "Left Arm", "Right Arm"} do
             local joint = bout.joints[name]
@@ -2146,7 +2226,7 @@ function Motion.move(bout, now, dt)
         bout.moving = false
     end
     local gap = Match.flat(bout.root.Position - bout.position)
-    if not bout.outroAt and now >= round.startsAt and gap.Magnitude > .05 then
+    if not bout.outroAt and now >= round.startsAt and gap.Magnitude > .05 and not (round.clip and Storm.isCast(round.clip.action)) then
         local target = -gap.Unit
         if state.facing.CFrame.LookVector:Dot(target) < .999 then
             state.facing.CFrame = CFrame.lookAlong(Vector3.zero, target)
@@ -2236,9 +2316,10 @@ function Motion.impact(bout, event)
             progress = 0, duration = if event.attack == "cavitationCannon" then .34 else .20, height = 0,
             basis = CFrame.lookAlong(Vector3.zero, heading)}
     elseif damage and (Thunder.shove[event.attack] or Apex.shove[event.attack] or Abyss.shove[event.attack]
-        or Inferno.shove[event.attack]) then
+        or Inferno.shove[event.attack] or Storm.shove[event.attack]) then
         local direction = directionTo(bout.root.Position, bout.position, bout.root.CFrame.LookVector)
-        local force = Thunder.shove[event.attack] or Apex.shove[event.attack] or Abyss.shove[event.attack] or Inferno.shove[event.attack]
+        local force = Thunder.shove[event.attack] or Apex.shove[event.attack] or Abyss.shove[event.attack]
+            or Inferno.shove[event.attack] or Storm.shove[event.attack]
         bout.motion.crossKnock = {at = event.at, offset = direction * force, progress = 0,
             duration = .24, height = 0, basis = CFrame.lookAlong(Vector3.zero, direction)}
     elseif damage and Magma.shove[event.attack] then

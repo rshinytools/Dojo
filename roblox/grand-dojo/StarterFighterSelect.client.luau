@@ -562,11 +562,11 @@ local function layout()
     if switching then
         local count = #order
         local denseGap = if compact then 4 else 6
+        local fullGap = if compact then 2 else 6
+        local fullRoster = count > 22 and contentWidth >= 12 * 54 + 11 * fullGap
         local denseRoster = count > 20 and contentWidth >= 11 * 56 + 10 * denseGap
-        if denseRoster then
-            cardGap = denseGap
-        end
-        local limit = if denseRoster then 11 elseif contentWidth >= 10 * 60 + 9 * gap then 10
+        cardGap = if fullRoster then fullGap elseif denseRoster then denseGap else gap
+        local limit = if fullRoster then 12 elseif denseRoster then 11 elseif contentWidth >= 10 * 60 + 9 * gap then 10
             elseif contentWidth >= 9 * 68 + 8 * gap then 9
             elseif contentWidth >= 8 * 77 + 7 * gap then 8 elseif contentWidth >= 7 * 84 + 6 * gap then 7
             elseif contentWidth >= 604 then 6

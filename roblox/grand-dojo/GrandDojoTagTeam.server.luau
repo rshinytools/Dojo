@@ -28,7 +28,7 @@ local SEATS, OFFER_SECONDS, QUEUE_SECONDS = 4, 20, 75
 local matchId, nextCourtCheck = 0, 0
 local offers, queue = {}, {}
 local active
-local actionSet = {strike = true, guard = true, heavy = true, uppercut = true,
+local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, stormSteer = true,
     secondary = true, dodge = true, signature = true}
 local colors = {Color3.fromRGB(134, 249, 206), Color3.fromRGB(255, 178, 117)}
 
@@ -123,6 +123,7 @@ local function publish(match, event, now)
         local player = actor.player
         if not actor.returned and player.Parent == Players then
             local seat, side = round.lineup[index], round.sides[index]
+            Match.syncStormAim(player, if not round.result and not side.eliminated then side else nil)
             remote:FireClient(player, event, {matchId = match.id, introAt = round.introAt, startsAt = round.startsAt,
                 endsAt = round.endsAt, resolvedAt = round.resolvedAt, slots = slots, selfIndex = index,
                 focusIndex = actor.lastTarget,
@@ -321,7 +322,13 @@ local function advance(match, now)
             attacker.lastTarget = event.defender
             match.actors[event.defender].lastTarget = event.attacker
         end
-        if event.kind == "blocked" or event.kind == "parried" then
+        local stormCue = Match.stormFeedback(event)
+        if stormCue then
+            feedback(attacker, stormCue, now)
+            if stormCue ~= "talonDropMiss" then
+                feedback(match.actors[event.defender], if stormCue == "talonCarry" then "talonCaught" else "hit", now)
+            end
+        elseif event.kind == "blocked" or event.kind == "parried" then
             feedback(attacker, if event.kind == "blocked" then "attackBlocked" else "attackParried", now)
             feedback(match.actors[event.defender], if event.deflected then "projectileDeflected" else event.kind, now)
         elseif event.kind == "pull" then
@@ -353,7 +360,7 @@ local function advance(match, now)
             end
         end
         if cue then
-            effects:FireAllClients("impact", cue, event.point, event.attack)
+            effects:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
         end
     end
     table.clear(match.round.notices)
@@ -469,11 +476,10 @@ remote.OnServerEvent:Connect(function(player, action, value, id)
         return
     end
     local round, actor = match.round, match.actors[index]
-    if round.result or now < round.startsAt or now < actor.nextInput or Match.root(player) ~= actor.root
-        or not Motion.canAct(match, index, action, now) then
+    if round.result or now < round.startsAt or Match.root(player) ~= actor.root
+        or not Motion.canAct(match, index, action, now) or not Match.takeCombatInput(actor, action, value, now, .08) then
         return
     end
-    actor.nextInput = now + .08
     local changed = advance(match, now)
     if action == "tag" then
         if swap(match, index, now) then
@@ -483,7 +489,7 @@ remote.OnServerEvent:Connect(function(player, action, value, id)
             changed = true
         end
     else
-        local cue = Round.act(round, index, action, now, if value == -1 then -1 else 1)
+        local cue = Round.act(round, index, action, now, Match.combatDirection(action, value))
         if cue then
             feedback(actor, cue, now)
             changed = true

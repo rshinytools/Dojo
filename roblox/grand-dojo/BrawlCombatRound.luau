@@ -150,11 +150,13 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
             local defender = round.sides[id]
             if defender and attacker.matchups[id] and not defender.eliminated and not used[id]
                 and (not counts or (counts[id] or 0) < move.maxContacts)
+                and (move.shape ~= "talonThrow" or (clip.talonTarget == id and Combatant.held(defender, contactAt)
+                    and defender.talonHold.clip == clip))
                 and not Combatant.submerged(defender, contactAt) then
                 used[id] = true
                 if counts then counts[id] = (counts[id] or 0) + 1 end
                 table.insert(targets, hit)
-                if not move.shape and not move.singleHit then
+                if move.shape == "talonGrab" or (not move.shape and not move.singleHit) then
                     break
                 end
             end
@@ -198,6 +200,7 @@ local function collect(round, index, at, clipAt, trailAt, check, batch)
                 notice.damage = 0
             else
                 notice.kind = if defender.counterUntil and contactAt < defender.counterUntil then "counter" else "strike"
+                if move.shape == "talonGrab" then notice.kind = "talonCarry" end
                 local matchup = attacker.matchups[target.defender]
                 notice.damage = math.round(fields.damage * matchup.damageScale)
                 notice.elementEffect, notice.knockbackScale = matchup.elementEffect, matchup.knockbackScale
@@ -303,6 +306,9 @@ local function resolveBatch(round, at, notices, eliminateMany)
         end
     end
     eliminateMany(round, knockedOut, at)
+    for _, event in notices do
+        Combatant.resolveTalon(round.sides, event, at)
+    end
 end
 
 local function fractionDifference(a, b)

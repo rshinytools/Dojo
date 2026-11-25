@@ -24,6 +24,8 @@ Match.FighterKits = table.freeze({
     ["abyssal-kraken"] = "kraken",
     ["magma-grizzly-bear"] = "grizzly",
     ["obsidian-hellhound"] = "hellhound",
+    ["golden-eagle"] = "eagle",
+    ["celestial-storm-dragon"] = "dragon",
 })
 
 local floorAttacks = {seismicChestPound = true, magmaTrail = true, tadpoleTornado = true, gustVortex = true,
@@ -34,11 +36,56 @@ function Match.floorAttack(action)
     return floorAttacks[action] == true
 end
 
+function Match.syncStormAim(player, side)
+    local clip = side and side.clip
+    local endsAt = if clip and clip.action == "tempestRoar" then clip.steerEndsAt else nil
+    if endsAt ~= player:GetAttribute("TempestAimUntil") then
+        player:SetAttribute("TempestAimUntil", endsAt)
+    end
+end
+
+function Match.takeCombatInput(actor, action, direction, now, cooldown)
+    if action == "stormSteer" then
+        if (direction ~= -1 and direction ~= 0 and direction ~= 1) or now < (actor.nextSteer or 0) then
+            return false
+        end
+        actor.nextSteer = now + .055
+    else
+        if now < actor.nextInput then
+            return false
+        end
+        actor.nextInput = now + cooldown
+    end
+    return true
+end
+
+function Match.combatDirection(action, value)
+    return if action == "stormSteer" then value elseif value == -1 then -1 else 1
+end
+
+function Match.stormFeedback(event)
+    if event.kind == "talonCarry" then
+        return "talonCarry"
+    elseif event.attack == "talonDrop" and event.kind == "miss" then
+        return "talonDropMiss"
+    elseif event.stormThunder and (event.damage or 0) > 0 then
+        return "stormThunder"
+    end
+    return nil
+end
+
+function Match.effectAttack(event)
+    return if event.stormThunder then "stormThunder" else event.attack
+end
+
 function Match.contactCue(event)
     if not event.point then
         return nil
     end
     local kind = event.kind
+    if event.attack == "talonDrop" and (event.damage or 0) == 0 and kind ~= "parried" and kind ~= "blocked" then
+        return nil
+    end
     if event.deflected then
         return "deflected"
     end

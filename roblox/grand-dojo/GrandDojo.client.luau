@@ -1553,7 +1553,7 @@ local playerPortrait = championshipPortraits.new(championshipHud.leftPortrait, f
 local opponentPortrait = championshipPortraits.new(championshipHud.rightPortrait, true, 12)
 local duelRound = false
 local fightIntro = require(ReplicatedStorage:WaitForChild("CombatIntro")).new(gui, player)
-local matchPresentation = {showcase = false}
+local matchPresentation = {showcase = false, steering = require(ReplicatedStorage:WaitForChild("StormSteering")).new(player)}
 local showcaseKits = {
     reedguard = {challenger = "Reedguard Kangaroo", challengerShort = "Reedguard",
         techniqueAction = "uppercut", techniqueName = "Uppercut", techniqueLabel = "Uppercut",
@@ -1745,6 +1745,10 @@ local cues = {
     frenzyResist = "Frenzy keeps you planted",
     apexRooted = "Rooted by Apex Pounce", apexRootCaught = "Pounce mark caught your foe",
     submerged = "Attack evaded underwater",
+    talonCarry = "Talon Drop · Carrying",
+    talonCaught = "Caught by Talon Drop",
+    talonDropMiss = "Talon Drop missed",
+    stormThunder = "Thunder strike landed",
     needParry = "Parry a strike to unlock Rising.",
     ["Shell Set"] = "Shell Set · Wait out the brace",
     ["Kiln Rush"] = "Kiln Rush · Leave the lane",
@@ -1765,6 +1769,7 @@ local priorityCues = {
     emberSweep = true, magmaTrail = true, attackBlocked = true, attackParried = true, projectileDeflected = true,
     gustPull = true, snareCaught = true, ricochetBounce = true, guardBroken = true, shockLanded = true,
     frenzyResist = true, apexRootCaught = true, submerged = true,
+    talonCarry = true, talonCaught = true, talonDropMiss = true, stormThunder = true,
 }
 for _, fighter in fighterCatalog.ById do
     local combat = fighter.combat
@@ -1891,7 +1896,7 @@ end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(layoutMatchControls)
 gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutMatchControls)
 
-local function sendSparAction(action)
+local function sendSparAction(action, direction)
     if not sparringActive or matchPresentation.phase == "outro" then
         return
     elseif action ~= "leave" and workspace:GetServerTimeNow() < (matchPresentation.startsAt or 0) then
@@ -1906,7 +1911,6 @@ local function sendSparAction(action)
     if not action then
         return
     end
-    local direction
     if action == "dodge" or action == "secondary" then
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -1915,7 +1919,7 @@ local function sendSparAction(action)
         direction = if left then -1 else 1
     end
     local actionRemote = if duelRound then duelRemote else sparRemote
-    if duelRound and duelUi.hasRounds(matchPresentation.format) then
+    if duelRound and (duelUi.hasRounds(matchPresentation.format) or action == "stormSteer") then
         duelRemote:FireServer(action, direction, matchPresentation.matchId, matchPresentation.roundIndex)
     elseif direction then
         actionRemote:FireServer(action, direction)
@@ -1923,6 +1927,10 @@ local function sendSparAction(action)
         actionRemote:FireServer(action)
     end
 end
+RunService.Heartbeat:Connect(function()
+    local kit = matchPresentation.kit
+    matchPresentation.steering:step(sparControls.Visible and kit and kit.signatureName == "TempestRoar", sendSparAction)
+end)
 strikeButton.Activated:Connect(function() sendSparAction("strike") end)
 guardButton.Activated:Connect(function() sendSparAction("guard") end)
 leaveButton.Activated:Connect(function() sendSparAction("leave") end)
@@ -2088,7 +2096,9 @@ local function updateMatchTimeline(startsAt, endsAt, phase, feedback, tell, atta
     elseif matchPresentation.showcase and feedback == "parried" then
         sparHint.Text = if kit == showcaseKits.reedguard then "Parried! Use Rising now." else cues.parried
     elseif not parryCue and priorityCues[feedback] then
-        sparHint.Text = cues[feedback]
+        sparHint.Text = if feedback == "tempestRoar" then matchPresentation.steering.hint else cues[feedback]
+    elseif not parryCue and matchPresentation.steering:active(now) then
+        sparHint.Text = matchPresentation.steering.hint
     elseif not parryCue and cooldownCue then
         local cooling = cooldownSeconds(matchPresentation[cooldownCue.field], now)
         sparHint.Text = if cooling > 0 then string.format("%s ready in %ds", cooldownCue.label, cooling)

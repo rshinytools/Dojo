@@ -2,6 +2,7 @@
 -- caller provides historical hit geometry and live revive eligibility.
 local Spar = require(script.Parent.ReedguardRound)
 local Magma = require(script.Parent.MagmaFighterCombat)
+local Storm = require(script.Parent.StormFighterCombat)
 local Fighter = Spar.Combatant
 
 local Raid = {
@@ -37,7 +38,8 @@ local bosses = {
 }
 local cardinal = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
 local sunspots = {{-11, 7}, {11, 7}, {0, -11}}
-local inputs = {strike = true, guard = true, heavy = true, uppercut = true, dodge = true, secondary = true, signature = true}
+local inputs = {strike = true, guard = true, heavy = true, uppercut = true, dodge = true, secondary = true,
+    signature = true, stormSteer = true}
 local evades = {sidestep = true, floeTurn = true}
 
 function Raid.new(now, entrants, bossId)
@@ -336,6 +338,10 @@ local function collectFighter(round, index, at, hitAt, tileAt, checkPlayer, hits
             return 0
         end
         fields.source, fields.attacker, fields.at = "player", index, contactAt
+        if move.shape == "talonGrab" then
+            Fighter.missTalon(round.sides[index], contactAt)
+            fields.damage = Storm.talon.bossDamage
+        end
         if hit and not round.bossAirborne then
             local baseDamage = fields.damage
             local core = round.coreExposed and fields.zone == "core"

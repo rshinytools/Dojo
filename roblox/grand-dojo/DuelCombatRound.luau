@@ -2,6 +2,7 @@
 local Spar = require(script.Parent.ReedguardRound)
 local Magma = require(script.Parent.MagmaFighterCombat)
 local RankRules = require(script.Parent.DuelRankRules)
+local Storm = require(script.Parent.StormFighterCombat)
 local Combatant = Spar.Combatant
 local Duel = {INTRO = Spar.INTRO, DURATION = Spar.DURATION, OUTRO = Spar.OUTRO}
 
@@ -62,6 +63,10 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
     local function sample(action, move, at, index, castStartedAt)
         submerged = Combatant.submerged(defender, at) and not move.marker and not move.launch
         if submerged and move.projectile then return false end
+        if move.shape == "talonThrow" then
+            local hold = Storm.held(defender, at)
+            if not hold or hold.attacker ~= attacker then return false end
+        end
         local hit, point, zone, facing = check(attackerIndex, defenderIndex, action, move, at, index, castStartedAt)
         return hit and not submerged, point, zone, facing
     end
@@ -77,6 +82,7 @@ local function collect(duel, attackerIndex, time, clipAt, trailAt, check, batch)
         local guardBroken = kind == "blocked" and not deflected and move.guardBreak
         if guardBroken then kind = "guardBroken" end
         local landed = kind == "strike" or kind == "counter" or guardBroken
+        if landed and move.shape == "talonGrab" then kind = "talonCarry" end
         fields.attacker, fields.defender, fields.kind, fields.at = attackerIndex, defenderIndex, kind, at
         fields.deflected = if deflected then true else nil
         local baseDamage = if guardBroken then math.ceil(fields.damage * .55) elseif landed then fields.damage else 0
@@ -180,6 +186,9 @@ local function resolveBatch(duel, time, batch)
         elseif plan.interruptedTravel then
             Combatant.interruptFixedTravel(side)
         end
+    end
+    for _, impact in batch do
+        Combatant.resolveTalon(duel.sides, impact.notice, time)
     end
 end
 

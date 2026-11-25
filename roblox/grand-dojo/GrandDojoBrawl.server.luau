@@ -25,7 +25,7 @@ local marks = court:WaitForChild("Spawn Marks")
 local SIZE, QUEUE_SECONDS = 8, 70
 local SHRINK_STEP, WARNING_SECONDS = 15, 3
 local PLAYABLE_HALVES = {22.5, 17.5, 12.5, 7.5}
-local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true,
+local actionSet = {strike = true, guard = true, heavy = true, uppercut = true, secondary = true, stormSteer = true,
     dodge = true, signature = true}
 local breaking = Color3.fromRGB(235, 155, 81)
 local deckState, queue = {}, {}
@@ -140,6 +140,7 @@ local function publish(match, kind, now)
             continue
         end
         local side = round.sides[index]
+        Match.syncStormAim(actor.player, if not round.result and not side.eliminated then side else nil)
         remote:FireClient(actor.player, kind, {matchId = match.id, startsAt = round.startsAt, endsAt = round.endsAt,
             resolvedAt = round.resolvedAt,
             playerHealth = side.playerHealth, maxHealth = side.playerMaxHealth, kitId = actor.kit, alive = round.remaining,
@@ -268,7 +269,13 @@ local function advance(match, now)
     for _, event in match.round.notices do
         Motion.impact(match, event)
         local attacker = match.actors[event.attacker]
-        if event.kind == "parried" or event.kind == "blocked" then
+        local stormCue = Match.stormFeedback(event)
+        if stormCue then
+            setFeedback(attacker, stormCue, now)
+            if stormCue ~= "talonDropMiss" then
+                setFeedback(match.actors[event.defender], if stormCue == "talonCarry" then "talonCaught" else "hit", now)
+            end
+        elseif event.kind == "parried" or event.kind == "blocked" then
             setFeedback(attacker, if event.kind == "parried" then "attackParried" else "attackBlocked", now)
             setFeedback(match.actors[event.defender], if event.deflected then "projectileDeflected" else event.kind, now)
         elseif event.kind == "pull" then
@@ -305,7 +312,7 @@ local function advance(match, now)
             byAttacker[event.at] = true
         end
         if cue then
-            effects:FireAllClients("impact", cue, event.point, event.attack)
+            effects:FireAllClients("impact", cue, event.point, Match.effectAttack(event))
         end
     end
     table.clear(match.round.notices)
@@ -390,13 +397,13 @@ remote.OnServerEvent:Connect(function(player, action, direction, id)
     end
     local now = workspace:GetServerTimeNow()
     local round, actor = match.round, match.actors[index]
-    if round.result or round.sides[index].eliminated or now < round.startsAt or now < actor.nextInput
-        or Match.root(player) ~= actor.root or not Motion.canAct(match, index, action, now) then
+    if round.result or round.sides[index].eliminated or now < round.startsAt
+        or Match.root(player) ~= actor.root or not Motion.canAct(match, index, action, now)
+        or not Match.takeCombatInput(actor, action, direction, now, .08) then
         return
     end
-    actor.nextInput = now + .08
     local changed = advance(match, now)
-    local feedback = Round.act(round, index, action, now, if direction == -1 then -1 else 1)
+    local feedback = Round.act(round, index, action, now, Match.combatDirection(action, direction))
     if feedback then
         setFeedback(actor, feedback, now)
     end
