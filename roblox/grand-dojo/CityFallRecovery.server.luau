@@ -23,6 +23,37 @@ local function findGround(position, params, drop)
     return if hit and hit.Normal.Y >= .64 and hit.Instance.Anchored then hit else nil
 end
 
+local function placeOnGround(character, root, target)
+    character:PivotTo(target * root.CFrame:ToObjectSpace(character:GetPivot()))
+    root.AssemblyLinearVelocity = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+end
+
+local function climbOut(player, anchor, prompt)
+    local character = player.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if not (humanoid and root and humanoid.Health > 0 and not root.Anchored) or inActivity(player) then return end
+    local position = root.Position
+    if position.Y > 1.1 or (position - anchor.Position).Magnitude > prompt.MaxActivationDistance + .3 then return end
+    local params = RaycastParams.new()
+    params.FilterDescendantsInstances = {character}
+    params.IgnoreWater = true
+    params.RespectCanCollide = true
+    local ground = findGround(anchor.Position + Vector3.new(6, 4, 0), params, 4.1)
+    if not ground then return end
+    local height = math.max(2.8, humanoid.HipHeight + root.Size.Y / 2)
+    local target = ground.Position + Vector3.new(0, height, 0)
+    placeOnGround(character, root, CFrame.lookAt(target, target + Vector3.xAxis))
+end
+
+local city = workspace:WaitForChild("Grand Dojo City")
+local canal = city:WaitForChild("Plaza & streets"):WaitForChild("Festival canal")
+for _, anchor in canal:WaitForChild("Canal climb exits"):GetChildren() do
+    local prompt = anchor:FindFirstChildOfClass("ProximityPrompt")
+    prompt.Triggered:Connect(function(player) climbOut(player, anchor, prompt) end)
+end
+
 local function sample(player)
     local character = player.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -71,9 +102,7 @@ local function sample(player)
     if not safe or not findGround(safe.Position, state.params, 5) then
         safe = spawn.CFrame + Vector3.new(0, spawn.Size.Y / 2 + 3, 0)
     end
-    character:PivotTo(safe * root.CFrame:ToObjectSpace(character:GetPivot()))
-    root.AssemblyLinearVelocity = Vector3.zero
-    root.AssemblyAngularVelocity = Vector3.zero
+    placeOnGround(character, root, safe)
 end
 
 Players.PlayerRemoving:Connect(function(player)

@@ -265,21 +265,46 @@ assert(PlayerProfiles.summary(curveRejoin).xp == 1530 and PlayerProfiles.activeF
 print("Fighter XP passed the new thresholds, legacy levels, subsequent rewards and idempotent reconnect migration.")
 
 local handwear = {
-    kind = "fighterCosmetic", fighterId = reedguard, slot = "hands",
-    itemId = "reedguard-bamboo-mitts", equipped = true,
+    {fighterId = reedguard, itemId = "reedguard-bamboo-mitts"},
+    {fighterId = "penguin-brawler", itemId = "penguin-glacier-mitts"},
+    {fighterId = "silverback-gorilla", itemId = "silverback-cedar-bracers"},
+    {fighterId = "fire-salamander", itemId = "salamander-kiln-mitts"},
 }
-local wrongFighter, wearError = progression:commitDojoWallet(12, "rejoin-curve", handwear)
-assert(wrongFighter == nil and wearError == "fighter changed")
-assert(progression:commitFighterSwitch(12, "rejoin-curve", reedguard))
-local fitted = assert(progression:commitDojoWallet(12, "rejoin-curve", handwear))
-assert(fitted.fighterCosmetics[reedguard].hands == handwear.itemId)
+for _, item in handwear do
+    item.kind, item.slot, item.equipped = "fighterCosmetic", "hands", true
+    local wrongFighter, wearError = progression:commitDojoWallet(12, "rejoin-curve", item)
+    assert(wrongFighter == nil and wearError == "fighter changed", item.itemId)
+    assert(progression:commitFighterSwitch(12, "rejoin-curve", item.fighterId))
+    local fitted = assert(progression:commitDojoWallet(12, "rejoin-curve", item))
+    assert(fitted.fighterCosmetics[item.fighterId].hands == item.itemId)
+end
 assert(progression:commitFighterSwitch(12, "rejoin-curve", "karate-frog"))
 assert(progression:release(12, "rejoin-curve"))
-local rejoinedWardrobe = assert(progression:open(12, "wardrobe-rejoin"))
-assert(rejoinedWardrobe.fighterCosmetics[reedguard].hands == handwear.itemId)
+local wardrobeLease = "wardrobe-rejoin"
+local rejoinedWardrobe = assert(progression:open(12, wardrobeLease))
 assert(rejoinedWardrobe.fighterCosmetics["karate-frog"] == nil)
-assert(progression:commitFighterSwitch(12, "wardrobe-rejoin", reedguard))
-handwear.equipped = false
-local removedGear = assert(progression:commitDojoWallet(12, "wardrobe-rejoin", handwear))
-assert(removedGear.fighterCosmetics == nil)
-print("Fighter-exclusive equipment passed wrong-fighter rejection, switch, rejoin and removal.")
+local savedFighters = 0
+for _ in rejoinedWardrobe.fighterCosmetics do savedFighters += 1 end
+assert(savedFighters == #handwear)
+for _, item in handwear do
+    local switched = assert(progression:commitFighterSwitch(12, wardrobeLease, item.fighterId))
+    assert(PlayerProfiles.activeFighter(switched) == item.fighterId)
+    local slots = switched.fighterCosmetics[item.fighterId]
+    assert(slots.hands == item.itemId and next(slots) == "hands" and next(slots, "hands") == nil)
+end
+
+local first = handwear[1]
+assert(progression:commitFighterSwitch(12, wardrobeLease, first.fighterId))
+local invalidSlot = table.clone(first)
+invalidSlot.slot = "invalid"
+local rejectedGear, slotError = progression:commitDojoWallet(12, wardrobeLease, invalidSlot)
+assert(rejectedGear == nil and slotError == "invalid wallet command")
+local remove = table.clone(first)
+remove.equipped = false
+local removedGear = assert(progression:commitDojoWallet(12, wardrobeLease, remove))
+assert(removedGear.fighterCosmetics[first.fighterId] == nil)
+for index = 2, #handwear do
+    local item = handwear[index]
+    assert(removedGear.fighterCosmetics[item.fighterId].hands == item.itemId)
+end
+print("Four fighter-exclusive cosmetics passed wrong-fighter rejection, separate slots, rejoin and isolated removal.")

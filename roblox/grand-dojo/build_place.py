@@ -1880,6 +1880,15 @@ for z in (44,-2):
     for i in range(7):
         top = -.03-i*.48
         part(canal,"Canal exit step",(-12.42-i*.78,top-.35,z),(.83,.70,4),"807681",material=SLATE)
+canal_exits=item(canal,"Folder","Canal climb exits")
+for name,x,z in (("Trophy Hall stairs",-15.2,-2), ("Red Bridge stairs",-15.2,44),
+                 ("Lotus inlet stairs",INLET_EDGE-3.2,INLET_SWIM_Z)):
+    anchor=part(canal_exits,name,(x,-.12,z),(.2,.2,.2),STONE,collide=False,transparency=1)
+    climb=item(anchor,"ProximityPrompt","Climb out")
+    prop(climb,"string","ActionText","Climb out")
+    prop(climb,"string","ObjectText",name)
+    prop(climb,"float","MaxActivationDistance",3.5)
+    prop(climb,"bool","RequiresLineOfSight",False)
 for x,z,depth,scale,yaw,tint in (
         (-23.65,53,-.58,.42,21,"797381"),(-23.74,43,-.24,.20,154,"817982"),
         (-5.06,50.22,-.75,.23,43,"766F80"),(-23.35,21,-.72,.47,67,"777080"),
