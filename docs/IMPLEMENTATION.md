@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.364 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.365 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -207,7 +207,9 @@ The next monetization work starts with the earned economy. The compact Wallet bu
 | District treasure cache | 45 | First opening of each district cache |
 | Cloudbreak Expert | 60 | First saved Expert finish |
 
-Visit **Dojo Outfitters** at the Reed Market counter near the gate or select **Wallet → Shop apparel** from the city HUD. The shop displays a lit 3D preview, the exact Coin price and the current balance. The Jade Festival Sash costs **50 Coins** and equips on purchase. Players can remove and re-equip it from the shop. It uses cosmetic geometry on the torso outside the fighter combat shell. Previously recorded qualifying clears count toward the same balance. The server derives earned Coins from saved completion records and stores the debit and ownership together in the protected profile. A retry leaves the purchase and the remaining balance intact.
+Ask **Mika**, the red panda shopkeeper at the Dojo Outfitters counter by the Reed Market gate, to **Browse apparel** or select **Wallet → Shop apparel** from the city HUD. The shop displays a lit 3D preview, the exact Coin price and the current balance. The Jade Festival Sash costs **50 Coins** and equips on purchase. Players can remove and re-equip it from the shop. It uses cosmetic geometry on the torso outside the fighter combat shell. Previously recorded qualifying clears count toward the same balance. The server derives earned Coins from saved completion records and stores the debit and ownership together in the protected profile. A retry leaves the purchase and the remaining balance intact.
+
+V0.365 desktop Studio verified the walk to Mika and opened the native shop through the **Browse apparel** prompt. Mika uses the city’s existing anchored, collision-free NPC geometry.
 
 V0.364 desktop Studio walked from the Reed Market gate to the counter, opened the shop using the in-world prompt, and opened the same 3D preview from the Wallet. A fresh Relay clear funded the purchase. The shop showed 10 Coins after the purchase and after removing and re-equipping the sash. Roblox Studio’s Galaxy A06 landscape simulator opened the shop and showed the 3D preview, price and full 44-pixel action without scrolling.
 

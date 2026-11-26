@@ -7836,7 +7836,7 @@ build_ring_training(scene, {
 }, item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
 build_city_adventure_scenery(scene, item=item, part=part, prop=prop, sign=sign,
                             cedar=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
-build_dojo_outfitters(scene, item=item, prop=prop, part=part, sign=sign)
+build_dojo_outfitters(scene, item=item, prop=prop, part=part, sign=sign, townsperson=townsperson)
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")

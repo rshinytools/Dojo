@@ -1,7 +1,7 @@
 """Build the Reed Market cosmetics shop using native Studio geometry."""
 
 
-def build_dojo_outfitters(city, *, item, prop, part, sign):
+def build_dojo_outfitters(city, *, item, prop, part, sign, townsperson):
     shop = item(city, "Model", "Dojo Outfitters")
     prop(shop, "token", "ModelStreamingMode", 1)
     x, y, z = 73.4, .15, -33.4
@@ -106,8 +106,21 @@ def build_dojo_outfitters(city, *, item, prop, part, sign):
     sign(shop, "DOJO OUTFITTERS", x, y + 5.18, z + 3.27, 7.38, .92, tint="23514A",
          finished_back=True, single_line=True)
 
+    keeper_x, keeper_y, keeper_z = x - .20, y + .16, z + .95
+    keeper = townsperson(shop, "Mika the Shopkeeper", keeper_x, keeper_y, keeper_z,
+                       "B95030", "39766B", .61, 180, species="red panda")
+    part(keeper, "Tailor's apron", (keeper_x, keeper_y + 1.89, keeper_z + .49),
+         (.84, 1.00, .16), "193E48", collide=False)
+    for side in (-1, 1):
+        part(keeper, "Apron strap", (keeper_x + side * .29, keeper_y + 2.41, keeper_z + .50),
+             (.104, .49, .11), "D99956", roll=side * 17, collide=False)
+    part(keeper, "Apron pocket", (keeper_x, keeper_y + 1.60, keeper_z + .58),
+         (.46, .34, .06), "34666C", collide=False)
+    part(keeper, "Reedwork pin", (keeper_x + .21, keeper_y + 2.19, keeper_z + .58),
+         (.17, .17, .06), brass, roll=45, collide=False)
+
     prompt = item(counter, "ProximityPrompt", "ShopPrompt")
-    prop(prompt, "string", "ActionText", "Browse cosmetics")
-    prop(prompt, "string", "ObjectText", "Dojo Outfitters")
+    prop(prompt, "string", "ActionText", "Browse apparel")
+    prop(prompt, "string", "ObjectText", "Mika · Shopkeeper")
     prop(prompt, "float", "MaxActivationDistance", 7.5)
     prop(prompt, "bool", "RequiresLineOfSight", False)

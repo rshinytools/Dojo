@@ -225,7 +225,7 @@ Prioritize the earned Wallet and deterministic apparel, followed by the first Ro
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P9.1 | Progression economy, boosts and exact cosmetics | In progress | The city Wallet shows balances and fighter XP. Dojo Outfitters opens from the Reed Market counter or Wallet and previews the 50-Coin Jade Festival Sash. Studio verified purchase, removal and re-equip. Verify the Coin debit and sash after a published rejoin. Verify exactly-once grants, reconnect expiry for any future boosts, and competitive isolation. Practice and PvE perks follow the cosmetic release. |
+| P9.1 | Progression economy, boosts and exact cosmetics | In progress | The city Wallet shows balances and fighter XP. Dojo Outfitters opens by talking to Mika in Reed Market or from the Wallet and previews the 50-Coin Jade Festival Sash. Studio verified purchase, removal and re-equip. Verify the Coin debit and sash after a published rejoin. Verify exactly-once grants, reconnect expiry for any future boosts, and competitive isolation. Practice and PvE perks follow the cosmetic release. |
 | P9.2 | Random outcomes and eligibility | Planned | Unknown eligibility blocks restricted actions; published odds match the actual server distribution. |
 | P9.3 | Trading plaza transaction protocol | Planned | Crash/timeout/retry tests show no item loss/duplication; no assumption of multi-key atomicity. Account-bound awards are rejected in offers. |
 | P9.4 | Pass, season and rewarded ads | Planned | Stage a permanent Robux cosmetic bundle first. Verify live regional prices, the official checkout prompt, server ownership and reconnect before turning sales on. Season and ad grants remain eligibility-gated and idempotent. |
