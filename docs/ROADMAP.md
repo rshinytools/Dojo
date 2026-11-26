@@ -30,7 +30,7 @@ Make development reproducible and isolate production data.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P1.1 | Repository and Studio workflow | Verified | A fresh checkout recreates the place and the offline browser build. Verify published staging separately under P1.2 and P11. |
-| P1.2 | Environment isolation | Prototype ready | Rejoin a different private beta server with a disposable profile and prove that test progress and purchase identifiers stay isolated from production. |
+| P1.2 | Environment isolation | Prototype ready | V0.365 is published in a separate private staging universe with Phone enabled. The creator connected in macOS Roblox Player. Rejoin with a disposable staging profile and verify profile and purchase isolation from production. |
 | P1.3 | Server and network contracts | Planned | Malformed or repeated client requests cannot award resources or choose damage. |
 | P1.4 | Build and rollback checks | Planned | A broken combat formula or save migration is detected before staging publication. |
 
@@ -225,7 +225,7 @@ Prioritize the earned Wallet and deterministic apparel, followed by the first Ro
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P9.1 | Progression economy, boosts and exact cosmetics | In progress | The city Wallet shows balances and fighter XP. Dojo Outfitters opens by talking to Mika in Reed Market or from the Wallet and previews the 50-Coin Jade Festival Sash. Studio verified purchase, removal and re-equip. Verify the Coin debit and sash after a published rejoin. Verify exactly-once grants, reconnect expiry for any future boosts, and competitive isolation. Practice and PvE perks follow the cosmetic release. |
+| P9.1 | Progression economy, boosts and exact cosmetics | In progress | The city Wallet shows balances and fighter XP. Dojo Outfitters opens by talking to Mika in Reed Market or from the Wallet and previews the 50-Coin Jade Festival Sash. Studio verified purchase, removal and re-equip. V0.365 is ready in private staging. Verify the 60 → 10 Coin purchase and equipped sash after rejoining on a physical phone. Verify exactly-once grants, reconnect expiry for any future boosts, and competitive isolation. Practice and PvE perks follow the cosmetic release. |
 | P9.2 | Random outcomes and eligibility | Planned | Unknown eligibility blocks restricted actions; published odds match the actual server distribution. |
 | P9.3 | Trading plaza transaction protocol | Planned | Crash/timeout/retry tests show no item loss/duplication; no assumption of multi-key atomicity. Account-bound awards are rejected in offers. |
 | P9.4 | Pass, season and rewarded ads | Planned | Stage a permanent Robux cosmetic bundle first. Verify live regional prices, the official checkout prompt, server ownership and reconnect before turning sales on. Season and ad grants remain eligibility-gated and idempotent. |
