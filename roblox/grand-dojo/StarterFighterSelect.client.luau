@@ -1265,10 +1265,9 @@ local function navigatePicker(_, state, input)
     end
     local current = GuiService.SelectedObject
     if not current or not current:IsDescendantOf(panel) then
-        if state == Enum.UserInputState.Begin then
-            GuiService.SelectedObject = selectedCard()
-        end
-        return Enum.ContextActionResult.Sink
+        if state ~= Enum.UserInputState.Begin then return Enum.ContextActionResult.Sink end
+        current = selectedCard()
+        GuiService.SelectedObject = current
     end
     if input.KeyCode == Enum.KeyCode.ButtonA and (current == confirm or current.Parent == rosterBar) then
         if state == Enum.UserInputState.Begin then
@@ -1277,15 +1276,15 @@ local function navigatePicker(_, state, input)
         return Enum.ContextActionResult.Sink
     end
     local direction = rosterDirections[input.KeyCode]
-    if direction and current.Parent == rosterBar then
+    if direction then
         local target = current[direction]
-        if target and target.Parent == rosterBar then
+        if target and target.Visible and target.Selectable and target:IsDescendantOf(panel) then
             if state == Enum.UserInputState.Begin and not inFlight
                 and player:GetAttribute("StarterSelectionPending") ~= true then
-                showFighter(target.Name)
+                if target.Parent == rosterBar then showFighter(target.Name) end
                 GuiService.SelectedObject = target
                 task.defer(function()
-                    if panel.Visible and selectedId == target.Name and not GuiService.MenuIsOpen
+                    if panel.Visible and target.Visible and not GuiService.MenuIsOpen
                         and not GuiService.SelectedObject then
                         GuiService.SelectedObject = target
                     end
