@@ -8,14 +8,14 @@ local CATALOG_KEY = "dojo_outfitters_midnight_lantern"
 function OutfitPass.catalog(value)
     local id = if type(value) == "table" then value.passId else nil
     if type(id) ~= "number" or id < 1 or id > 9007199254740991 or id % 1 ~= 0 then
-        return 0, false
+        return 0
     end
-    return id, value.saleEnabled == true
+    return id
 end
 
-function OutfitPass.mount(remote, eligible)
+function OutfitPass.mount(remote)
     local records = {}
-    local passId, saleEnabled = 0, false
+    local passId = 0
 
     local function check(player, record)
         local id = passId
@@ -43,14 +43,12 @@ function OutfitPass.mount(remote, eligible)
     end
 
     local function publish(value)
-        local id, enabled = OutfitPass.catalog(value)
+        local id = OutfitPass.catalog(value)
         local previousId = passId
-        passId, saleEnabled = id, enabled
+        passId = id
         remote:SetAttribute("BundlePassId", id)
-        remote:SetAttribute("BundleSaleEnabled", enabled)
         if previousId == id then return end
         for player, record in records do
-            record.prompting = nil
             record.checking = false
             player:SetAttribute("DojoBundleOwnership", if id == 0 then "locked" else "unknown")
             refresh(player)
@@ -94,7 +92,6 @@ function OutfitPass.mount(remote, eligible)
     MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, id, purchased)
         local record = records[player]
         if not record or id == 0 or id ~= passId then return end
-        if record.prompting and record.prompting.id == id then record.prompting = nil end
         if not purchased then return end
         if check(player, record) ~= "owned" then
             remote:FireClient(player, "bundleNotice", "Ownership is still syncing. Reopen the shop to check again.")
@@ -114,29 +111,6 @@ function OutfitPass.mount(remote, eligible)
         return record ~= nil and check(player, record) == "owned"
     end
 
-    function pass.prompt(player)
-        local record = records[player]
-        local id = passId
-        if not record or id == 0 or not saleEnabled then return end
-        if record.prompting or not eligible(player) then return end
-        local request = {id = id}
-        record.prompting = request
-        local ownership = check(player, record)
-        if ownership == "locked" and records[player] == record and id == passId
-            and saleEnabled and eligible(player) then
-            local ok = pcall(MarketplaceService.PromptGamePassPurchase, MarketplaceService, player, id)
-            if ok then
-                task.delay(120, function()
-                    if record.prompting == request then record.prompting = nil end
-                end)
-                return
-            end
-        end
-        if record.prompting == request then record.prompting = nil end
-        if ownership == "unknown" then
-            remote:FireClient(player, "bundleNotice", "Roblox could not verify ownership. Try again shortly.")
-        end
-    end
     return pass
 end
 

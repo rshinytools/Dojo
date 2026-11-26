@@ -737,10 +737,7 @@ end
 
 local shopCounter = city:WaitForChild("Dojo Outfitters"):WaitForChild("ShopCounter")
 local shopPrompt = shopCounter:WaitForChild("ShopPrompt")
-local outfitPass = require(script.Parent:WaitForChild("DojoOutfitPass")).mount(walletRemote, function(player)
-    local data = state[player]
-    return canOpenOutfitters(player, data) and data.profile ~= nil and not pendingProgress(data)
-end)
+local outfitPass = require(script.Parent:WaitForChild("DojoOutfitPass")).mount(walletRemote)
 shopPrompt.Triggered:Connect(function(player)
     if canOpenOutfitters(player, state[player]) and near(player, shopCounter, shopPrompt.MaxActivationDistance) then
         walletRemote:FireClient(player, "openShop", true)
@@ -754,8 +751,8 @@ walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
         if canOpenOutfitters(player, data) then outfitPass.refresh(player) end
         return
     end
-    local bundle = kind == "bundleEquip" or kind == "bundlePrompt"
-    if kind ~= "buy" and kind ~= "bundlePrompt"
+    local bundle = kind == "bundleEquip"
+    if kind ~= "buy"
         and not ((kind == "equip" or kind == "bundleEquip") and type(equipped) == "boolean") then return end
     local now = os.clock()
     if now - (data.lastWalletAction or -math.huge) < .5 then return end
@@ -773,10 +770,6 @@ walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
     end
     if not canOpenOutfitters(player, data) then
         reject("Visit Dojo Outfitters after returning to the city.")
-        return
-    end
-    if kind == "bundlePrompt" then
-        outfitPass.prompt(player)
         return
     end
     if bundle then

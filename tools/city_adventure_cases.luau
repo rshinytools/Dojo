@@ -189,3 +189,31 @@ local restoredBundle = assert(profiles:commitDojoWallet(playerId, rejoinLease,
     {kind = "bundleEquip", equipped = true}))
 assert(restoredBundle.midnightLanternEquipped == true and PlayerProfiles.wallet(restoredBundle).coins == 610)
 print("Bundle equip preference survived rejoin and left earned Coins and the Jade Sash intact.")
+
+local progressionStore = PlayerProfiles.memoryStore()
+local progression = PlayerProfiles.new(progressionStore, function() return now end, function() end)
+local reedguard = "reedguard-kangaroo"
+local fresh = assert(progression:open(11, "fresh-curve"))
+assert(PlayerProfiles.summary(fresh).nextLevelXp == 250)
+assert(PlayerProfiles.levelForXp(249) == 1 and PlayerProfiles.levelForXp(250) == 2)
+assert(PlayerProfiles.levelForXp(2849) == 6 and PlayerProfiles.levelForXp(2850) == 7)
+assert(PlayerProfiles.levelForXp(5799) == 9 and PlayerProfiles.levelForXp(5800) == 10)
+progressionStore:UpdateAsync("player_12", function()
+    return {
+        schemaVersion = 1, relayBestTenths = 0, trophies = {},
+        selectedStarterFighter = reedguard, activeRosterFighter = "karate-frog",
+        fighters = {[reedguard] = {xp = 480}, ["karate-frog"] = {xp = 81}, ["fire-salamander"] = {xp = 79}},
+    }
+end)
+local migrated = assert(progression:open(12, "legacy-curve"))
+local summary = PlayerProfiles.summary(migrated)
+assert(summary.level == 5 and summary.xp == 1470 and summary.nextLevelXp == 2100)
+assert(migrated.fighters[reedguard].xp == 480 and PlayerProfiles.canSwitch(migrated, "karate-frog"))
+assert(PlayerProfiles.summary(migrated, "karate-frog").xp == 251)
+assert(PlayerProfiles.summary(migrated, "fire-salamander").xp == 79)
+local rewarded = assert(progression:commitSparWin(12, "legacy-curve", "post-migration-win", reedguard))
+assert(PlayerProfiles.summary(rewarded).xp == 1530 and rewarded.fighters[reedguard].xp == 540)
+assert(progression:release(12, "legacy-curve"))
+local curveRejoin = assert(progression:open(12, "rejoin-curve"))
+assert(PlayerProfiles.summary(curveRejoin).xp == 1530 and PlayerProfiles.activeFighter(curveRejoin) == "karate-frog")
+print("Fighter XP passed the new thresholds, legacy levels, subsequent rewards and idempotent reconnect migration.")

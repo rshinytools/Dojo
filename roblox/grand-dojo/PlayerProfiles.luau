@@ -47,7 +47,9 @@ local NEW_FORM = "journey-04"
 local RAID_TROPHIES = {kilnback = KILN_KEEPER, kraken = DEEPWATER_TEAM, phoenix = DAWN_RETURN}
 local RAID_TOKENS, RAID_SHARDS = 20, 2
 local MARKET_SASH_COST = 50
-local LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
+local LEGACY_LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
+local LEVEL_THRESHOLDS = {0, 250, 550, 950, 1450, 2100, 2850, 3700, 4700, 5800}
+local MAX_LEVEL_CURVE_CREDIT = LEVEL_THRESHOLDS[#LEVEL_THRESHOLDS] - LEGACY_LEVEL_THRESHOLDS[#LEGACY_LEVEL_THRESHOLDS]
 PlayerProfiles.FirstRelayXp = FIRST_RELAY_XP
 PlayerProfiles.FirstDojoPracticeXp = FIRST_DOJO_PRACTICE_XP
 PlayerProfiles.FirstSparWinXp = FIRST_SPAR_WIN_XP
@@ -82,11 +84,40 @@ local function fieldsFor(id)
     return if isStarter(id) then STARTER_PROGRESS elseif isOriginalUnlock(id) then ROSTER_PROGRESS else EXPANDED_PROGRESS
 end
 
+local function progressionXp(fighter)
+    return if fighter then fighter.xp + (fighter.levelCurveCredit or 0) else 0
+end
+
+local function withCurrentLevelCurve(profile)
+    if type(profile) ~= "table" or profile.levelCurveUpdated ~= nil or type(profile.fighters) ~= "table" then
+        return profile
+    end
+    local updated = table.clone(profile)
+    updated.levelCurveUpdated = true
+    updated.fighters = table.clone(profile.fighters)
+    -- Keep every earned level and the XP already earned within that level.
+    -- The original reward XP stays readable by older servers during a rollout.
+    for id, fighter in profile.fighters do
+        if isFighter(id) and type(fighter) == "table" and whole(fighter.xp, 0, 1e12) then
+            for level = #LEGACY_LEVEL_THRESHOLDS, 2, -1 do
+                local previous = LEGACY_LEVEL_THRESHOLDS[level]
+                if fighter.xp >= previous then
+                    local migrated = table.clone(fighter)
+                    migrated.levelCurveCredit = LEVEL_THRESHOLDS[level] - previous
+                    updated.fighters[id] = migrated
+                    break
+                end
+            end
+        end
+    end
+    return updated
+end
+
 local function highestXp(profile)
     local highest = 0
     for id, fighter in profile.fighters do
         if isFighter(id) then
-            highest = math.max(highest, fighter.xp)
+            highest = math.max(highest, progressionXp(fighter))
         end
     end
     return highest
@@ -134,6 +165,7 @@ end
 local function newProfile()
     return {
         schemaVersion = SCHEMA_VERSION,
+        levelCurveUpdated = true,
         fighters = {[REEDGUARD] = {xp = 0}},
         trophies = {},
         relayBestTenths = 0,
@@ -181,12 +213,14 @@ end
 
 local function valid(profile)
     if type(profile) ~= "table" or profile.schemaVersion ~= SCHEMA_VERSION
+        or (profile.levelCurveUpdated ~= nil and profile.levelCurveUpdated ~= true)
         or type(profile.fighters) ~= "table" or type(profile.trophies) ~= "table"
         or not whole(profile.relayBestTenths, 0, 1200) then
         return false
     end
     for id, fighter in profile.fighters do
-        if isFighter(id) and (type(fighter) ~= "table" or not whole(fighter.xp, 0, 1e12)) then
+        if isFighter(id) and (type(fighter) ~= "table" or not whole(fighter.xp, 0, 1e12)
+            or (fighter.levelCurveCredit ~= nil and not whole(fighter.levelCurveCredit, 0, MAX_LEVEL_CURVE_CREDIT))) then
             return false
         end
     end
@@ -284,7 +318,7 @@ function PlayerProfiles.canEquipForm(profile, fighterId, formId)
         return false
     end
     local fighter = profile.fighters[fighterId]
-    local level = PlayerProfiles.levelForXp(if fighter then fighter.xp else 0)
+    local level = PlayerProfiles.levelForXp(progressionXp(fighter))
     return level >= form.level
 end
 
@@ -305,7 +339,7 @@ function PlayerProfiles.canEquipTactical(profile, fighterId, tactical)
     local required = PlayerProfiles.tacticalUnlockLevel(fighterId, tactical)
     if not required then return false end
     local fighter = profile.fighters[fighterId]
-    return PlayerProfiles.levelForXp(if fighter then fighter.xp else 0) >= required
+    return PlayerProfiles.levelForXp(progressionXp(fighter)) >= required
 end
 
 function PlayerProfiles.tacticalFor(profile, fighterId)
@@ -321,7 +355,7 @@ function PlayerProfiles.canEquipLoadout(profile, fighterId, slot, id)
     local option = FighterLoadouts.get(fighterId, slot, id)
     if not option then return false end
     local fighter = profile.fighters[fighterId]
-    return PlayerProfiles.levelForXp(if fighter then fighter.xp else 0) >= option.level
+    return PlayerProfiles.levelForXp(progressionXp(fighter)) >= option.level
 end
 
 local function loadoutFor(profile, fighterId, slot, field)
@@ -363,13 +397,13 @@ end
 function PlayerProfiles.summary(profile, fighterId)
     fighterId = fighterId or REEDGUARD
     local fighter = profile.fighters[fighterId]
-    local xp = if fighter then fighter.xp else 0
+    local xp = progressionXp(fighter)
     local level = PlayerProfiles.levelForXp(xp)
     local fighterLevels, fighterForms = {}, {}
     for _, roster in {STARTERS, ROSTER_UNLOCKS, EXPANDED_UNLOCKS} do
         for id in roster do
             local owned = profile.fighters[id]
-            fighterLevels[id] = if owned then PlayerProfiles.levelForXp(owned.xp) else 1
+            fighterLevels[id] = PlayerProfiles.levelForXp(progressionXp(owned))
             if #FighterForms.list(id) > 1 then
                 fighterForms[id] = PlayerProfiles.formFor(profile, id)
             end
@@ -404,7 +438,7 @@ function PlayerProfiles:_update(userId, mutate)
     for attempt = 1, 3 do
         local rejection
         local ok, result = pcall(self.store.UpdateAsync, self.store, key, function(current, info)
-            local updated, reason = mutate(current, self.now())
+            local updated, reason = mutate(withCurrentLevelCurve(current), self.now())
             rejection = reason
             if updated == nil then
                 return nil

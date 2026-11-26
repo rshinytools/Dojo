@@ -68,6 +68,19 @@ local toggle = button(screen, "OpenWallet", "Wallet", UDim2.new(1, -120, 0, 44),
 toggle.AnchorPoint = Vector2.new(1, 0)
 toggle.TextSize, toggle.Visible = 13, false
 
+local shortcut = button(screen, "OutfittersShortcut", "Shop", UDim2.fromOffset(15, 146), UDim2.fromOffset(86, 44))
+shortcut.BackgroundColor3, shortcut.Visible = colors.jade, false
+shortcut.Text, shortcut.TextXAlignment = "    Shop", Enum.TextXAlignment.Center
+local bag = create("Frame", shortcut, {
+    Position = UDim2.fromOffset(11, 17), Size = UDim2.fromOffset(13, 11), BorderSizePixel = 0,
+    BackgroundColor3 = colors.paper, Active = false,
+})
+edge(bag, 2).Color = colors.paper
+local handle = create("Frame", bag, {
+    Position = UDim2.fromOffset(3, -4), Size = UDim2.fromOffset(7, 5), BackgroundTransparency = 1,
+})
+edge(handle, 3).Color = colors.paper
+
 local shade = create("Frame", screen, {
     Name = "WalletOverlay", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0),
     BackgroundTransparency = .40, BorderSizePixel = 0, Active = true, Visible = false,
@@ -145,57 +158,139 @@ local hint = label(scroll, "EarnCoins", earnHint, 13, colors.muted, false,
     UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 44))
 hint.LayoutOrder = 4
 
+local cedar = Color3.fromRGB(40, 24, 31)
+local lacquer = Color3.fromRGB(56, 32, 39)
+local brass = Color3.fromRGB(181, 127, 66)
+local cream = Color3.fromRGB(255, 232, 191)
+local parchment = Color3.fromRGB(221, 192, 168)
+local fern = Color3.fromRGB(36, 108, 77)
+
 local shop = create("Frame", shade, {
     Name = "Shop", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
-    BackgroundColor3 = colors.ink, BorderSizePixel = 0, Active = true, Visible = false, SelectionGroup = true,
+    BackgroundColor3 = cedar, BorderSizePixel = 0, Active = true, Visible = false, SelectionGroup = true,
     SelectionBehaviorUp = Enum.SelectionBehavior.Stop, SelectionBehaviorDown = Enum.SelectionBehavior.Stop,
     SelectionBehaviorLeft = Enum.SelectionBehavior.Stop, SelectionBehaviorRight = Enum.SelectionBehavior.Stop,
 })
-edge(shop, 14)
-create("UISizeConstraint", shop, {MaxSize = Vector2.new(820, 472)})
+local shopRim = edge(shop, 15)
+shopRim.Color, shopRim.Thickness = brass, 2
+create("UISizeConstraint", shop, {MaxSize = Vector2.new(890, 490)})
 local shopHeader = create("Frame", shop, {
-    Name = "ShopHeader", Position = UDim2.fromOffset(1, 1), Size = UDim2.new(1, -2, 0, 66),
-    BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0,
+    Name = "ShopHeader", Position = UDim2.fromOffset(1, 1), BackgroundColor3 = Color3.new(1, 1, 1),
+    BorderSizePixel = 0,
 })
-create("UICorner", shopHeader, {CornerRadius = UDim.new(0, 13)})
+create("UICorner", shopHeader, {CornerRadius = UDim.new(0, 14)})
 create("UIGradient", shopHeader, {
-    Color = ColorSequence.new(Color3.fromRGB(63, 50, 35), Color3.fromRGB(29, 49, 44)),
+    Color = ColorSequence.new(Color3.fromRGB(103, 49, 37), Color3.fromRGB(52, 25, 39)), Rotation = 12,
 })
-local shopTitle = label(shopHeader, "Title", "Dojo Outfitters", 34, colors.paper, true,
-    UDim2.fromOffset(16, 0), UDim2.new(1, -189, 1, 0))
+local district = label(shopHeader, "District", "REED MARKET", 11, colors.gold, true,
+    UDim2.fromOffset(20, 9), UDim2.fromOffset(110, 15))
+local shopTitle = label(shopHeader, "Title", "Dojo Outfitters", 38, cream, true, UDim2.new(), UDim2.new())
 shopTitle.Font = Enum.Font.Garamond
-local walletBack = button(shop, "OpenWalletFromShop", "Wallet", UDim2.new(1, -164, 0, 11), UDim2.fromOffset(76, 44))
-local shopClose = button(shop, "CloseShop", "Close", UDim2.new(1, -80, 0, 11), UDim2.fromOffset(68, 44))
+local walletBack = button(shop, "OpenWalletFromShop", "Wallet", UDim2.new(), UDim2.new())
+local shopClose = button(shop, "CloseShop", "Close", UDim2.new(), UDim2.new())
+
+local tabs = create("Frame", shop, {Name = "Categories", BackgroundTransparency = 1})
+local categoryNames = {"Robux cosmetics", "Earned with Coins", "My closet"}
+local categoryKeys = {"robux", "coins", "closet"}
+local tabButtons = {}
+for index, key in ipairs(categoryKeys) do
+    local tab = button(tabs, key, categoryNames[index], UDim2.new((index - 1) / 3, 0, 0, 0),
+        UDim2.new(1 / 3, if index == 3 then 0 else -5, 1, 0))
+    tabButtons[key] = tab
+    if index > 1 then
+        tab.NextSelectionLeft = tabButtons[categoryKeys[index - 1]]
+        tab.NextSelectionLeft.NextSelectionRight = tab
+    end
+    tab.NextSelectionUp = walletBack
+end
 walletBack.NextSelectionRight, shopClose.NextSelectionLeft = shopClose, walletBack
+walletBack.NextSelectionDown, shopClose.NextSelectionDown = tabButtons.robux, tabButtons.closet
 
 local shopScroll = create("ScrollingFrame", shop, {
-    Name = "ShopEntries", Position = UDim2.fromOffset(14, 78), Size = UDim2.new(1, -28, 1, -90),
-    BackgroundTransparency = 1, BorderSizePixel = 0, ScrollingDirection = Enum.ScrollingDirection.Y,
-    AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), ScrollBarThickness = 5,
-    ScrollBarImageColor3 = colors.gold, VerticalScrollBarInset = Enum.ScrollBarInset.Always,
-    ClipsDescendants = true, Selectable = false,
+    Name = "ShopEntries", BackgroundTransparency = 1, BorderSizePixel = 0,
+    ScrollingDirection = Enum.ScrollingDirection.Y, AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    CanvasSize = UDim2.new(), ScrollBarThickness = 4, ScrollBarImageColor3 = colors.gold,
+    VerticalScrollBarInset = Enum.ScrollBarInset.Always, ClipsDescendants = true, Selectable = false,
 })
-local product = create("Frame", shopScroll, {
-    Name = "Product", BackgroundTransparency = 1, Size = UDim2.new(1, -2, 0, 376),
-})
+local product = create("Frame", shopScroll, {Name = "Product", BackgroundTransparency = 1})
 local previewTile = create("Frame", product, {
-    Name = "Preview", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0,
+    Name = "Preview", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, ClipsDescendants = true,
 })
-edge(previewTile, 11)
+edge(previewTile, 11).Color = brass
 create("UIGradient", previewTile, {
-    Rotation = 100,
-    Color = ColorSequence.new(Color3.fromRGB(42, 81, 71), Color3.fromRGB(22, 38, 35)),
+    Rotation = 104, Color = ColorSequence.new(Color3.fromRGB(118, 65, 48), Color3.fromRGB(35, 27, 46)),
 })
-local preview = create("ViewportFrame", previewTile, {
+local portrait = create("ViewportFrame", previewTile, {
+    Name = "Reedguard", Position = UDim2.new(.24, 0, 0, 0), Size = UDim2.new(.76, 0, 1, 0),
+    BackgroundTransparency = 1, Ambient = Color3.fromRGB(168, 148, 154),
+    LightColor = Color3.fromRGB(255, 230, 182), LightDirection = Vector3.new(-.8, -1, -.9),
+})
+local portraitCamera = create("Camera", portrait, {FieldOfView = 34})
+portrait.CurrentCamera = portraitCamera
+local portraitModel
+local wornPreview
+local previewing = true
+local function refreshPortrait(bundle, visible)
+    if not portraitModel or not portraitModel:FindFirstChild("Torso") then return end
+    if wornPreview then
+        wornPreview:Destroy()
+        wornPreview = nil
+    end
+    if not visible then return end
+    local torso = portraitModel.Torso
+    local center, width, height, front = OutfitArt.fit(torso, torso.CFrame)
+    wornPreview = create("Model", portrait, {Name = "PreviewOutfit"})
+    local function piece(name, frame, size, color, material)
+        create("Part", wornPreview, {
+            Name = name, CFrame = frame, Size = size, Color = color, Material = material,
+            Anchored = true, CanCollide = false, CanQuery = false, CanTouch = false,
+        })
+    end
+    local buildOutfit = if bundle then OutfitArt.build else OutfitArt.buildJade
+    buildOutfit(piece, center, width, height, front)
+end
+
+local function mountPortrait()
+    if portraitModel then return end
+    local library = ReplicatedStorage:FindFirstChild("StarterFighterVisuals")
+    local sample = library and library:FindFirstChild("reedguard-kangaroo")
+    if not (sample and sample:IsA("Model")) then return end
+    portraitModel = sample:Clone()
+    portraitModel.Parent = portrait
+    local box, size = portraitModel:GetBoundingBox()
+    local aim = box.Position + Vector3.new(0, size.Y * .02, 0)
+    portraitCamera.CFrame = CFrame.lookAt(aim + Vector3.new(-.42, .14, -1.92) * size.Y, aim)
+end
+
+local previewMode = button(previewTile, "PreviewMode", "Without outfit", UDim2.fromOffset(8, 8), UDim2.fromOffset(123, 44))
+previewMode.BackgroundColor3, previewMode.TextSize = lacquer, 12
+local portraitBundle, portraitVisible
+local function syncPortrait(bundle, empty)
+    previewMode.Text = if previewing then "Without outfit" else "With outfit"
+    local showOutfit = previewing and not empty and portraitModel ~= nil
+    if bundle ~= portraitBundle or showOutfit ~= portraitVisible then
+        portraitBundle, portraitVisible = bundle, showOutfit
+        refreshPortrait(bundle, showOutfit)
+    end
+end
+
+local productStand = create("Frame", previewTile, {
+    Name = "ItemStand", BackgroundColor3 = cedar, BackgroundTransparency = .15, BorderSizePixel = 0,
+    Position = UDim2.new(0, 8, .50, 0), Size = UDim2.new(.39, 0, .45, 0),
+})
+edge(productStand, 8).Color = brass
+local preview = create("ViewportFrame", productStand, {
     Name = "SashPreview", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
     Ambient = Color3.fromRGB(180, 187, 173), LightColor = Color3.fromRGB(255, 235, 196),
     LightDirection = Vector3.new(-.8, -1, -.9),
 })
-local jadeChoice = button(previewTile, "JadeSashTab", "Jade Sash", UDim2.fromOffset(5, 5), UDim2.new(.5, -8, 0, 44))
-local bundleChoice = button(previewTile, "MidnightSetTab", "Midnight Set", UDim2.new(.5, 3, 0, 5),
-    UDim2.new(.5, -8, 0, 44))
 local bundlePreview = preview:Clone()
-bundlePreview.Name, bundlePreview.Visible, bundlePreview.Parent = "MidnightPreview", false, previewTile
+bundlePreview.Name, bundlePreview.Visible, bundlePreview.Parent = "MidnightPreview", false, productStand
+local closetChoices = create("Frame", product, {Name = "OwnedOutfits", BackgroundTransparency = 1, Visible = false})
+local jadeChoice = button(closetChoices, "JadeSashTab", "Jade Sash", UDim2.fromOffset(0, 0), UDim2.new(.50, -3, 1, 0))
+local bundleChoice = button(closetChoices, "MidnightSetTab", "Midnight Set", UDim2.new(.50, 3, 0, 0),
+    UDim2.new(.50, -3, 1, 0))
+jadeChoice.NextSelectionRight, bundleChoice.NextSelectionLeft = bundleChoice, jadeChoice
 local previewCamera = create("Camera", preview, {
     CFrame = CFrame.lookAt(Vector3.new(-.63, .49, -2.56), Vector3.new(0, -.22, 0)),
     FieldOfView = 35,
@@ -246,25 +341,21 @@ OutfitArt.build(function(name, frame, size, color, material)
 end, Vector3.new(.32, .02, 0), .55, .73, -.14)
 
 local details = create("Frame", product, {
-    Name = "Details", BackgroundColor3 = colors.card, BorderSizePixel = 0,
+    Name = "Details", BackgroundColor3 = lacquer, BorderSizePixel = 0,
 })
-edge(details, 11)
-local title = label(details, "Title", "Jade Festival Sash", 30, colors.paper, true, UDim2.new(), UDim2.new())
+edge(details, 11).Color = brass
+local title = label(details, "Title", "", 38, cream, true, UDim2.new(), UDim2.new())
 title.Font = Enum.Font.Garamond
-local ownership = label(details, "Ownership", "Cosmetic apparel", 13, colors.mint, true, UDim2.new(), UDim2.new())
-local description = label(details, "Description", "Jade fabric with woven gold trim and a mint clasp.", 14, colors.muted,
-    false, UDim2.new(), UDim2.new())
-local priceDisplay = label(details, "Price", "50 Coins", 18, colors.gold, true, UDim2.new(), UDim2.new())
-local coinBalance = label(details, "CoinBalance", "Wallet  —", 13, colors.muted, true, UDim2.new(), UDim2.new())
-coinBalance.TextXAlignment = Enum.TextXAlignment.Right
-local action = button(details, "CosmeticAction", "Buy · 50 Coins", UDim2.new(), UDim2.new())
-local feedback = label(details, "ShopNotice", "", 13, colors.gold, false, UDim2.new(), UDim2.new())
-walletBack.NextSelectionDown, shopClose.NextSelectionDown, action.NextSelectionUp = action, action, walletBack
-jadeChoice.NextSelectionRight, bundleChoice.NextSelectionLeft = bundleChoice, jadeChoice
+local ownership = label(details, "Ownership", "", 12, colors.gold, true, UDim2.new(), UDim2.new())
+local description = label(details, "Description", "", 14, parchment, false, UDim2.new(), UDim2.new())
+local priceDisplay = label(details, "Price", "", 17, cream, true, UDim2.new(), UDim2.new())
+local action = button(details, "CosmeticAction", "", UDim2.new(), UDim2.new())
+local feedback = label(details, "ShopNotice", "", 12, colors.gold, false, UDim2.new(), UDim2.new())
+for _, control in {walletBack, shopClose, jadeChoice, bundleChoice} do
+    control.BackgroundColor3 = lacquer
+end
 jadeChoice.NextSelectionDown, bundleChoice.NextSelectionDown = action, action
-jadeChoice.NextSelectionUp, bundleChoice.NextSelectionUp = walletBack, walletBack
-action.NextSelectionLeft = bundleChoice
-walletBack.NextSelectionDown, shopClose.NextSelectionDown = bundleChoice, bundleChoice
+jadeChoice.NextSelectionUp, bundleChoice.NextSelectionUp = tabButtons.closet, tabButtons.closet
 
 local blockedAttributes = {
     "StarterSelectionRequired", "StarterSelectionPending", "FighterSelectOpen", "CityAdventureJournalOpen",
@@ -278,7 +369,9 @@ local conflictingPanels = {
     SparringResult = true, DuelFormatPicker = true, CloudbreakStatus = true,
 }
 local pending = false
-local bundleSelected = false
+local category = "robux"
+local closetOffer = "midnight"
+local bundleSelected = true
 local bundleSaving = false
 local bundleRequest = 0
 local bundlePrice, priceState = nil, "unlisted"
@@ -363,54 +456,86 @@ local function render()
         xpFill.Size = UDim2.fromScale(0, 1)
     end
 
-    local owned = player:GetAttribute("DojoMarketSashOwned") == true
-    local equipped = player:GetAttribute("DojoMarketSashEquipped") == true
-    ownership.Text = if equipped then "Equipped" elseif owned then "Owned" else "Cosmetic apparel"
-    local price = sashPrice()
-    priceDisplay.Text = if owned then "Yours to wear" else ("%d Coins"):format(price)
-    coinBalance.Text = if ready and coins ~= nil then ("Wallet  %s"):format(formatted(coins)) else "Wallet  —"
-    local canAfford = coins ~= nil and coins >= price
-    local usable = readyToSpend() and not pending and (owned or canAfford)
-    action.Text = if pending then "Saving…"
-        elseif status == "unavailable" then "Wallet unavailable"
-        elseif not readyToSpend() then (if ready then "Saving progress…" else "Loading wallet…")
-        elseif equipped then "Remove sash"
-        elseif owned then "Equip sash"
-        elseif canAfford then ("Buy · %d Coins"):format(price)
-        elseif coins ~= nil then ("Need %d more Coins"):format(price - coins)
-        else ("Buy · %d Coins"):format(price)
-    title.Text = if bundleSelected then OutfitArt.Name else "Jade Festival Sash"
-    description.Text = if bundleSelected then OutfitArt.Description else "Jade fabric with woven gold trim and a mint clasp."
-    jadeChoice.BackgroundColor3 = if bundleSelected then colors.ink else colors.jade
-    bundleChoice.BackgroundColor3 = if bundleSelected then colors.jade else colors.ink
+    walletBack.Text = if ready and coins ~= nil then coinChip(coins) else "Wallet"
+    local jadeOwned = player:GetAttribute("DojoMarketSashOwned") == true
+    local entitlement = player:GetAttribute("DojoBundleOwnership")
+    local bundleOwned = entitlement == "owned"
+    local inCloset = category == "closet"
+    local closetLoaded = ready and (entitlement == "owned" or entitlement == "locked")
+    local empty = inCloset and not (jadeOwned or bundleOwned)
+    if inCloset and jadeOwned ~= bundleOwned then closetOffer = if jadeOwned then "jade" else "midnight" end
+    bundleSelected = category == "robux" or (inCloset and closetOffer == "midnight")
+    for key, tab in tabButtons do
+        tab.BackgroundColor3 = if category == key then fern else lacquer
+        tab.TextColor3 = if category == key then colors.paper else parchment
+    end
+    closetChoices.Visible, jadeChoice.Visible, bundleChoice.Visible = inCloset and jadeOwned and bundleOwned, jadeOwned, bundleOwned
+    jadeChoice.BackgroundColor3 = if closetOffer == "jade" then fern else lacquer
+    bundleChoice.BackgroundColor3 = if closetOffer == "midnight" then fern else lacquer
+    previewTile.Visible = not empty
+    syncPortrait(bundleSelected, empty)
     preview.Visible, bundlePreview.Visible = not bundleSelected, bundleSelected
-    feedback.Text = if bundleSelected then bundleNotice else jadeNotice
-    if bundleSelected then
-        local entitlement = player:GetAttribute("DojoBundleOwnership")
-        local bundleOwned = entitlement == "owned"
+    details:SetAttribute("ClosetEmpty", empty)
+    product:SetAttribute("HasClosetChoices", closetChoices.Visible)
+    action.Visible, priceDisplay.Visible = not empty, not empty
+    local nextProduct = if closetChoices.Visible then (if bundleSelected then bundleChoice else jadeChoice) else previewMode
+    for _, tab in tabButtons do tab.NextSelectionDown = nextProduct end
+    jadeChoice.NextSelectionDown, bundleChoice.NextSelectionDown = previewMode, previewMode
+    action.NextSelectionUp = previewMode
+    action.NextSelectionLeft = if not empty then previewMode else nil
+    previewMode.NextSelectionRight = action
+    previewMode.NextSelectionUp = if closetChoices.Visible then nextProduct else tabButtons[category]
+
+    local usable = false
+    if empty then
+        title.Text = if closetLoaded then "Your closet is empty" else "My closet"
+        ownership.Text = "OWNED OUTFITS"
+        description.Text = if closetLoaded then "Collect apparel in either shop tab to see it here."
+            elseif status == "unavailable" or entitlement == "unknown" and ready
+                then "Outfit ownership could not be verified. Reopen Outfitters to retry."
+            else "Checking your outfits…"
+        feedback.Text = ""
+    elseif bundleSelected then
         local worn = bundleOwned and player:GetAttribute("DojoBundleSelected") == true
-        local listed = remote:GetAttribute("BundleSaleEnabled") == true and bundlePrice ~= nil
-        coinBalance.Text = ""
-        ownership.Text = if worn then "Equipped" elseif bundleOwned then "Owned" else "Cosmetic bundle"
-        priceDisplay.Text = if bundleOwned then "Yours to wear"
-            elseif listed then ("%s Robux"):format(formatted(bundlePrice))
-            elseif priceState == "loading" then "Checking price…" else "Off sale"
-        usable = readyToSpend() and not bundleSaving and (bundleOwned or (listed and entitlement == "locked"))
-        action.Text = if bundleSaving then "Saving…" elseif worn then "Remove set" elseif bundleOwned then "Equip set"
-            elseif listed and entitlement ~= "locked" then "Checking ownership…"
-            elseif listed then ("Buy · %s Robux"):format(formatted(bundlePrice))
-            elseif priceState == "loading" then "Checking Roblox…" else "Unavailable for purchase"
+        local listed = priceState == "ready"
+        title.Text = "Midnight Lantern Set"
+        description.Text = "Indigo shoulder mantle and bronze lantern charm."
+        ownership.Text = if worn then "EQUIPPED" elseif bundleOwned then "OWNED" else "PERMANENT COSMETIC"
+        priceDisplay.Text = if bundleOwned then "Yours to wear" elseif listed then ("%s Robux"):format(formatted(bundlePrice))
+            elseif priceState == "loading" then "Checking Roblox…" elseif priceState == "error" then "Price unavailable"
+            else "Off sale"
+        usable = not bundleSaving and (bundleOwned and readyToSpend() or listed and entitlement == "locked")
+        action.Text = if bundleSaving then "Saving…" elseif bundleOwned and not readyToSpend() then "Waiting for save…"
+            elseif worn then "Remove set" elseif bundleOwned then "Equip set"
+            elseif listed and entitlement ~= "locked" then "Checking ownership…" elseif listed then "Open Roblox Shop"
+            elseif priceState == "loading" then "Checking availability…" else "Unavailable for purchase"
+        feedback.Text = bundleNotice
+    else
+        local equipped = player:GetAttribute("DojoMarketSashEquipped") == true
+        local price = sashPrice()
+        local canAfford = coins ~= nil and coins >= price
+        title.Text = "Jade Festival Sash"
+        description.Text = "Jade fabric with woven gold trim and a mint clasp."
+        ownership.Text = if equipped then "EQUIPPED" elseif jadeOwned then "OWNED" else "PERMANENT COSMETIC"
+        priceDisplay.Text = if jadeOwned then "Yours to wear" else ("%d Coins"):format(price)
+        usable = readyToSpend() and not pending and (jadeOwned or canAfford)
+        action.Text = if pending then "Saving…" elseif status == "unavailable" then "Wallet unavailable"
+            elseif not readyToSpend() then (if ready then "Saving progress…" else "Loading wallet…")
+            elseif equipped then "Remove sash" elseif jadeOwned then "Equip sash"
+            elseif canAfford then ("Buy · %d Coins"):format(price)
+            elseif coins ~= nil then ("%d more Coins needed"):format(price - coins) else "Loading Coins…"
+        feedback.Text = jadeNotice
     end
     action.Active, action.Selectable, action.AutoButtonColor = usable, usable, usable
-    action.BackgroundColor3 = if usable then colors.jade else colors.ink
-    action.TextColor3 = if usable then colors.paper else colors.muted
+    action.BackgroundColor3 = if usable then fern else cedar
+    action.TextColor3 = if usable then colors.paper else parchment
 end
 
 local function refreshPrice()
     priceRequest += 1
     bundlePrice = nil
     local passId = whole(remote:GetAttribute("BundlePassId"))
-    if not (passId and passId > 0 and remote:GetAttribute("BundleSaleEnabled") == true) then
+    if not passId or passId == 0 then
         priceState = "unlisted"
         render()
         return
@@ -421,9 +546,12 @@ local function refreshPrice()
     task.spawn(function()
         local ok, info = pcall(MarketplaceService.GetProductInfoAsync, MarketplaceService, passId, Enum.InfoType.GamePass)
         if request ~= priceRequest then return end
-        if ok and info.IsForSale == true then bundlePrice = whole(info.PriceInRobux) end
-        if bundlePrice == 0 then bundlePrice = nil end
-        priceState = if bundlePrice then "ready" else "unlisted"
+        local hasInfo = ok and type(info) == "table"
+        if hasInfo and info.IsForSale == true then
+            local price = whole(info.PriceInRobux)
+            if price and price > 0 then bundlePrice = price end
+        end
+        priceState = if bundlePrice then "ready" elseif not hasInfo or info.IsForSale then "error" else "unlisted"
         render()
     end)
 end
@@ -431,7 +559,8 @@ end
 local function hide()
     if not shade.Visible then return end
     local picked = GuiService.SelectedObject
-    shade.Visible, toggle.Visible = false, available()
+    shade.Visible = false
+    toggle.Visible, shortcut.Visible = available(), available()
     ContextActionService:UnbindAction(closeAction)
     if picked and picked:IsDescendantOf(shade) then
         GuiService.SelectedObject = if previousSelection and previousSelection.Parent and previousSelection.Visible
@@ -441,11 +570,18 @@ local function hide()
 end
 
 local function setView(shopVisible)
-    bundleSelected = false
+    category, previewing = "robux", true
+    shade.BackgroundTransparency = if shopVisible then .73 else .40
     panel.Visible, shop.Visible = not shopVisible, shopVisible
     scroll.CanvasPosition, shopScroll.CanvasPosition = Vector2.zero, Vector2.zero
     if gamepad() then GuiService.SelectedObject = if shopVisible then shopClose else openShop end
-    render()
+    if shopVisible then
+        mountPortrait()
+        remote:FireServer("bundleRefresh")
+        refreshPrice()
+    else
+        render()
+    end
 end
 
 local function goBack()
@@ -460,7 +596,7 @@ local function show(shopVisible, fromWallet)
     if not available() then return end
     if not shade.Visible then
         previousSelection = GuiService.SelectedObject
-        shade.Visible, toggle.Visible = true, false
+        shade.Visible, toggle.Visible, shortcut.Visible = true, false, false
         ContextActionService:BindActionAtPriority(closeAction, function(_, state)
             if state == Enum.UserInputState.Begin then goBack() end
             return Enum.ContextActionResult.Sink
@@ -490,7 +626,7 @@ local function notice(message)
 end
 
 action.Activated:Connect(function()
-    if not shade.Visible or not shop.Visible or not available() or not readyToSpend() then return end
+    if not shade.Visible or not shop.Visible or not available() or not action.Active then return end
     if bundleSelected then
         if not action.Active or bundleSaving then return end
         bundleNotice = ""
@@ -506,7 +642,12 @@ action.Activated:Connect(function()
                 render()
             end)
         else
-            remote:FireServer("bundlePrompt")
+            local ok = pcall(MarketplaceService.OpenShop, MarketplaceService, player)
+            if ok then
+                hide()
+            else
+                bundleNotice = "Roblox Shop is unavailable. Try again in a moment."
+            end
         end
         render()
         return
@@ -551,7 +692,8 @@ end)
 
 local function updateAvailability()
     if shade.Visible and not available() then hide() end
-    toggle.Visible = available() and not shade.Visible
+    local visible = available() and not shade.Visible
+    toggle.Visible, shortcut.Visible = visible, visible
 end
 for _, attribute in ipairs(blockedAttributes) do
     player:GetAttributeChangedSignal(attribute):Connect(updateAvailability)
@@ -562,11 +704,9 @@ for _, attribute in {"ProgressStatus", "FighterHudProgress", "DojoCoins", "RaidT
     "DojoBundleOwnership", "DojoBundleSelected"} do
     player:GetAttributeChangedSignal(attribute):Connect(render)
 end
-for _, attribute in {"BundlePassId", "BundleSaleEnabled"} do
-    remote:GetAttributeChangedSignal(attribute):Connect(function()
-        if shop.Visible and shade.Visible and bundleSelected then refreshPrice() end
-    end)
-end
+remote:GetAttributeChangedSignal("BundlePassId"):Connect(function()
+    if shop.Visible and shade.Visible and category == "robux" then refreshPrice() end
+end)
 
 local function watchPanel(node)
     if node:IsA("ScreenGui") and node.Parent == playerGui and (node.Name == "GrandDojo" or node.Name == "BeastDojoSplash") then
@@ -603,61 +743,104 @@ local function layout()
     fighterCaption.Visible = not compact
     xp.Position = UDim2.fromOffset(10, if compact then 4 else 21)
     track.Position = UDim2.fromOffset(10, if compact then 26 else 45)
-    shop.Size = UDim2.fromOffset(math.max(1, size.X - 14), math.max(1, size.Y - 14))
-    local stacked = size.X < 460
-    local headerHeight = if compact then 56 else 66
-    local inset = if compact then 10 else 16
-    shopHeader.Size = UDim2.new(1, -2, 0, headerHeight)
-    shopTitle.TextSize = if compact or stacked then 25 else 34
-    walletBack.Position = UDim2.new(1, -164, 0, if compact then 6 else 11)
-    shopClose.Position = UDim2.new(1, -80, 0, if compact then 6 else 11)
-    shopScroll.Position = UDim2.fromOffset(14, headerHeight + 9)
-    shopScroll.Size = UDim2.new(1, -28, 1, -headerHeight - 19)
+    local wide = size.X >= 980
+    local width = math.max(1, if wide then math.min(890, math.floor(size.X * .72)) else size.X - 16)
+    local height = math.max(1, math.min(490, size.Y - 16))
+    shop.AnchorPoint = Vector2.new(if wide then 1 else .5, .5)
+    shop.Position = if wide then UDim2.new(1, -28, .5, 0) else UDim2.fromScale(.5, .5)
+    shop.Size = UDim2.fromOffset(width, height)
+    local touch = UserInputService.TouchEnabled
+    shortcut.Size = UDim2.fromOffset(if touch then 75 else 86, 44)
+    shortcut.Position = if touch then UDim2.fromOffset(8, if compact then 54 else 82)
+        else UDim2.fromOffset(16, if compact then 65 else 178)
 
+    local stacked = width < 460
     local small = compact or stacked
-    local detailHeight = if small then 222 else 356
-    local previewHeight = if stacked then 182 elseif small then 177 else detailHeight
-    product.Size = UDim2.new(1, -2, 0, if stacked then previewHeight + 10 + detailHeight else detailHeight)
-    previewTile.Size = if stacked then UDim2.new(1, -2, 0, previewHeight) else UDim2.new(.47, -5, 0, previewHeight)
-    for _, viewport in {preview, bundlePreview} do
-        viewport.Position, viewport.Size = UDim2.fromOffset(0, 51), UDim2.new(1, 0, 1, -51)
-    end
-    details.Position = if stacked then UDim2.fromOffset(0, previewHeight + 10) else UDim2.new(.47, 5, 0, 0)
-    details.Size = if stacked then UDim2.new(1, -2, 0, detailHeight) else UDim2.new(.53, -7, 0, detailHeight)
-    previewCamera.FieldOfView = if not small and not stacked then 33 else 36
-    bundleCamera.FieldOfView = if small then 34 else 30
+    local headerHeight = if compact then 49 elseif stacked then 64 else 72
+    local inset = if small then 10 else 18
+    shopHeader.Size = UDim2.new(1, -2, 0, headerHeight)
+    district.Position = UDim2.fromOffset(inset, if compact then 4 else 8)
+    shopTitle.Position = UDim2.fromOffset(inset, if compact then 15 else 22)
+    shopTitle.Size = UDim2.new(1, if stacked then -165 else -225, 0, if compact then 29 else 44)
+    shopTitle.TextSize = if stacked then 23 elseif compact then 28 else 38
+    local walletWidth, closeWidth = if stacked then 88 else 125, if stacked then 47 else 62
+    shopClose.Position = UDim2.new(1, -closeWidth - inset, 0, (headerHeight - 44) / 2)
+    shopClose.Size = UDim2.fromOffset(closeWidth, 44)
+    walletBack.Position = UDim2.new(1, -walletWidth - closeWidth - inset - 6, 0, (headerHeight - 44) / 2)
+    walletBack.Size = UDim2.fromOffset(walletWidth, 44)
+    walletBack.TextSize = if stacked then 11 else 13
+    tabs.Position, tabs.Size = UDim2.fromOffset(inset, headerHeight + 6), UDim2.new(1, -inset * 2, 0, 44)
+    for _, tab in tabButtons do tab.TextSize = if stacked then 12 else 14 end
+    local top = headerHeight + (if compact then 54 else 58)
+    local hasChoices = product:GetAttribute("HasClosetChoices") == true
+    local empty = details:GetAttribute("ClosetEmpty") == true
+    local footer = not empty and (stacked or compact and (height - top < 154 or hasChoices))
+    local inlineCompact = compact and not footer
+    shopScroll.Position = UDim2.fromOffset(inset, top)
+    shopScroll.Size = UDim2.new(1, -inset * 2, 1, -top - (if footer then 61 else 9))
+    local offset = if hasChoices then 50 else 0
+    local detailHeight = if inlineCompact then (if feedback.Text == "" then 145 else 176)
+        elseif small then 193 else math.max(255, height - top - 14 - offset)
+    local previewHeight = if empty then 0 elseif stacked then 139 else detailHeight
+    local detailY = offset + (if stacked and not empty then previewHeight + 8 else 0)
+    product.Size = UDim2.new(1, -4, 0, detailY + detailHeight)
+    closetChoices.Size = UDim2.new(1, 0, 0, 44)
+    previewTile.Position = UDim2.fromOffset(0, offset)
+    previewTile.Size = if stacked then UDim2.new(1, 0, 0, previewHeight) else UDim2.new(.49, -5, 0, previewHeight)
+    details.Position = if stacked or empty then UDim2.fromOffset(0, detailY) else UDim2.new(.49, 5, 0, detailY)
+    details.Size = if stacked or empty then UDim2.new(1, 0, 0, detailHeight) else UDim2.new(.51, -5, 0, detailHeight)
+    previewCamera.FieldOfView = if stacked or compact then 43 else 37
+    bundleCamera.FieldOfView = if stacked or compact then 39 else 34
 
-    title.TextSize = if small then 25 else 34
-    title.Position, title.Size = UDim2.fromOffset(inset, if small then 6 else 20), UDim2.new(1, -inset * 2, 0, if small then 40 else 48)
-    ownership.Position, ownership.Size = UDim2.fromOffset(inset, if small then 43 else 68), UDim2.new(1, -inset * 2, 0, 22)
-    description.Position, description.Size = UDim2.fromOffset(inset, if small then 67 else 103), UDim2.new(1, -inset * 2, 0, if small then 40 else 55)
-    local priceY = if small then 107 else 171
-    priceDisplay.Position, priceDisplay.Size = UDim2.fromOffset(inset, priceY), UDim2.new(.58, -inset, 0, 27)
-    coinBalance.Position, coinBalance.Size = UDim2.new(.58, 2, 0, priceY), UDim2.new(.42, -inset - 2, 0, 27)
-    action.Position = UDim2.fromOffset(inset, if small then 136 else 210)
-    action.Size = UDim2.new(1, -inset * 2, 0, if small then 44 else 49)
-    feedback.Position = UDim2.fromOffset(inset, if small then 183 else 271)
-    feedback.Size = UDim2.new(1, -inset * 2, 0, if small then 35 else 64)
+    title.TextSize = if small then 25 else 37
+    title.Position, title.Size = UDim2.fromOffset(inset, if inlineCompact then 17 elseif small then 21 else 36),
+        UDim2.new(1, -inset * 2, 0, if inlineCompact then 30 elseif small then 38 else 55)
+    ownership.Position, ownership.Size = UDim2.fromOffset(inset, if small then 4 else 15), UDim2.new(1, -inset * 2, 0, 18)
+    description.Position, description.Size = UDim2.fromOffset(inset, if inlineCompact then 45 elseif small then 59 else 92),
+        UDim2.new(1, -inset * 2, 0, if small then 31 else 44)
+    priceDisplay.Position, priceDisplay.Size = UDim2.fromOffset(inset, if inlineCompact then 71 elseif small then 89 else 144),
+        UDim2.new(1, -inset * 2, 0, 26)
+    local actionParent = if footer then shop else details
+    if action.Parent ~= actionParent then action.Parent = actionParent end
+    action.Position = if footer then UDim2.new(0, inset, 1, -53)
+        else UDim2.fromOffset(inset, if inlineCompact then 97 else 177)
+    action.Size = UDim2.new(1, -inset * 2, 0, 44)
+    feedback.Position, feedback.Size = UDim2.fromOffset(inset, if footer then 116 elseif inlineCompact then 143 else 222),
+        UDim2.new(1, -inset * 2, 0, 30)
 end
+details:GetAttributeChangedSignal("ClosetEmpty"):Connect(layout)
+product:GetAttributeChangedSignal("HasClosetChoices"):Connect(layout)
+feedback:GetPropertyChangedSignal("Text"):Connect(layout)
 screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
 toggle.Activated:Connect(function() show(false) end)
 close.Activated:Connect(hide)
 openShop.Activated:Connect(function() show(true, true) end)
 walletBack.Activated:Connect(function() show(false) end)
 shopClose.Activated:Connect(hide)
-local function selectOffer(bundle)
-    bundleSelected = bundle
-    if bundle then
-        remote:FireServer("bundleRefresh")
-        refreshPrice()
-    else
-        render()
-    end
+shortcut.Activated:Connect(function() show(true, false) end)
+for key, tab in tabButtons do
+    tab.Activated:Connect(function()
+        category, previewing = key, true
+        shopScroll.CanvasPosition = Vector2.zero
+        if key == "robux" then refreshPrice() else render() end
+    end)
 end
-jadeChoice.Activated:Connect(function() selectOffer(false) end)
-bundleChoice.Activated:Connect(function() selectOffer(true) end)
+jadeChoice.Activated:Connect(function()
+    closetOffer, previewing = "jade", true
+    render()
+end)
+bundleChoice.Activated:Connect(function()
+    closetOffer, previewing = "midnight", true
+    render()
+end)
+previewMode.Activated:Connect(function()
+    previewing = not previewing
+    syncPortrait(bundleSelected, details:GetAttribute("ClosetEmpty") == true)
+end)
 player.CharacterRemoving:Connect(hide)
-action.SelectionGained:Connect(function() revealShop(action) end)
+action.SelectionGained:Connect(function()
+    if action.Parent == details then revealShop(action) end
+end)
 local function focusForDevice()
     if shade.Visible and gamepad() then
         local selected = GuiService.SelectedObject
@@ -672,6 +855,8 @@ UserInputService.InputBegan:Connect(function(input, consumed)
     if consumed or UserInputService:GetFocusedTextBox() then return end
     if shade.Visible and input.KeyCode == Enum.KeyCode.Backspace then
         goBack()
+    elseif input.KeyCode == Enum.KeyCode.O then
+        if shade.Visible and shop.Visible then hide() else show(true, false) end
     elseif input.KeyCode == Enum.KeyCode.K then
         if shade.Visible then hide() else show(false) end
     end

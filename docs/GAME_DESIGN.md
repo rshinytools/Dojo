@@ -141,13 +141,13 @@ Reference ring radius is 65 studs (from center spawn to ring-out drop). Engineer
 | Fighting Ring | Gate | Resident Bot | Play and Ring Features |
 | --- | --- | --- | --- |
 | Grand Dojo Ring<br>Grand Dojo City | Level 1<br>0 XP | Juniper Tortoise | Bot Spar and all PvP. Circular main ring. Competitive layouts use clear boundaries and readable perimeter bumpers. |
-| Cinder Terraces Ring<br>Cinder Terraces | Level 3<br>180 XP | Bracken Boar | Bot Spar. Octagonal stone ring with clearly telegraphed geysers. |
-| Cloud-Top Temple<br>Skywalk Peaks | Level 5<br>460 XP | Sablecrest Lynx | Bot Spar. Linked platforms with gust bridges and telegraphed lightning. |
-| Galleon Ring<br>Tideharbor Coast | Level 7<br>830 XP | Granite Rhino | Bot Spar. Rectangular ship deck with a readable tilting mechanic. |
+| Cinder Terraces Ring<br>Cinder Terraces | Level 3<br>550 XP | Bracken Boar | Bot Spar. Octagonal stone ring with clearly telegraphed geysers. |
+| Cloud-Top Temple<br>Skywalk Peaks | Level 5<br>1,450 XP | Sablecrest Lynx | Bot Spar. Linked platforms with gust bridges and telegraphed lightning. |
+| Galleon Ring<br>Tideharbor Coast | Level 7<br>2,850 XP | Granite Rhino | Bot Spar. Rectangular ship deck with a readable tilting mechanic. |
 
 The server checks ring entry. When any fighter first reaches the required level, the ring unlock is saved to that player's account. Switching to a lower-level fighter keeps the ring open. Show the recommended fighter level alongside access status, and show how to earn XP when entry is locked. District roads, activities and spectator approaches remain open.
 
-The XP totals above use the current ten-level Reedguard prototype curve. The first eligible Bot Spar win grants 60 XP and the first official Lantern Relay clear grants 80 XP. Each grant is available once per account. A proposed first completion of the Dojo Valley mentor's lantern-timing step adds 40 XP. Crediting all three to the same fighter reaches Level 3 at 180 XP. Later gates need several available XP paths from earlier bouts, mentor quests and activities.
+The cumulative fighter XP for Levels 1–10 is 0, 250, 550, 950, 1,450, 2,100, 2,850, 3,700, 4,700 and 5,800. The first eligible Bot Spar win grants 60 XP, the first official Lantern Relay clear grants 80 XP and Lantern Timing can grant 40 XP. Together these give 180 XP to the active fighter. Repeat activities and quest steps provide the rest through the early game. Measure time between milestones in playtests, especially before the first satellite ring and the Level 10 roster unlocks.
 
 4.3 Economy, Trading Plaza & Clan Dojos
 

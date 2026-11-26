@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.366 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.367 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -207,7 +207,7 @@ The next monetization work starts with the earned economy. The compact Wallet bu
 | District treasure cache | 45 | First opening of each district cache |
 | Cloudbreak Expert | 60 | First saved Expert finish |
 
-Ask **Mika**, the red panda shopkeeper at the Dojo Outfitters counter by the Reed Market gate, to **Browse apparel** or select **Wallet → Shop apparel** from the city HUD. The shop displays a lit 3D preview, the exact Coin price and the current balance. The Jade Festival Sash costs **50 Coins** and equips on purchase. Players can remove and re-equip it from the shop. It uses cosmetic geometry on the torso outside the fighter combat shell. Previously recorded qualifying clears count toward the same balance. The server derives earned Coins from saved completion records and stores the debit and ownership together in the protected profile. A retry leaves the purchase and the remaining balance intact.
+Open **Shop** on the city HUD, ask **Mika** at the Reed Market counter to **Browse apparel**, or select **Wallet → Shop apparel**. The shop displays a lit 3D preview, the exact Coin price and the current balance. The Jade Festival Sash costs **50 Coins** and equips on purchase. Players can remove and re-equip it from the shop. It uses cosmetic geometry on the torso outside the fighter combat shell. Previously recorded qualifying clears count toward the same balance. The server derives earned Coins from saved completion records and stores the debit and ownership together in the protected profile. A retry leaves the purchase and the remaining balance intact.
 
 V0.365 desktop Studio verified the walk to Mika and opened the native shop through the **Browse apparel** prompt. Mika uses the city’s existing anchored, collision-free NPC geometry.
 
@@ -229,7 +229,9 @@ On November 25, 2026, a non-owner early tester bought the pass for 1 Robux throu
 
 The approved public shop uses native Roblox Shop for paid checkout and Mika’s Dojo Outfitters for previews and equipping. In Creator Hub, **Monetization → Passes → Sales** controls the price and sale status of each permanent bundle. **Monetization → Shop → Item catalog** organizes offers by category and manages the visibility of eligible Developer Products. Shop can surface passes through its own catalog. Keep the pass ID and equip support active when turning sale off, so owners keep access. Native checkout, ownership and shop operations run on Roblox. [Roblox Shop](https://create.roblox.com/docs/production/monetization/shop) · [Roblox passes](https://create.roblox.com/docs/production/monetization/passes)
 
-V0.366 staging still includes a custom purchase option behind `saleEnabled` in the Experience Config named `dojo_outfitters_midnight_lantern`. Keep that option disabled for native-Shop-only purchasing. The same config carries the per-experience `passId` for entitlement checks. Use a second staged bundle to verify independent Creator Hub sale switches and native checkout cancellation. Future bundles require their art and entitlement mapping before sale. Once wired, the owner can reprice or retire each offer without a new place build. Expand the lineup when Beast Dojo has active players and feedback on the first bundle. [Experience Configs](https://create.roblox.com/docs/production/configs)
+V0.367 brings the approved lacquer-and-brass Outfitters menu to Roblox. **Robux cosmetics**, **Earned with Coins**, and **My closet** share a Reedguard preview, individual item status, and the current Coin balance. **With outfit** and **Without outfit** toggle the selected cosmetic on the preview without saving an equip change. The paid action opens native Roblox Shop and dismisses the Outfitters panel. The per-experience `dojo_outfitters_midnight_lantern` Experience Config maps the pass ID to its in-game outfit. Creator Hub controls sale and price. Owners can equip an off-sale item from the closet. Desktop Studio checked the three tabs and owned and unaffordable states. Galaxy A06 landscape Studio Play checked the layout and fully visible 44-pixel action. The final build is published to Private Staging. A fresh Studio profile earned 60 Coins and 80 XP from Lantern Relay, bought the Jade Sash for 50 Coins, and removed and equipped it again from the closet with 10 Coins remaining. [Roblox Shop](https://create.roblox.com/docs/production/monetization/shop) · [Experience Configs](https://create.roblox.com/docs/production/configs)
+
+The separate 1 Robux cancellation pass was listed only in the private staging experience. The tester opened and dismissed the Roblox website purchase confirmation. The balance stayed the same and the pass remained unowned. Midnight Lantern stayed off sale while the test pass was listed. Creator Hub restored both passes to off sale and disabled the temporary global Shop shortcut. Cancellation inside Roblox Player remains open.
 
 Earnable skill unlocks stay part of fighter progression. Optional paid perks can be tested in practice or PvE after the cosmetic launch, with competitive play and ranked records unaffected. Reserve repeatable Developer Products for later and verify their durable, idempotent receipt handling. Trading, paid random items, and eligible ads remain separate roadmap deliverables. [Roblox passes](https://create.roblox.com/docs/production/monetization/passes) · [Regional pricing](https://create.roblox.com/docs/production/monetization/regional-pricing) · [Player data and purchasing](https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing)
 
@@ -296,11 +298,13 @@ All six districts remain connected and open for exploration. A ring's level gate
 | Ring | District | Unlock | Resident bot | Combat |
 | --- | --- | ---: | --- | --- |
 | Grand Dojo Ring | Grand Dojo City | Level 1 · 0 XP | Juniper Tortoise | Bot Spar, same-server Duel, Tag Team and Brawl |
-| Cinder Terraces Ring | Cinder Terraces | Level 3 · 180 XP | Bracken Boar | Bot Spar |
-| Cloud-Top Temple | Skywalk Peaks | Level 5 · 460 XP | Sablecrest Lynx | Bot Spar |
-| Galleon Ring | Tideharbor Coast | Level 7 · 830 XP | Granite Rhino | Bot Spar |
+| Cinder Terraces Ring | Cinder Terraces | Level 3 · 550 XP | Bracken Boar | Bot Spar |
+| Cloud-Top Temple | Skywalk Peaks | Level 5 · 1,450 XP | Sablecrest Lynx | Bot Spar |
+| Galleon Ring | Tideharbor Coast | Level 7 · 2,850 XP | Granite Rhino | Bot Spar |
 
 Earn 60 XP on the first Bot Spar win, 80 XP on the first official Lantern Relay and 40 XP for Lantern Timing. Later Bot Spar wins award 30 XP, official Relay repeats award 25 XP, and Lantern Timing, Kiln Rhythm and Wind Court Signals each award 40 XP per completed drill with a short cooldown. Official Relay times and Lantern Keeper remain account-wide. XP goes to the fighter active when the activity ends.
+
+V0.367 cumulative fighter XP for Levels 1–10 is **0, 250, 550, 950, 1,450, 2,100, 2,850, 3,700, 4,700, and 5,800**. On first access in the new build, the profile applies one-time XP credit to keep each previously earned level and the XP gained inside it. This preserves existing fighter, form, and ring gates. Studio Play displayed 0 / 250 XP on a fresh fighter. The profile regression verified the new thresholds and a legacy active roster fighter through migration, a reward and reconnect.
 
 The four courts host Juniper Tortoise, Bracken Boar, Sablecrest Lynx and Granite Rhino. Their original Blender meshes and baked textures appear only during active sparring. Jade shell inlays, a kilnstone octagon, Wind Court chimes, and an indigo breakwater deck tie each court to its resident. Studio Play verified the four Bot Spar wins and loaded their original assets. The Level 3 proof followed the real activity flow. Levels 5 and 7 used a Studio progression fixture plus tested earning rules. Grand Dojo alone offers same-server Duel, Tag Team and Brawl. The Duel sign offers Casual, Best of 3 and Ranked. Published multiplayer, DataStore and hardware checks remain open. Cross-server queues and the remaining co-op bosses are still in development. [Release acceptance](ROADMAP.md#p7-complete-roster-and-rich-six-district-world)
 

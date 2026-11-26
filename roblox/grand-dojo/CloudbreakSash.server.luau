@@ -14,36 +14,12 @@ local watches = {}
 local indigo = Color3.fromRGB(56, 66, 109)
 local brass = Color3.fromRGB(224, 177, 95)
 local wind = Color3.fromRGB(183, 233, 219)
-local jade = Color3.fromRGB(41, 113, 91)
-local mint = Color3.fromRGB(145, 228, 184)
-
-local function frontEdge(frame, size)
-    local halfDepth = .5 * (math.abs(frame.RightVector.Z) * size.X + math.abs(frame.UpVector.Z) * size.Y
-        + math.abs(frame.LookVector.Z) * size.Z)
-    return frame.Z - halfDepth
-end
 
 local function makeSash(torso, art, artFrame, style)
     -- Mount beside the fighter shell so the sash cannot change contact or defeat bounds.
     local sash = Instance.new("Model")
     sash.Name = style
-    local half = art.Size * .5
-    local right, up, forward = artFrame.RightVector, artFrame.UpVector, artFrame.LookVector
-    local halfWidth = math.abs(right.X) * half.X + math.abs(up.X) * half.Y + math.abs(forward.X) * half.Z
-    local halfHeight = math.abs(right.Y) * half.X + math.abs(up.Y) * half.Y + math.abs(forward.Y) * half.Z
-    local center = artFrame.Position
-    local width = math.clamp(halfWidth, .36, 1.44)
-    local height = math.clamp(halfHeight, .40, 1.56)
-    local front = frontEdge(artFrame, art.Size)
-    for _, ornament in art:GetDescendants() do
-        if ornament:IsA("BasePart") and ornament.Transparency < 1 then
-            local link = ornament:FindFirstChildOfClass("Weld")
-            if link and link.Part0 == art and link.Part1 == ornament then
-                front = math.min(front, frontEdge(artFrame * link.C0 * link.C1:Inverse(), ornament.Size))
-            end
-        end
-    end
-    front -= .07
+    local center, width, height, front = OutfitArt.fit(art, artFrame)
 
     local function piece(name, localFrame, size, color, material)
         local part = Instance.new("Part")
@@ -62,17 +38,7 @@ local function makeSash(torso, art, artFrame, style)
     end
     if style == MARKET_SASH_NAME then
         -- An offset waist wrap leaves the Cloudbreak shoulder strap and left pennant visible.
-        local fabric = Enum.Material.Fabric
-        local sashWidth = math.clamp(width * .96, .42, 1.10)
-        local belt = CFrame.new(center.X + width * .36, center.Y - height * .56, front)
-            * CFrame.Angles(0, 0, .10)
-        piece("Woven gold edge", belt, Vector3.new(sashWidth + .07, .24, .09), brass, fabric)
-        piece("Jade waist wrap", belt * CFrame.new(0, 0, -.042), Vector3.new(sashWidth, .17, .07), jade, fabric)
-        local fold = belt * CFrame.new(sashWidth * .27, -.19, -.047) * CFrame.Angles(0, 0, .18)
-        piece("Silk fold", fold, Vector3.new(.24, .46, .08), jade, fabric)
-        piece("Mint embroidery", fold * CFrame.new(0, -.145, -.044), Vector3.new(.20, .066, .03), mint, fabric)
-        piece("Jade clasp", belt * CFrame.new(sashWidth * .27, 0, -.08) * CFrame.Angles(0, 0, math.pi / 4),
-            Vector3.new(.17, .17, .08), mint, Enum.Material.SmoothPlastic)
+        OutfitArt.buildJade(piece, center, width, height, front)
         return sash
     end
 
