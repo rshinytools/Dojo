@@ -32,6 +32,8 @@ With the standalone Luau runner installed, `python3 -B tools/verify_ranked_ledge
 
 Run `python3 -B tools/verify_cross_server_duel.py luau` to exercise the staging queue and profile recovery with simulated Roblox persistence and travel. See the [cross-server staging handoff](docs/IMPLEMENTATION.md#cross-server-casual-staging).
 
+Run `python3 -B tools/verify_fighter_passes.py luau` to exercise a fighter cosmetic purchase during a pending Roblox ownership lookup, cancellation, and independent pass checks.
+
 ## Continue with another AI coding agent
 
 Clone the repository and open its root as the agent's workspace.

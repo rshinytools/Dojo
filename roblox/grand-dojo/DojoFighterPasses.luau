@@ -27,10 +27,13 @@ function FighterPasses.mount(remote)
     local records = {}
     local listings = {}
 
-    local function check(player, itemId, record)
+    local function check(player, itemId, record, purchaseCompleted)
+        if records[player] ~= record then return false end
         local id = listings[itemId]
         local previous = record.requests[itemId]
         if previous and previous.passId == id then
+            -- The in-flight response may reflect ownership before this purchase.
+            if purchaseCompleted then previous.recheck = true end
             return false
         end
         if not id then
@@ -44,13 +47,17 @@ function FighterPasses.mount(remote)
             return false
         end
         record.requests[itemId] = nil
+        if request.recheck and not (ok and owned == true) then
+            task.defer(check, player, itemId, record)
+            return false
+        end
         player:SetAttribute(Catalog.attribute("CosmeticOwnership", itemId), if not ok then "unknown" elseif owned then "owned" else "locked")
         return ok and owned == true
     end
 
-    local function refresh(player, itemId)
+    local function refresh(player, itemId, purchaseCompleted)
         local record = records[player]
-        if record then task.spawn(check, player, itemId, record) end
+        if record then task.spawn(check, player, itemId, record, purchaseCompleted) end
     end
 
     local function publish(value)
@@ -102,7 +109,7 @@ function FighterPasses.mount(remote)
     MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, id, purchased)
         if purchased then
             for itemId, passId in listings do
-                if id == passId then refresh(player, itemId) end
+                if id == passId then refresh(player, itemId, true) end
             end
         end
     end)

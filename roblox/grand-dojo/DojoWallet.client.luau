@@ -223,7 +223,10 @@ edge(previewTile, 11).Color = brass
 create("UIGradient", previewTile, {
     Rotation = 104, Color = ColorSequence.new(Color3.fromRGB(118, 65, 48), Color3.fromRGB(35, 27, 46)),
 })
-local portrait = create("ViewportFrame", previewTile, {
+local previewContent = create("Frame", previewTile, {
+    Name = "PreviewContent", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
+})
+local portrait = create("ViewportFrame", previewContent, {
     Name = "Reedguard", Position = UDim2.new(.24, 0, 0, 0), Size = UDim2.new(.76, 0, 1, 0),
     BackgroundTransparency = 1, Ambient = Color3.fromRGB(168, 148, 154),
     LightColor = Color3.fromRGB(255, 230, 182), LightDirection = Vector3.new(-.8, -1, -.9),
@@ -286,7 +289,7 @@ local function syncPortrait(bundle, empty, gear)
     end
 end
 
-local productStand = create("Frame", previewTile, {
+local productStand = create("Frame", previewContent, {
     Name = "ItemStand", BackgroundColor3 = cedar, BackgroundTransparency = .15, BorderSizePixel = 0,
     Position = UDim2.new(0, 8, .50, 0), Size = UDim2.new(.39, 0, .45, 0),
 })
@@ -298,19 +301,13 @@ local preview = create("ViewportFrame", productStand, {
 })
 local bundlePreview = preview:Clone()
 bundlePreview.Name, bundlePreview.Visible, bundlePreview.Parent = "MidnightPreview", false, productStand
-local closetChoices = create("Frame", product, {Name = "OwnedOutfits", BackgroundTransparency = 1, Visible = false})
-local jadeChoice = button(closetChoices, "JadeSashTab", "Jade Sash", UDim2.fromOffset(0, 0), UDim2.new(.50, -3, 1, 0))
-local bundleChoice = button(closetChoices, "MidnightSetTab", "Midnight Set", UDim2.new(.50, 3, 0, 0),
-    UDim2.new(.50, -3, 1, 0))
-jadeChoice.NextSelectionRight, bundleChoice.NextSelectionLeft = bundleChoice, jadeChoice
-local gearPicker = create("Frame", product, {Name = "FighterGearItems", BackgroundTransparency = 1, Visible = false})
+local gearPicker = create("Frame", product, {Name = "OutfitPicker", BackgroundTransparency = 1, Visible = false})
 local previousGear = button(gearPicker, "Previous", "‹", UDim2.fromOffset(0, 0), UDim2.fromOffset(44, 44))
 local nextGear = button(gearPicker, "Next", "›", UDim2.new(1, -44, 0, 0), UDim2.fromOffset(44, 44))
 local gearName = label(gearPicker, "FighterName", "", 15, cream, true,
     UDim2.fromOffset(51, 0), UDim2.new(1, -102, 0, 44))
 gearName.TextXAlignment = Enum.TextXAlignment.Center
 previousGear.NextSelectionRight, nextGear.NextSelectionLeft = nextGear, previousGear
-previousGear.NextSelectionUp, nextGear.NextSelectionUp = tabButtons.gear, tabButtons.gear
 previousGear.NextSelectionDown, nextGear.NextSelectionDown = previewMode, previewMode
 local previewCamera = create("Camera", preview, {
     CFrame = CFrame.lookAt(Vector3.new(-.63, .49, -2.56), Vector3.new(0, -.22, 0)),
@@ -372,11 +369,9 @@ local description = label(details, "Description", "", 14, parchment, false, UDim
 local priceDisplay = label(details, "Price", "", 17, cream, true, UDim2.new(), UDim2.new())
 local action = button(details, "CosmeticAction", "", UDim2.new(), UDim2.new())
 local feedback = label(details, "ShopNotice", "", 12, colors.gold, false, UDim2.new(), UDim2.new())
-for _, control in {walletBack, shopClose, jadeChoice, bundleChoice} do
+for _, control in {walletBack, shopClose} do
     control.BackgroundColor3 = lacquer
 end
-jadeChoice.NextSelectionDown, bundleChoice.NextSelectionDown = action, action
-jadeChoice.NextSelectionUp, bundleChoice.NextSelectionUp = tabButtons.closet, tabButtons.closet
 
 local blockedAttributes = {
     "StarterSelectionRequired", "StarterSelectionPending", "FighterSelectOpen", "CityAdventureJournalOpen",
@@ -391,7 +386,10 @@ local conflictingPanels = {
 }
 local pending = false
 local category = "robux"
-local closetOffer = "midnight"
+local jadeCloset = {name = "Jade Festival Sash"}
+local midnightCloset = {name = "Midnight Lantern Set"}
+local closetItems, closetIndex = {}, 1
+local previewGear
 local bundleSelected = true
 local bundleSaving = false
 local bundleRequest = 0
@@ -490,38 +488,53 @@ local function render()
     local jadeOwned = player:GetAttribute("DojoMarketSashOwned") == true
     local entitlement = player:GetAttribute("DojoBundleOwnership")
     local bundleOwned = entitlement == "owned"
-    local gear = category == "gear" and GearCatalog.Items[gearIndex] or nil
     local inCloset = category == "closet"
     local closetLoaded = ready and (entitlement == "owned" or entitlement == "locked")
-    local empty = inCloset and not (jadeOwned or bundleOwned)
-    if inCloset and jadeOwned ~= bundleOwned then closetOffer = if jadeOwned then "jade" else "midnight" end
-    bundleSelected = category == "robux" or (inCloset and closetOffer == "midnight")
+    local closetUnavailable = entitlement == "unknown"
+    if inCloset then
+        local previous = closetItems[closetIndex]
+        table.clear(closetItems)
+        if bundleOwned then table.insert(closetItems, midnightCloset) end
+        if jadeOwned then table.insert(closetItems, jadeCloset) end
+        for _, item in GearCatalog.Items do
+            local ownership = player:GetAttribute(GearCatalog.attribute("CosmeticOwnership", item.id))
+            if ownership == "owned" then table.insert(closetItems, item) end
+            closetLoaded = closetLoaded and (ownership == "owned" or ownership == "locked")
+            closetUnavailable = closetUnavailable or ownership == "unknown"
+        end
+        closetIndex = table.find(closetItems, previous) or 1
+    end
+    local closetItem = if inCloset then closetItems[closetIndex] else nil
+    local gear = if category == "gear" then GearCatalog.Items[gearIndex]
+        elseif closetItem and closetItem.fighterId then closetItem else nil
+    previewGear = gear
+    local empty = inCloset and not closetItem
+    bundleSelected = category == "robux" or closetItem == midnightCloset
     for key, tab in tabButtons do
         tab.BackgroundColor3 = if category == key then fern else lacquer
         tab.TextColor3 = if category == key then colors.paper else parchment
     end
-    closetChoices.Visible, jadeChoice.Visible, bundleChoice.Visible = inCloset and jadeOwned and bundleOwned, jadeOwned, bundleOwned
-    jadeChoice.BackgroundColor3 = if closetOffer == "jade" then fern else lacquer
-    bundleChoice.BackgroundColor3 = if closetOffer == "midnight" then fern else lacquer
     previewTile.Visible = not empty
     if shade.Visible and shop.Visible then syncPortrait(bundleSelected, empty, gear) end
-    gearPicker.Visible = gear ~= nil
-    if gear then gearName.Text = gear.fighter .. " · " .. gearIndex .. "/" .. #GearCatalog.Items end
+    gearPicker.Visible = category == "gear" or (inCloset and #closetItems > 1)
+    if gearPicker.Visible then
+        gearName.Text = if inCloset then ("%s · %d/%d"):format(closetItem.name, closetIndex, #closetItems)
+            else ("%s · %d/%d"):format(gear.fighter, gearIndex, #GearCatalog.Items)
+    end
     productStand.Visible = gear == nil
     portrait.Position = if gear then UDim2.fromScale(0, 0) else UDim2.fromScale(.24, 0)
     portrait.Size = UDim2.fromScale(if gear then 1 else .76, 1)
     preview.Visible, bundlePreview.Visible = not bundleSelected, bundleSelected
     details:SetAttribute("ClosetEmpty", empty)
-    product:SetAttribute("HasClosetChoices", closetChoices.Visible or gear ~= nil)
+    product:SetAttribute("HasClosetChoices", gearPicker.Visible)
     action.Visible, priceDisplay.Visible = not empty, not empty
-    local nextProduct = if gear then previousGear elseif closetChoices.Visible then
-        (if bundleSelected then bundleChoice else jadeChoice) else previewMode
+    local nextProduct = if gearPicker.Visible then previousGear elseif not empty then previewMode else nil
     for _, tab in tabButtons do tab.NextSelectionDown = nextProduct end
-    jadeChoice.NextSelectionDown, bundleChoice.NextSelectionDown = previewMode, previewMode
+    previousGear.NextSelectionUp, nextGear.NextSelectionUp = tabButtons[category], tabButtons[category]
     action.NextSelectionUp = previewMode
     action.NextSelectionLeft = if not empty then previewMode else nil
     previewMode.NextSelectionRight = action
-    previewMode.NextSelectionUp = if gear or closetChoices.Visible then nextProduct else tabButtons[category]
+    previewMode.NextSelectionUp = if gearPicker.Visible then nextProduct else tabButtons[category]
 
     local usable = false
     if gear then
@@ -543,7 +556,7 @@ local function render()
         title.Text = if closetLoaded then "Your closet is empty" else "My closet"
         ownership.Text = "OWNED OUTFITS"
         description.Text = if closetLoaded then "Collect apparel in either shop tab to see it here."
-            elseif status == "unavailable" or entitlement == "unknown" and ready
+            elseif status == "unavailable" or closetUnavailable and ready
                 then "Outfit ownership could not be verified. Reopen Outfitters to retry."
             else "Checking your outfits…"
         feedback.Text = ""
@@ -703,8 +716,8 @@ end
 
 action.Activated:Connect(function()
     if not shade.Visible or not shop.Visible or not available() or not action.Active then return end
-    if category == "gear" then
-        local gear = GearCatalog.Items[gearIndex]
+    if previewGear then
+        local gear = previewGear
         if player:GetAttribute(GearCatalog.attribute("CosmeticOwnership", gear.id)) == "owned" then
             local request = {id = gear.id}
             gearSaveRequest = request
@@ -886,18 +899,20 @@ local function layout()
     local top = headerHeight + (if compact then 54 else 58)
     local hasChoices = product:GetAttribute("HasClosetChoices") == true
     local empty = details:GetAttribute("ClosetEmpty") == true
-    local footer = not empty and (stacked or compact and (height - top < 154 or hasChoices))
+    local inlinePicker = compact and not stacked and hasChoices
+    local footer = not empty and (stacked or compact and height - top < 154)
     local inlineCompact = compact and not footer
     shopScroll.Position = UDim2.fromOffset(inset, top)
     shopScroll.Size = UDim2.new(1, -inset * 2, 1, -top - (if footer then 61 else 9))
-    local offset = if hasChoices then 50 else 0
+    local offset = if hasChoices and not inlinePicker then 50 else 0
     local detailHeight = if inlineCompact then (if feedback.Text == "" then 145 else 176)
         elseif small then 193 else math.max(255, height - top - 14 - offset)
     local previewHeight = if empty then 0 elseif stacked then 139 else detailHeight
     local detailY = offset + (if stacked and not empty then previewHeight + 8 else 0)
     product.Size = UDim2.new(1, -4, 0, detailY + detailHeight)
-    closetChoices.Size = UDim2.new(1, 0, 0, 44)
-    gearPicker.Size = closetChoices.Size
+    gearPicker.Position = UDim2.fromOffset(0, if inlinePicker then previewHeight - 44 else 0)
+    gearPicker.Size = if inlinePicker then UDim2.new(.49, -5, 0, 44) else UDim2.new(1, 0, 0, 44)
+    previewContent.Size = UDim2.new(1, 0, 1, if inlinePicker then -44 else 0)
     previewTile.Position = UDim2.fromOffset(0, offset)
     previewTile.Size = if stacked then UDim2.new(1, 0, 0, previewHeight) else UDim2.new(.49, -5, 0, previewHeight)
     details.Position = if stacked or empty then UDim2.fromOffset(0, detailY) else UDim2.new(.49, 5, 0, detailY)
@@ -942,28 +957,34 @@ for key, tab in tabButtons do
     tab.Activated:Connect(function()
         category, previewing = key, true
         shopScroll.CanvasPosition = Vector2.zero
-        if key == "robux" then refreshPrice() elseif key == "gear" then refreshGearPrice() else render() end
+        if key == "robux" then
+            refreshPrice()
+        elseif key == "gear" then
+            refreshGearPrice()
+        else
+            if key == "closet" then
+                remote:FireServer("bundleRefresh")
+                for _, item in GearCatalog.Items do remote:FireServer("fighterCosmeticRefresh", nil, item.id) end
+            end
+            render()
+        end
     end)
 end
-jadeChoice.Activated:Connect(function()
-    closetOffer, previewing = "jade", true
-    render()
-end)
-bundleChoice.Activated:Connect(function()
-    closetOffer, previewing = "midnight", true
-    render()
-end)
 local function browseGear(delta)
-    gearIndex = (gearIndex - 1 + delta) % #GearCatalog.Items + 1
     previewing = true
-    refreshGearPrice()
+    if category == "closet" and #closetItems > 1 then
+        closetIndex = (closetIndex - 1 + delta) % #closetItems + 1
+        render()
+    elseif category == "gear" then
+        gearIndex = (gearIndex - 1 + delta) % #GearCatalog.Items + 1
+        refreshGearPrice()
+    end
 end
 previousGear.Activated:Connect(function() browseGear(-1) end)
 nextGear.Activated:Connect(function() browseGear(1) end)
 previewMode.Activated:Connect(function()
     previewing = not previewing
-    syncPortrait(bundleSelected, details:GetAttribute("ClosetEmpty") == true,
-        if category == "gear" then GearCatalog.Items[gearIndex] else nil)
+    syncPortrait(bundleSelected, details:GetAttribute("ClosetEmpty") == true, previewGear)
 end)
 player.CharacterRemoving:Connect(hide)
 action.SelectionGained:Connect(function()

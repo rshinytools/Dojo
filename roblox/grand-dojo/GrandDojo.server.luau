@@ -812,6 +812,10 @@ walletRemote.OnServerEvent:Connect(function(player, kind, equipped, itemId)
             return
         end
         if state[player] ~= data or not canOpenOutfitters(player, data) or pendingProgress(data) then return end
+        if equipped and data.selectedForm ~= FighterForms.BaseId then
+            reject("Equip Rookie form before wearing this cosmetic.")
+            return
+        end
     elseif bundle then
         if not outfitPass.canEquip(player) then
             reject("The Midnight Lantern Set requires verified Roblox ownership.")
