@@ -71,18 +71,18 @@ local toggle = button(screen, "OpenWallet", "Wallet", UDim2.new(1, -120, 0, 44),
 toggle.AnchorPoint = Vector2.new(1, 0)
 toggle.TextSize, toggle.Visible = 13, false
 
-local shortcut = button(screen, "OutfittersShortcut", "Shop", UDim2.fromOffset(15, 146), UDim2.fromOffset(86, 44))
-shortcut.BackgroundColor3, shortcut.Visible = colors.jade, false
-shortcut.Text, shortcut.TextXAlignment = "    Shop", Enum.TextXAlignment.Center
-local bag = create("Frame", shortcut, {
-    Position = UDim2.fromOffset(11, 17), Size = UDim2.fromOffset(13, 11), BorderSizePixel = 0,
-    BackgroundColor3 = colors.paper, Active = false,
+local storeShortcuts = create("Frame", screen, {
+    Name = "StoreShortcuts", BackgroundTransparency = 1, Visible = false,
 })
-edge(bag, 2).Color = colors.paper
-local handle = create("Frame", bag, {
-    Position = UDim2.fromOffset(3, -4), Size = UDim2.fromOffset(7, 5), BackgroundTransparency = 1,
-})
-edge(handle, 3).Color = colors.paper
+local nativeShop = button(storeShortcuts, "RobloxShopShortcut", "Shop", UDim2.fromOffset(0, 0), UDim2.fromOffset(70, 44))
+local shortcut = button(storeShortcuts, "OutfittersShortcut", "Outfitters", UDim2.fromOffset(76, 0), UDim2.fromOffset(96, 44))
+shortcut.BackgroundColor3 = colors.jade
+nativeShop.NextSelectionRight, shortcut.NextSelectionLeft = shortcut, nativeShop
+local shopUnavailable = label(storeShortcuts, "ShopUnavailable", "Roblox Shop is unavailable. Try again shortly.", 12,
+    colors.paper, true, UDim2.fromOffset(0, 49), UDim2.new(1, 0, 0, 42))
+shopUnavailable.BackgroundColor3, shopUnavailable.BackgroundTransparency = colors.ink, .05
+shopUnavailable.TextXAlignment, shopUnavailable.Visible = Enum.TextXAlignment.Center, false
+edge(shopUnavailable, 7)
 
 local shade = create("Frame", screen, {
     Name = "WalletOverlay", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0),
@@ -152,7 +152,7 @@ local xpFill = create("Frame", track, {
     Name = "XPFill", Size = UDim2.fromScale(0, 1), BackgroundColor3 = colors.gold, BorderSizePixel = 0,
 })
 
-local openShop = button(scroll, "OpenShop", "Shop apparel", UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 44))
+local openShop = button(scroll, "OpenShop", "Open Outfitters", UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 44))
 openShop.LayoutOrder, openShop.BackgroundColor3 = 3, colors.jade
 close.NextSelectionDown, openShop.NextSelectionUp = openShop, close
 
@@ -633,10 +633,12 @@ local function hide()
     if not shade.Visible then return end
     local picked = GuiService.SelectedObject
     shade.Visible = false
-    toggle.Visible, shortcut.Visible = available(), available()
+    local visible = available()
+    toggle.Visible, storeShortcuts.Visible = visible, visible
     ContextActionService:UnbindAction(closeAction)
     if picked and picked:IsDescendantOf(shade) then
         GuiService.SelectedObject = if previousSelection and previousSelection.Parent and previousSelection.Visible
+            and (not previousSelection:IsDescendantOf(storeShortcuts) or storeShortcuts.Visible)
             then previousSelection else (if gamepad() and toggle.Visible then toggle else nil)
     end
     previousSelection = nil
@@ -669,7 +671,8 @@ local function show(shopVisible, fromWallet)
     if not available() then return end
     if not shade.Visible then
         previousSelection = GuiService.SelectedObject
-        shade.Visible, toggle.Visible, shortcut.Visible = true, false, false
+        shade.Visible, toggle.Visible, storeShortcuts.Visible = true, false, false
+        shopUnavailable.Visible = false
         ContextActionService:BindActionAtPriority(closeAction, function(_, state)
             if state == Enum.UserInputState.Begin then goBack() end
             return Enum.ContextActionResult.Sink
@@ -793,7 +796,7 @@ end)
 local function updateAvailability()
     if shade.Visible and not available() then hide() end
     local visible = available() and not shade.Visible
-    toggle.Visible, shortcut.Visible = visible, visible
+    toggle.Visible, storeShortcuts.Visible = visible, visible
 end
 for _, attribute in ipairs(blockedAttributes) do
     player:GetAttributeChangedSignal(attribute):Connect(updateAvailability)
@@ -859,8 +862,8 @@ local function layout()
     shop.Position = if wide then UDim2.new(1, -28, .5, 0) else UDim2.fromScale(.5, .5)
     shop.Size = UDim2.fromOffset(width, height)
     local touch = UserInputService.TouchEnabled
-    shortcut.Size = UDim2.fromOffset(if touch then 75 else 86, 44)
-    shortcut.Position = if touch then UDim2.fromOffset(8, if compact then 54 else 82)
+    storeShortcuts.Size = UDim2.fromOffset(172, 44)
+    storeShortcuts.Position = if touch then UDim2.fromOffset(8, if compact then 54 else 82)
         else UDim2.fromOffset(16, if compact then 65 else 178)
 
     local stacked = width < 460
@@ -928,6 +931,13 @@ openShop.Activated:Connect(function() show(true, true) end)
 walletBack.Activated:Connect(function() show(false) end)
 shopClose.Activated:Connect(hide)
 shortcut.Activated:Connect(function() show(true, false) end)
+nativeShop.Activated:Connect(function()
+    if not storeShortcuts.Visible or not available() then return end
+    shopUnavailable.Visible = not pcall(MarketplaceService.OpenShop, MarketplaceService, player)
+    if shopUnavailable.Visible then
+        task.delay(4, function() shopUnavailable.Visible = false end)
+    end
+end)
 for key, tab in tabButtons do
     tab.Activated:Connect(function()
         category, previewing = key, true

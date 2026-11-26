@@ -227,7 +227,11 @@ The next monetization work starts with the earned economy. The compact Wallet bu
 | District treasure cache | 45 | First opening of each district cache |
 | Cloudbreak Expert | 60 | First saved Expert finish |
 
-Open **Shop** on the city HUD, ask **Mika** at the Reed Market counter to **Browse apparel**, or select **Wallet → Shop apparel**. The shop displays a lit 3D preview, the exact Coin price and the current balance. The Jade Festival Sash costs **50 Coins** and equips on purchase. Players can remove and re-equip it from the shop. It uses cosmetic geometry on the torso outside the fighter combat shell. Previously recorded qualifying clears count toward the same balance. The server derives earned Coins from saved completion records and stores the debit and ownership together in the protected profile. A retry leaves the purchase and the remaining balance intact.
+Select **Shop** on the city HUD for the native Roblox purchase catalog. Select **Outfitters** for previews, Coin apparel, and your closet. Mika's **Browse apparel** prompt and **Wallet → Open Outfitters** also open Outfitters. It displays a lit 3D preview, the exact Coin price, and your balance. The Jade Festival Sash costs **50 Coins** and equips on purchase. Players can remove and re-equip it from Outfitters. It uses cosmetic geometry on the torso outside the fighter combat shell. Previously recorded qualifying clears count toward the same balance. The server derives earned Coins from saved completion records and stores the debit and ownership together in the protected profile. A retry leaves the purchase and the remaining balance intact.
+
+Private Staging version 12 publishes the two distinct shortcuts. Studio's Samsung Galaxy A06 landscape simulation verified both 44-pixel targets, their directional focus links, and opening and closing Outfitters. Published Roblox Player on Mac opened the native catalog directly from the **Shop** shortcut and showed the tester's owned and available passes.
+
+The non-owner tester purchased Bamboo Weave Mitts for 1 Robux in published Private Staging on Mac. The tester equipped them, left the server, and rejoined. Outfitters still showed **Equipped** and **Remove cosmetic**. Glacier Breaker Mitts, Cedarcrest Bracers, and Kilnflare Wraps still need their own purchase, equip, and rejoin checks.
 
 V0.365 desktop Studio verified the walk to Mika and opened the native shop through the **Browse apparel** prompt. Mika uses the city’s existing anchored, collision-free NPC geometry.
 
