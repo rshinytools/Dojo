@@ -293,11 +293,11 @@ def beam(parent, name, a, b, width, tint, *, collide=False):
                 collide=collide)
 
 
-def walking_rail_collider(parent, name, start, end):
+def walking_rail_collider(parent, name, start, end, *, height=2.55):
     dx,dy,dz=(end[i]-start[i] for i in range(3))
     length=hypot(dx,dz)
     x,y,z=((a+b)/2 for a,b in zip(start,end))
-    collider=part(parent,name,(x,y+1.09,z),(.30,2.55,hypot(length,dy)+.20),
+    collider=part(parent,name,(x,y+height/2-.185,z),(.30,height,hypot(length,dy)+.20),
                   "875A4C",yaw=degrees(atan2(dx,dz)),
                   pitch=-degrees(atan2(dy,length)),transparency=1)
     prop(collider,"bool","CastShadow",False)
@@ -3985,7 +3985,7 @@ def arrival_canal_lookout(parent):
                    material=WOOD_PLANK)
         prop(board,"string",MATERIAL_VARIANT_FIELD,ARENA_CEDAR)
 
-    # The cedar profiles sit inside the original guard volumes to retain the deck boundary.
+    # The cedar profiles sit inside the guard volumes to retain the deck boundary.
     for x,z in ((-17.44,57.48),(-17.44,61.47),(-17.44,66.04),(-14.57,66.04),
                 (-11.85,66.04),(-11.85,57.48),(-14.57,57.48),(-11.85,60.66),(-11.85,64.96)):
         guard=part(lookout,"Vermilion lookout newel",(x,top+.58,z),(.44,1.16,.44),
@@ -3999,12 +3999,10 @@ def arrival_canal_lookout(parent):
     for x1,z1,x2,z2 in ((-17.44,57.48,-17.44,66.04),(-17.44,66.04,-11.85,66.04),
                         (-17.44,57.48,-11.85,57.48),(-11.85,57.48,-11.85,60.66),
                         (-11.85,64.96,-11.85,66.04)):
-        for level,old_tint,tint,width in ((.42,"873A31","685247",.095),
-                                         (1.02,"A7533C","785C4E",.135)):
+        # Touch auto-jump can clear the low cedar rails during ordinary movement.
+        walking_rail_collider(lookout,"Canal lookout walking guard",(x1,top,z1),(x2,top,z2),height=9.2)
+        for level,tint,width in ((.42,"685247",.095),(1.02,"785C4E",.135)):
             start,end=(x1,top+level,z1),(x2,top+level,z2)
-            guard=beam(lookout,"Lookout cedar rail",start,end,.23,old_tint,collide=True)
-            guard.find("Properties/float[@name='Transparency']").text="1"
-            prop(guard,"bool","CastShadow",False)
             rail=beam(lookout,"Weathered lookout cedar rail",start,end,width,tint)
             rail.find("Properties/token[@name='Material']").text=str(WOOD_PLANK)
         bays=max(1,round(hypot(x2-x1,z2-z1)/1.75))
@@ -5814,6 +5812,7 @@ def skywalk_bridge(parent,name,entry,exit):
              ("A06D57","A8765E","996D5F")[board%3],pitch=pitch,material=WOOD_PLANK,collide=False)
     for side in (-1,1):
         px=x+side*6.03
+        walking_rail_collider(bridge,"Skywalk bridge walking guard",(px,entry[1],south_z),(px,exit[1],north_z),height=9.2)
         for index in range(9):
             progress=index/8
             y=entry[1]+(exit[1]-entry[1])*progress
@@ -5823,7 +5822,7 @@ def skywalk_bridge(parent,name,entry,exit):
             if index in (1,4,7):
                 lamp(bridge,px,y+2.31,z,scale=.57)
         for lift,width,tint in ((-.46,.50,"754B42"),(.49,.18,"794C41"),(1.46,.24,"A45F46")):
-            beam(bridge,"Bridge cedar rail",(px,entry[1]+lift,south_z),(px,exit[1]+lift,north_z),width,tint,collide=lift>0)
+            beam(bridge,"Bridge cedar rail",(px,entry[1]+lift,south_z),(px,exit[1]+lift,north_z),width,tint)
         for progress in (.16,.59,.86):
             y=entry[1]+(exit[1]-entry[1])*progress
             z=south_z+(north_z-south_z)*progress
