@@ -1,5 +1,6 @@
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -7,6 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("DojoWallet")
+local OutfitArt = require(ReplicatedStorage:WaitForChild("DojoOutfitArt"))
 local closeAction = "CloseDojoWallet"
 local openAction = "OpenDojoWalletOnGamepad"
 local defaultSashPrice = 50
@@ -189,17 +191,27 @@ local preview = create("ViewportFrame", previewTile, {
     Ambient = Color3.fromRGB(180, 187, 173), LightColor = Color3.fromRGB(255, 235, 196),
     LightDirection = Vector3.new(-.8, -1, -.9),
 })
+local jadeChoice = button(previewTile, "JadeSashTab", "Jade Sash", UDim2.fromOffset(5, 5), UDim2.new(.5, -8, 0, 44))
+local bundleChoice = button(previewTile, "MidnightSetTab", "Midnight Set", UDim2.new(.5, 3, 0, 5),
+    UDim2.new(.5, -8, 0, 44))
+local bundlePreview = preview:Clone()
+bundlePreview.Name, bundlePreview.Visible, bundlePreview.Parent = "MidnightPreview", false, previewTile
 local previewCamera = create("Camera", preview, {
     CFrame = CFrame.lookAt(Vector3.new(-.63, .49, -2.56), Vector3.new(0, -.22, 0)),
     FieldOfView = 35,
 })
 preview.CurrentCamera = previewCamera
+local bundleCamera = create("Camera", bundlePreview, {
+    CFrame = CFrame.lookAt(Vector3.new(-.31, .50, -3.56), Vector3.new(0, -.06, 0)),
+    FieldOfView = 27,
+})
+bundlePreview.CurrentCamera = bundleCamera
 
 -- A display-only replica of the server-authored Jade Festival Sash on a wooden stand.
 local cloth, trim, clasp = Color3.fromRGB(41, 113, 91), Color3.fromRGB(224, 177, 95), Color3.fromRGB(145, 228, 184)
 local fabric = Enum.Material.Fabric
-local function displayPart(name, size, frame, color, material, shape)
-    create("Part", preview, {
+local function displayPart(name, size, frame, color, material, shape, parent)
+    create("Part", parent or preview, {
         Name = name, Size = size, CFrame = frame, Color = color, Material = material,
         Shape = shape or Enum.PartType.Block, Anchored = true, CanCollide = false, CanTouch = false, CanQuery = false,
     })
@@ -223,6 +235,16 @@ displayPart("Mint embroidery", Vector3.new(.20, .066, .03), fold * CFrame.new(0,
 displayPart("Jade clasp", Vector3.new(.17, .17, .08),
     wrap * CFrame.new(sashWidth * .27, 0, -.08) * CFrame.Angles(0, 0, math.pi / 4), clasp, Enum.Material.SmoothPlastic)
 
+displayPart("Bundle pedestal", Vector3.new(.12, 1.58, 1.58), CFrame.new(0, -.69, .13) * upright,
+    Color3.fromRGB(31, 28, 44), Enum.Material.Wood, Enum.PartType.Cylinder, bundlePreview)
+displayPart("Pedestal gold rim", Vector3.new(.035, 1.53, 1.53), CFrame.new(0, -.62, .13) * upright,
+    trim, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder, bundlePreview)
+displayPart("Tailor's display", Vector3.new(.83, 1.16, .37), CFrame.new(.32, -.04, .13),
+    Color3.fromRGB(105, 100, 108), Enum.Material.SmoothPlastic, nil, bundlePreview)
+OutfitArt.build(function(name, frame, size, color, material)
+    displayPart(name, size, frame, color, material, nil, bundlePreview)
+end, Vector3.new(.32, .02, 0), .55, .73, -.14)
+
 local details = create("Frame", product, {
     Name = "Details", BackgroundColor3 = colors.card, BorderSizePixel = 0,
 })
@@ -238,6 +260,11 @@ coinBalance.TextXAlignment = Enum.TextXAlignment.Right
 local action = button(details, "CosmeticAction", "Buy · 50 Coins", UDim2.new(), UDim2.new())
 local feedback = label(details, "ShopNotice", "", 13, colors.gold, false, UDim2.new(), UDim2.new())
 walletBack.NextSelectionDown, shopClose.NextSelectionDown, action.NextSelectionUp = action, action, walletBack
+jadeChoice.NextSelectionRight, bundleChoice.NextSelectionLeft = bundleChoice, jadeChoice
+jadeChoice.NextSelectionDown, bundleChoice.NextSelectionDown = action, action
+jadeChoice.NextSelectionUp, bundleChoice.NextSelectionUp = walletBack, walletBack
+action.NextSelectionLeft = bundleChoice
+walletBack.NextSelectionDown, shopClose.NextSelectionDown = bundleChoice, bundleChoice
 
 local blockedAttributes = {
     "StarterSelectionRequired", "StarterSelectionPending", "FighterSelectOpen", "CityAdventureJournalOpen",
@@ -251,6 +278,12 @@ local conflictingPanels = {
     SparringResult = true, DuelFormatPicker = true, CloudbreakStatus = true,
 }
 local pending = false
+local bundleSelected = false
+local bundleSaving = false
+local bundleRequest = 0
+local bundlePrice, priceState = nil, "unlisted"
+local priceRequest = 0
+local jadeNotice, bundleNotice = "", ""
 local requestNumber = 0
 local previousSelection
 local shopFromWallet = false
@@ -346,9 +379,53 @@ local function render()
         elseif canAfford then ("Buy · %d Coins"):format(price)
         elseif coins ~= nil then ("Need %d more Coins"):format(price - coins)
         else ("Buy · %d Coins"):format(price)
-    action.Active, action.AutoButtonColor = usable, usable
+    title.Text = if bundleSelected then OutfitArt.Name else "Jade Festival Sash"
+    description.Text = if bundleSelected then OutfitArt.Description else "Jade fabric with woven gold trim and a mint clasp."
+    jadeChoice.BackgroundColor3 = if bundleSelected then colors.ink else colors.jade
+    bundleChoice.BackgroundColor3 = if bundleSelected then colors.jade else colors.ink
+    preview.Visible, bundlePreview.Visible = not bundleSelected, bundleSelected
+    feedback.Text = if bundleSelected then bundleNotice else jadeNotice
+    if bundleSelected then
+        local entitlement = player:GetAttribute("DojoBundleOwnership")
+        local bundleOwned = entitlement == "owned"
+        local worn = bundleOwned and player:GetAttribute("DojoBundleSelected") == true
+        local listed = remote:GetAttribute("BundleSaleEnabled") == true and bundlePrice ~= nil
+        coinBalance.Text = ""
+        ownership.Text = if worn then "Equipped" elseif bundleOwned then "Owned" else "Cosmetic bundle"
+        priceDisplay.Text = if bundleOwned then "Yours to wear"
+            elseif listed then ("%s Robux"):format(formatted(bundlePrice))
+            elseif priceState == "loading" then "Checking price…" else "Off sale"
+        usable = readyToSpend() and not bundleSaving and (bundleOwned or (listed and entitlement == "locked"))
+        action.Text = if bundleSaving then "Saving…" elseif worn then "Remove set" elseif bundleOwned then "Equip set"
+            elseif listed and entitlement ~= "locked" then "Checking ownership…"
+            elseif listed then ("Buy · %s Robux"):format(formatted(bundlePrice))
+            elseif priceState == "loading" then "Checking Roblox…" else "Unavailable for purchase"
+    end
+    action.Active, action.Selectable, action.AutoButtonColor = usable, usable, usable
     action.BackgroundColor3 = if usable then colors.jade else colors.ink
     action.TextColor3 = if usable then colors.paper else colors.muted
+end
+
+local function refreshPrice()
+    priceRequest += 1
+    bundlePrice = nil
+    local passId = whole(remote:GetAttribute("BundlePassId"))
+    if not (passId and passId > 0 and remote:GetAttribute("BundleSaleEnabled") == true) then
+        priceState = "unlisted"
+        render()
+        return
+    end
+    priceState = "loading"
+    render()
+    local request = priceRequest
+    task.spawn(function()
+        local ok, info = pcall(MarketplaceService.GetProductInfoAsync, MarketplaceService, passId, Enum.InfoType.GamePass)
+        if request ~= priceRequest then return end
+        if ok and info.IsForSale == true then bundlePrice = whole(info.PriceInRobux) end
+        if bundlePrice == 0 then bundlePrice = nil end
+        priceState = if bundlePrice then "ready" else "unlisted"
+        render()
+    end)
 end
 
 local function hide()
@@ -364,6 +441,7 @@ local function hide()
 end
 
 local function setView(shopVisible)
+    bundleSelected = false
     panel.Visible, shop.Visible = not shopVisible, shopVisible
     scroll.CanvasPosition, shopScroll.CanvasPosition = Vector2.zero, Vector2.zero
     if gamepad() then GuiService.SelectedObject = if shopVisible then shopClose else openShop end
@@ -402,7 +480,8 @@ local function revealShop(node)
 end
 
 local function notice(message)
-    feedback.Text = message
+    jadeNotice = message
+    if not bundleSelected then feedback.Text = message end
     if message ~= "" and shade.Visible and shop.Visible then
         task.defer(function()
             if shade.Visible and shop.Visible then revealShop(feedback) end
@@ -411,7 +490,28 @@ local function notice(message)
 end
 
 action.Activated:Connect(function()
-    if not shade.Visible or not shop.Visible or not available() or not readyToSpend() or pending then return end
+    if not shade.Visible or not shop.Visible or not available() or not readyToSpend() then return end
+    if bundleSelected then
+        if not action.Active or bundleSaving then return end
+        bundleNotice = ""
+        if player:GetAttribute("DojoBundleOwnership") == "owned" then
+            bundleSaving = true
+            bundleRequest += 1
+            local request = bundleRequest
+            remote:FireServer("bundleEquip", player:GetAttribute("DojoBundleSelected") ~= true)
+            task.delay(12, function()
+                if request ~= bundleRequest or not bundleSaving then return end
+                bundleSaving = false
+                bundleNotice = "Saving is taking longer than usual. Check your outfit before retrying."
+                render()
+            end)
+        else
+            remote:FireServer("bundlePrompt")
+        end
+        render()
+        return
+    end
+    if pending then return end
     local owned = player:GetAttribute("DojoMarketSashOwned") == true
     local coins = whole(player:GetAttribute("DojoCoins"))
     if not owned and (coins == nil or coins < sashPrice()) then return end
@@ -437,6 +537,12 @@ remote.OnClientEvent:Connect(function(message, open)
         if open == true then show(true, false) end
         return
     end
+    if message == "bundleNotice" then
+        bundleSaving = false
+        bundleNotice = if type(open) == "string" then open else ""
+        render()
+        return
+    end
     if type(message) ~= "string" then return end
     pending = false
     notice(message)
@@ -452,8 +558,14 @@ for _, attribute in ipairs(blockedAttributes) do
 end
 player:GetAttributeChangedSignal("SelectedStarterFighter"):Connect(updateAvailability)
 for _, attribute in {"ProgressStatus", "FighterHudProgress", "DojoCoins", "RaidTokens", "MythicShards",
-    "DojoMarketSashOwned", "DojoMarketSashEquipped", "DojoMarketSashCost"} do
+    "DojoMarketSashOwned", "DojoMarketSashEquipped", "DojoMarketSashCost",
+    "DojoBundleOwnership", "DojoBundleSelected"} do
     player:GetAttributeChangedSignal(attribute):Connect(render)
+end
+for _, attribute in {"BundlePassId", "BundleSaleEnabled"} do
+    remote:GetAttributeChangedSignal(attribute):Connect(function()
+        if shop.Visible and shade.Visible and bundleSelected then refreshPrice() end
+    end)
 end
 
 local function watchPanel(node)
@@ -507,9 +619,13 @@ local function layout()
     local previewHeight = if stacked then 182 elseif small then 177 else detailHeight
     product.Size = UDim2.new(1, -2, 0, if stacked then previewHeight + 10 + detailHeight else detailHeight)
     previewTile.Size = if stacked then UDim2.new(1, -2, 0, previewHeight) else UDim2.new(.47, -5, 0, previewHeight)
+    for _, viewport in {preview, bundlePreview} do
+        viewport.Position, viewport.Size = UDim2.fromOffset(0, 51), UDim2.new(1, 0, 1, -51)
+    end
     details.Position = if stacked then UDim2.fromOffset(0, previewHeight + 10) else UDim2.new(.47, 5, 0, 0)
     details.Size = if stacked then UDim2.new(1, -2, 0, detailHeight) else UDim2.new(.53, -7, 0, detailHeight)
-    previewCamera.FieldOfView = if not small and not stacked then 32 else 35
+    previewCamera.FieldOfView = if not small and not stacked then 33 else 36
+    bundleCamera.FieldOfView = if small then 34 else 30
 
     title.TextSize = if small then 25 else 34
     title.Position, title.Size = UDim2.fromOffset(inset, if small then 6 else 20), UDim2.new(1, -inset * 2, 0, if small then 40 else 48)
@@ -529,6 +645,17 @@ close.Activated:Connect(hide)
 openShop.Activated:Connect(function() show(true, true) end)
 walletBack.Activated:Connect(function() show(false) end)
 shopClose.Activated:Connect(hide)
+local function selectOffer(bundle)
+    bundleSelected = bundle
+    if bundle then
+        remote:FireServer("bundleRefresh")
+        refreshPrice()
+    else
+        render()
+    end
+end
+jadeChoice.Activated:Connect(function() selectOffer(false) end)
+bundleChoice.Activated:Connect(function() selectOffer(true) end)
 player.CharacterRemoving:Connect(hide)
 action.SelectionGained:Connect(function() revealShop(action) end)
 local function focusForDevice()

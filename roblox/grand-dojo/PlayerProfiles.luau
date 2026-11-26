@@ -226,6 +226,7 @@ local function valid(profile)
         and CityAdventureProgress.valid(profile.cityAdventure)
         and (wallet == nil or type(wallet) == "table" and whole(wallet.spent, 1, 1e12)
             and type(wallet.marketSashEquipped) == "boolean")
+        and (profile.midnightLanternEquipped == nil or type(profile.midnightLanternEquipped) == "boolean")
         and (profile.cityAdventureReceipt == nil or type(profile.cityAdventureReceipt) == "table"
             and validCompletionId(profile.cityAdventureReceipt.id) and whole(profile.cityAdventureReceipt.xp, 0, 200))
         and validLease(profile.lease)
@@ -476,13 +477,17 @@ end
 
 function PlayerProfiles:commitDojoWallet(userId, token, command)
     if type(command) ~= "table" or (command.kind ~= "buy"
-        and not (command.kind == "equip" and type(command.equipped) == "boolean")) then
+        and not ((command.kind == "equip" or command.kind == "bundleEquip") and type(command.equipped) == "boolean")) then
         return nil, "invalid wallet command"
     end
     local status
     local saved, reason = self:_owned(userId, token, function(profile)
         local purchase = profile.dojoWallet
-        if command.kind == "buy" then
+        if command.kind == "bundleEquip" then
+            -- This is an appearance preference only. Roblox verifies ownership separately.
+            profile.midnightLanternEquipped = command.equipped
+            status = if command.equipped then "Midnight Lantern Set equipped." else "Midnight Lantern Set removed."
+        elseif command.kind == "buy" then
             if purchase then
                 status = "You already own the Jade Festival Sash."
                 return

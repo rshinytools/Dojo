@@ -269,6 +269,7 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("DojoMarketSashCost", PlayerProfiles.MarketSashCost)
     player:SetAttribute("DojoMarketSashOwned", wallet.marketSashOwned)
     player:SetAttribute("DojoMarketSashEquipped", wallet.marketSashEquipped)
+    player:SetAttribute("DojoBundleSelected", profile.midnightLanternEquipped ~= false)
     player:SetAttribute("RelayBest", progress.relayBest)
     player:SetAttribute("FighterXp", progress.xp)
     player:SetAttribute("FighterLevel", progress.level)
@@ -509,6 +510,7 @@ local walletRejections = {
 }
 
 local function saveWallet(player, data, token)
+    local bundle = data.pendingWallet.kind == "bundleEquip"
     local profile, reason, message = profiles:commitDojoWallet(player.UserId, token, data.pendingWallet)
     local rejection = walletRejections[reason]
     if not profile and not rejection then return nil end
@@ -517,7 +519,11 @@ local function saveWallet(player, data, token)
     if not (data.departed or shuttingDown) then
         projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
-        walletRemote:FireClient(player, rejection or message)
+        if bundle then
+            walletRemote:FireClient(player, "bundleNotice", rejection or message)
+        else
+            walletRemote:FireClient(player, rejection or message)
+        end
     end
     return profile
 end
@@ -731,6 +737,10 @@ end
 
 local shopCounter = city:WaitForChild("Dojo Outfitters"):WaitForChild("ShopCounter")
 local shopPrompt = shopCounter:WaitForChild("ShopPrompt")
+local outfitPass = require(script.Parent:WaitForChild("DojoOutfitPass")).mount(walletRemote, function(player)
+    local data = state[player]
+    return canOpenOutfitters(player, data) and data.profile ~= nil and not pendingProgress(data)
+end)
 shopPrompt.Triggered:Connect(function(player)
     if canOpenOutfitters(player, state[player]) and near(player, shopCounter, shopPrompt.MaxActivationDistance) then
         walletRemote:FireClient(player, "openShop", true)
@@ -738,21 +748,45 @@ shopPrompt.Triggered:Connect(function(player)
 end)
 
 walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
-    if kind ~= "buy" and (kind ~= "equip" or type(equipped) ~= "boolean") then return end
     local data = state[player]
     if not data or data.departed or shuttingDown then return end
+    if kind == "bundleRefresh" then
+        if canOpenOutfitters(player, data) then outfitPass.refresh(player) end
+        return
+    end
+    local bundle = kind == "bundleEquip" or kind == "bundlePrompt"
+    if kind ~= "buy" and kind ~= "bundlePrompt"
+        and not ((kind == "equip" or kind == "bundleEquip") and type(equipped) == "boolean") then return end
     local now = os.clock()
     if now - (data.lastWalletAction or -math.huge) < .5 then return end
     data.lastWalletAction = now
+    local function reject(message)
+        if bundle then
+            walletRemote:FireClient(player, "bundleNotice", message)
+        else
+            walletRemote:FireClient(player, message)
+        end
+    end
     if not data.profile or pendingProgress(data) then
-        walletRemote:FireClient(player, "Wait for your progress to finish saving.")
+        reject("Wait for your progress to finish saving.")
         return
     end
     if not canOpenOutfitters(player, data) then
-        walletRemote:FireClient(player, "Visit Dojo Outfitters after returning to the city.")
+        reject("Visit Dojo Outfitters after returning to the city.")
         return
     end
-    data.pendingWallet = {kind = kind, equipped = if kind == "equip" then equipped else nil}
+    if kind == "bundlePrompt" then
+        outfitPass.prompt(player)
+        return
+    end
+    if bundle then
+        if not outfitPass.canEquip(player) then
+            reject("The Midnight Lantern Set requires verified Roblox ownership.")
+            return
+        end
+        if state[player] ~= data or not canOpenOutfitters(player, data) or pendingProgress(data) then return end
+    end
+    data.pendingWallet = {kind = kind, equipped = equipped}
     if transport then transport.profiles:receiptQueued(player) end
     player:SetAttribute("ProgressStatus", "saving")
 end)

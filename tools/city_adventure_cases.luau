@@ -172,3 +172,20 @@ local equipped = assert(profiles:commitDojoWallet(playerId, walletLease, {kind =
 assert(PlayerProfiles.wallet(equipped).marketSashEquipped and PlayerProfiles.wallet(equipped).coins == 610)
 assert(PlayerProfiles.wallet(other).coins == 0 and not PlayerProfiles.wallet(other).marketSashOwned)
 print("Dojo wallet passed legacy credits, repeat rewards, stale ownership, insufficient funds, lost purchase reply, duplicate purchase, equip and rejoin.")
+
+assert(equipped.midnightLanternEquipped == nil)
+local bundle, bundleError = profiles:commitDojoWallet(playerId, walletLease, {kind = "bundleEquip", equipped = "true"})
+assert(not bundle and bundleError == "invalid wallet command")
+bundle, bundleError = profiles:commitDojoWallet(playerId, lease, {kind = "bundleEquip", equipped = false})
+assert(not bundle and bundleError == "ownership")
+local chosen = assert(profiles:commitDojoWallet(playerId, walletLease, {kind = "bundleEquip", equipped = false}))
+assert(chosen.midnightLanternEquipped == false)
+assert(PlayerProfiles.wallet(chosen).coins == 610 and PlayerProfiles.wallet(chosen).marketSashEquipped)
+assert(profiles:release(playerId, walletLease))
+local rejoinLease = "new-server-appearance"
+local rejoinedBundle = assert(profiles:open(playerId, rejoinLease))
+assert(rejoinedBundle.midnightLanternEquipped == false and PlayerProfiles.wallet(rejoinedBundle).coins == 610)
+local restoredBundle = assert(profiles:commitDojoWallet(playerId, rejoinLease,
+    {kind = "bundleEquip", equipped = true}))
+assert(restoredBundle.midnightLanternEquipped == true and PlayerProfiles.wallet(restoredBundle).coins == 610)
+print("Bundle equip preference survived rejoin and left earned Coins and the Jade Sash intact.")

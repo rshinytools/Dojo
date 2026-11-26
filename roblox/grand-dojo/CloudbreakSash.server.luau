@@ -1,4 +1,6 @@
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local OutfitArt = require(ReplicatedStorage:WaitForChild("DojoOutfitArt"))
 
 local COSMETIC_ID = "cloudbreak-summit-sash"
 local COSMETIC_ATTRIBUTE = "CloudbreakCosmetic"
@@ -21,10 +23,10 @@ local function frontEdge(frame, size)
     return frame.Z - halfDepth
 end
 
-local function makeSash(torso, art, artFrame, market)
+local function makeSash(torso, art, artFrame, style)
     -- Mount beside the fighter shell so the sash cannot change contact or defeat bounds.
     local sash = Instance.new("Model")
-    sash.Name = if market then MARKET_SASH_NAME else SASH_NAME
+    sash.Name = style
     local half = art.Size * .5
     local right, up, forward = artFrame.RightVector, artFrame.UpVector, artFrame.LookVector
     local halfWidth = math.abs(right.X) * half.X + math.abs(up.X) * half.Y + math.abs(forward.X) * half.Z
@@ -54,7 +56,11 @@ local function makeSash(torso, art, artFrame, market)
         weld.Parent, part.Parent = part, sash
     end
 
-    if market then
+    if style == OutfitArt.Name then
+        OutfitArt.build(piece, center, width, height, front)
+        return sash
+    end
+    if style == MARKET_SASH_NAME then
         -- An offset waist wrap leaves the Cloudbreak shoulder strap and left pennant visible.
         local fabric = Enum.Material.Fabric
         local sashWidth = math.clamp(width * .96, .42, 1.10)
@@ -114,7 +120,9 @@ local function watch(player)
         local summit = player:GetAttribute(COSMETIC_ATTRIBUTE) == COSMETIC_ID
             and player:GetAttribute(EQUIPPED_ATTRIBUTE) ~= false
         local market = player:GetAttribute(MARKET_ATTRIBUTE) == true
-        if not character or character ~= player.Character or not (summit or market) then
+        local premium = player:GetAttribute("DojoBundleOwnership") == "owned"
+            and player:GetAttribute("DojoBundleSelected") == true
+        if not character or character ~= player.Character or not (summit or market or premium) then
             removeSashes()
             return
         end
@@ -130,14 +138,14 @@ local function watch(player)
             removeSashes()
             mountedArt = art
         end
-        for name, visible in {[SASH_NAME] = summit, [MARKET_SASH_NAME] = market} do
+        for name, visible in {[SASH_NAME] = summit, [MARKET_SASH_NAME] = market, [OutfitArt.Name] = premium} do
             local sash = mounted[name]
             if sash and (not visible or sash.Parent ~= character) then
                 sash:Destroy()
                 mounted[name] = nil
             end
             if visible and not mounted[name] then
-                local newSash = makeSash(torso, art, weld.C0 * weld.C1:Inverse(), name == MARKET_SASH_NAME)
+                local newSash = makeSash(torso, art, weld.C0 * weld.C1:Inverse(), name)
                 mounted[name], newSash.Parent = newSash, character
             end
         end
@@ -179,6 +187,8 @@ local function watch(player)
     playerConnections[1] = player:GetAttributeChangedSignal(COSMETIC_ATTRIBUTE):Connect(schedule)
     playerConnections[2] = player:GetAttributeChangedSignal(EQUIPPED_ATTRIBUTE):Connect(schedule)
     playerConnections[5] = player:GetAttributeChangedSignal(MARKET_ATTRIBUTE):Connect(schedule)
+    playerConnections[6] = player:GetAttributeChangedSignal("DojoBundleOwnership"):Connect(schedule)
+    playerConnections[7] = player:GetAttributeChangedSignal("DojoBundleSelected"):Connect(schedule)
     playerConnections[3] = player.CharacterAdded:Connect(bindCharacter)
     playerConnections[4] = player.CharacterRemoving:Connect(function(oldCharacter)
         if character == oldCharacter then

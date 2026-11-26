@@ -66,6 +66,7 @@ def verify_place():
                 "FighterForms", "FighterFormVisuals", "FighterTactics",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
                 "DojoWallet", "DojoWalletClient", "Dojo Outfitters", "ShopCounter", "ShopPrompt",
+                "DojoOutfitPass", "DojoOutfitArt",
                 "Mika the Shopkeeper", "Tailor's apron",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander", "karate-frog", "river-otter",
                 "rooster-kickboxer", "sugar-glider",

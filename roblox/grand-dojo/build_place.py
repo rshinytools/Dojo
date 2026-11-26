@@ -8197,6 +8197,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","DojoMatchSupport","DojoMatchSupport.luau"),
                                     (server,"ModuleScript","CombatWindupSupport","CombatWindupSupport.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
+                                    (server,"ModuleScript","DojoOutfitPass","DojoOutfitPass.luau"),
+                                    (storage,"ModuleScript","DojoOutfitArt","DojoOutfitArt.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),
                                     (storage,"ModuleScript","SparringBots","SparringBots.luau"),
                                     (storage,"ModuleScript","RingProgression","RingProgression.luau"),
