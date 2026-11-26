@@ -205,6 +205,8 @@ The first four fighter-exclusive Outfitters items are Bamboo Weave Mitts for Ree
 
 Set `dojo_outfitters_fighter_passes` separately in Private Staging and the main experience with a JSON object of item IDs and that experience’s distinct Roblox pass IDs. Ship the shared art and shop code to the main place after staging passes. Create the production passes off sale, map them, and verify the published listing and equip flow before enabling them. Roblox’s one-time pass prices are set in Robux.
 
+Creator Hub has all four Private Staging passes listed off sale with placeholder icons. The staging-only JSON config is active. Studio read each mapped pass and confirmed the item name and off-sale status through MarketplaceService. The playable candidate is saved as staging place version 7 and awaits publication from Studio. Native checkout, persisted equipping in published play, retail prices, and production listings remain open.
+
 The next monetization work starts with the earned economy. The compact Wallet button shows the Coin balance beside Adventure in the city, and the Wallet panel shows Coins, Raid Tokens, Mythic Shards and fighter XP. Coins pay for apparel. XP advances the fighter’s levels, forms and earned moves. Raid rewards and trophies keep their existing progression roles.
 
 | Starting Coin source | Coins | Grant rule |

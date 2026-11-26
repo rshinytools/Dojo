@@ -2,7 +2,7 @@
 
 Portable production roadmap for the approved four-ring plan. [Code entry points and verified play](IMPLEMENTATION.md)
 
-**Current candidate.** The city collision update covers the reported rocks, buildings, mountains and railings. First join requires a confirmed starter, with eight released fighters at launch and two more per month after the rollout date is set. Studio verified controller navigation to the second row, Galaxy A06 landscape confirmation, and four individually fitted Rookie cosmetics. Published traversal, physical PS5, and the four native Shop purchases and rejoins are the staging gates. Public prices and availability follow those checks.
+**Current candidate.** The city collision update covers the reported rocks, buildings, mountains and railings. First join requires a confirmed starter, with eight released fighters at launch and two more per month after the rollout date is set. Studio verified controller navigation to the second row, Galaxy A06 landscape confirmation, and four individually fitted Rookie cosmetics. All four passes are mapped in Private Staging and remain off sale. Published traversal, physical PS5, and native Shop purchases and rejoins are the staging gates. Public prices and availability follow those checks.
 
 ## P0 Identity remediation and release boundaries
 
