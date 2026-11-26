@@ -215,7 +215,7 @@ Complete advanced modes, matchmaking and clans.
 
 ## P9 Economy, purchases and safe trading
 
-Prioritize the earned Wallet and deterministic apparel, followed by the first Robux cosmetic offer after published staging verifies persistence.
+Use Roblox Shop for paid checkout and Dojo Outfitters for previews and equipping. Validate one permanent cosmetic bundle first. Build a wider catalog after Beast Dojo has an active player base and player feedback.
 
 **Status** In progress
 
@@ -229,6 +229,8 @@ Prioritize the earned Wallet and deterministic apparel, followed by the first Ro
 | P9.2 | Random outcomes and eligibility | Planned | Unknown eligibility blocks restricted actions; published odds match the actual server distribution. |
 | P9.3 | Trading plaza transaction protocol | Planned | Crash/timeout/retry tests show no item loss/duplication; no assumption of multi-key atomicity. Account-bound awards are rejected in offers. |
 | P9.4 | Pass, season and rewarded ads | In progress | The permanent Midnight Lantern Set is in Private Staging with sales disabled in Creator Hub and Experience Configs. Desktop Studio passed the off-sale and unauthorized equip checks. Published macOS Roblox Player verified creator equip, removal and rejoin with the Jade Sash and 10 Coins intact. Verify buyer-specific prices, native checkout and cancellation, a first purchase from a non-owner account, and equip persistence on a physical phone before public sale. Season and ad grants remain eligibility-gated and idempotent. |
+
+**Catalog rollout.** Start with the Midnight Lantern Set in private staging. Test the price, cancellation, one successful purchase through native Roblox Shop, and equip after rejoining from a non-owner test account. Verify the off-sale switch blocks new purchases and existing owners can still equip. Use a second staged bundle to test independent sale controls before expanding the catalog. Prepare future cosmetics with their own pass IDs and keep them off sale until the owner chooses to release them. The owner changes prices and availability in Creator Hub without republishing the place. Add new outfit art and grants to the game before offering each bundle.
 
 ## P10 Optional VPS operations
 
