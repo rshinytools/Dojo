@@ -1265,7 +1265,7 @@ def showcase_tree(parent,x,z,pink,scale,yaw,elevation,*,height_scale=1,compact=F
     return model
 
 
-def decorative_garden_shelf(parent,x,top,z,width,depth,height,tint,material):
+def decorative_garden_shelf(parent,x,top,z,width,depth,height,tint,material,*,collide=False):
     """Build a clipped-corner footprint with three blocks and four wedges."""
     label="Garden terrace shelf"
     y=top-height/2
@@ -1274,7 +1274,7 @@ def decorative_garden_shelf(parent,x,top,z,width,depth,height,tint,material):
 
     def panel(x0,x1,z0,z1):
         part(parent,label,(x+(x0+x1)*width/2,y,z+(z0+z1)*depth/2),
-             ((x1-x0)*width,height,(z1-z0)*depth),tint,material=material,collide=False)
+             ((x1-x0)*width,height,(z1-z0)*depth),tint,material=material,collide=collide)
 
     panel(left,right,near,far)
     for side,inner,outer,start,end in ((-1,left,-.435,-.313,.298),(1,right,.460,-.337,.180)):
@@ -1284,7 +1284,7 @@ def decorative_garden_shelf(parent,x,top,z,width,depth,height,tint,material):
             part(parent,label,(x+(inner+outer)*width/2,y,z+(a+b)*depth/2),
                  (height,abs(outer-inner)*width,(b-a)*depth),tint,material=material,
                  yaw=180 if direction>0 else 0,roll=90*side*direction,
-                 collide=False,class_name="WedgePart")
+                 collide=collide,class_name="WedgePart")
 
 
 def garden_shelf(parent,x,top,z,width,depth,height,tint,material,*,collide=True):
@@ -3192,8 +3192,10 @@ for x,z,width,depth,base,top,shift,yaw in (
 
 for index,(x,z,height,width,solid_base) in enumerate((
     (28.5,-56.5,30.5,5.4,False),(32.9,-56.6,38.8,5.7,False),
-    (37.1,-58.7,41.3,6.9,False),(41.3,-54.9,27.4,6.1,False),
-    (45.2,-58.8,24.9,7.4,False),(37.9,-52.5,15.7,7.0,True),
+    # Keep the reachable rock faces solid. Set the two eastern slabs back
+    # from the market posts so the lower approach stays open on their east.
+    (37.1,-58.7,41.3,6.9,True),(39.65,-54.9,27.4,6.1,True),
+    (38.6,-58.8,24.9,7.4,True),(37.9,-52.5,15.7,7.0,True),
 )):
     part(falls,"Fractured cliff slab",(x,height*.37-1,z),(width+2,height*.76,9),
          ("736373","83717C","95818D")[index%3],yaw=25-index*7,roll=(-1)**index*11,
@@ -4313,7 +4315,7 @@ for dx,dz,top,width,depth,height,tint,material in (
     (-.18,.14,1.30,4.41,4.02,.68,"A08D95",SLATE),
     (-.13,.12,1.51,3.94,3.60,.29,"758B51",GRASS_MAT),
 ):
-    garden_shelf(grove,sakura_x+dx,top,sakura_z+dz,width,depth,height,tint,material,collide=False)
+    decorative_garden_shelf(grove,sakura_x+dx,top,sakura_z+dz,width,depth,height,tint,material,collide=True)
 sakura=item(grove,"Model","Relay garden Sakura tree")
 prop(sakura,"token","ModelStreamingMode",1)
 sakura_yaw=-31
@@ -4333,6 +4335,13 @@ prop(trunk,"bool","CastShadow",False)
 prop(trunk,"token","RenderFidelity",1)
 vector(trunk,"Vector3","InitialSize",("X","Y","Z"),(6.797350,11.199409,5.221320))
 asset(trunk,"MeshContent","rbxassetid://743209096")
+# The imported mesh bounds include the branches. Fit only the reachable shaft,
+# whose rendered base sits south of the model pivot.
+for dx,y,dz,height,diameter in ((-.16,1.74,2.17,3.18,4.20),
+                                (.11,4.87,1.94,3.42,3.82)):
+    core=part(sakura,"Sakura trunk collision",(sakura_x+dx,y,sakura_z+dz),
+              (height,diameter,diameter),"816A5D",roll=90,shape=2,transparency=1)
+    prop(core,"bool","CastShadow",False)
 leaf_offset=scaled_sakura_size((.876709,trunk_size[1]/2+7.286158,1.120193))
 leaf_x,leaf_y,leaf_z=rotate_garden_point(leaf_offset,sakura_yaw)
 leaves=part(sakura,"Sakura blossom sprays",(sakura_x+leaf_x,sakura_base+leaf_y,sakura_z+leaf_z),
