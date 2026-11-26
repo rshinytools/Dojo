@@ -8247,6 +8247,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (scripts,"LocalScript","GrandDojoTagTeamClient","GrandDojoTagTeam.client.luau"),
                                     (scripts,"LocalScript","KilnbackRaidClient","KilnbackRaid.client.luau"),
                                     (scripts,"LocalScript","StarterFighterSelect","StarterFighterSelect.client.luau"),
+                                    (scripts,"LocalScript","CityWalkArms","CityWalkArms.client.luau"),
                                     (scripts,"LocalScript","ReedguardFootShadows","ReedguardFootShadows.client.luau"),
                                     (scripts,"LocalScript","ArenaJumpPresenter","ArenaJumpPresenter.client.luau"),
                                     (scripts,"LocalScript","GrandDojoMusic","GrandDojoMusic.client.luau"),
