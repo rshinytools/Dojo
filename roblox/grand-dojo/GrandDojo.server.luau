@@ -4,8 +4,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
+local ConfigService = game:GetService("ConfigService")
 local PlayerProfiles = require(script.Parent:WaitForChild("PlayerProfiles"))
 local StarterFighters = require(script.Parent:WaitForChild("StarterFighters"))
+local FighterRelease = require(script.Parent:WaitForChild("FighterRelease"))
+local fighterOrder = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog")).Order
 local FighterForms = require(ReplicatedStorage:WaitForChild("FighterForms"))
 local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
@@ -29,6 +32,7 @@ local profiles = PlayerProfiles.new(store, os.time, task.wait)
 local cityAdventure
 local shuttingDown = false
 local profileWorkers = 0
+local fighterLaunchUtc
 
 local city = workspace:WaitForChild("Grand Dojo City")
 local switchStation = city:FindFirstChild("Fighter Select Station")
@@ -254,8 +258,18 @@ local function resetRun(player, data)
     player:SetAttribute("RelayNextGate", 0)
 end
 
+local function projectFighterRoster(player, profile)
+    local count = FighterRelease.releasedCount(fighterLaunchUtc, os.time(), #fighterOrder)
+    local lineup = FighterRelease.roster(fighterOrder, count, profile.fighters, PlayerProfiles.activeFighter(profile))
+    if player:GetAttribute("FighterRosterAvailable") ~= lineup then
+        player:SetAttribute("FighterRosterAvailable", lineup)
+    end
+    return lineup
+end
+
 local function projectProgress(player, data, profile)
     local progress = PlayerProfiles.summary(profile, PlayerProfiles.activeFighter(profile))
+    projectFighterRoster(player, profile)
     player:SetAttribute("FirstSparWinComplete", progress.firstSparWinComplete)
     player:SetAttribute("LanternKeeper", progress.lanternKeeper)
     player:SetAttribute("KilnKeeper", progress.kilnKeeper)
@@ -270,6 +284,9 @@ local function projectProgress(player, data, profile)
     player:SetAttribute("DojoMarketSashOwned", wallet.marketSashOwned)
     player:SetAttribute("DojoMarketSashEquipped", wallet.marketSashEquipped)
     player:SetAttribute("DojoBundleSelected", profile.midnightLanternEquipped ~= false)
+    local active = PlayerProfiles.activeFighter(profile)
+    local cosmetics = profile.fighterCosmetics and profile.fighterCosmetics[active]
+    player:SetAttribute("DojoFighterCosmetics", HttpService:JSONEncode(cosmetics or {}))
     player:SetAttribute("RelayBest", progress.relayBest)
     player:SetAttribute("FighterXp", progress.xp)
     player:SetAttribute("FighterLevel", progress.level)
@@ -507,10 +524,12 @@ local walletRejections = {
     ["insufficient coins"] = "Earn 50 Coins to buy the Jade Festival Sash.",
     ["sash not owned"] = "Buy the Jade Festival Sash before equipping it.",
     ["invalid wallet command"] = "That wallet action is unavailable.",
+    ["fighter changed"] = "Select the item's fighter before changing this cosmetic.",
 }
 
 local function saveWallet(player, data, token)
     local bundle = data.pendingWallet.kind == "bundleEquip"
+    local itemId = data.pendingWallet.itemId
     local profile, reason, message = profiles:commitDojoWallet(player.UserId, token, data.pendingWallet)
     local rejection = walletRejections[reason]
     if not profile and not rejection then return nil end
@@ -519,7 +538,9 @@ local function saveWallet(player, data, token)
     if not (data.departed or shuttingDown) then
         projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
-        if bundle then
+        if itemId then
+            walletRemote:FireClient(player, "fighterCosmeticNotice", rejection or message or "Cosmetic already removed.", itemId)
+        elseif bundle then
             walletRemote:FireClient(player, "bundleNotice", rejection or message)
         else
             walletRemote:FireClient(player, rejection or message)
@@ -738,27 +759,36 @@ end
 local shopCounter = city:WaitForChild("Dojo Outfitters"):WaitForChild("ShopCounter")
 local shopPrompt = shopCounter:WaitForChild("ShopPrompt")
 local outfitPass = require(script.Parent:WaitForChild("DojoOutfitPass")).mount(walletRemote)
+local fighterPasses = require(script.Parent:WaitForChild("DojoFighterPasses")).mount(walletRemote)
+local cosmeticCatalog = require(ReplicatedStorage:WaitForChild("DojoCosmeticCatalog"))
 shopPrompt.Triggered:Connect(function(player)
     if canOpenOutfitters(player, state[player]) and near(player, shopCounter, shopPrompt.MaxActivationDistance) then
         walletRemote:FireClient(player, "openShop", true)
     end
 end)
 
-walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
+walletRemote.OnServerEvent:Connect(function(player, kind, equipped, itemId)
     local data = state[player]
     if not data or data.departed or shuttingDown then return end
     if kind == "bundleRefresh" then
         if canOpenOutfitters(player, data) then outfitPass.refresh(player) end
         return
     end
+    if kind == "fighterCosmeticRefresh" then
+        if type(itemId) == "string" and canOpenOutfitters(player, data) then fighterPasses.refresh(player, itemId) end
+        return
+    end
     local bundle = kind == "bundleEquip"
+    local cosmetic = kind == "fighterCosmetic" and type(itemId) == "string" and cosmeticCatalog.get(itemId)
     if kind ~= "buy"
-        and not ((kind == "equip" or kind == "bundleEquip") and type(equipped) == "boolean") then return end
+        and not ((kind == "equip" or bundle or cosmetic) and type(equipped) == "boolean") then return end
     local now = os.clock()
     if now - (data.lastWalletAction or -math.huge) < .5 then return end
     data.lastWalletAction = now
     local function reject(message)
-        if bundle then
+        if cosmetic then
+            walletRemote:FireClient(player, "fighterCosmeticNotice", message, itemId)
+        elseif bundle then
             walletRemote:FireClient(player, "bundleNotice", message)
         else
             walletRemote:FireClient(player, message)
@@ -772,14 +802,26 @@ walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
         reject("Visit Dojo Outfitters after returning to the city.")
         return
     end
-    if bundle then
+    if cosmetic then
+        if PlayerProfiles.activeFighter(data.profile) ~= cosmetic.fighterId then
+            reject("Equip this cosmetic while playing " .. cosmetic.fighter .. ".")
+            return
+        end
+        if equipped and not fighterPasses.canEquip(player, itemId) then
+            reject("This cosmetic requires verified Roblox ownership.")
+            return
+        end
+        if state[player] ~= data or not canOpenOutfitters(player, data) or pendingProgress(data) then return end
+    elseif bundle then
         if not outfitPass.canEquip(player) then
             reject("The Midnight Lantern Set requires verified Roblox ownership.")
             return
         end
         if state[player] ~= data or not canOpenOutfitters(player, data) or pendingProgress(data) then return end
     end
-    data.pendingWallet = {kind = kind, equipped = equipped}
+    data.pendingWallet = if cosmetic then {
+        kind = kind, equipped = equipped, itemId = itemId, slot = cosmetic.slot, fighterId = cosmetic.fighterId,
+    } else {kind = kind, equipped = equipped}
     if transport then transport.profiles:receiptQueued(player) end
     player:SetAttribute("ProgressStatus", "saving")
 end)
@@ -886,6 +928,10 @@ starterChoice.OnServerEvent:Connect(function(player, request, requestedFighter, 
     if not unlockLevel or (not switching and unlockLevel > 1) then
         return
     end
+    if switching and not FighterRelease.contains(projectFighterRoster(player, data.profile), fighterId) then
+        player:SetAttribute("StarterSelectionError", "This fighter is not available in the current roster.")
+        return
+    end
     if switching and not PlayerProfiles.canSwitch(data.profile, fighterId) then
         player:SetAttribute("StarterSelectionError", string.format("Reach fighter level %d to unlock this fighter.", unlockLevel))
         return
@@ -983,6 +1029,39 @@ end)
 for _, player in Players:GetPlayers() do
     addPlayer(player)
 end
+
+local function updateFighterRosters()
+    for player, data in state do
+        if data.profile and not data.departed then
+            projectFighterRoster(player, data.profile)
+        end
+    end
+end
+
+task.spawn(function()
+    local launchKey = "fighter_roster_launch_utc"
+    while not shuttingDown do
+        local loaded, snapshot = pcall(ConfigService.GetConfigAsync, ConfigService)
+        if loaded then
+            local function updateLaunch()
+                fighterLaunchUtc = snapshot:GetValue(launchKey)
+                updateFighterRosters()
+            end
+            snapshot:GetValueChangedSignal(launchKey):Connect(updateLaunch)
+            snapshot.UpdateAvailable:Connect(function()
+                if pcall(snapshot.Refresh, snapshot) then updateLaunch() end
+            end)
+            updateLaunch()
+            break
+        end
+        task.wait(30)
+    end
+    while not shuttingDown do
+        task.wait(60)
+        if not shuttingDown then updateFighterRosters() end
+    end
+end)
+
 game:BindToClose(function()
     local now = workspace:GetServerTimeNow()
     for player in state do

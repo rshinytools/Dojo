@@ -6,6 +6,7 @@ local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 
 local Match = require(script.Parent:WaitForChild("DojoMatchSupport"))
+local FighterRelease = require(script.Parent:WaitForChild("FighterRelease"))
 local Motion = require(script.Parent:WaitForChild("DuelFightMotion"))
 local Windup = require(script.Parent:WaitForChild("CombatWindupSupport"))
 local Round = require(script.Parent:WaitForChild("TagCombatRound"))
@@ -52,6 +53,7 @@ end
 local function eligibleBackup(player, primaryId, id)
     local fighter = catalog[id]
     return id ~= primaryId and fighter and Match.FighterKits[id]
+        and FighterRelease.contains(player:GetAttribute("FighterRosterAvailable"), id)
         and (player:GetAttribute("HighestFighterLevel") or 1) >= (fighter.unlockLevel or 1)
 end
 

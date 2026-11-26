@@ -107,6 +107,7 @@ from pinecrest_trail import RIDGE_WIDTH, WIND_LOOKOUT_DECK, build_pinecrest_cros
 from pinecrest_ravine import build_pinecrest_ravine
 from skywalk_gatehouse import build_skywalk_gatehouse
 from plaza_bank_art import build_bank_stone, build_golden_plumes
+from world_collision import add_world_collision
 from relay_approach import build_relay_runner
 from starter_fighter_assets import build_starter_fighter_visuals
 from defeat_mesh_support import build_defeat_mesh_support
@@ -7837,6 +7838,7 @@ build_ring_training(scene, {
 build_city_adventure_scenery(scene, item=item, part=part, prop=prop, sign=sign,
                             cedar=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
 build_dojo_outfitters(scene, item=item, prop=prop, part=part, sign=sign, townsperson=townsperson)
+add_world_collision(scene, part=part, prop=prop, rock_material=ROCK)
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")
@@ -8099,6 +8101,7 @@ item(server,"BindableEvent","DojoRaidCompleted")
 item(server,"BindableEvent","CloudbreakAdventureCleared")
 item(server,"BindableEvent","AdventureSparCompleted")
 for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDojo.server.luau"),
+                                    (server,"Script","CityFallRecovery","CityFallRecovery.server.luau"),
                                     (server,"ModuleScript","CityAdventureCatalog","CityAdventureCatalog.luau"),
                                     (server,"ModuleScript","CityAdventureProgress","CityAdventureProgress.luau"),
                                     (server,"ModuleScript","CityAdventureService","CityAdventureService.luau"),
@@ -8197,7 +8200,12 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","DojoMatchSupport","DojoMatchSupport.luau"),
                                     (server,"ModuleScript","CombatWindupSupport","CombatWindupSupport.luau"),
                                     (server,"ModuleScript","PlayerProfiles","PlayerProfiles.luau"),
+                                    (server,"ModuleScript","FighterRelease","FighterRelease.luau"),
                                     (server,"ModuleScript","DojoOutfitPass","DojoOutfitPass.luau"),
+                                    (server,"ModuleScript","DojoFighterPasses","DojoFighterPasses.luau"),
+                                    (storage,"ModuleScript","DojoCosmeticCatalog","DojoCosmeticCatalog.luau"),
+                                    (storage,"ModuleScript","DojoFighterCosmeticArt","DojoFighterCosmeticArt.luau"),
+                                    (server,"Script","DojoFighterCosmetics","DojoFighterCosmetics.server.luau"),
                                     (storage,"ModuleScript","DojoOutfitArt","DojoOutfitArt.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),
                                     (storage,"ModuleScript","SparringBots","SparringBots.luau"),

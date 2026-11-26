@@ -80,6 +80,24 @@ local function isFighter(id)
     return isStarter(id) or isOriginalUnlock(id) or EXPANDED_UNLOCKS[id] ~= nil
 end
 
+local cosmeticSlots = {hands = true, head = true, back = true, waist = true, trail = true}
+
+local function cosmeticId(id)
+    return type(id) == "string" and #id <= 80 and id:match("^[a-z][a-z0-9%-]*$") ~= nil
+end
+
+local function validFighterCosmetics(value)
+    if value == nil then return true end
+    if type(value) ~= "table" then return false end
+    for fighter, slots in value do
+        if not cosmeticId(fighter) or type(slots) ~= "table" then return false end
+        for slot, itemId in slots do
+            if not cosmeticSlots[slot] or not cosmeticId(itemId) then return false end
+        end
+    end
+    return true
+end
+
 local function fieldsFor(id)
     return if isStarter(id) then STARTER_PROGRESS elseif isOriginalUnlock(id) then ROSTER_PROGRESS else EXPANDED_PROGRESS
 end
@@ -261,6 +279,7 @@ local function valid(profile)
         and (wallet == nil or type(wallet) == "table" and whole(wallet.spent, 1, 1e12)
             and type(wallet.marketSashEquipped) == "boolean")
         and (profile.midnightLanternEquipped == nil or type(profile.midnightLanternEquipped) == "boolean")
+        and validFighterCosmetics(profile.fighterCosmetics)
         and (profile.cityAdventureReceipt == nil or type(profile.cityAdventureReceipt) == "table"
             and validCompletionId(profile.cityAdventureReceipt.id) and whole(profile.cityAdventureReceipt.xp, 0, 200))
         and validLease(profile.lease)
@@ -511,13 +530,32 @@ end
 
 function PlayerProfiles:commitDojoWallet(userId, token, command)
     if type(command) ~= "table" or (command.kind ~= "buy"
-        and not ((command.kind == "equip" or command.kind == "bundleEquip") and type(command.equipped) == "boolean")) then
+        and not ((command.kind == "equip" or command.kind == "bundleEquip" or command.kind == "fighterCosmetic")
+            and type(command.equipped) == "boolean")) then
+        return nil, "invalid wallet command"
+    end
+    if command.kind == "fighterCosmetic" and (not isFighter(command.fighterId)
+        or not cosmeticSlots[command.slot] or not cosmeticId(command.itemId)) then
         return nil, "invalid wallet command"
     end
     local status
     local saved, reason = self:_owned(userId, token, function(profile)
         local purchase = profile.dojoWallet
-        if command.kind == "bundleEquip" then
+        if command.kind == "fighterCosmetic" then
+            local fighterId = command.fighterId
+            if PlayerProfiles.activeFighter(profile) ~= fighterId then return "fighter changed" end
+            local fittings = table.clone(profile.fighterCosmetics or {})
+            local equipped = table.clone(fittings[fighterId] or {})
+            if command.equipped then
+                equipped[command.slot] = command.itemId
+                status = "Cosmetic equipped."
+            elseif equipped[command.slot] == command.itemId then
+                equipped[command.slot] = nil
+                status = "Cosmetic removed."
+            end
+            fittings[fighterId] = if next(equipped) then equipped else nil
+            profile.fighterCosmetics = if next(fittings) then fittings else nil
+        elseif command.kind == "bundleEquip" then
             -- This is an appearance preference only. Roblox verifies ownership separately.
             profile.midnightLanternEquipped = command.equipped
             status = if command.equipped then "Midnight Lantern Set equipped." else "Midnight Lantern Set removed."
@@ -698,9 +736,12 @@ function PlayerProfiles:commitFighterSwitch(userId, token, fighterId, formId, ta
             end
             equippedUltimate = if ultimate == FighterLoadouts.ByFighter[fighterId].ultimate.default then nil else ultimate
         end
-        if equippedForm ~= storedForm or equippedTactical ~= storedTactical
+        local outgoing = PlayerProfiles.activeFighter(profile)
+        local rememberOutgoing = outgoing and not isStarter(outgoing) and profile.fighters[outgoing] == nil
+        if rememberOutgoing or not fighter or equippedForm ~= storedForm or equippedTactical ~= storedTactical
             or equippedBasic ~= storedBasic or equippedUltimate ~= storedUltimate then
             profile.fighters = table.clone(profile.fighters)
+            if rememberOutgoing then profile.fighters[outgoing] = {xp = 0} end
             local updated = table.clone(fighter or {xp = 0})
             updated.equippedForm, updated.equippedTactical = equippedForm, equippedTactical
             updated.equippedBasic, updated.equippedUltimate = equippedBasic, equippedUltimate

@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -9,6 +10,8 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("DojoWallet")
 local OutfitArt = require(ReplicatedStorage:WaitForChild("DojoOutfitArt"))
+local GearCatalog = require(ReplicatedStorage:WaitForChild("DojoCosmeticCatalog"))
+local GearArt = require(ReplicatedStorage:WaitForChild("DojoFighterCosmeticArt"))
 local closeAction = "CloseDojoWallet"
 local openAction = "OpenDojoWalletOnGamepad"
 local defaultSashPrice = 50
@@ -190,12 +193,12 @@ local walletBack = button(shop, "OpenWalletFromShop", "Wallet", UDim2.new(), UDi
 local shopClose = button(shop, "CloseShop", "Close", UDim2.new(), UDim2.new())
 
 local tabs = create("Frame", shop, {Name = "Categories", BackgroundTransparency = 1})
-local categoryNames = {"Robux cosmetics", "Earned with Coins", "My closet"}
-local categoryKeys = {"robux", "coins", "closet"}
+local categoryNames = {"Fighter gear", "Robux cosmetics", "Earned with Coins", "My closet"}
+local categoryKeys = {"gear", "robux", "coins", "closet"}
 local tabButtons = {}
 for index, key in ipairs(categoryKeys) do
-    local tab = button(tabs, key, categoryNames[index], UDim2.new((index - 1) / 3, 0, 0, 0),
-        UDim2.new(1 / 3, if index == 3 then 0 else -5, 1, 0))
+    local tab = button(tabs, key, categoryNames[index], UDim2.new((index - 1) / #categoryKeys, 0, 0, 0),
+        UDim2.new(1 / #categoryKeys, if index == #categoryKeys then 0 else -5, 1, 0))
     tabButtons[key] = tab
     if index > 1 then
         tab.NextSelectionLeft = tabButtons[categoryKeys[index - 1]]
@@ -204,7 +207,7 @@ for index, key in ipairs(categoryKeys) do
     tab.NextSelectionUp = walletBack
 end
 walletBack.NextSelectionRight, shopClose.NextSelectionLeft = shopClose, walletBack
-walletBack.NextSelectionDown, shopClose.NextSelectionDown = tabButtons.robux, tabButtons.closet
+walletBack.NextSelectionDown, shopClose.NextSelectionDown = tabButtons.gear, tabButtons.closet
 
 local shopScroll = create("ScrollingFrame", shop, {
     Name = "ShopEntries", BackgroundTransparency = 1, BorderSizePixel = 0,
@@ -227,16 +230,20 @@ local portrait = create("ViewportFrame", previewTile, {
 })
 local portraitCamera = create("Camera", portrait, {FieldOfView = 34})
 portrait.CurrentCamera = portraitCamera
-local portraitModel
+local portraitModel, mountedFighter
 local wornPreview
 local previewing = true
-local function refreshPortrait(bundle, visible)
+local function refreshPortrait(bundle, visible, gear)
     if not portraitModel or not portraitModel:FindFirstChild("Torso") then return end
     if wornPreview then
         wornPreview:Destroy()
         wornPreview = nil
     end
     if not visible then return end
+    if gear then
+        wornPreview = GearArt.mount(portrait, portraitModel, gear.id, gear.fighterId, false)
+        return
+    end
     local torso = portraitModel.Torso
     local center, width, height, front = OutfitArt.fit(torso, torso.CFrame)
     wornPreview = create("Model", portrait, {Name = "PreviewOutfit"})
@@ -250,11 +257,14 @@ local function refreshPortrait(bundle, visible)
     buildOutfit(piece, center, width, height, front)
 end
 
-local function mountPortrait()
-    if portraitModel then return end
+local function mountPortrait(fighterId)
+    fighterId = fighterId or "reedguard-kangaroo"
+    if mountedFighter == fighterId then return end
     local library = ReplicatedStorage:FindFirstChild("StarterFighterVisuals")
-    local sample = library and library:FindFirstChild("reedguard-kangaroo")
+    local sample = library and library:FindFirstChild(fighterId)
     if not (sample and sample:IsA("Model")) then return end
+    if portraitModel then portraitModel:Destroy() end
+    mountedFighter = fighterId
     portraitModel = sample:Clone()
     portraitModel.Parent = portrait
     local box, size = portraitModel:GetBoundingBox()
@@ -265,12 +275,14 @@ end
 local previewMode = button(previewTile, "PreviewMode", "Without outfit", UDim2.fromOffset(8, 8), UDim2.fromOffset(123, 44))
 previewMode.BackgroundColor3, previewMode.TextSize = lacquer, 12
 local portraitBundle, portraitVisible
-local function syncPortrait(bundle, empty)
+local function syncPortrait(bundle, empty, gear)
+    mountPortrait(gear and gear.fighterId)
     previewMode.Text = if previewing then "Without outfit" else "With outfit"
     local showOutfit = previewing and not empty and portraitModel ~= nil
-    if bundle ~= portraitBundle or showOutfit ~= portraitVisible then
-        portraitBundle, portraitVisible = bundle, showOutfit
-        refreshPortrait(bundle, showOutfit)
+    local style = if gear then gear.id else bundle
+    if style ~= portraitBundle or showOutfit ~= portraitVisible then
+        portraitBundle, portraitVisible = style, showOutfit
+        refreshPortrait(bundle, showOutfit, gear)
     end
 end
 
@@ -291,6 +303,15 @@ local jadeChoice = button(closetChoices, "JadeSashTab", "Jade Sash", UDim2.fromO
 local bundleChoice = button(closetChoices, "MidnightSetTab", "Midnight Set", UDim2.new(.50, 3, 0, 0),
     UDim2.new(.50, -3, 1, 0))
 jadeChoice.NextSelectionRight, bundleChoice.NextSelectionLeft = bundleChoice, jadeChoice
+local gearPicker = create("Frame", product, {Name = "FighterGearItems", BackgroundTransparency = 1, Visible = false})
+local previousGear = button(gearPicker, "Previous", "‹", UDim2.fromOffset(0, 0), UDim2.fromOffset(44, 44))
+local nextGear = button(gearPicker, "Next", "›", UDim2.new(1, -44, 0, 0), UDim2.fromOffset(44, 44))
+local gearName = label(gearPicker, "FighterName", "", 15, cream, true,
+    UDim2.fromOffset(51, 0), UDim2.new(1, -102, 0, 44))
+gearName.TextXAlignment = Enum.TextXAlignment.Center
+previousGear.NextSelectionRight, nextGear.NextSelectionLeft = nextGear, previousGear
+previousGear.NextSelectionUp, nextGear.NextSelectionUp = tabButtons.gear, tabButtons.gear
+previousGear.NextSelectionDown, nextGear.NextSelectionDown = previewMode, previewMode
 local previewCamera = create("Camera", preview, {
     CFrame = CFrame.lookAt(Vector3.new(-.63, .49, -2.56), Vector3.new(0, -.22, 0)),
     FieldOfView = 35,
@@ -380,6 +401,15 @@ local jadeNotice, bundleNotice = "", ""
 local requestNumber = 0
 local previousSelection
 local shopFromWallet = false
+local gearIndex = 1
+local gearPrice, gearPriceState = nil, "unlisted"
+local gearPriceRequest = 0
+local gearSaveRequest, gearNotices = nil, {}
+
+local function equippedGear(gear)
+    local ok, slots = pcall(HttpService.JSONDecode, HttpService, player:GetAttribute("DojoFighterCosmetics") or "{}")
+    return ok and type(slots) == "table" and slots[gear.slot] == gear.id
+end
 
 local function gamepad()
     return UserInputService.PreferredInput == Enum.PreferredInput.Gamepad or UserInputService.VREnabled
@@ -460,6 +490,7 @@ local function render()
     local jadeOwned = player:GetAttribute("DojoMarketSashOwned") == true
     local entitlement = player:GetAttribute("DojoBundleOwnership")
     local bundleOwned = entitlement == "owned"
+    local gear = category == "gear" and GearCatalog.Items[gearIndex] or nil
     local inCloset = category == "closet"
     local closetLoaded = ready and (entitlement == "owned" or entitlement == "locked")
     local empty = inCloset and not (jadeOwned or bundleOwned)
@@ -473,21 +504,42 @@ local function render()
     jadeChoice.BackgroundColor3 = if closetOffer == "jade" then fern else lacquer
     bundleChoice.BackgroundColor3 = if closetOffer == "midnight" then fern else lacquer
     previewTile.Visible = not empty
-    syncPortrait(bundleSelected, empty)
+    if shade.Visible and shop.Visible then syncPortrait(bundleSelected, empty, gear) end
+    gearPicker.Visible = gear ~= nil
+    if gear then gearName.Text = gear.fighter .. " · " .. gearIndex .. "/" .. #GearCatalog.Items end
+    productStand.Visible = gear == nil
+    portrait.Position = if gear then UDim2.fromScale(0, 0) else UDim2.fromScale(.24, 0)
+    portrait.Size = UDim2.fromScale(if gear then 1 else .76, 1)
     preview.Visible, bundlePreview.Visible = not bundleSelected, bundleSelected
     details:SetAttribute("ClosetEmpty", empty)
-    product:SetAttribute("HasClosetChoices", closetChoices.Visible)
+    product:SetAttribute("HasClosetChoices", closetChoices.Visible or gear ~= nil)
     action.Visible, priceDisplay.Visible = not empty, not empty
-    local nextProduct = if closetChoices.Visible then (if bundleSelected then bundleChoice else jadeChoice) else previewMode
+    local nextProduct = if gear then previousGear elseif closetChoices.Visible then
+        (if bundleSelected then bundleChoice else jadeChoice) else previewMode
     for _, tab in tabButtons do tab.NextSelectionDown = nextProduct end
     jadeChoice.NextSelectionDown, bundleChoice.NextSelectionDown = previewMode, previewMode
     action.NextSelectionUp = previewMode
     action.NextSelectionLeft = if not empty then previewMode else nil
     previewMode.NextSelectionRight = action
-    previewMode.NextSelectionUp = if closetChoices.Visible then nextProduct else tabButtons[category]
+    previewMode.NextSelectionUp = if gear or closetChoices.Visible then nextProduct else tabButtons[category]
 
     local usable = false
-    if empty then
+    if gear then
+        local owned = player:GetAttribute(GearCatalog.attribute("CosmeticOwnership", gear.id)) == "owned"
+        local matching = player:GetAttribute("SelectedStarterFighter") == gear.fighterId
+        local baseForm = player:GetAttribute("SelectedFighterForm") == "rookie"
+        local worn = matching and baseForm and equippedGear(gear)
+        title.Text, description.Text = gear.name, gear.description .. " Fits the Rookie form."
+        ownership.Text = if owned and worn then "EQUIPPED" elseif owned then "OWNED" else "FIGHTER-EXCLUSIVE COSMETIC"
+        priceDisplay.Text = if owned then "Rookie form" elseif gearPrice then ("%s Robux"):format(formatted(gearPrice))
+            elseif gearPriceState == "loading" then "Checking Roblox…" elseif gearPriceState == "error" then "Price unavailable"
+            else "Off sale"
+        usable = if owned then matching and baseForm and readyToSpend() and gearSaveRequest == nil else gearPrice ~= nil
+        action.Text = if gearSaveRequest then "Saving…" elseif owned and not matching then "Switch to " .. gear.fighter
+            elseif owned and not baseForm then "Equip Rookie form" elseif owned and worn then "Remove cosmetic"
+            elseif owned then "Equip cosmetic" elseif gearPrice then "Open Roblox Shop" else "Unavailable for purchase"
+        feedback.Text = gearNotices[gear.id] or ""
+    elseif empty then
         title.Text = if closetLoaded then "Your closet is empty" else "My closet"
         ownership.Text = "OWNED OUTFITS"
         description.Text = if closetLoaded then "Collect apparel in either shop tab to see it here."
@@ -552,6 +604,27 @@ local function refreshPrice()
             if price and price > 0 then bundlePrice = price end
         end
         priceState = if bundlePrice then "ready" elseif not hasInfo or info.IsForSale then "error" else "unlisted"
+        render()
+    end)
+end
+
+local function refreshGearPrice()
+    local gear = GearCatalog.Items[gearIndex]
+    local passId = whole(remote:GetAttribute(GearCatalog.attribute("CosmeticPass", gear.id)))
+    gearPriceRequest += 1
+    local request = gearPriceRequest
+    gearPrice = nil
+    gearPriceState = if passId and passId > 0 then "loading" else "unlisted"
+    remote:FireServer("fighterCosmeticRefresh", nil, gear.id)
+    render()
+    if gearPriceState ~= "loading" then return end
+    task.spawn(function()
+        local ok, info = pcall(MarketplaceService.GetProductInfoAsync, MarketplaceService, passId, Enum.InfoType.GamePass)
+        if request ~= gearPriceRequest then return end
+        local hasInfo = ok and type(info) == "table"
+        local price = hasInfo and info.IsForSale == true and whole(info.PriceInRobux)
+        gearPrice = if price and price > 0 then price else nil
+        gearPriceState = if gearPrice then "ready" elseif not hasInfo or info.IsForSale then "error" else "unlisted"
         render()
     end)
 end
@@ -627,6 +700,27 @@ end
 
 action.Activated:Connect(function()
     if not shade.Visible or not shop.Visible or not available() or not action.Active then return end
+    if category == "gear" then
+        local gear = GearCatalog.Items[gearIndex]
+        if player:GetAttribute(GearCatalog.attribute("CosmeticOwnership", gear.id)) == "owned" then
+            local request = {id = gear.id}
+            gearSaveRequest = request
+            gearNotices[gear.id] = nil
+            remote:FireServer("fighterCosmetic", not equippedGear(gear), gear.id)
+            task.delay(12, function()
+                if gearSaveRequest ~= request then return end
+                gearSaveRequest = nil
+                gearNotices[gear.id] = "Check your outfit before retrying."
+                render()
+            end)
+        elseif pcall(MarketplaceService.OpenShop, MarketplaceService, player) then
+            hide()
+        else
+            gearNotices[gear.id] = "Roblox Shop is unavailable. Try again shortly."
+        end
+        render()
+        return
+    end
     if bundleSelected then
         if not action.Active or bundleSaving then return end
         bundleNotice = ""
@@ -673,7 +767,13 @@ action.Activated:Connect(function()
         render()
     end)
 end)
-remote.OnClientEvent:Connect(function(message, open)
+remote.OnClientEvent:Connect(function(message, open, itemId)
+    if message == "fighterCosmeticNotice" and GearCatalog.get(itemId) then
+        if gearSaveRequest and gearSaveRequest.id == itemId then gearSaveRequest = nil end
+        gearNotices[itemId] = if type(open) == "string" then open else ""
+        render()
+        return
+    end
     if message == "openShop" then
         if open == true then show(true, false) end
         return
@@ -701,12 +801,21 @@ end
 player:GetAttributeChangedSignal("SelectedStarterFighter"):Connect(updateAvailability)
 for _, attribute in {"ProgressStatus", "FighterHudProgress", "DojoCoins", "RaidTokens", "MythicShards",
     "DojoMarketSashOwned", "DojoMarketSashEquipped", "DojoMarketSashCost",
-    "DojoBundleOwnership", "DojoBundleSelected"} do
+    "DojoBundleOwnership", "DojoBundleSelected", "DojoFighterCosmetics", "SelectedFighterForm", "SelectedStarterFighter"} do
     player:GetAttributeChangedSignal(attribute):Connect(render)
 end
 remote:GetAttributeChangedSignal("BundlePassId"):Connect(function()
     if shop.Visible and shade.Visible and category == "robux" then refreshPrice() end
 end)
+
+for _, gear in GearCatalog.Items do
+    player:GetAttributeChangedSignal(GearCatalog.attribute("CosmeticOwnership", gear.id)):Connect(render)
+    remote:GetAttributeChangedSignal(GearCatalog.attribute("CosmeticPass", gear.id)):Connect(function()
+        if shade.Visible and shop.Visible and category == "gear" and GearCatalog.Items[gearIndex] == gear then
+            refreshGearPrice()
+        end
+    end)
+end
 
 local function watchPanel(node)
     if node:IsA("ScreenGui") and node.Parent == playerGui and (node.Name == "GrandDojo" or node.Name == "BeastDojoSplash") then
@@ -785,6 +894,7 @@ local function layout()
     local detailY = offset + (if stacked and not empty then previewHeight + 8 else 0)
     product.Size = UDim2.new(1, -4, 0, detailY + detailHeight)
     closetChoices.Size = UDim2.new(1, 0, 0, 44)
+    gearPicker.Size = closetChoices.Size
     previewTile.Position = UDim2.fromOffset(0, offset)
     previewTile.Size = if stacked then UDim2.new(1, 0, 0, previewHeight) else UDim2.new(.49, -5, 0, previewHeight)
     details.Position = if stacked or empty then UDim2.fromOffset(0, detailY) else UDim2.new(.49, 5, 0, detailY)
@@ -822,7 +932,7 @@ for key, tab in tabButtons do
     tab.Activated:Connect(function()
         category, previewing = key, true
         shopScroll.CanvasPosition = Vector2.zero
-        if key == "robux" then refreshPrice() else render() end
+        if key == "robux" then refreshPrice() elseif key == "gear" then refreshGearPrice() else render() end
     end)
 end
 jadeChoice.Activated:Connect(function()
@@ -833,9 +943,17 @@ bundleChoice.Activated:Connect(function()
     closetOffer, previewing = "midnight", true
     render()
 end)
+local function browseGear(delta)
+    gearIndex = (gearIndex - 1 + delta) % #GearCatalog.Items + 1
+    previewing = true
+    refreshGearPrice()
+end
+previousGear.Activated:Connect(function() browseGear(-1) end)
+nextGear.Activated:Connect(function() browseGear(1) end)
 previewMode.Activated:Connect(function()
     previewing = not previewing
-    syncPortrait(bundleSelected, details:GetAttribute("ClosetEmpty") == true)
+    syncPortrait(bundleSelected, details:GetAttribute("ClosetEmpty") == true,
+        if category == "gear" then GearCatalog.Items[gearIndex] else nil)
 end)
 player.CharacterRemoving:Connect(hide)
 action.SelectionGained:Connect(function()

@@ -11,6 +11,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local roster = require(ReplicatedStorage:WaitForChild("StarterFighterCatalog"))
+local portraits = require(ReplicatedStorage:WaitForChild("ChampionshipPortraits"))
 local fighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local fighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local visuals = ReplicatedStorage:WaitForChild("StarterFighterVisuals")
@@ -19,6 +20,7 @@ local formVisuals = ReplicatedStorage:WaitForChild("FighterFormVisuals")
 local choice = ReplicatedStorage:WaitForChild("StarterFighterChoice")
 local actionName = "BeastDojoStarterSelection"
 local cancelActionName = "BeastDojoCloseFighterSelect"
+local focusActionName = "BeastDojoFighterPickerFocus"
 local colors = {
     veil = Color3.fromRGB(19, 15, 30),
     panel = Color3.fromRGB(35, 28, 45),
@@ -106,6 +108,9 @@ local backdrop = create("Frame", screen, {
 local panel = create("Frame", backdrop, {
     Name = "SelectionPanel", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
     BackgroundColor3 = colors.panel, BorderSizePixel = 0, Active = true, Visible = false,
+    SelectionGroup = true, SelectionBehaviorUp = Enum.SelectionBehavior.Stop,
+    SelectionBehaviorDown = Enum.SelectionBehavior.Stop, SelectionBehaviorLeft = Enum.SelectionBehavior.Stop,
+    SelectionBehaviorRight = Enum.SelectionBehavior.Stop,
 })
 local loading = create("Frame", backdrop, {
     Name = "ProfileLoading", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
@@ -123,11 +128,11 @@ edge(panel, 15, colors.edge)
 local heading = label(panel, "Heading", "Choose your fighter", 31, colors.gold, Enum.Font.FredokaOne)
 local close = button(panel, "CloseFighterSelect", "Close", colors.raised, colors.edge)
 close.Visible = false
-local rosterBar = create("ScrollingFrame", panel, {
+local rosterTitle = label(panel, "RosterTitle", "", 16, colors.gold, Enum.Font.GothamBold)
+local previousPage = button(panel, "PreviousRosterPage", "‹", colors.raised, colors.edge)
+local nextPage = button(panel, "NextRosterPage", "›", colors.raised, colors.edge)
+local rosterBar = create("Frame", panel, {
     Name = "FighterSelector", BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true,
-    ScrollingDirection = Enum.ScrollingDirection.Y, ScrollingEnabled = false,
-    ScrollBarImageColor3 = colors.edge, ScrollBarThickness = 0,
-    CanvasSize = UDim2.fromOffset(0, 0), CanvasPosition = Vector2.zero,
 })
 
 local stage = create("Frame", panel, {
@@ -268,6 +273,7 @@ local requestedForm
 local requestedMoves = {}
 local activeSlot = "technique"
 local switching = false
+local availableOrder = starterOrder
 local fighterLevels = {}
 local fighterForms = {}
 local animation
@@ -284,9 +290,10 @@ local lastError = ""
 local visibleControls = false
 local inputLocked = false
 local promptsWereEnabled
+local pageCapacity, rosterPage = 8, 1
 
 local function selectionOrder()
-    return if switching then roster.Order else starterOrder
+    return if switching then availableOrder else starterOrder
 end
 
 local function requiredLevel(id)
@@ -693,48 +700,35 @@ local function updateLevel()
     end
 end
 
-local function updateCards()
-    local order = selectionOrder()
-    local info = roster.ById[selectedId]
-    local tint = info and elements[info.element] or colors.gold
+local function updateCards(order, first, last, cardHeight)
+    local equippedId = player:GetAttribute("SelectedStarterFighter")
+    local showPortraits = panel.Visible and cardHeight >= 68
     for _, card in cards do
-        local visible = table.find(order, card.id) ~= nil
+        local index = table.find(order, card.id)
+        local visible = index and index >= first and index <= last
+        local selected = card.id == selectedId
+        local equipped = switching and card.id == equippedId
+        local tint = card.tint
         local required = requiredLevel(card.id)
-        card.control.Visible, card.control.Selectable = visible, visible
-        card.control.BackgroundColor3 = if card.id == selectedId then tint:Lerp(colors.raised, .73) else colors.raised
-        card.stroke.Color = if card.id == selectedId then tint else colors.edge
-        if card.requirement then
-            card.requirement.Visible = required ~= nil
-            card.requirement.Text = if required then string.format("LEVEL %d", required) else ""
-            card.name.Position = UDim2.fromOffset(2, 0)
-            card.name.Size = UDim2.new(1, -4, 1, if required then -14 else 0)
+        card.control.Visible, card.control.Selectable = visible == true, visible == true
+        card.control.BackgroundColor3 = if selected then colors.gold:Lerp(colors.raised, .79) else colors.raised
+        card.stroke.Color = if selected then colors.gold else tint:Lerp(colors.edge, .72)
+        card.stroke.Thickness = if GuiService.SelectedObject == card.control then 3 elseif selected then 2 else 1.25
+        card.requirement.Text = if required then string.format("Unlock Lv %d", required)
+            elseif equipped then "Equipped" elseif (roster.ById[card.id].unlockLevel or 1) > 1 then "Unlocked" else "Starter"
+        card.requirement.TextColor3 = if equipped then elements.Land elseif required then colors.gold else colors.muted
+        card.art.Visible = visible == true and showPortraits
+        if card.art.Visible and not card.portrait then
+            card.portrait = portraits.new(card.art, false, 2)
+        end
+        if card.portrait then
+            portraits.set(card.portrait, if card.art.Visible then card.id else nil)
         end
     end
 end
 
-local function revealSelection()
-    if not rosterBar.ScrollingEnabled then
-        return
-    end
-    local card = cardById[selectedId]
-    local horizontal = rosterBar.ScrollingDirection == Enum.ScrollingDirection.X
-    local window = if horizontal then rosterBar.Size.X.Offset else rosterBar.Size.Y.Offset
-    if not card or window <= 0 then
-        return
-    end
-    local control = card.control
-    local first = if horizontal then control.Position.X.Offset else control.Position.Y.Offset
-    local last = first + (if horizontal then control.Size.X.Offset else control.Size.Y.Offset)
-    local canvas = if horizontal then rosterBar.CanvasSize.X.Offset else rosterBar.CanvasSize.Y.Offset
-    local current = if horizontal then rosterBar.CanvasPosition.X else rosterBar.CanvasPosition.Y
-    local offset = math.clamp(current, math.min(first, last - window), first)
-    local nextPosition = math.clamp(offset, 0, math.max(0, canvas - window))
-    rosterBar.CanvasPosition = if horizontal then Vector2.new(nextPosition, 0) else Vector2.new(0, nextPosition)
-end
-
 local function showFighter(id)
     if id == selectedId then
-        revealSelection()
         return
     end
     if selectedId and (inFlight or player:GetAttribute("StarterSelectionPending") == true) then
@@ -756,8 +750,6 @@ local function showFighter(id)
     quote.Text = "“" .. info.quote .. "”"
     story.Text = info.story
     updateLevel()
-    updateCards()
-    revealSelection()
     details.CanvasPosition = Vector2.zero
     if screen.Enabled then
         drawPreview(id, tint)
@@ -766,21 +758,46 @@ local function showFighter(id)
     layout()
 end
 
+local function changePage(delta)
+    if not panel.Visible or inFlight or player:GetAttribute("StarterSelectionPending") == true then
+        return
+    end
+    local order = selectionOrder()
+    local targetPage = math.clamp(rosterPage + delta, 1, math.ceil(#order / pageCapacity))
+    if targetPage == rosterPage then
+        return
+    end
+    local index = table.find(order, selectedId) or 1
+    local nextIndex = math.min((targetPage - 1) * pageCapacity + (index - 1) % pageCapacity + 1, #order)
+    local nextId = order[nextIndex]
+    showFighter(nextId)
+    if focusNavigation() and nextId == selectedId and not GuiService.MenuIsOpen then
+        GuiService.SelectedObject = cardById[nextId].control
+    end
+end
+previousPage.Activated:Connect(function() changePage(-1) end)
+nextPage.Activated:Connect(function() changePage(1) end)
+
 for index, id in roster.Order do
     local info = roster.ById[id]
-    local gated = (info.unlockLevel or 1) > 1
-    local name = info.shortName or shortNames[id] or info.name
-    local control, stroke = button(rosterBar, id, if gated then "" else name, colors.raised, colors.edge)
-    local record = {id = id, control = control, stroke = stroke}
-    if gated then
-        record.name = label(control, "FighterName", name, 15, colors.text, Enum.Font.GothamBold)
-        record.name.TextXAlignment = Enum.TextXAlignment.Center
-        record.name.TextTruncate = Enum.TextTruncate.AtEnd
-        record.requirement = label(control, "UnlockLevel", "", 10, colors.gold, Enum.Font.GothamBold)
-        record.requirement.Position = UDim2.new(0, 4, 1, -19)
-        record.requirement.Size = UDim2.new(1, -8, 0, 14)
-        record.requirement.TextXAlignment = Enum.TextXAlignment.Center
-    end
+    local name = displayName(info)
+    local tint = elements[info.element] or colors.gold
+    local control, stroke = button(rosterBar, id, name, colors.raised, colors.edge)
+    control.TextTransparency = 1
+    local art = create("Frame", control, {
+        Name = "PortraitArt", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0,
+        ClipsDescendants = true, Active = false,
+    })
+    edge(art, 6, tint:Lerp(colors.raised, .55))
+    create("UIGradient", art, {
+        Rotation = 82, Color = ColorSequence.new(tint:Lerp(colors.raised, .43), colors.panel),
+    })
+    local nameLabel = label(control, "FighterName", name, 15, colors.text, Enum.Font.GothamBold)
+    nameLabel.TextXAlignment, nameLabel.TextWrapped = Enum.TextXAlignment.Center, true
+    local requirement = label(control, "UnlockLevel", "", 11, colors.gold, Enum.Font.GothamBold)
+    requirement.TextXAlignment = Enum.TextXAlignment.Center
+    local record = {id = id, control = control, stroke = stroke, art = art, tint = tint,
+        name = nameLabel, requirement = requirement}
     cards[index], cardById[id] = record, record
     control.Activated:Connect(function()
         showFighter(id)
@@ -873,12 +890,84 @@ for _, slot in slotOrder do
     end)
 end
 
+local function layoutRoster(order, columns, rows, left, top, width, room, gap, maximumCardHeight)
+    pageCapacity = columns * rows
+    local selectedIndex = table.find(order, selectedId) or 1
+    rosterPage = math.ceil(selectedIndex / pageCapacity)
+    local pageCount = math.ceil(#order / pageCapacity)
+    local first = (rosterPage - 1) * pageCapacity + 1
+    local last = math.min(first + pageCapacity - 1, #order)
+    local displayedRows = math.ceil((last - first + 1) / columns)
+    local paged = pageCount > 1
+    local band = if paged then 44 else 23
+    local cardGap = math.min(gap, 7)
+    local slot = (width - (columns - 1) * cardGap) / columns
+    local cardHeight = math.clamp(math.floor((room - band - cardGap * displayedRows) / displayedRows), 44, maximumCardHeight)
+    local gridY = top + band + cardGap
+    local gridHeight = displayedRows * (cardHeight + cardGap) - cardGap
+
+    rosterTitle.Text = if not switching then "Starters"
+        elseif not paged and #order == 8 then "Launch roster  ·  8 fighters"
+        elseif not paged then string.format("Available fighters  ·  %d", #order)
+        elseif rosterPage == 1 and pageCapacity == 8 then string.format("Launch roster  ·  1 / %d", pageCount)
+        else string.format("Fighters %d–%d  ·  %d / %d", first, last, rosterPage, pageCount)
+    rosterTitle.TextSize = if width < 300 then 13 else 16
+    rosterTitle.Position, rosterTitle.Size = UDim2.fromOffset(left + 1, top),
+        UDim2.fromOffset(width - (if paged then 100 else 2), band)
+    rosterTitle.TextWrapped = paged and width < 300
+    previousPage.Visible, nextPage.Visible = paged, paged
+    previousPage.Active, nextPage.Active = rosterPage > 1, rosterPage < pageCount
+    previousPage.Selectable, nextPage.Selectable = previousPage.Active, nextPage.Active
+    previousPage.TextColor3 = if previousPage.Active then colors.text else colors.edge
+    nextPage.TextColor3 = if nextPage.Active then colors.text else colors.edge
+    previousPage.Position = UDim2.fromOffset(left + width - 94, top)
+    nextPage.Position = UDim2.fromOffset(left + width - 44, top)
+    previousPage.Size, nextPage.Size = UDim2.fromOffset(44, 44), UDim2.fromOffset(44, 44)
+    previousPage.TextSize, nextPage.TextSize = 25, 25
+    previousPage.NextSelectionRight = if nextPage.Active then nextPage else previousPage
+    nextPage.NextSelectionLeft = if previousPage.Active then previousPage else nextPage
+    previousPage.NextSelectionUp, nextPage.NextSelectionUp = close, close
+    previousPage.NextSelectionDown, nextPage.NextSelectionDown = selectedCard(), selectedCard()
+    local firstControl = if nextPage.Active then nextPage elseif previousPage.Active then previousPage else close
+
+    rosterBar.Position, rosterBar.Size = UDim2.fromOffset(left, gridY), UDim2.fromOffset(width, gridHeight)
+    updateCards(order, first, last, cardHeight)
+    for index = first, last do
+        local id = order[index]
+        local card = cardById[id]
+        local relative = index - first
+        local column, row = relative % columns, math.floor(relative / columns)
+        local control = card.control
+        control.Position = UDim2.fromOffset(column * (slot + cardGap), row * (cardHeight + cardGap))
+        control.Size = UDim2.fromOffset(slot, cardHeight)
+        local caption = if slot < 82 then 42 else 37
+        local artHeight = if card.art.Visible then cardHeight - caption - 3 else 0
+        card.art.Position, card.art.Size = UDim2.fromOffset(3, 3), UDim2.new(1, -6, 0, artHeight)
+        card.name.Position = UDim2.fromOffset(3, artHeight + (if card.art.Visible then 3 else 2))
+        card.name.Size = UDim2.new(1, -6, 0, cardHeight - card.name.Position.Y.Offset - 15)
+        card.name.TextSize = if slot < 68 then 11 elseif slot < 82 then 12 elseif slot < 103 then 14 else 16
+        card.requirement.Position, card.requirement.Size = UDim2.new(0, 2, 1, -14), UDim2.new(1, -4, 0, 12)
+        control.NextSelectionLeft = if column > 0 then cardById[order[index - 1]].control else control
+        control.NextSelectionRight = if column < columns - 1 and index < last
+            then cardById[order[index + 1]].control else control
+        control.NextSelectionUp = if row > 0 then cardById[order[index - columns]].control
+            elseif switching then firstControl else control
+        local nextRow = first + (row + 1) * columns
+        control.NextSelectionDown = if nextRow <= last then cardById[order[math.min(index + columns, last)]].control
+            elseif id == selectedId and slotStrip.Visible then slotButtons[activeSlot].control
+            elseif id == selectedId and tacticalBar.Visible then tacticalButtons[1].control
+            elseif id == selectedId and formBar.Visible then formButtons[1].control
+            else confirm
+    end
+    return gridY + gridHeight
+end
+
 layout = function()
     local safe = backdrop.AbsoluteSize
     if safe.X < 2 or safe.Y < 2 then
         return
     end
-    local tall = safe.X < 560 and safe.Y >= safe.X * .92
+    local tall = safe.X < 560 and safe.Y >= math.max(360, safe.X * .92)
     local compact = safe.Y < 405
     local width = math.min(safe.X - (if compact then 12 else 22), 1000)
     local height = math.min(safe.Y - (if compact then 10 else 20), 670)
@@ -886,90 +975,42 @@ layout = function()
     local pad = if compact then 9 else 14
     local gap = if compact then 7 else 10
     local contentWidth = width - pad * 2
-    local headingHeight = if compact then 31 else 42
+    local headingHeight = if compact then 37 else 44
     local closeWidth = if compact then 71 else 89
     local headingWidth = contentWidth - 2 - (if switching then closeWidth + gap else 0)
     heading.Position, heading.Size = UDim2.fromOffset(pad + 2, pad), UDim2.fromOffset(headingWidth, headingHeight)
-    heading.TextSize = if compact then 24 else 31
-    close.Position, close.Size = UDim2.fromOffset(width - pad - closeWidth, pad),
-        UDim2.fromOffset(closeWidth, math.max(36, headingHeight))
+    heading.TextSize = if compact or contentWidth < 320 then 23 else 31
+    close.Position, close.Size = UDim2.fromOffset(width - pad - closeWidth, pad), UDim2.fromOffset(closeWidth, 44)
     close.TextSize = if compact then 14 else 16
+
     local order = selectionOrder()
-    local cardHeight = if compact then 44 else 49
-    local cardGap = gap
-    local horizontal = compact and switching and not tall
-    local columns = if tall then 2 else 4
-    if horizontal then
-        columns, cardGap = #order, 6
-    elseif switching then
-        local count = #order
-        local denseGap = if compact then 4 else 6
-        local fullGap = if compact then 2 else 6
-        local fullRoster = count > 22 and contentWidth >= 12 * 54 + 11 * fullGap
-        local denseRoster = count > 20 and contentWidth >= 11 * 56 + 10 * denseGap
-        cardGap = if fullRoster then fullGap elseif denseRoster then denseGap else gap
-        local limit = if fullRoster then 12 elseif denseRoster then 11 elseif contentWidth >= 10 * 60 + 9 * gap then 10
-            elseif contentWidth >= 9 * 68 + 8 * gap then 9
-            elseif contentWidth >= 8 * 77 + 7 * gap then 8 elseif contentWidth >= 7 * 84 + 6 * gap then 7
-            elseif contentWidth >= 604 then 6
-            elseif contentWidth >= 530 then 5 elseif contentWidth >= 450 then 4
-            elseif contentWidth >= 300 then 3 else 2
-        columns = if count > limit and count <= limit * 2 then math.ceil(count / 2) else math.min(count, limit)
-    end
-    local rosterY = pad + headingHeight + gap
-    local footer = if compact then 42 else 48
+    local rosterY = pad + math.max(44, headingHeight) + gap
+    local footer = if compact then 44 else 48
     local footerY = height - pad - footer
     local reserve = if tall and status.Text ~= "" then 43 else 0
-    local minimumBody = if tall then 108 else 62
-    local rosterRoom = footerY - rosterY - reserve - minimumBody - gap * 2
-    local fittedRows = math.max(1, math.floor((rosterRoom + cardGap) / (cardHeight + cardGap)))
-    local rows = math.ceil(#order / columns)
-    local maximumRosterRows = if tall and not compact then 3 else 2
-    local visibleRows = math.min(rows, fittedRows, maximumRosterRows)
-    local rosterHeight = if horizontal then cardHeight + 4 else visibleRows * (cardHeight + cardGap) - cardGap
-    local scrollRoster = horizontal or rows > visibleRows
-    local scrollbarWidth = if scrollRoster and not horizontal then 7 else 0
-    local slot = if horizontal then 96 else (contentWidth - scrollbarWidth - (columns - 1) * cardGap) / columns
-    rosterBar.Position, rosterBar.Size = UDim2.fromOffset(pad, rosterY), UDim2.fromOffset(contentWidth, rosterHeight)
-    rosterBar.ScrollingDirection = if horizontal then Enum.ScrollingDirection.X else Enum.ScrollingDirection.Y
-    rosterBar.CanvasSize = if horizontal then UDim2.fromOffset(#order * (slot + cardGap) - cardGap, cardHeight)
-        else UDim2.fromOffset(0, rows * (cardHeight + cardGap) - cardGap)
-    rosterBar.ScrollingEnabled = scrollRoster
-    rosterBar.ScrollBarThickness = if scrollRoster then 4 else 0
-    if not scrollRoster then
-        rosterBar.CanvasPosition = Vector2.zero
-    end
-    for index, id in order do
-        local card = cardById[id]
-        local column, row = (index - 1) % columns, math.floor((index - 1) / columns)
-        local control = card.control
-        control.Position = UDim2.fromOffset(column * (slot + cardGap), row * (cardHeight + cardGap))
-        control.Size = UDim2.fromOffset(slot, cardHeight)
-        local nameLabel = card.name or control
-        nameLabel.TextSize = if horizontal then 13 elseif slot < 60 then 10 elseif slot < 75 then 11 elseif slot < 84 then 12
-            elseif slot < 108 then 14 else 16
-        nameLabel.TextWrapped = not horizontal and slot < 84
-        control.NextSelectionLeft = if column > 0 then cardById[order[index - 1]].control else control
-        control.NextSelectionRight = if column < columns - 1 and order[index + 1]
-            then cardById[order[index + 1]].control else control
-        control.NextSelectionUp = if row > 0 then cardById[order[index - columns]].control else (if switching then close else control)
-        local nextRow = (row + 1) * columns + 1
-        control.NextSelectionDown = if id == selectedId and slotStrip.Visible then slotButtons[activeSlot].control
-            elseif id == selectedId and tacticalBar.Visible then tacticalButtons[1].control
-            elseif id == selectedId and formBar.Visible then formButtons[1].control
-            elseif order[nextRow] then cardById[order[math.min(index + columns, #order)]].control else confirm
-    end
-    revealSelection()
+    local bodyBottom = footerY - reserve - gap
+    local sideBySide = not tall and contentWidth >= (if compact then 250 else 540)
+    local rosterWidth = if sideBySide then math.floor((contentWidth - gap) * .56) else contentWidth
+    local columns = if rosterWidth >= 230 then 4 else 2
+    local previewReserve = if sideBySide then 0 elseif tall then 150 elseif compact then 84 else 120
+    local rosterRoom = bodyBottom - rosterY - previewReserve - (if sideBySide then 0 else gap)
+    local maximumBand = if #order > columns * 2 then 44 else 23
+    local rows = if rosterRoom >= maximumBand + 2 * (44 + gap) then 2 else 1
+    local maximumCardHeight = if sideBySide then (if compact then 112 else 146) elseif tall then 100 else 88
+    local rosterBottom = layoutRoster(order, columns, rows, pad, rosterY, rosterWidth, rosterRoom, gap, maximumCardHeight)
 
-    local bodyY = rosterY + rosterHeight + gap
-    local bodyHeight = math.max(62, footerY - bodyY - gap - reserve)
-    local stageWidth = if tall then contentWidth else math.floor((contentWidth - gap) * .49)
-    local stageHeight = if tall then math.clamp(math.floor(bodyHeight * .46), 62, 235) else bodyHeight
-    stage.Position, stage.Size = UDim2.fromOffset(pad, bodyY), UDim2.fromOffset(stageWidth, stageHeight)
-    local detailX = if tall then pad else pad + stageWidth + gap
-    local detailY = if tall then bodyY + stageHeight + gap else bodyY
-    local detailWidth = if tall then contentWidth else contentWidth - stageWidth - gap
-    local detailHeight = if tall then math.max(36, bodyHeight - stageHeight - gap) else bodyHeight
+    local bodyY = if sideBySide then rosterY else rosterBottom + gap
+    local bodyHeight = math.max(62, bodyBottom - bodyY)
+    local stageX = if sideBySide then pad + rosterWidth + gap else pad
+    local stageWidth = if sideBySide then contentWidth - rosterWidth - gap
+        elseif tall then contentWidth else math.floor((contentWidth - gap) * .46)
+    local stackedPreview = sideBySide or tall
+    local stageHeight = if stackedPreview then math.clamp(math.floor(bodyHeight * .47), 62, 272) else bodyHeight
+    stage.Position, stage.Size = UDim2.fromOffset(stageX, bodyY), UDim2.fromOffset(stageWidth, stageHeight)
+    local detailX = if stackedPreview then stageX else pad + stageWidth + gap
+    local detailY = if stackedPreview then bodyY + stageHeight + gap else bodyY
+    local detailWidth = if stackedPreview then stageWidth else contentWidth - stageWidth - gap
+    local detailHeight = if stackedPreview then math.max(36, bodyHeight - stageHeight - gap) else bodyHeight
     detailBox.Position, detailBox.Size = UDim2.fromOffset(detailX, detailY), UDim2.fromOffset(detailWidth, detailHeight)
     visibleControls = detailHeight >= 94 or focusNavigation()
     local textPad = if compact then 8 else 12
@@ -1019,7 +1060,7 @@ layout = function()
                     else tacticalButtons[1].control
             end
         end
-        tacticalBar.LayoutOrder = if compact then 0 else 3
+        tacticalBar.LayoutOrder = 3
         local optionsBottom = headerHeight + rowsForTactics * (buttonHeight + gapBetween) - gapBetween
         local descriptionHeight = if slotStrip.Visible then (if compact then 44 else 38) else 0
         tacticalBar.Size = UDim2.new(1, -9, 0, optionsBottom + descriptionHeight)
@@ -1083,7 +1124,7 @@ layout = function()
         end
     end
     close.NextSelectionDown = selectedCard()
-    confirm.Size = UDim2.fromOffset(if tall then contentWidth else math.min(contentWidth * .53, 338), footer)
+    confirm.Size = UDim2.fromOffset(if stackedPreview then stageWidth else math.min(contentWidth * .53, 338), footer)
     confirm.AnchorPoint = Vector2.new(1, 0)
     confirm.Position = UDim2.new(1, -pad, 0, footerY)
     confirm.TextSize = if compact then 15 else 17
@@ -1105,7 +1146,8 @@ viewport:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitCamera)
 status:GetPropertyChangedSignal("Text"):Connect(layout)
 
 local function confirmChoice()
-    if not panel.Visible or not selectedId or inFlight or player:GetAttribute("StarterSelectionPending") == true
+    if not panel.Visible or GuiService.MenuIsOpen or not selectedId or inFlight
+        or player:GetAttribute("StarterSelectionPending") == true
         or (switching and not player:GetAttribute("FighterSelectOpen"))
         or (not switching and player:GetAttribute("StarterSelectionRequired") ~= true) then
         return
@@ -1199,10 +1241,60 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 local function focus()
-    if panel.Visible and focusNavigation()
-        and (not GuiService.SelectedObject or not GuiService.SelectedObject:IsDescendantOf(panel)) then
+    local selected = GuiService.SelectedObject
+    if panel.Visible and focusNavigation() and not GuiService.MenuIsOpen
+        and (not selected or not selected.Visible or not selected:IsDescendantOf(panel)) then
         GuiService.SelectedObject = selectedCard()
     end
+end
+GuiService.MenuClosed:Connect(function() task.defer(focus) end)
+
+local rosterDirections = {
+    [Enum.KeyCode.DPadUp] = "NextSelectionUp", [Enum.KeyCode.DPadDown] = "NextSelectionDown",
+    [Enum.KeyCode.DPadLeft] = "NextSelectionLeft", [Enum.KeyCode.DPadRight] = "NextSelectionRight",
+}
+local function navigatePicker(_, state, input)
+    if not panel.Visible or GuiService.MenuIsOpen then
+        return Enum.ContextActionResult.Pass
+    end
+    if input.KeyCode == Enum.KeyCode.ButtonL1 or input.KeyCode == Enum.KeyCode.ButtonR1 then
+        if state == Enum.UserInputState.Begin then
+            changePage(if input.KeyCode == Enum.KeyCode.ButtonL1 then -1 else 1)
+        end
+        return Enum.ContextActionResult.Sink
+    end
+    local current = GuiService.SelectedObject
+    if not current or not current:IsDescendantOf(panel) then
+        if state == Enum.UserInputState.Begin then
+            GuiService.SelectedObject = selectedCard()
+        end
+        return Enum.ContextActionResult.Sink
+    end
+    if input.KeyCode == Enum.KeyCode.ButtonA and (current == confirm or current.Parent == rosterBar) then
+        if state == Enum.UserInputState.Begin then
+            if current == confirm then confirmChoice() else showFighter(current.Name) end
+        end
+        return Enum.ContextActionResult.Sink
+    end
+    local direction = rosterDirections[input.KeyCode]
+    if direction and current.Parent == rosterBar then
+        local target = current[direction]
+        if target and target.Parent == rosterBar then
+            if state == Enum.UserInputState.Begin and not inFlight
+                and player:GetAttribute("StarterSelectionPending") ~= true then
+                showFighter(target.Name)
+                GuiService.SelectedObject = target
+                task.defer(function()
+                    if panel.Visible and selectedId == target.Name and not GuiService.MenuIsOpen
+                        and not GuiService.SelectedObject then
+                        GuiService.SelectedObject = target
+                    end
+                end)
+            end
+            return Enum.ContextActionResult.Sink
+        end
+    end
+    return Enum.ContextActionResult.Pass
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(function()
     focus()
@@ -1237,6 +1329,10 @@ local function show(asSwitch)
     lastError = player:GetAttribute("StarterSelectionError") or ""
     panel.Visible, loading.Visible, screen.Enabled = true, false, true
     lockInput(true)
+    ContextActionService:BindActionAtPriority(focusActionName, navigatePicker, false,
+        Enum.ContextActionPriority.High.Value + 1, Enum.KeyCode.ButtonA,
+        Enum.KeyCode.DPadUp, Enum.KeyCode.DPadDown, Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight,
+        Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1)
     if switching then
         ContextActionService:BindActionAtPriority(cancelActionName, function(_, inputState)
             if inputState == Enum.UserInputState.Begin then
@@ -1247,18 +1343,22 @@ local function show(asSwitch)
     end
     local active = player:GetAttribute("SelectedStarterFighter")
     selectedId = nil
-    showFighter(if switching and active and roster.ById[active] then active else starterOrder[1])
+    showFighter(if switching and table.find(availableOrder, active) then active else starterOrder[1])
     animation = RunService.RenderStepped:Connect(function()
         if previewState == "ready" and motionAllowed() then
             pose(os.clock() - beganAt)
         end
     end)
     layout()
+    if not switching and focusNavigation() and not GuiService.MenuIsOpen then
+        GuiService.SelectedObject = selectedCard()
+    end
     focus()
 end
 
 local function hide()
     lockInput(false)
+    ContextActionService:UnbindAction(focusActionName)
     ContextActionService:UnbindAction(cancelActionName)
     if animation then
         animation:Disconnect()
@@ -1268,6 +1368,9 @@ local function hide()
         GuiService.SelectedObject = nil
     end
     panel.Visible, loading.Visible, screen.Enabled = false, false, false
+    for _, card in cards do
+        if card.portrait then portraits.set(card.portrait, nil) end
+    end
     inFlight = false
     requestNumber += 1
     if previewModel then
@@ -1324,8 +1427,29 @@ player:GetAttributeChangedSignal("SelectedStarterFighter"):Connect(function()
     if panel.Visible then
         updateLevel()
         buttons()
+        layout()
     end
 end)
+local function readAvailableRoster()
+    local encoded = player:GetAttribute("FighterRosterAvailable")
+    local order = {}
+    if type(encoded) == "string" then
+        for _, id in string.split(encoded, ",") do
+            if roster.ById[id] then table.insert(order, id) end
+        end
+    end
+    availableOrder = if #order > 0 then order else starterOrder
+    if panel.Visible and switching then
+        if table.find(availableOrder, selectedId) then
+            layout()
+        else
+            showFighter(availableOrder[1])
+        end
+        focus()
+    end
+end
+player:GetAttributeChangedSignal("FighterRosterAvailable"):Connect(readAvailableRoster)
+readAvailableRoster()
 local function readFighterLevels()
     local encoded = player:GetAttribute("FighterRosterLevels")
     if type(encoded) == "string" then
@@ -1379,9 +1503,9 @@ end
 readFighterForms()
 player:GetAttributeChangedSignal("HighestFighterLevel"):Connect(function()
     if panel.Visible then
-        updateCards()
         updateLevel()
         buttons()
+        layout()
     end
 end)
 player:GetAttributeChangedSignal("ProgressStatus"):Connect(function()
