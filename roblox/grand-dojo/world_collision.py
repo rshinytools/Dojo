@@ -11,7 +11,8 @@ WALKING_RAILS = frozenset({
     "Foothill overlook guardrail", "Galleon teal rail", "Gallery carved guardrail",
     "Gallery ramp rail", "Glacier Walk blue cedar rail", "Glaze cedar guardrail",
     "Kiln Ridge cedar guard", "Lantern Tower ramp guardrail", "Lantern Tower stair handrail",
-    "Lantern garden cedar rail", "Lookout cedar guardrail", "Lookout teal guardrail", "Lower red bridge rail",
+    "Lantern garden cedar rail", "Lookout cedar guardrail", "Lookout rail", "Lookout rear rail",
+    "Lookout side rail", "Lookout teal guardrail", "Lower red bridge rail",
     "Meltwater cedar rail", "Mistline approach rail", "Mistline cedar guardrail",
     "Orchard cedar guardrail", "Pinecrest cedar guardrail", "Plum Walk cedar guardrail",
     "Plum market rail", "Quay teal railing", "Saltwind teal guardrail",
@@ -19,6 +20,10 @@ WALKING_RAILS = frozenset({
     "Snowbell cedar rail", "Terrace cedar guardrail", "Tidewatch teal guardrail",
     "Weavers’ ramp rail", "Wind Court ramp cedar rail", "Yard cedar guardrail",
 })
+
+# These raised overlooks have a drop immediately beyond their rails. Give the
+# existing rail runs enough height to stop touch auto-jump as well as walking.
+LOOKOUT_DROP_RAILS = frozenset({"Lookout rail", "Lookout rear rail", "Lookout side rail"})
 
 SOLID_WALLS = frozenset({
     "Exchange side and rear walls", "Gallery side walls", "Harbor storehouse muted plaster",
@@ -113,8 +118,10 @@ def add_world_collision(scene, *, part, prop, rock_material):
         for name, x, y, z, dx, dy, dz, length in sections.values():
             # A handrail at 0.55–1.40 studs above the deck must still cover a
             # character's walking envelope below it. Leave gap endpoints open.
-            guard = part(container, f"Walkway guard · {name}", (x, y + .08, z),
-                         (.30, 3.15, length + .12), "875A4C",
+            height = 9.2 if name in LOOKOUT_DROP_RAILS else 3.15
+            guard_y = y + .08 + (height - 3.15) / 2
+            guard = part(container, f"Walkway guard · {name}", (x, guard_y, z),
+                         (.30, height, length + .12), "875A4C",
                          yaw=degrees(atan2(dx, dz)), pitch=-degrees(atan2(dy, hypot(dx, dz))),
                          transparency=1)
             prop(guard, "bool", "CastShadow", False)

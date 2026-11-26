@@ -3648,6 +3648,11 @@ def ring_forecourt(parent):
             if shoulder==0:
                 shoreline_slate(garden,x+side*.46,z-.61,high-.16,4.07,2.91,
                                 .59 if canal_side else 1.67,23*side,shadow=False)
+                if not canal_side:
+                    # Close the slit behind the east boulder, between the stair plinth and podium.
+                    core=part(garden,"Stair-side planter collision",(x+1.51,5.70,z-.70),(6.30,11.2,.37),
+                              "846F7A",material=SLATE,transparency=1)
+                    prop(core,"bool","CastShadow",False)
             else:
                 golden_sedge(garden,x+side*.36,high+.23,z+1.06,.35 if canal_side else .93,side)
                 for stalk in garden.findall("Item"):
