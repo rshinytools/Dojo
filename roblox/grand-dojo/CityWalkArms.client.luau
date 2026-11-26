@@ -16,16 +16,30 @@ local function release(fit)
     fit.weight = 0
 end
 
-local function walkingTrack(humanoid)
+local function walkingTrack(humanoid, animate, remote)
     local animator = humanoid:FindFirstChildOfClass("Animator")
-    local best
-    if animator then
-        for _, track in animator:GetPlayingAnimationTracks() do
-            local name = track.Animation and track.Animation.Name
-            if (name == "WalkAnim" or name == "RunAnim")
-                and (not best or track.WeightCurrent > best.WeightCurrent) then
-                best = track
+    if not animator then return nil end
+
+    local gaitIds = {}
+    if remote then
+        for _, state in {"walk", "run"} do
+            local configuration = animate:FindFirstChild(state)
+            for _, animation in configuration and configuration:GetChildren() or {} do
+                local id = animation:IsA("Animation") and animation.AnimationId:match("%d+$")
+                if id then gaitIds[id] = true end
             end
+        end
+    end
+
+    local best
+    for _, track in animator:GetPlayingAnimationTracks() do
+        local animation = track.Animation
+        if not animation then continue end
+        -- Replicated tracks can have a generic Animation name.
+        local isGait = if remote then gaitIds[animation.AnimationId:match("%d+$")]
+            else animation.Name == "WalkAnim" or animation.Name == "RunAnim"
+        if isGait and (not best or track.WeightCurrent > best.WeightCurrent) then
+            best = track
         end
     end
     return best
@@ -68,13 +82,15 @@ local function updatePlayer(owner, eye, dt)
     local character = owner.Character
     local shell = character and character:FindFirstChild("Starter Fighter Shell")
     local root = character and character:FindFirstChild("HumanoidRootPart")
-    local near = owner == localPlayer or (root and eye and (root.Position - eye).Magnitude <= presentationRadius)
+    local remote = owner ~= localPlayer
+    local near = not remote or (root and eye and (root.Position - eye).Magnitude <= presentationRadius)
     local animate = near and character and character:FindFirstChild("Animate")
     local humanoid = animate and character:FindFirstChildOfClass("Humanoid")
     local torso = humanoid and character:FindFirstChild("Torso")
     if not (root and shell and torso and not root.Anchored and not animate.Disabled)
-        or humanoid.FloorMaterial == Enum.Material.Air
-        or humanoid:GetState() ~= Enum.HumanoidStateType.Running or humanoid.Sit
+        or humanoid.Health <= 0 or humanoid.Sit
+        or (not remote and (humanoid.FloorMaterial == Enum.Material.Air
+            or humanoid:GetState() ~= Enum.HumanoidStateType.Running))
         or owner:GetAttribute("SparringActive") or owner:GetAttribute("SkywalkTrialMode")
         or character:GetAttribute("ArenaJumpEnabled") then
         if fit then
@@ -90,13 +106,17 @@ local function updatePlayer(owner, eye, dt)
         fits[owner] = fit
     end
     local weight = 0
-    if humanoid.MoveDirection.Magnitude > .01 or root.AssemblyLinearVelocity.Magnitude > .5 then
+    local velocity = root.AssemblyLinearVelocity
+    local moving = if remote then velocity.X * velocity.X + velocity.Z * velocity.Z > .25
+        else humanoid.MoveDirection.Magnitude > .01 or velocity.Magnitude > .5
+    if moving then
         local track = fit.track
-        if not track or not track.IsPlaying then
-            track = walkingTrack(humanoid)
+        if not track or not track.IsPlaying or (remote and track.WeightCurrent <= .5) then
+            track = walkingTrack(humanoid, animate, remote)
             fit.track = track
         end
-        if track and track.Length > 0 then
+        -- Use the observed gait as the ground-motion signal for remote players.
+        if track and track.Length > 0 and (not remote or track.WeightCurrent > .5) then
             fit.phase = track.TimePosition / track.Length
             weight = track.WeightCurrent
         end
