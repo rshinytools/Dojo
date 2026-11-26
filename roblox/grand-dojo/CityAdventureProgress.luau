@@ -4,6 +4,7 @@ local EMPTY = table.freeze({districts = table.freeze({}), activities = table.fre
 local FESTIVAL_SOURCES = {relay = true, cloudbreak = true}
 -- Expert has an inactivity limit. Any verified finish can be stored as exact tenths.
 local MAX_CLOUDBREAK_TENTHS = 2 ^ 53 - 1
+local CACHE_COOLDOWN = 48 * 60 * 60
 
 local function integer(value, minimum, maximum)
     return type(value) == "number" and value % 1 == 0 and value >= minimum and value <= maximum
@@ -13,6 +14,22 @@ function Progress.cloudbreakTenths(seconds)
     if type(seconds) ~= "number" then return nil end
     local tenths = math.round(seconds * 10)
     return if integer(tenths, 1, MAX_CLOUDBREAK_TENTHS) then tenths else nil
+end
+
+function Progress.cacheReadyAt(world, districtId)
+    local district = world.districts[districtId]
+    local openedAt = if districtId == "grand" then world.grandCacheOpenedAt else district and district.cacheOpenedAt
+    return if openedAt then openedAt + CACHE_COOLDOWN else 0
+end
+
+function Progress.rollCacheXp(random)
+    return if random:NextInteger(1, 100) <= 5 then 1000 else random:NextInteger(20, 40)
+end
+
+local function cacheReward(action, readyAt, claimed, legacyXp)
+    local xp = action.rewardXp
+    if xp == nil then return if claimed then 0 else legacyXp end
+    return if action.at >= readyAt and (xp == 1000 or integer(xp, 20, 40)) then xp else 0
 end
 
 local function allThree(flags)
@@ -41,6 +58,9 @@ function Progress.valid(world)
         for _, name in {"met", "visited", "trial", "cache", "mastered"} do
             if district[name] ~= nil and district[name] ~= true then return false end
         end
+        if district.cacheOpenedAt ~= nil and (not district.cache or not integer(district.cacheOpenedAt, 0, 1e12)) then
+            return false
+        end
     end
     for id, best in world.activities do
         if not Catalog.activities[id] or not integer(best, 1, 1200) then return false end
@@ -48,6 +68,9 @@ function Progress.valid(world)
     if world.tracked ~= nil and not Catalog.byId[world.tracked] then return false end
     for _, key in {"graduated", "grandCache"} do
         if world[key] ~= nil and world[key] ~= true then return false end
+    end
+    if world.grandCacheOpenedAt ~= nil and (not world.grandCache or not integer(world.grandCacheOpenedAt, 0, 1e12)) then
+        return false
     end
     local f = world.festival
     if f ~= nil then
@@ -138,9 +161,12 @@ function Progress.apply(source, action)
         world.graduated = true
         table.insert(awards, "journey-06")
         xp += 85
-    elseif kind == "grand-cache" and not old.grandCache and Progress.totals(old).caches == #Catalog.chapters then
-        world.grandCache = true
-        xp += 100
+    elseif kind == "grand-cache" and Progress.totals(old).caches == #Catalog.chapters then
+        xp = cacheReward(action, Progress.cacheReadyAt(old, "grand"), old.grandCache, 100)
+        if xp > 0 then
+            world.grandCache = true
+            world.grandCacheOpenedAt = if action.rewardXp then action.at else old.grandCacheOpenedAt
+        end
     elseif chapter and kind == "track" then
         world.tracked = id
     elseif chapter then
@@ -167,9 +193,12 @@ function Progress.apply(source, action)
                 if allThree(flags) then table.insert(awards, "discovery-" .. id) end
             end
             district.seals = flags
-        elseif kind == "cache" and not district.cache and allThree(district.seals) then
-            district.cache = true
-            xp += 40
+        elseif kind == "cache" and allThree(district.seals) then
+            xp = cacheReward(action, Progress.cacheReadyAt(old, id), district.cache, 40)
+            if xp > 0 then
+                district.cache = true
+                district.cacheOpenedAt = if action.rewardXp then action.at else district.cacheOpenedAt
+            end
         elseif kind == "activity" then
             local activity = Catalog.activities[action.activity]
             if not activity or activity.district ~= id or not integer(action.tenths, 1, 1200) then return old, 0, {} end

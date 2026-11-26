@@ -281,7 +281,9 @@ local function valid(profile)
         and (profile.midnightLanternEquipped == nil or type(profile.midnightLanternEquipped) == "boolean")
         and validFighterCosmetics(profile.fighterCosmetics)
         and (profile.cityAdventureReceipt == nil or type(profile.cityAdventureReceipt) == "table"
-            and validCompletionId(profile.cityAdventureReceipt.id) and whole(profile.cityAdventureReceipt.xp, 0, 200))
+            and validCompletionId(profile.cityAdventureReceipt.id) and whole(profile.cityAdventureReceipt.xp, 0, 200)
+            and (profile.cityAdventureReceipt.rareCache == nil
+                or profile.cityAdventureReceipt.rareCache == true and profile.cityAdventureReceipt.xp == 0))
         and validLease(profile.lease)
         and (profile.duelReturn == nil or type(profile.duelReturn) == "table"
             and validHandoffId(profile.duelReturn.id) and validHandoffId(profile.duelReturn.token))
@@ -794,10 +796,13 @@ function PlayerProfiles:commitCityAdventure(userId, token, receipt)
         end
         completeWorldCollection(profile, now)
         if xp > 0 then addFighterXp(profile, receipt.fighterId, xp) end
-        profile.cityAdventureReceipt = {id = receipt.id, xp = xp}
+        -- Keep the receipt readable by versions that validate the original XP range.
+        profile.cityAdventureReceipt = {id = receipt.id, xp = if xp == 1000 then 0 else xp,
+            rareCache = if xp == 1000 then true else nil}
     end)
     local recorded = saved and saved.cityAdventureReceipt
-    return saved, reason, if recorded and recorded.id == receipt.id then recorded.xp else 0
+    return saved, reason, if recorded and recorded.id == receipt.id
+        then (if recorded.rareCache then 1000 else recorded.xp) else 0
 end
 
 function PlayerProfiles:commitRaid(userId, token, raidId, window, completionId)

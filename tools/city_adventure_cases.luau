@@ -84,6 +84,52 @@ assert(Progress.count(profile.cityAdventure.activities) == 12)
 assert(PlayerProfiles.wallet(profile).coins == 510)
 assert(result("graduate") == 85 and result("grand-cache") == 100)
 assert(result("graduate") == 0 and result("grand-cache") == 0)
+local rare = 0
+for roll = 1, 100 do
+    local reward = Progress.rollCacheXp({NextInteger = function(_, low, high)
+        if low == 1 then
+            assert(high == 100)
+            return roll
+        end
+        assert(low == 20 and high == 40)
+        return if roll % 2 == 0 then low else high
+    end})
+    if roll <= 5 then
+        assert(reward == 1000)
+        rare += 1
+    else
+        assert(reward == (if roll % 2 == 0 then 20 else 40))
+    end
+end
+assert(rare == 5)
+local cacheStart = now
+local walletBeforeRepeat = PlayerProfiles.wallet(profile).coins
+assert(Progress.cacheReadyAt(profile.cityAdventure, "valley") == 0, "Legacy cache progress has no cooldown")
+assert(Progress.cacheReadyAt(profile.cityAdventure, "grand") == 0)
+loseReply = true
+local cacheXp, cacheReceipt = result("cache", {district = "valley", rewardXp = 20})
+assert(cacheXp == 20)
+assert(result("grand-cache", {rewardXp = 1000}) == 1000)
+local xpAfterCaches = profile.fighters["reedguard-kangaroo"].xp
+local sameClaim, _, replayXp = profiles:commitCityAdventure(playerId, lease, cacheReceipt)
+assert(replayXp == 0 and sameClaim.fighters["reedguard-kangaroo"].xp == xpAfterCaches)
+assert(profiles:release(playerId, lease))
+lease = "cache-rejoin"
+profile = assert(profiles:open(playerId, lease))
+assert(Progress.cacheReadyAt(profile.cityAdventure, "valley") == cacheStart + 172800)
+assert(Progress.cacheReadyAt(profile.cityAdventure, "grand") == cacheStart + 172800)
+assert(profile.fighters["reedguard-kangaroo"].xp == xpAfterCaches)
+assert(profiles:release(playerId, lease))
+now = cacheStart + 172799
+lease = "cache-reset"
+assert(profiles:open(playerId, lease))
+assert(result("cache", {district = "valley", rewardXp = 1000}) == 0)
+assert(result("grand-cache", {rewardXp = 40}) == 0)
+now += 1
+assert(result("cache", {district = "valley", rewardXp = 40}) == 40)
+assert(result("grand-cache", {rewardXp = 20}) == 20)
+assert(PlayerProfiles.wallet(profile).coins == walletBeforeRepeat)
+print("Treasure caches passed 95/5 rolls, XP bounds, retries, server rejoin, and the exact 48-hour reset.")
 for _, id in {"journey-01", "journey-02", "journey-03", "journey-05", "journey-06"} do
     assert(profile.trophies[id], id)
 end

@@ -1,3 +1,4 @@
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local rules = require(ReplicatedStorage:WaitForChild("RingProgression"))
@@ -130,6 +131,8 @@ for _, id in rules.DrillOrder do
         local anchor = station:WaitForChild(tostring(index))
         local prompt = anchor:WaitForChild("TrainingPrompt")
         prompt.ObjectText = string.format("%d  %s", index, cueName)
+        prompt:SetAttribute("RingTrainingCueId", id)
+        CollectionService:AddTag(prompt, "RingTrainingCuePrompt")
         prompt.Triggered:Connect(function(player)
             hit(player, id, index, anchor, prompt)
         end)

@@ -1,3 +1,4 @@
+local CollectionService = game:GetService("CollectionService")
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -9,6 +10,21 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("CityAdventure")
 local backAction = "CloseCityAdventureJournal"
+local function bindActivityPrompts(tag, playerAttribute, promptAttribute)
+    local function refresh(prompt)
+        local active = player:GetAttribute(playerAttribute)
+        prompt.Enabled = active ~= nil and prompt:GetAttribute(promptAttribute) == active
+    end
+    local function refreshAll()
+        for _, prompt in CollectionService:GetTagged(tag) do refresh(prompt) end
+    end
+    CollectionService:GetInstanceAddedSignal(tag):Connect(refresh)
+    player:GetAttributeChangedSignal(playerAttribute):Connect(refreshAll)
+    refreshAll()
+end
+
+bindActivityPrompts("CityAdventureCheckpointPrompt", "CityAdventureCheckpoint", "CityCheckpointId")
+bindActivityPrompts("RingTrainingCuePrompt", "RingTrainingActive", "RingTrainingCueId")
 
 local ink = Color3.fromRGB(23, 38, 40)
 local raised = Color3.fromRGB(35, 57, 55)
@@ -172,6 +188,53 @@ local noticeUntil = 0
 local goalPosition
 local deadlineLabel
 local festivalLabel
+local cacheTag = "CityAdventureCachePrompt"
+local cacheReadyAt, cacheVisuals = {}, {}
+local lidParts = {["Carved cedar lid"] = true, ["Raised lid rim"] = true, ["Bronze lid strap"] = true}
+
+local function refreshCache(prompt, now)
+    local anchor = prompt.Parent
+    local id = prompt:GetAttribute("CityCacheId")
+    local lid = anchor and anchor:FindFirstChild("Carved cedar lid")
+    if not id or not lid then return false end
+    local opened = (cacheReadyAt[id] or 0) > now
+    local state = cacheVisuals[prompt]
+    if not state then
+        local hinge = lid.CFrame * CFrame.new(0, -lid.Size.Y / 2, -lid.Size.Z * .47)
+        state = {parts = {}, swing = hinge * CFrame.Angles(math.rad(-66), 0, 0) * hinge:Inverse()}
+        cacheVisuals[prompt] = state
+    end
+    local changed = state.opened ~= opened
+    for _, part in anchor:GetChildren() do
+        if lidParts[part.Name] and part:IsA("BasePart") and not state.parts[part] then
+            state.parts[part] = part.CFrame
+            if opened then part.CFrame = state.swing * part.CFrame end
+        end
+    end
+    if not changed then return false end
+    state.opened = opened
+    prompt.ActionText = if opened then "View reset time" else "Open cache"
+    for part, closed in state.parts do
+        part.CFrame = if opened then state.swing * closed else closed
+    end
+    return true
+end
+
+CollectionService:GetInstanceRemovedSignal(cacheTag):Connect(function(prompt)
+    local state = cacheVisuals[prompt]
+    if state and state.opened then
+        for part, closed in state.parts do
+            if part.Parent then part.CFrame = closed end
+        end
+    end
+    cacheVisuals[prompt] = nil
+end)
+
+local function cacheStatus(readyAt, found)
+    local minutes = math.ceil(((tonumber(readyAt) or 0) - workspace:GetServerTimeNow()) / 60)
+    if minutes > 0 then return string.format("Open · resets in %dh %02dm", math.floor(minutes / 60), minutes % 60) end
+    return if found then "Ready to open" else nil
+end
 
 local function gamepad()
     return UserInputService.PreferredInput == Enum.PreferredInput.Gamepad or UserInputService.VREnabled
@@ -284,20 +347,21 @@ local function updateTimers()
     end
 end
 
+local function reveal(node)
+    local top = node.AbsolutePosition.Y - scroll.AbsolutePosition.Y
+    local excess = top + node.AbsoluteSize.Y - scroll.AbsoluteWindowSize.Y
+    if top < 0 or excess > 0 then
+        local maximum = math.max(0, scroll.AbsoluteCanvasSize.Y - scroll.AbsoluteWindowSize.Y)
+        scroll.CanvasPosition = Vector2.new(0, math.clamp(scroll.CanvasPosition.Y + (if top < 0 then top else excess),
+            0, maximum))
+    end
+end
+
 local function markNavigation(node, id)
     table.insert(navigation, node)
     focusById[id] = node
     node:SetAttribute("JournalFocusId", id)
-    node.SelectionGained:Connect(function()
-        local scrollTop = scroll.AbsolutePosition.Y
-        local position = scroll.CanvasPosition.Y
-        local top = node.AbsolutePosition.Y - scrollTop
-        local excess = top + node.AbsoluteSize.Y - scroll.AbsoluteWindowSize.Y
-        if top < 0 or excess > 0 then
-            local maximum = math.max(0, scroll.AbsoluteCanvasSize.Y - scroll.AbsoluteWindowSize.Y)
-            scroll.CanvasPosition = Vector2.new(0, math.clamp(position + (if top < 0 then top else excess), 0, maximum))
-        end
-    end)
+    node.SelectionGained:Connect(function() reveal(node) end)
 end
 
 local function card(id, title, subtitle, description, actions)
@@ -387,8 +451,10 @@ end
 
 local function treasureCards()
     local totals = fields(snapshot.totals)
-    card("grand-treasure", "Grand Treasure", if snapshot.grandCache then "Found" else string.format("%d/6 district treasures", integer(totals.caches)),
-        if snapshot.grandCache then "" else "Recover the six district treasures, then open the grand cache in Dojo Valley.")
+    card("grand-treasure", "Grand Treasure", cacheStatus(snapshot.grandCacheReadyAt, snapshot.grandCache)
+        or string.format("%d/6 district treasures", integer(totals.caches)),
+        if integer(totals.caches) < 6 then "Recover the six district treasures, then open the grand cache in Dojo Valley."
+        else "95% chance of 20–40 XP. 5% chance of 1,000 XP. Resets 48 hours after opening.")
     local cloudbreak = snapshot.cloudbreak
     if type(cloudbreak) == "table" and integer(cloudbreak.best) > 0 then
         local equipped = cloudbreak.equipped == true
@@ -414,9 +480,9 @@ local function treasureCards()
                 table.insert(lines, (if type(clue) == "table" and clue.found then "Found  ·  " else "") .. copy)
             end
         end
-        if treasure.found then
-            table.insert(lines, "Treasure found")
-        elseif body(treasure.clue) ~= "" then
+        local status = cacheStatus(treasure.readyAt, treasure.found)
+        if status then table.insert(lines, status) end
+        if not status and body(treasure.clue) ~= "" then
             table.insert(lines, "Treasure clue  ·  " .. treasure.clue)
         end
         card("treasure-" .. body(district.id), body(district.name), note, table.concat(lines, "\n"))
@@ -584,6 +650,10 @@ remote.OnClientEvent:Connect(function(kind, packet)
     if type(packet) ~= "table" then return end
     if kind == "open" or kind == "state" then
         snapshot = packet
+        cacheReadyAt.grand = packet.grandCacheReadyAt
+        for _, district in ipairs(fields(packet.districts)) do
+            cacheReadyAt[district.id] = fields(district.treasure).readyAt
+        end
         local position = waypointFor(packet.trail)
         if position and position ~= goalPosition then waypoint.Position = position end
         goalPosition = position
@@ -591,6 +661,16 @@ remote.OnClientEvent:Connect(function(kind, packet)
             local tab = if packet.openTab == "chapters" then 1 elseif packet.openTab == "treasures" then 2
                 elseif packet.openTab == "festival" then 3 else nil
             show(tab)
+            if tab == 2 and type(packet.openCache) == "string" then
+                local id = if packet.openCache == "grand" then "grand-treasure" else "treasure-" .. packet.openCache
+                task.defer(function()
+                    local target = focusById[id]
+                    if target and shade.Visible and activeTab == 2 then
+                        reveal(target)
+                        focus(target)
+                    end
+                end)
+            end
         elseif shade.Visible then
             render(false)
         end
@@ -603,12 +683,19 @@ remote.OnClientEvent:Connect(function(kind, packet)
         syncVisibility()
     end
 end)
+remote:FireServer("view")
 
 local elapsed = 0
 RunService.Heartbeat:Connect(function(delta)
     elapsed += delta
     if elapsed < .25 then return end
     elapsed = 0
+    local changed = false
+    local now = workspace:GetServerTimeNow()
+    for _, prompt in CollectionService:GetTagged(cacheTag) do
+        if refreshCache(prompt, now) then changed = true end
+    end
+    if changed and shade.Visible and activeTab == 2 then render(false) end
     if shade.Visible or trailChip.Visible then updateTimers() end
     if noticeUntil > 0 and workspace:GetServerTimeNow() >= noticeUntil then
         noticeUntil = 0

@@ -1,3 +1,4 @@
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -66,6 +67,7 @@ end
 function Service.mount(folder, callbacks)
     local remote = ReplicatedStorage:WaitForChild("CityAdventure")
     local sessions, places, timingNodes = {}, {}, {}
+    local cacheRandom = Random.new()
     local function session(player)
         if not sessions[player] then sessions[player] = {} end
         return sessions[player]
@@ -121,7 +123,8 @@ function Service.mount(folder, callbacks)
             chapters[index] = {id = chapter.id, name = chapter.name, mentor = chapter.mentor, chapter = chapter.chapter,
                 step = district.step, story = chapter.story, objective = objectives(world, chapter, district),
                 activities = activities, seals = {count = Progress.count(district.seals), total = 3, clues = clues},
-                treasure = {found = district.cache == true, clue = if Progress.count(district.seals) == 3
+                treasure = {found = district.cache == true, readyAt = Progress.cacheReadyAt(world, chapter.id),
+                    clue = if Progress.count(district.seals) == 3
                     then clue(place.treasure, "The three seals point toward the district cache.") else "Find the three seals to reveal the cache clue."},
                 canTravel = chapter.id == "valley" or district.step == 3}
         end
@@ -159,16 +162,50 @@ function Service.mount(folder, callbacks)
             table.sort(stampIds)
         end
         return {districts = chapters, tracked = world.tracked, totals = totals, trail = trail,
-            saving = #callbacks.pending(player) > 0, grandCache = world.grandCache == true, graduated = world.graduated == true,
+            saving = #callbacks.pending(player) > 0, grandCache = world.grandCache == true,
+            grandCacheReadyAt = Progress.cacheReadyAt(world, "grand"), graduated = world.graduated == true,
             cloudbreak = world.cloudbreak, festival = {active = now < endsAt, endsAt = endsAt, nextAt = nextAt,
                 count = #stampIds, earned = festival ~= nil and festival.earned == true, stampIds = stampIds}}
     end
-    local function publish(player, kind, tab)
+    local function publish(player, kind, tab, cache)
         if player.Parent == Players then
+            local run = session(player).run
+            local checkpoint = run and run.order[run.next]
+            local interactive = run and (run.route.definition.kind == "timing" or run.route.definition.kind == "sequence")
+            player:SetAttribute("CityAdventureCheckpoint", if interactive and checkpoint
+                then run.route.definition.id .. "/" .. checkpoint else nil)
             local payload = packet(player, workspace:GetServerTimeNow())
             payload.openTab = tab
+            payload.openCache = cache
             remote:FireClient(player, kind or "state", payload)
         end
+    end
+    local function cachePrompt(anchor, cacheId, label, missing)
+        local trigger = prompt(anchor, "Open cache", label, function(player)
+            if callbacks.blocked(player) then
+                sendNotice(player, "Finish your current activity or wait for your progress to load, then try the cache again.")
+                return
+            end
+            local world = read(player)
+            local requirement = missing(world)
+            if requirement then
+                sendNotice(player, requirement)
+                publish(player, "open", "treasures", cacheId)
+                return
+            end
+            if workspace:GetServerTimeNow() < Progress.cacheReadyAt(world, cacheId) then
+                sendNotice(player, label .. " is still open. Check Treasures for its reset time.")
+                publish(player, "open", "treasures", cacheId)
+                return
+            end
+            if enqueue(player, {kind = if cacheId == "grand" then "grand-cache" else "cache",
+                district = if cacheId == "grand" then nil else cacheId, rewardXp = Progress.rollCacheXp(cacheRandom)}) then
+                sendNotice(player, "Opening cache. Saving your treasure…")
+                publish(player)
+            end
+        end)
+        trigger:SetAttribute("CityCacheId", cacheId)
+        CollectionService:AddTag(trigger, "CityAdventureCachePrompt")
     end
     local function stop(player, reason)
         local s = sessions[player]
@@ -180,6 +217,7 @@ function Service.mount(folder, callbacks)
         end
         if run.parcel then run.parcel:Destroy() end
         player:SetAttribute("CityAdventureActive", nil)
+        player:SetAttribute("CityAdventureCheckpoint", nil)
         if reason then
             sendNotice(player, reason)
             publish(player)
@@ -289,12 +327,10 @@ function Service.mount(folder, callbacks)
             end
             publish(player, "open", "chapters")
         end)
-        prompt(place.treasure, "Open cache", chapter.name, function(player)
-            if callbacks.blocked(player) then return end
-            local d = read(player).districts[chapter.id]
-            if d and d.cache then sendNotice(player, "You already claimed this cache.")
-            elseif not d or Progress.count(d.seals) < 3 then sendNotice(player, "Record all three district seals to open this cache.")
-            elseif enqueue(player, {kind = "cache", district = chapter.id}) then publish(player) end
+        cachePrompt(place.treasure, chapter.id, chapter.name .. " Treasure", function(world)
+            local d = world.districts[chapter.id]
+            local seals = Progress.count(d and d.seals)
+            return if seals < 3 then string.format("Cache locked · %d/3 district seals.", seals) else nil
         end)
         for slot, named in chapter.activities do
             local nodes = district:WaitForChild("Activity-" .. slot)
@@ -311,16 +347,21 @@ function Service.mount(folder, callbacks)
             if interactive then
                 for i, checkpoint in route.checkpoints do
                     if named[3] == "timing" then table.insert(timingNodes, {part = checkpoint, index = i}) end
-                    prompt(checkpoint, if named[3] == "timing" then "Tap lamp" else "Activate signal",
+                    local trigger = prompt(checkpoint, if named[3] == "timing" then "Tap lamp" else "Activate signal",
                         named[2] .. " · " .. i, function(player)
                             local run, now = session(player).run, workspace:GetServerTimeNow()
-                            if not run or run.route ~= route or now > run.deadline then return end
+                            if not run or run.route ~= route then
+                                sendNotice(player, "Start " .. named[2] .. " at its sign first."); return
+                            end
+                            if now > run.deadline then stop(player, "Time expired. Try the start marker again."); return end
                             if run.order[run.next] ~= i then sendNotice(player, "Look for the next marked signal."); return end
                             if named[3] == "timing" and not lit(now, i) then
                                 sendNotice(player, "Wait for the mint light."); return
                             end
                             advance(player, run, i, now)
                         end)
+                    trigger:SetAttribute("CityCheckpointId", named[1] .. "/" .. i)
+                    CollectionService:AddTag(trigger, "CityAdventureCheckpointPrompt")
                 end
             end
             prompt(route.start, "Start activity", named[2], function(player, root) start(player, root, route, "normal") end)
@@ -337,12 +378,10 @@ function Service.mount(folder, callbacks)
     prompt(at(folder:WaitForChild("Festival")), "Open festival", "Training Festival", function(player)
         if not callbacks.blocked(player) then publish(player, "open", "festival") end
     end)
-    prompt(at(folder:WaitForChild("Grand Treasure")), "Open grand cache", "Dojo Valley", function(player)
-        if callbacks.blocked(player) then return end
-        local world = read(player)
-        if world.grandCache then sendNotice(player, "You already found the Grand Treasure.")
-        elseif Progress.totals(world).caches < #Catalog.chapters then sendNotice(player, "Recover all six district caches first.")
-        elseif enqueue(player, {kind = "grand-cache"}) then publish(player) end
+    cachePrompt(at(folder:WaitForChild("Grand Treasure")), "grand", "Grand Treasure", function(world)
+        local caches = Progress.totals(world).caches
+        return if caches < #Catalog.chapters
+            then string.format("Grand Treasure locked · %d/%d district caches.", caches, #Catalog.chapters) else nil
     end)
 
     remote.OnServerEvent:Connect(function(player, action, id)
@@ -453,12 +492,14 @@ function Service.mount(folder, callbacks)
                 player:SetAttribute("CloudbreakCosmetic", Catalog.cloudbreakCosmetic)
                 player:SetAttribute("CloudbreakSashEquipped", cloud.equipped ~= false)
             end
-            if sessions[player] then publish(player) end
+            publish(player)
         end,
         saved = function(player, command, xp)
             if xp > 0 then
                 local label = if command.kind == "cloudbreak" then "Cloudbreak reward saved"
-                    elseif command.kind == "cache" or command.kind == "grand-cache" then "Treasure saved" else "Adventure progress saved"
+                    elseif command.kind == "cache" or command.kind == "grand-cache" then
+                        (if xp == 1000 then "Rare treasure saved" else "Treasure saved")
+                    else "Adventure progress saved"
                 sendNotice(player, string.format("%s · +%d XP", label, xp))
             end
         end,
