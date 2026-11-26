@@ -8,9 +8,9 @@ def build_canal_store_stones(canal, *, item, part, prop, vector, asset, plastic)
     # @Robloxyman_isgood's Boulder, Creator Store 13372770550.
     # Use the native mesh proportions. The published model is scaled to 360 studs.
     mesh_size = (6.857651, 5.498016, 6.614761)
-    for x, y, z, yaw, scale in (
-        (-26.76, .40, 54.74, 42, .53),
-        (-9.35, .31, 50.12, 79, .36),
+    for x, y, z, yaw, scale, isolated in (
+        (-26.76, .40, 54.74, 42, .53, False),
+        (-9.35, .31, 50.12, 79, .36, True),
     ):
         stone = part(stones, "Mossy waterline boulder", (x, y, z),
                      tuple(d * scale for d in mesh_size), "B6ADA5",
@@ -30,3 +30,8 @@ def build_canal_store_stones(canal, *, item, part, prop, vector, asset, plastic)
             ("Metalness", 5196976314),
         ):
             asset(surface, f"{channel}MapContent", f"rbxassetid://{identifier}")
+        if isolated:
+            # Stay inside the inlet stone silhouette and leave the swim stairs clear.
+            core = part(stones, "Lotus inlet boulder collision", (x, y, z), (1.72, 1.42, 1.66),
+                        yaw=yaw, tint="B6ADA5", shape=0, material=plastic, transparency=1)
+            prop(core, "bool", "CastShadow", False)

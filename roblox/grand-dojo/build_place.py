@@ -3190,11 +3190,14 @@ for x,z,width,depth,base,top,shift,yaw in (
     garden_prop(falls,"meadowCover",(x+shift+.26,top-.06,z+.87),.30,yaw,"869D61")
     garden_prop(falls,"rockVine",(x+shift+.14,top-2.20,z+depth*.75),.87,yaw*.66)
 
-for index,(x,z,height,width) in enumerate(((28.5,-56.5,30.5,5.4),(32.9,-56.6,38.8,5.7),
-                                           (37.1,-58.7,41.3,6.9),(41.3,-54.9,27.4,6.1),
-                                           (45.2,-58.8,24.9,7.4),(37.9,-52.5,15.7,7.0))):
+for index,(x,z,height,width,solid_base) in enumerate((
+    (28.5,-56.5,30.5,5.4,False),(32.9,-56.6,38.8,5.7,False),
+    (37.1,-58.7,41.3,6.9,False),(41.3,-54.9,27.4,6.1,False),
+    (45.2,-58.8,24.9,7.4,False),(37.9,-52.5,15.7,7.0,True),
+)):
     part(falls,"Fractured cliff slab",(x,height*.37-1,z),(width+2,height*.76,9),
-         ("736373","83717C","95818D")[index%3],yaw=25-index*7,roll=(-1)**index*11,collide=False)
+         ("736373","83717C","95818D")[index%3],yaw=25-index*7,roll=(-1)**index*11,
+         collide=solid_base)
     part(falls,"Split cliff shoulder",(x+.5,height*.78,z-.3),(width+1,height*.6,10),
          ("9A828B","7D727F","8E7986")[index%3],yaw=index*19,roll=(-1)**index*15,
          collide=False,class_name="WedgePart")
