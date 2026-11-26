@@ -1,5 +1,7 @@
 """Decorative Fighting Ring details in final, world-space ring coordinates."""
 
+from math import atan2, degrees, hypot
+
 
 def build_ring_paper_lantern(parent, x, y, z, scale, *, item, part, prop, neon, wood, metal,
                              lantern_light, light_profile, standing=False):
@@ -54,8 +56,8 @@ def build_ring_stair_lantern_plinth(parent, x, z, *, item, part, prop, slate, li
     prop(face, "string", variant_field, stone_variant)
 
 
-def build_ring_stone_cheeks(parent, *, center, front, back, widths, start_y, end_y, item,
-                           prop, triangle, slate, limestone, stone_variant, cap_variant, variant_field):
+def build_ring_stone_cheeks(parent, *, center, front, back, widths, start_y, end_y, steps, item,
+                           part, prop, triangle, slate, limestone, stone_variant, cap_variant, variant_field):
     """Bind the stair flight between sloping, beveled sandstone coping courses."""
     cheeks = item(parent, "Model", "Swept sandstone stair shoulders")
     for side in (-1, 1):
@@ -79,6 +81,18 @@ def build_ring_stone_cheeks(parent, *, center, front, back, widths, start_y, end
             return start_y + (end_y-start_y) * along
 
         foot, inside, outside, rim = .18, .23, 1.66, 1.92
+        # Fit solid masonry below the bevels while keeping the treads clear.
+        for step in range(steps):
+            a, b = step / steps, (step + 1) / steps
+            cap = coping_y(a) - .15
+            low = position(a, rim / 2, 0)
+            high = position(b, rim / 2, 0)
+            dx, dz = high[0] - low[0], high[2] - low[2]
+            base = part(shoulder, "Stair shoulder collision",
+                        ((low[0] + high[0]) / 2, (foot + cap) / 2, (low[2] + high[2]) / 2),
+                        (rim - .05, cap - foot, hypot(dx, dz) + .025), "937B7E",
+                        yaw=degrees(atan2(dx, dz)), material=slate, transparency=1)
+            prop(base, "bool", "CastShadow", False)
         # The slate below the coping follows the original tapered stair edges.
         colors = ("8B777B", "A38B84", "937B7E", "9D8482", "8D757A")
         for band, (low, high) in enumerate(((0, .34), (.34, .66), (.66, 1))):

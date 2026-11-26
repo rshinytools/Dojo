@@ -2099,8 +2099,8 @@ for step in range(stair_count):
 stair_dressing=item(ring_steps,"Model","Ring stair masonry")
 build_ring_stone_cheeks(stair_dressing,center=36,front=stair_front,back=stair_back,
                        widths=(stair_width,stair_width-(stair_count-1)*stair_taper),
-                       start_y=ring_forecourt_y+.42,end_y=stair_top_y+.12,
-                       item=item,prop=prop,triangle=triangle,slate=SLATE,limestone=LIMESTONE,
+                       start_y=ring_forecourt_y+.42,end_y=stair_top_y+.12,steps=stair_count,
+                       item=item,part=part,prop=prop,triangle=triangle,slate=SLATE,limestone=LIMESTONE,
                        stone_variant=PROMENADE_MORTAR,cap_variant=PROMENADE_STONE,
                        variant_field=MATERIAL_VARIANT_FIELD)
 for side in (-1,1):
