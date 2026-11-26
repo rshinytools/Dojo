@@ -65,7 +65,7 @@ def verify_place():
                 "StarterFighterChoice", "StarterFighterCatalog", "StarterFighterVisuals",
                 "FighterForms", "FighterFormVisuals", "FighterTactics",
                 "StarterFighters", "StarterFighterSelect", "reedguard-kangaroo",
-                "DojoWallet", "DojoWalletClient",
+                "DojoWallet", "DojoWalletClient", "Dojo Outfitters", "ShopCounter", "ShopPrompt",
                 "penguin-brawler", "silverback-gorilla", "fire-salamander", "karate-frog", "river-otter",
                 "rooster-kickboxer", "sugar-glider",
                 "desert-scorpion", "pistol-shrimp",

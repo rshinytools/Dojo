@@ -134,45 +134,110 @@ local xpFill = create("Frame", track, {
     Name = "XPFill", Size = UDim2.fromScale(0, 1), BackgroundColor3 = colors.gold, BorderSizePixel = 0,
 })
 
-local wardrobe = create("Frame", scroll, {
-    Name = "Wardrobe", Size = UDim2.new(1, 0, 0, 142), LayoutOrder = 3,
-    BackgroundColor3 = colors.card, BorderSizePixel = 0,
-})
-edge(wardrobe, 9)
-local swatch = create("Frame", wardrobe, {
-    Name = "SashPreview", Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(67, 66),
-    BackgroundColor3 = colors.ink, BorderSizePixel = 0,
-})
-edge(swatch, 8)
-local binding = create("Frame", swatch, {
-    Position = UDim2.fromOffset(9, 18), Size = UDim2.fromOffset(49, 18), Rotation = -18,
-    BackgroundColor3 = colors.gold, BorderSizePixel = 0,
-})
-create("Frame", binding, {
-    Position = UDim2.fromOffset(0, 3), Size = UDim2.new(1, 0, 1, -6),
-    BackgroundColor3 = colors.jade, BorderSizePixel = 0,
-})
-create("Frame", swatch, {
-    Position = UDim2.fromOffset(41, 32), Size = UDim2.fromOffset(11, 22), Rotation = 17,
-    BackgroundColor3 = colors.jade, BorderSizePixel = 0,
-})
-local clasp = create("Frame", swatch, {
-    Position = UDim2.fromOffset(30, 21), Size = UDim2.fromOffset(13, 13), Rotation = 45,
-    BackgroundColor3 = colors.mint, BorderSizePixel = 0,
-})
-create("UICorner", clasp, {CornerRadius = UDim.new(0, 2)})
-local sashTitle = label(wardrobe, "Title", "Jade Festival Sash", 17, colors.paper, true,
-    UDim2.fromOffset(90, 10), UDim2.new(1, -101, 0, 32))
-local ownership = label(wardrobe, "Ownership", "Cosmetic sash", 13, colors.muted, false,
-    UDim2.fromOffset(90, 39), UDim2.new(1, -101, 0, 35))
-local action = button(wardrobe, "CosmeticAction", "Buy · 50 Coins",
-    UDim2.new(0, 10, 1, -54), UDim2.new(1, -20, 0, 44))
-close.NextSelectionDown, action.NextSelectionUp = action, close
+local openShop = button(scroll, "OpenShop", "Shop apparel", UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 44))
+openShop.LayoutOrder, openShop.BackgroundColor3 = 3, colors.jade
+close.NextSelectionDown, openShop.NextSelectionUp = openShop, close
 
 local earnHint = "Earn Coins from first clears, your first sparring win, and district treasures."
-local feedback = label(scroll, "WalletNotice", earnHint, 13, colors.muted, false,
-    UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 42))
-feedback.LayoutOrder = 4
+local hint = label(scroll, "EarnCoins", earnHint, 13, colors.muted, false,
+    UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 44))
+hint.LayoutOrder = 4
+
+local shop = create("Frame", shade, {
+    Name = "Shop", AnchorPoint = Vector2.new(.5, .5), Position = UDim2.fromScale(.5, .5),
+    BackgroundColor3 = colors.ink, BorderSizePixel = 0, Active = true, Visible = false, SelectionGroup = true,
+    SelectionBehaviorUp = Enum.SelectionBehavior.Stop, SelectionBehaviorDown = Enum.SelectionBehavior.Stop,
+    SelectionBehaviorLeft = Enum.SelectionBehavior.Stop, SelectionBehaviorRight = Enum.SelectionBehavior.Stop,
+})
+edge(shop, 14)
+create("UISizeConstraint", shop, {MaxSize = Vector2.new(820, 472)})
+local shopHeader = create("Frame", shop, {
+    Name = "ShopHeader", Position = UDim2.fromOffset(1, 1), Size = UDim2.new(1, -2, 0, 66),
+    BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0,
+})
+create("UICorner", shopHeader, {CornerRadius = UDim.new(0, 13)})
+create("UIGradient", shopHeader, {
+    Color = ColorSequence.new(Color3.fromRGB(63, 50, 35), Color3.fromRGB(29, 49, 44)),
+})
+local shopTitle = label(shopHeader, "Title", "Dojo Outfitters", 34, colors.paper, true,
+    UDim2.fromOffset(16, 0), UDim2.new(1, -189, 1, 0))
+shopTitle.Font = Enum.Font.Garamond
+local walletBack = button(shop, "OpenWalletFromShop", "Wallet", UDim2.new(1, -164, 0, 11), UDim2.fromOffset(76, 44))
+local shopClose = button(shop, "CloseShop", "Close", UDim2.new(1, -80, 0, 11), UDim2.fromOffset(68, 44))
+walletBack.NextSelectionRight, shopClose.NextSelectionLeft = shopClose, walletBack
+
+local shopScroll = create("ScrollingFrame", shop, {
+    Name = "ShopEntries", Position = UDim2.fromOffset(14, 78), Size = UDim2.new(1, -28, 1, -90),
+    BackgroundTransparency = 1, BorderSizePixel = 0, ScrollingDirection = Enum.ScrollingDirection.Y,
+    AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), ScrollBarThickness = 5,
+    ScrollBarImageColor3 = colors.gold, VerticalScrollBarInset = Enum.ScrollBarInset.Always,
+    ClipsDescendants = true, Selectable = false,
+})
+local product = create("Frame", shopScroll, {
+    Name = "Product", BackgroundTransparency = 1, Size = UDim2.new(1, -2, 0, 376),
+})
+local previewTile = create("Frame", product, {
+    Name = "Preview", BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0,
+})
+edge(previewTile, 11)
+create("UIGradient", previewTile, {
+    Rotation = 100,
+    Color = ColorSequence.new(Color3.fromRGB(42, 81, 71), Color3.fromRGB(22, 38, 35)),
+})
+local preview = create("ViewportFrame", previewTile, {
+    Name = "SashPreview", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
+    Ambient = Color3.fromRGB(180, 187, 173), LightColor = Color3.fromRGB(255, 235, 196),
+    LightDirection = Vector3.new(-.8, -1, -.9),
+})
+local previewCamera = create("Camera", preview, {
+    CFrame = CFrame.lookAt(Vector3.new(-.63, .49, -2.56), Vector3.new(0, -.22, 0)),
+    FieldOfView = 35,
+})
+preview.CurrentCamera = previewCamera
+
+-- A display-only replica of the server-authored Jade Festival Sash on a wooden stand.
+local cloth, trim, clasp = Color3.fromRGB(41, 113, 91), Color3.fromRGB(224, 177, 95), Color3.fromRGB(145, 228, 184)
+local fabric = Enum.Material.Fabric
+local function displayPart(name, size, frame, color, material, shape)
+    create("Part", preview, {
+        Name = name, Size = size, CFrame = frame, Color = color, Material = material,
+        Shape = shape or Enum.PartType.Block, Anchored = true, CanCollide = false, CanTouch = false, CanQuery = false,
+    })
+end
+local upright = CFrame.Angles(0, 0, math.pi / 2)
+displayPart("Display base", Vector3.new(.14, 1.30, 1.30), CFrame.new(0, -.66, .12) * upright,
+    Color3.fromRGB(75, 50, 30), Enum.Material.Wood, Enum.PartType.Cylinder)
+displayPart("Display rim", Vector3.new(.035, 1.24, 1.24), CFrame.new(0, -.572, .12) * upright,
+    trim, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+displayPart("Display top", Vector3.new(.03, 1.18, 1.18), CFrame.new(0, -.54, .12) * upright,
+    Color3.fromRGB(106, 75, 46), Enum.Material.Wood, Enum.PartType.Cylinder)
+displayPart("Display support", Vector3.new(.12, .54, .16), CFrame.new(0, -.25, .07),
+    Color3.fromRGB(106, 75, 46), Enum.Material.Wood)
+local sashWidth = 1.04
+local wrap = CFrame.Angles(0, 0, .10)
+displayPart("Woven gold edge", Vector3.new(sashWidth + .07, .24, .09), wrap, trim, fabric)
+displayPart("Jade waist wrap", Vector3.new(sashWidth, .17, .07), wrap * CFrame.new(0, 0, -.042), cloth, fabric)
+local fold = wrap * CFrame.new(sashWidth * .27, -.19, -.047) * CFrame.Angles(0, 0, .18)
+displayPart("Silk fold", Vector3.new(.24, .46, .08), fold, cloth, fabric)
+displayPart("Mint embroidery", Vector3.new(.20, .066, .03), fold * CFrame.new(0, -.145, -.044), clasp, fabric)
+displayPart("Jade clasp", Vector3.new(.17, .17, .08),
+    wrap * CFrame.new(sashWidth * .27, 0, -.08) * CFrame.Angles(0, 0, math.pi / 4), clasp, Enum.Material.SmoothPlastic)
+
+local details = create("Frame", product, {
+    Name = "Details", BackgroundColor3 = colors.card, BorderSizePixel = 0,
+})
+edge(details, 11)
+local title = label(details, "Title", "Jade Festival Sash", 30, colors.paper, true, UDim2.new(), UDim2.new())
+title.Font = Enum.Font.Garamond
+local ownership = label(details, "Ownership", "Cosmetic apparel", 13, colors.mint, true, UDim2.new(), UDim2.new())
+local description = label(details, "Description", "Jade fabric with woven gold trim and a mint clasp.", 14, colors.muted,
+    false, UDim2.new(), UDim2.new())
+local priceDisplay = label(details, "Price", "50 Coins", 18, colors.gold, true, UDim2.new(), UDim2.new())
+local coinBalance = label(details, "CoinBalance", "Wallet  —", 13, colors.muted, true, UDim2.new(), UDim2.new())
+coinBalance.TextXAlignment = Enum.TextXAlignment.Right
+local action = button(details, "CosmeticAction", "Buy · 50 Coins", UDim2.new(), UDim2.new())
+local feedback = label(details, "ShopNotice", "", 13, colors.gold, false, UDim2.new(), UDim2.new())
+walletBack.NextSelectionDown, shopClose.NextSelectionDown, action.NextSelectionUp = action, action, walletBack
 
 local blockedAttributes = {
     "StarterSelectionRequired", "StarterSelectionPending", "FighterSelectOpen", "CityAdventureJournalOpen",
@@ -188,6 +253,7 @@ local conflictingPanels = {
 local pending = false
 local requestNumber = 0
 local previousSelection
+local shopFromWallet = false
 
 local function gamepad()
     return UserInputService.PreferredInput == Enum.PreferredInput.Gamepad or UserInputService.VREnabled
@@ -266,8 +332,10 @@ local function render()
 
     local owned = player:GetAttribute("DojoMarketSashOwned") == true
     local equipped = player:GetAttribute("DojoMarketSashEquipped") == true
-    ownership.Text = if equipped then "Cosmetic · Equipped" elseif owned then "Cosmetic · Owned" else "Cosmetic sash"
+    ownership.Text = if equipped then "Equipped" elseif owned then "Owned" else "Cosmetic apparel"
     local price = sashPrice()
+    priceDisplay.Text = if owned then "Yours to wear" else ("%d Coins"):format(price)
+    coinBalance.Text = if ready and coins ~= nil then ("Wallet  %s"):format(formatted(coins)) else "Wallet  —"
     local canAfford = coins ~= nil and coins >= price
     local usable = readyToSpend() and not pending and (owned or canAfford)
     action.Text = if pending then "Saving…"
@@ -276,7 +344,7 @@ local function render()
         elseif equipped then "Remove sash"
         elseif owned then "Equip sash"
         elseif canAfford then ("Buy · %d Coins"):format(price)
-        elseif coins ~= nil then ("%d Coins · %d more needed"):format(price, price - coins)
+        elseif coins ~= nil then ("Need %d more Coins"):format(price - coins)
         else ("Buy · %d Coins"):format(price)
     action.Active, action.AutoButtonColor = usable, usable
     action.BackgroundColor3 = if usable then colors.jade else colors.ink
@@ -295,40 +363,55 @@ local function hide()
     previousSelection = nil
 end
 
-local function show()
-    if shade.Visible or not available() then return end
-    previousSelection = GuiService.SelectedObject
-    shade.Visible, toggle.Visible = true, false
-    scroll.CanvasPosition = Vector2.zero
-    if gamepad() then GuiService.SelectedObject = close end
-    ContextActionService:BindActionAtPriority(closeAction, function(_, state)
-        if state == Enum.UserInputState.Begin then hide() end
-        return Enum.ContextActionResult.Sink
-    end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.ButtonB)
+local function setView(shopVisible)
+    panel.Visible, shop.Visible = not shopVisible, shopVisible
+    scroll.CanvasPosition, shopScroll.CanvasPosition = Vector2.zero, Vector2.zero
+    if gamepad() then GuiService.SelectedObject = if shopVisible then shopClose else openShop end
     render()
 end
 
-local function reveal(node)
-    local bottom = scroll.AbsolutePosition.Y + scroll.AbsoluteWindowSize.Y
+local function goBack()
+    if shop.Visible and shopFromWallet then
+        setView(false)
+    else
+        hide()
+    end
+end
+
+local function show(shopVisible, fromWallet)
+    if not available() then return end
+    if not shade.Visible then
+        previousSelection = GuiService.SelectedObject
+        shade.Visible, toggle.Visible = true, false
+        ContextActionService:BindActionAtPriority(closeAction, function(_, state)
+            if state == Enum.UserInputState.Begin then goBack() end
+            return Enum.ContextActionResult.Sink
+        end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.ButtonB)
+    end
+    shopFromWallet = shopVisible and fromWallet == true
+    setView(shopVisible)
+end
+
+local function revealShop(node)
+    local bottom = shopScroll.AbsolutePosition.Y + shopScroll.AbsoluteWindowSize.Y
     local excess = node.AbsolutePosition.Y + node.AbsoluteSize.Y + 4 - bottom
     if excess > 0 then
-        local maxY = math.max(0, scroll.AbsoluteCanvasSize.Y - scroll.AbsoluteWindowSize.Y)
-        scroll.CanvasPosition = Vector2.new(0, math.min(maxY, scroll.CanvasPosition.Y + excess))
+        local maxY = math.max(0, shopScroll.AbsoluteCanvasSize.Y - shopScroll.AbsoluteWindowSize.Y)
+        shopScroll.CanvasPosition = Vector2.new(0, math.min(maxY, shopScroll.CanvasPosition.Y + excess))
     end
 end
 
 local function notice(message)
-    feedback.Text = if message == "" then earnHint else message
-    feedback.TextColor3 = if message == "" then colors.muted else colors.gold
-    if message ~= "" and shade.Visible then
+    feedback.Text = message
+    if message ~= "" and shade.Visible and shop.Visible then
         task.defer(function()
-            if shade.Visible then reveal(feedback) end
+            if shade.Visible and shop.Visible then revealShop(feedback) end
         end)
     end
 end
 
 action.Activated:Connect(function()
-    if not shade.Visible or not available() or not readyToSpend() or pending then return end
+    if not shade.Visible or not shop.Visible or not available() or not readyToSpend() or pending then return end
     local owned = player:GetAttribute("DojoMarketSashOwned") == true
     local coins = whole(player:GetAttribute("DojoCoins"))
     if not owned and (coins == nil or coins < sashPrice()) then return end
@@ -349,7 +432,11 @@ action.Activated:Connect(function()
         render()
     end)
 end)
-remote.OnClientEvent:Connect(function(message)
+remote.OnClientEvent:Connect(function(message, open)
+    if message == "openShop" then
+        if open == true then show(true, false) end
+        return
+    end
     if type(message) ~= "string" then return end
     pending = false
     notice(message)
@@ -392,8 +479,7 @@ local function layout()
     local narrowDesktop = size.X < 470 and not UserInputService.TouchEnabled
     toggle.Position = if narrowDesktop then UDim2.new(1, -8, 0, 165) else UDim2.new(1, -120, 0, 44)
 
-    -- Landscape phones have room for a purchase button alongside the item, but little height to scroll.
-    local compact = size.Y < 350 and size.X >= 470
+    local compact = size.Y < 355
     balances.Size = UDim2.new(1, 0, 0, if compact then 44 else 62)
     for attribute, number in values do
         captions[attribute].Position = UDim2.fromOffset(4, if compact then 2 else 6)
@@ -405,36 +491,67 @@ local function layout()
     fighterCaption.Visible = not compact
     xp.Position = UDim2.fromOffset(10, if compact then 4 else 21)
     track.Position = UDim2.fromOffset(10, if compact then 26 else 45)
-    wardrobe.Size = UDim2.new(1, 0, 0, if compact then 86 else 142)
-    sashTitle.Size = UDim2.new(1, if compact then -265 else -101, 0, 32)
-    ownership.Size = UDim2.new(1, if compact then -265 else -101, 0, 35)
-    action.Position = if compact then UDim2.new(1, -168, .5, -22) else UDim2.new(0, 10, 1, -54)
-    action.Size = if compact then UDim2.fromOffset(156, 44) else UDim2.new(1, -20, 0, 44)
+    shop.Size = UDim2.fromOffset(math.max(1, size.X - 14), math.max(1, size.Y - 14))
+    local stacked = size.X < 460
+    local headerHeight = if compact then 56 else 66
+    local inset = if compact then 10 else 16
+    shopHeader.Size = UDim2.new(1, -2, 0, headerHeight)
+    shopTitle.TextSize = if compact or stacked then 25 else 34
+    walletBack.Position = UDim2.new(1, -164, 0, if compact then 6 else 11)
+    shopClose.Position = UDim2.new(1, -80, 0, if compact then 6 else 11)
+    shopScroll.Position = UDim2.fromOffset(14, headerHeight + 9)
+    shopScroll.Size = UDim2.new(1, -28, 1, -headerHeight - 19)
+
+    local small = compact or stacked
+    local detailHeight = if small then 222 else 356
+    local previewHeight = if stacked then 182 elseif small then 177 else detailHeight
+    product.Size = UDim2.new(1, -2, 0, if stacked then previewHeight + 10 + detailHeight else detailHeight)
+    previewTile.Size = if stacked then UDim2.new(1, -2, 0, previewHeight) else UDim2.new(.47, -5, 0, previewHeight)
+    details.Position = if stacked then UDim2.fromOffset(0, previewHeight + 10) else UDim2.new(.47, 5, 0, 0)
+    details.Size = if stacked then UDim2.new(1, -2, 0, detailHeight) else UDim2.new(.53, -7, 0, detailHeight)
+    previewCamera.FieldOfView = if not small and not stacked then 32 else 35
+
+    title.TextSize = if small then 25 else 34
+    title.Position, title.Size = UDim2.fromOffset(inset, if small then 6 else 20), UDim2.new(1, -inset * 2, 0, if small then 40 else 48)
+    ownership.Position, ownership.Size = UDim2.fromOffset(inset, if small then 43 else 68), UDim2.new(1, -inset * 2, 0, 22)
+    description.Position, description.Size = UDim2.fromOffset(inset, if small then 67 else 103), UDim2.new(1, -inset * 2, 0, if small then 40 else 55)
+    local priceY = if small then 107 else 171
+    priceDisplay.Position, priceDisplay.Size = UDim2.fromOffset(inset, priceY), UDim2.new(.58, -inset, 0, 27)
+    coinBalance.Position, coinBalance.Size = UDim2.new(.58, 2, 0, priceY), UDim2.new(.42, -inset - 2, 0, 27)
+    action.Position = UDim2.fromOffset(inset, if small then 136 else 210)
+    action.Size = UDim2.new(1, -inset * 2, 0, if small then 44 else 49)
+    feedback.Position = UDim2.fromOffset(inset, if small then 183 else 271)
+    feedback.Size = UDim2.new(1, -inset * 2, 0, if small then 35 else 64)
 end
 screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
-toggle.Activated:Connect(show)
+toggle.Activated:Connect(function() show(false) end)
 close.Activated:Connect(hide)
+openShop.Activated:Connect(function() show(true, true) end)
+walletBack.Activated:Connect(function() show(false) end)
+shopClose.Activated:Connect(hide)
 player.CharacterRemoving:Connect(hide)
-action.SelectionGained:Connect(function() reveal(action) end)
+action.SelectionGained:Connect(function() revealShop(action) end)
 local function focusForDevice()
     if shade.Visible and gamepad() then
         local selected = GuiService.SelectedObject
-        if not selected or not selected:IsDescendantOf(shade) then GuiService.SelectedObject = close end
+        if not selected or not selected:IsDescendantOf(shade) then
+            GuiService.SelectedObject = if shop.Visible then shopClose else openShop
+        end
     end
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(focusForDevice)
 UserInputService:GetPropertyChangedSignal("VREnabled"):Connect(focusForDevice)
 UserInputService.InputBegan:Connect(function(input, consumed)
     if consumed or UserInputService:GetFocusedTextBox() then return end
-    if shade.Visible and (input.KeyCode == Enum.KeyCode.K or input.KeyCode == Enum.KeyCode.Backspace) then
-        hide()
-    elseif not shade.Visible and input.KeyCode == Enum.KeyCode.K then
-        show()
+    if shade.Visible and input.KeyCode == Enum.KeyCode.Backspace then
+        goBack()
+    elseif input.KeyCode == Enum.KeyCode.K then
+        if shade.Visible then hide() else show(false) end
     end
 end)
 ContextActionService:BindAction(openAction, function(_, state)
     if shade.Visible or GuiService.SelectedObject or not toggle.Visible then return Enum.ContextActionResult.Pass end
-    if state == Enum.UserInputState.Begin then show() end
+    if state == Enum.UserInputState.Begin then show(false) end
     return Enum.ContextActionResult.Sink
 end, false, Enum.KeyCode.DPadDown)
 screen.Destroying:Connect(function()

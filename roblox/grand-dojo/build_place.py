@@ -146,6 +146,7 @@ from saltwind_bluff_art import FACE_TINTS as SALTWIND_SLATE, build_saltwind_bluf
 from saltwind_high_walk import (NAME as SALTWIND_WALK, POINTS as SALTWIND_WALK_POINTS,
                                 SALTWIND_OPENING, build_saltwind_high_walk)
 from city_adventure_scenery import build_city_adventure_scenery
+from dojo_outfitters import build_dojo_outfitters
 from south_channel_arch import build_south_channel_arch
 from south_ridge_trail import build_south_ridge_trail
 from south_valley_backdrop import build_south_valley_backdrop, hillside_cedar, ridge_surface_height
@@ -7835,6 +7836,7 @@ build_ring_training(scene, {
 }, item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
 build_city_adventure_scenery(scene, item=item, part=part, prop=prop, sign=sign,
                             cedar=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
+build_dojo_outfitters(scene, item=item, prop=prop, part=part, sign=sign)
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")

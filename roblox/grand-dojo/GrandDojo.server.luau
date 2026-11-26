@@ -723,6 +723,20 @@ local function activeActivity(player, data)
         or (player:GetAttribute("ParcelStage") or 0) > 0
 end
 
+local function canOpenOutfitters(player, data)
+    return data and data.selectedStarter and not (data.departed or shuttingDown or activeActivity(player, data)
+        or player:GetAttribute("FighterSelectOpen") or player:GetAttribute("DuelTransferHold")
+        or (transport and transport.profiles:ownsOutbound(player)))
+end
+
+local shopCounter = city:WaitForChild("Dojo Outfitters"):WaitForChild("ShopCounter")
+local shopPrompt = shopCounter:WaitForChild("ShopPrompt")
+shopPrompt.Triggered:Connect(function(player)
+    if canOpenOutfitters(player, state[player]) and near(player, shopCounter, shopPrompt.MaxActivationDistance) then
+        walletRemote:FireClient(player, "openShop", true)
+    end
+end)
+
 walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
     if kind ~= "buy" and (kind ~= "equip" or type(equipped) ~= "boolean") then return end
     local data = state[player]
@@ -734,9 +748,8 @@ walletRemote.OnServerEvent:Connect(function(player, kind, equipped)
         walletRemote:FireClient(player, "Wait for your progress to finish saving.")
         return
     end
-    if not data.selectedStarter or activeActivity(player, data) or player:GetAttribute("FighterSelectOpen")
-        or player:GetAttribute("DuelTransferHold") or (transport and transport.profiles:ownsOutbound(player)) then
-        walletRemote:FireClient(player, "Open your wallet after returning to the city.")
+    if not canOpenOutfitters(player, data) then
+        walletRemote:FireClient(player, "Visit Dojo Outfitters after returning to the city.")
         return
     end
     data.pendingWallet = {kind = kind, equipped = if kind == "equip" then equipped else nil}
