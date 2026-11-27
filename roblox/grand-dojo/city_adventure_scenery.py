@@ -242,7 +242,25 @@ def build_city_adventure_scenery(city, *, item, part, prop, sign, cedar, slate, 
                       (.075, .018, .26), lamp, neon, yaw=yaw - 40 * side)
 
     festival = anchored(root, "Festival", _FESTIVAL, 1.64)
-    board(festival, _FESTIVAL, "Training Festival", "City challenges", _PALETTES["valley"], tall=True)
+    _, _, _, yaw = _FESTIVAL
+    for offset in (-3.04, 3.04):
+        piece(festival, "Festival slate foot", front(_FESTIVAL, offset, .21, 0),
+              (.66, .42, .76), _STONE, slate, yaw=yaw)
+        piece(festival, "Festival cedar frame", front(_FESTIVAL, offset, 1.52, 0),
+              (.28, 2.49, .38), "744338", cedar, yaw=yaw)
+    piece(festival, "Festival lacquer panel", front(_FESTIVAL, 0, 2.12, -.13),
+          (6.41, 1.88, .31), "513540", cedar, yaw=yaw)
+    for height in (1.18, 3.07):
+        piece(festival, "Festival bronze edging", front(_FESTIVAL, 0, height, .03),
+              (6.53, .10, .24), _BRASS, metal, yaw=yaw)
+    words(festival, "Training Festival", front(_FESTIVAL, 0, 2.63, -.10), 5.74, .53,
+          yaw, "513540", 72, wayfinding=True)
+    for index, (label, tint) in enumerate((("COURSES", "46616C"), ("TIMING", "785047"), ("DELIVERY", "3C625C"))):
+        across = (index - 1) * 1.92
+        piece(festival, "Activity category panel", front(_FESTIVAL, across, 1.83, .11),
+              (1.77, .48, .07), tint, cedar, yaw=yaw)
+        words(festival, label, front(_FESTIVAL, across, 1.83, -.09), 1.67, .37,
+              yaw, tint, 45, wayfinding=True)
     location, clue = _GRAND_TREASURE
     chest(root, "Grand Treasure", location, clue, _PALETTES["valley"], scale=1.25)
 

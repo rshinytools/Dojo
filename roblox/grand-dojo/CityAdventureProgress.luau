@@ -1,4 +1,5 @@
 local Catalog = require(script.Parent.CityAdventureCatalog)
+local QuickPlay = require(game:GetService("ReplicatedStorage").QuickPlayCatalog)
 local Progress = {}
 local EMPTY = table.freeze({districts = table.freeze({}), activities = table.freeze({})})
 local FESTIVAL_SOURCES = {relay = true, cloudbreak = true}
@@ -41,6 +42,15 @@ local function canStamp(id)
     return type(id) == "string" and (Catalog.activities[id] ~= nil or FESTIVAL_SOURCES[id] == true)
 end
 
+local function validQuickPlay(id, result)
+    local activity = QuickPlay[id]
+    return activity and type(result) == "table"
+        and integer(result.score, 1, activity.maxScore)
+        and integer(result.bonus, 0, math.min(result.score, activity.maxBonus))
+        and integer(result.tenths, 1, activity.duration * 10)
+        and (result.gold == nil or result.gold == true)
+end
+
 local function validFlags(flags)
     if flags == nil then return true end
     if type(flags) ~= "table" then return false end
@@ -65,6 +75,12 @@ function Progress.valid(world)
     end
     for id, best in world.activities do
         if not Catalog.activities[id] or not integer(best, 1, 1200) then return false end
+    end
+    if world.quickPlay ~= nil then
+        if type(world.quickPlay) ~= "table" then return false end
+        for id, record in world.quickPlay do
+            if not validQuickPlay(id, record) then return false end
+        end
     end
     if world.tracked ~= nil and not Catalog.byId[world.tracked] then return false end
     if world.guidedGoal ~= nil and not GUIDED_GOALS[world.guidedGoal] then return false end
@@ -157,6 +173,21 @@ function Progress.apply(source, action)
     local awards, xp = {}, 0
     if kind == "festival" then
         xp += addStamp(world, action.activity, action.at, awards)
+    elseif kind == "quick-play" and validQuickPlay(action.activity, action) then
+        local activity = QuickPlay[action.activity]
+        local records = table.clone(old.quickPlay or {})
+        local prior = records[action.activity]
+        local gold = action.score >= activity.goldScore and action.bonus >= activity.goldBonus
+        local newBest = not prior or action.score > prior.score
+            or (action.score == prior.score and (action.bonus > prior.bonus
+                or (action.bonus == prior.bonus and action.tenths < prior.tenths)))
+        local best = if newBest then action else prior
+        records[action.activity] = {
+            score = best.score, bonus = best.bonus, tenths = best.tenths,
+            gold = if gold or (prior and prior.gold) then true else nil,
+        }
+        world.quickPlay = records
+        if gold and not (prior and prior.gold) then xp += 35 end
     elseif kind == "cloudbreak" and integer(action.tenths, 1, MAX_CLOUDBREAK_TENTHS) and type(action.clean) == "boolean" then
         local previous = old.cloudbreak
         local cleanBest = previous and previous.cleanBest

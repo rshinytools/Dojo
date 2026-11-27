@@ -116,7 +116,7 @@ function Service.mount(folder, callbacks)
             local activities, clues = {}, {}
             for slot, named in chapter.activities do
                 local best = world.activities[named[1]]
-                activities[slot] = {id = named[1], name = named[2], completed = best ~= nil,
+                activities[slot] = {id = named[1], name = named[2], kind = named[3], completed = best ~= nil,
                     bestSeconds = best and best / 10}
             end
             for i, part in place.seals do

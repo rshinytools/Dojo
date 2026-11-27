@@ -11,10 +11,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("luau", help="Path to a standalone Luau interpreter")
     args = parser.parse_args()
-    names = ("FighterForms", "FighterTactics", "FighterLoadouts", "CityAdventureCatalog")
+    names = ("FighterForms", "FighterTactics", "FighterLoadouts", "CityAdventureCatalog", "QuickPlayCatalog")
     progress = source("CityAdventureProgress").replace(
         "local Catalog = require(script.Parent.CityAdventureCatalog)", "local Catalog = CityAdventureCatalog", 1
-    )
+    ).replace('local QuickPlay = require(game:GetService("ReplicatedStorage").QuickPlayCatalog)', "local QuickPlay = QuickPlayCatalog", 1)
     profile = "local PlayerProfiles = {}" + source("PlayerProfiles").split("local PlayerProfiles = {}", 1)[1]
     program = "".join(as_local(name, source(name)) for name in names)
     program += as_local("CityAdventureProgress", progress) + as_local("PlayerProfiles", profile)

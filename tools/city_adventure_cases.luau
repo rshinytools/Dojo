@@ -329,3 +329,36 @@ for index = 2, #handwear do
     assert(removedGear.fighterCosmetics[item.fighterId].hands == item.itemId)
 end
 print("Four fighter-exclusive cosmetics passed wrong-fighter rejection, separate slots, rejoin and isolated removal.")
+
+-- Gold keepsakes and improved scores share the durable Adventure receipt worker.
+local quickLease = "quick-play-first"
+local quickPlayer = 9751
+local quick = assert(profiles:open(quickPlayer, quickLease))
+quick = assert(profiles:commitStarterChoice(quickPlayer, quickLease, "reedguard-kangaroo"))
+local modes = {bell = {9, 6, 180}, rush = {8, 3, 206}, rescue = {5, 0, 350}}
+local firstResult
+for id, outcome in modes do
+    local receipt = {
+        kind = "quick-play", id = "quick-first-" .. id, fighterId = "reedguard-kangaroo",
+        activity = id, score = outcome[1], bonus = outcome[2], tenths = outcome[3], at = now,
+    }
+    if id == "bell" then loseReply = true; firstResult = receipt end
+    local saved, issue, xp = profiles:commitCityAdventure(quickPlayer, quickLease, receipt)
+    assert(saved, issue)
+    assert(xp == 35 and saved.cityAdventure.quickPlay[id].gold and Progress.valid(saved.cityAdventure))
+end
+assert(profiles:release(quickPlayer, quickLease))
+quickLease = "quick-play-rejoin"
+quick = assert(profiles:open(quickPlayer, quickLease))
+assert(quick.fighters["reedguard-kangaroo"].xp == 105)
+assert(quick.cityAdventure.quickPlay.bell.bonus == 6 and quick.cityAdventure.quickPlay.rush.tenths == 206)
+assert(quick.cityAdventure.quickPlay.rescue.gold and quick.cityAdventure.festival == nil)
+local repeatReceipt = table.clone(firstResult)
+repeatReceipt.id, repeatReceipt.score, repeatReceipt.bonus = "quick-repeat-bell", 10, 8
+local savedBest, _, repeatXp = profiles:commitCityAdventure(quickPlayer, quickLease, repeatReceipt)
+assert(repeatXp == 0 and savedBest.cityAdventure.quickPlay.bell.score == 10)
+local invalidReceipt = table.clone(repeatReceipt)
+invalidReceipt.id, invalidReceipt.score = "quick-invalid-bell", 9999
+local ignored = assert(profiles:commitCityAdventure(quickPlayer, quickLease, invalidReceipt))
+assert(ignored.cityAdventure.quickPlay.bell.score == 10 and ignored.fighters["reedguard-kangaroo"].xp == 105)
+print("Quick Play saved three Gold records and kept all rewards idempotent after a lost reply and rejoin.")

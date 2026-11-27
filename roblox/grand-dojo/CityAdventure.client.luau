@@ -525,19 +525,29 @@ local function festivalCards()
     end
     local title = string.format("%d/3 festival stamps", math.clamp(integer(festival.count), 0, 3))
     local lines = {if festival.earned then "Festival Regular earned" else "Complete three different festival activities."}
-    local names = {}
+    local courses = {"Lantern Relay", "Cloudbreak Expert"}
+    local timing, deliveries = {}, {}
+    local groups = {route = courses, slide = courses, timing = timing, sequence = timing, delivery = deliveries}
+    local stamped = {}
+    for _, name in ipairs(fields(festival.stampIds)) do
+        if type(name) == "string" then stamped[name] = true end
+    end
     for _, district in ipairs(districts()) do
         for _, activity in ipairs(fields(district.activities)) do
-            if type(activity.id) == "string" then names[activity.id] = body(activity.name) end
+            local group = groups[activity.kind]
+            if group then table.insert(group, body(activity.name)) end
         end
-    end
-    for _, id in ipairs(fields(festival.stampIds)) do
-        local name = names[id] or body(id)
-        if name ~= "" then table.insert(lines, name .. "  ·  Stamped") end
     end
     card("festival", "Training Festival", title, table.concat(lines, "\n"))
     -- Keep the timer on its own row so the stamp count remains visible when the timer updates.
     festivalLabel = card("festival-window", if festival.active then "Festival open" else "Next festival", "Checking schedule…", "")
+    for _, group in ipairs({{"Courses", courses}, {"Timing & puzzles", timing}, {"Deliveries", deliveries}}) do
+        local entries = {}
+        for _, name in ipairs(group[2]) do
+            table.insert(entries, name .. (if stamped[name] then "  ·  Stamped" else ""))
+        end
+        if #entries > 0 then card("festival-" .. group[1], group[1], "", table.concat(entries, "\n")) end
+    end
 end
 
 local function render(resetScroll)

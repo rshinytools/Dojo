@@ -30,6 +30,7 @@ local transport = require(script.Parent:WaitForChild("DuelTransportRuntime")).ge
 local store = if studio then PlayerProfiles.memoryStore() else DataStoreService:GetDataStore("BeastDojoPlayerProfiles")
 local profiles = PlayerProfiles.new(store, os.time, task.wait)
 local cityAdventure
+local quickPlay
 local shuttingDown = false
 local profileWorkers = 0
 local fighterLaunchUtc
@@ -515,7 +516,8 @@ local function saveAdventure(player, data, token)
     if not (data.departed or shuttingDown) then
         projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
-        cityAdventure.saved(player, command, xp)
+        if command.kind == "quick-play" then quickPlay.saved(player, command, xp)
+        else cityAdventure.saved(player, command, xp) end
     end
     return profile
 end
@@ -830,7 +832,7 @@ walletRemote.OnServerEvent:Connect(function(player, kind, equipped, itemId)
     player:SetAttribute("ProgressStatus", "saving")
 end)
 
-cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).mount(city:WaitForChild("City Adventure"), {
+local adventureCallbacks = {
     relayBoard = board,
     trophyHall = hall,
     profile = function(player)
@@ -857,7 +859,11 @@ cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).moun
         if transport then transport.profiles:receiptQueued(player) end
         return true
     end,
-})
+}
+cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).mount(
+    city:WaitForChild("City Adventure"), adventureCallbacks)
+quickPlay = require(script.Parent:WaitForChild("QuickPlayService")).mount(
+    city:WaitForChild("Festival Quick Play"), adventureCallbacks)
 local CityAdventureProgress = require(script.Parent:WaitForChild("CityAdventureProgress"))
 script.Parent:WaitForChild("CloudbreakAdventureCleared").Event:Connect(function(player, seconds, clean)
     local tenths = CityAdventureProgress.cloudbreakTenths(seconds)

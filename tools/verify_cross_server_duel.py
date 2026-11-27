@@ -91,10 +91,10 @@ def stored_profile_fixture():
     body = source("PlayerProfiles")
     declarations, body = body.split("local PlayerProfiles = {}", 1)
     assert declarations.count("require(") == 4
-    modules = ("FighterForms", "FighterTactics", "FighterLoadouts", "CityAdventureCatalog")
+    modules = ("FighterForms", "FighterTactics", "FighterLoadouts", "CityAdventureCatalog", "QuickPlayCatalog")
     adventure = source("CityAdventureProgress").replace(
         "local Catalog = require(script.Parent.CityAdventureCatalog)", "local Catalog = CityAdventureCatalog", 1
-    )
+    ).replace('local QuickPlay = require(game:GetService("ReplicatedStorage").QuickPlayCatalog)', "local QuickPlay = QuickPlayCatalog", 1)
     return "".join(as_local(name, source(name)) for name in modules) + as_local(
         "CityAdventureProgress", adventure
     ) + as_local(

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.369 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.370 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -190,6 +190,20 @@ Published v0.240 to the existing Beast Dojo - Private Beta start place as Roblox
 When the v0.322 combat rehearsal ran, Creator Dashboard still showed v0.240 as published place version 3. The v0.323 checkpoint is available for Studio playtesting, including all six original combat sounds.
 
 A second Roblox account was invited through Early testers. The invitation was verified in Roblox Studio. Its first live join is pending.
+
+## Festival Quick Play
+
+V0.370 adds three independently replayable city activities. Each begins at its own station, with a short briefing, a timed round and immediate replay. The server validates the moves and commits the best score and first-Gold keepsake through the existing Adventure profile worker. A first Gold grants 35 XP to the active fighter. The three keepsakes are tracked with their activity records. The existing 30 permanent trophy requirements and festival stamp pool are unchanged.
+
+| Activity | Station | Gold requirement | Native Studio result |
+| --- | --- | --- | --- |
+| Juniper’s Bell | Foot of the Grand Dojo Ring stairs | Eight strikes, including four perfect, in an 18-second round | Ten strikes, all perfect |
+| Lantern Rush | West landing of the red bridge | Seven gates and two shortcuts in a round capped at 25 seconds | Eight gates and eight shortcuts in 17.6 seconds |
+| Reedfall Rescue | Covered Reedfall Gallery | Four lanterns returned to the dock in 35 seconds | Nine rescues in 13.7 seconds in iPhone 17 Pro landscape simulation |
+
+The Studio runs exercised the actual world prompts, native panels, and live server remotes using controlled inputs. The profile showed 105 XP for the three first Golds. Standalone tests cover the activity rules, lost save replies, record recovery after rejoin, and duplicate Gold rewards. The Studio checkpoint is available for playtesting. Roblox Player and physical-device Quick Play checks remain open.
+
+The plaza Training Festival board now groups Courses, Timing, and Delivery on a single lacquered sign. The Journal uses the same hierarchy for its 14 eligible activities and shows which entries have counted as stamps. The matching iPhone landscape Studio captures show the sign before and after.
 
 ## City Adventure and Training Festival
 

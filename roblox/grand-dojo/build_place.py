@@ -147,6 +147,7 @@ from saltwind_bluff_art import FACE_TINTS as SALTWIND_SLATE, build_saltwind_bluf
 from saltwind_high_walk import (NAME as SALTWIND_WALK, POINTS as SALTWIND_WALK_POINTS,
                                 SALTWIND_OPENING, build_saltwind_high_walk)
 from city_adventure_scenery import build_city_adventure_scenery
+from quick_play_scenery import build_quick_play
 from dojo_outfitters import build_dojo_outfitters
 from south_channel_arch import build_south_channel_arch
 from south_ridge_trail import build_south_ridge_trail
@@ -7867,11 +7868,14 @@ build_ring_training(scene, {
 }, item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
 build_city_adventure_scenery(scene, item=item, part=part, prop=prop, sign=sign,
                             cedar=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
+build_quick_play(scene, item=item, part=part, prop=prop, sign=sign,
+                 wood=WOOD_PLANK, slate=SLATE, metal=METAL, neon=NEON)
 build_dojo_outfitters(scene, item=item, prop=prop, part=part, sign=sign, townsperson=townsperson)
 add_world_collision(scene, part=part, prop=prop, rock_material=ROCK)
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")
+item(storage,"RemoteEvent","QuickPlay")
 item(storage,"BindableEvent","AdventureNavigation")
 item(storage,"RemoteEvent","DojoWallet")
 item(storage,"RemoteEvent","GrandDojoAction")
@@ -8136,6 +8140,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","CityAdventureCatalog","CityAdventureCatalog.luau"),
                                     (server,"ModuleScript","CityAdventureProgress","CityAdventureProgress.luau"),
                                     (server,"ModuleScript","CityAdventureService","CityAdventureService.luau"),
+                                    (server,"ModuleScript","QuickPlayService","QuickPlayService.luau"),
                                     (server,"Script","GrandDojoSparring","GrandDojoSparring.server.luau"),
                                     (server,"Script","GrandDojoDuel","GrandDojoDuel.server.luau"),
                                     (server,"Script","GrandDojoBrawl","GrandDojoBrawl.server.luau"),
@@ -8243,11 +8248,19 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","RingProgression","RingProgression.luau"),
                                     (storage,"ModuleScript","MusicPlaylist","MusicPlaylist.luau"),
                                     (storage,"ModuleScript","TrophyJournal","TrophyJournal.luau"),
+                                    (storage,"ModuleScript","QuickPlayCatalog","QuickPlayCatalog.luau"),
+                                    (storage,"ModuleScript","QuickPlayBell","QuickPlayBell.luau"),
+                                    (storage,"ModuleScript","QuickPlayBellView","QuickPlayBellView.luau"),
+                                    (storage,"ModuleScript","QuickPlayRushRules","QuickPlayRushRules.luau"),
+                                    (storage,"ModuleScript","QuickPlayRushView","QuickPlayRushView.luau"),
+                                    (storage,"ModuleScript","QuickPlayRescue","QuickPlayRescue.luau"),
+                                    (storage,"ModuleScript","QuickPlayRescueView","QuickPlayRescueView.luau"),
                                     (storage,"ModuleScript","EagleEye","EagleEye.luau"),
                                     (storage,"ModuleScript","ArenaJumpMotion","ArenaJumpMotion.luau"),
                                     (opening,"LocalScript","GrandDojoSplash","GrandDojoSplash.client.luau"),
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
                                     (scripts,"LocalScript","CityAdventureClient","CityAdventure.client.luau"),
+                                    (scripts,"LocalScript","QuickPlayClient","QuickPlay.client.luau"),
                                     (scripts,"LocalScript","DojoWalletClient","DojoWallet.client.luau"),
                                     (scripts,"LocalScript","GrandDojoBrawlClient","GrandDojoBrawl.client.luau"),
                                     (scripts,"LocalScript","GrandDojoTagTeamClient","GrandDojoTagTeam.client.luau"),
