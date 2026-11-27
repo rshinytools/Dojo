@@ -7937,7 +7937,7 @@ build_night_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop
 build_storm_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 compact_form_visuals(form_visuals, fighter_visuals, item=item)
 server_storage=item(root,"ServerStorage","ServerStorage")
-build_trophy_room(server_storage,item=item,part=part,prop=prop,sign=sign,
+build_trophy_room(server_storage,item=item,part=part,prop=prop,sign=sign,asset=asset,color=color,
                   wood=WOOD_PLANK,slate=SLATE,fabric=FABRIC,neon=NEON,smooth=SMOOTH)
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)

@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.371 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.372 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -400,6 +400,8 @@ The planned **Play Together** flow adds in-game invites and regrouping. If a cit
 V0.371 adds a walkable personal Trophy Room off the shared Trophy Hall, a native Journal grid with a 3D selected preview, and 30 original Roblox sculptures using the established award IDs. Each room has five framed murals, six featured pedestals, and two pages of six wall slots. The room starts private. Owners can invite someone in the same server for 60 seconds. Visitors can inspect the active page and leave, and the server accepts layout edits only from the owner. Display placement uses the existing leased Adventure profile worker. The six arena trophies use eligible completed same-server PvP outcomes and server-observed parries.
 
 Studio loaded all 30 sculptures, opened the Journal, placed Cloudbreak and First Duel sculptures, rejected an unearned Lantern Keeper, switched the wall display to the second page and returned the avatar to Trophy Hall. The award inputs for these placement checks were issued through Studio bindables. Standalone profile checks exercised all six arena thresholds, a lost write response, duplicate retries, rejoin, moving and clearing a trophy without losing the award. Published directly to public Beast Dojo on November 27. In Roblox Player on Mac, an existing non-owner tester entered the room and set its previously earned Lantern Keeper on Featured 3. Live two-player visits and cross-server layout checks remain open.
+
+The v0.372 art pass raises the ceiling to 23 studs, with exposed trusses, violet lattice windows, an illuminated central shrine, lit pedestals and four original illustrated murals. Desktop Studio confirmed that all four mural textures loaded and that all 12 physical display anchors are present. The two wall pages reuse the same six physical anchors. The [mural manifest and source PNGs](../roblox/grand-dojo/art/trophy-murals) record the assets uploaded through ApexGameD's Roblox Studio session. The public release requires Roblox to grant the experience access to the new textures.
 
 ## Four-ring progression plan
 

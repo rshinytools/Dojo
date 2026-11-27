@@ -1,108 +1,187 @@
-"""A walkable cedar gallery with six featured stands and six paged wall displays."""
+"""Build the Personal Trophy Room and its original display fixtures."""
 
-from math import cos, radians, sin
+import json
+from math import cos, pi, radians, sin
+from pathlib import Path
 
 
-def build_trophy_room(storage, *, item, part, prop, sign, wood, slate, fabric, neon, smooth):
+def build_trophy_room(storage, *, item, part, prop, sign, asset, color, wood, slate, fabric, neon, smooth):
     room = item(storage, "Model", "Personal Trophy Room")
     prop(room, "token", "ModelStreamingMode", 1)
-    walnut, cedar, gold = "51333B", "774535", "BC864F"
+    mural_manifest = Path(__file__).with_name("art") / "trophy-murals" / "assets.json"
+    murals = json.loads(mural_manifest.read_text()) if mural_manifest.is_file() else {}
+    walnut, cedar, gold = "2C1E24", "6B3928", "CF973F"
+    red, cream = "A53223", "FFDDA0"
+
     def piece(name, size, at, tint, material=wood, collide=False, **options):
         return part(room, name, at, size, tint, material=material, collide=collide, **options)
 
-    piece("Gallery floor", (34, .65, 35), (0, -.325, 0), "925A42", collide=True)
-    for x in range(-16, 17, 2):
-        piece("Wood join", (.028, .015, 34), (x, .008, 0), "694039")
-    for x in (-17, 17):
-        piece("Cedar side wall", (.75, 11, 35), (x, 5.5, 0), walnut, collide=True)
-        for y, tint in ((1.15, cedar), (3.12, gold), (9.41, gold)):
-            piece("Carved side trim", (.86, .16, 34), (x, y, 0), tint)
-    for z in (-17.5, 17.5):
-        piece("Cedar end wall", (34, 11, .58), (0, 5.5, z), walnut, collide=True)
-        piece("Gallery crown", (34,.28,.7), (0,10.48,z), gold)
-    piece("Ceiling", (35,.55,36), (0,11.1,0), "462B37", collide=True)
-    for z in (-13,-6,2,10,15):
-        piece("Exposed beam", (34,.38,.51), (0,10.66,z), cedar)
-    for x in (-16.5,16.5):
-        for z in (-15,-8,0,8,15):
-            piece("Cedar post", (.62,11,.55), (x,5.5,z), cedar)
-    piece("Reed runner", (6.9,.045,28), (0,.032,3), "956347", fabric)
-    for x in (-3.35, 3.35):
-        piece("Runner stitched edge", (.12,.016,28), (x,.064,3), "F0BD7B", fabric)
-    for x in (-8.1,0,8.1):
-        shade = piece("Festival paper lantern", (1.38,1.45,1.38), (x,9.05,-.2), "F4B570", smooth, shape=0)
-        for y in (8.63, 9.03, 9.45):
-            width = 1.40 if y==9.03 else 1.23
-            piece("Lantern silk rib", (width,.055,width),(x,y,-.2),"D28D5E",neon,shape=2,roll=90)
-        piece("Bronze hanger", (.11,1.40,.11),(x,10.17,-.2), gold)
-        light = item(shade, "PointLight", "Soft gallery light")
-        prop(light, "float", "Range", 18)
-        prop(light, "float", "Brightness", .85)
+    def cylinder(name, diameter, height, at, tint, material=smooth, **options):
+        return piece(name, (height, diameter, diameter), at, tint, material, shape=2, roll=90, **options)
 
-    def art(title, center, sky, mountains, kind, yaw=0):
-        x, y, z = center
-        sine, cosine = sin(radians(yaw)), cos(radians(yaw))
-        def paint(name, size, position, tint, material=smooth, **kwargs):
-            px, py, pz = position
-            dx, dz = px-x, pz-z
-            return piece(name,size,(x+dx*cosine+dz*sine,py,z-dx*sine+dz*cosine),
-                         tint,material,yaw=yaw,**kwargs)
-        lamp=paint("Mural wash",(.3,.3,.3),(x,y+.0,z+3.8),"FFD7AC",transparency=1)
-        light=item(lamp,"PointLight","Framed art light")
-        prop(light,"float","Range",8)
-        prop(light,"float","Brightness",1.30)
-        paint(title + " frame", (8.32,4.65,.25), (x,y,z), gold)
-        paint(title + " paper", (8.04,4.34,.04), (x,y,z+.15), sky, smooth)
-        paint(title + " sun", (1.22,1.22,.044), (x+2.27,y+.89,z+.18), "FFC684", smooth, shape=0)
-        for i, tint in enumerate(mountains):
-            for j in range(4):
-                h = .62 + .55 * abs(sin((i+1)*(j+1)*1.35))
-                p = .9 + (i+1)*.16
-                paint(title + " painted ridge", (p,h,.022), (x-2.68+j*1.79,y-.14-i*.30,z+.22+i*.02),
-                    tint, smooth, roll=(-1)**j*17)
-        paint(title + " foreground", (8.02,.80,.026), (x,y-1.72,z+.29), mountains[-1], smooth)
-        if kind == "bridge":
-            for step in range(-8,9):
-                u = step/8
-                height = -.55-.69*u*u
-                paint("Painted red bridge", (.28,.21,.028), (x+u*2.02,y+height,z+.34), "9F4B52", smooth,
-                    roll=-step*3)
-                if step % 2 == 0:
-                    paint("Bridge rail painted post", (.10,.35,.029), (x+u*2.02,y+height+.16,z+.355), "F2B17B", smooth)
-        elif kind == "summit":
-            for gx,gy in ((-1.7,-.53),(.23,.36),(2.18,1.02)):
-                for side in (-1,1):
-                    paint("Painted summit gate post", (.13,.56,.05),(x+gx+side*.25,y+gy,z+.33),"A95152",smooth)
-                paint("Painted summit gate roof",(.72,.12,.047),(x+gx,y+gy+.29,z+.35),"E9A376",smooth)
-        elif kind == "arena":
-            for side,tint in ((-1,"D07150"),(1,"4B8E83")):
-                paint("Painted fighter head",(.80,.84,.04),(x+side*1.04,y+.36,z+.33),tint,shape=0)
-                paint("Painted fighter robes",(.82,.96,.045),(x+side*1.12,y-.38,z+.335),tint,roll=side*12)
-                paint("Painted sparring glove",(.66,.50,.045),(x+side*.36,y-.06,z+.36),"F6BB7E",shape=0)
-                paint("Painted sash",(.74,.13,.045),(x+side*1.16,y-.53,z+.38),"F2CF94",roll=side*12)
-        else:
-            for i in range(7):
-                paint("Painted district marker", (.16,.16,.036),(x-2.82+i*.88,y+.46*sin(i*1.82),z+.36),
-                    "F6CD89",smooth,shape=0)
+    def light(source, brightness, distance, tint):
+        lamp = item(source, "PointLight", "Gallery light")
+        prop(lamp, "float", "Range", distance)
+        prop(lamp, "float", "Brightness", brightness)
+        color(lamp, "Color", tint)
 
-    art("Lantern Relay mural",(-10.03,7.55,-16.98),"AD6467",("985D74","7A526B","66445C"),"bridge")
-    art("Cloudbreak mural",(0,7.55,-16.98),"7989A8",("818DAC","686E92","555780"),"summit")
-    art("Valley route map",(10.03,7.55,-16.98),"AD8568",("8A8A75","75846D","637969"),"map")
-    art("Grand Dojo sparring mural",(-16.10,6.55,0),"986C81",("A27583","80596D","674F6B"),"arena",90)
-    art("Festival canal mural",(16.10,6.55,0),"7BA2A2",("8E9A9B","687C94","537985"),"bridge",-90)
-    for x in (-13.5,13.5):
-        for z in (7,12):
-            piece("Cedar bench", (2.5,.22,3.9), (x,.76,z), cedar)
-            piece("Brocade cushion", (2.35,.16,3.65), (x,.94,z), "8D485C", fabric)
-    for index, x in enumerate((-12.5,-7.5,-2.5,2.5,7.5,12.5),1):
-        featured_z = -6.0 if index in (3,4) else -8.0
-        piece("Featured slate foot", (3.40,.22,3.39), (x,.11,featured_z), "625866", slate)
-        piece("Featured lacquer pedestal", (3.02,1.48,2.98), (x,.93,featured_z), cedar, collide=True)
-        piece("Featured brass trim", (3.25,.16,3.12), (x,1.71,featured_z), gold)
-        piece(f"Featured{index}", (.2,.2,.2), (x,1.91,featured_z), gold, transparency=1)
-        piece("Wall display shelf", (3.42,.18,2.84), (x,2.76,-14.43), "9F624A")
-        piece(f"Wall{index}", (.2,.2,.2), (x,2.98,-14.43), gold, transparency=1)
-    piece("Arrival",(.2,.2,.2), (0,3.1,11.5), gold, transparency=1)
-    piece("Exit",(.3,.3,.3), (0,2,15), gold, transparency=1)
-    sign(room,"RETURN TO TROPHY HALL",0,4.08,17.15,7.14,.72,yaw=180,tint=walnut,wayfinding=True)
-    piece("RoomControls",(.3,.3,.3),(0,2,8.7),gold,transparency=1)
+    def lantern(name, x, y, z, scale=1, *, lit=False, hanging=False):
+        shade = cylinder(name, 1.46*scale, 1.65*scale, (x,y,z), cream, neon)
+        for component, h, width in (("Crown",-0.86,1.36), ("Cap",.86,1.36), ("Rib",-.44,1.49),
+                                    ("Rib",0,1.49), ("Rib",.44,1.49)):
+            cylinder(name+" "+component,width*scale,.067*scale,(x,y+h*scale,z),cedar)
+        for i in range(8):
+            turn = i*pi/4
+            piece(name+" bamboo spine",(.039*scale,1.68*scale,.043*scale),
+                  (x+.733*scale*cos(turn),y,z+.733*scale*sin(turn)),cedar)
+        if hanging:
+            piece("Lantern suspension",(.07,1.4,.07),(x,y+1.52*scale,z),gold)
+        if lit:
+            light(shade,.9,17,"FFC57D")
+
+    piece("Polished cedar gallery floor",(42,.75,41),(0,-.375,0),"81513A",collide=True)
+    for i in range(24):
+        x = 1.75*(i-11.5)
+        piece("Floorboard joint",(.024,.014,40.7),(x,.009,0),"4E3029")
+        for z in (-16.8+i%4*1.2,-7.6+i%4*1.2,1.6+i%4*1.2,10.8+i%4*1.2):
+            piece("Staggered board joint",(1.7,.014,.024),(x+.84,.009,z),"4E3029")
+    for x in (-21,21):
+        piece("Cedar gallery wall",(.64,23,41),(x,11.5,0),walnut,collide=True)
+        for z in (-19.5,-12.2,-4.8,2.7,10.1,19.5):
+            piece("Carved upright",(.85,22.8,.83),(x*.972,11.4,z),cedar)
+    for z in (-20.5,20.5):
+        piece("Gallery end wall",(42,23,.65),(0,11.5,z),walnut,collide=True)
+        for x in (-19,-13,-6.5,0,6.5,13,19):
+            piece("Gallery end upright",(.71,23,.82),(x,11.5,z*.971),cedar)
+    piece("High roof decking",(43,.72,42),(0,23.3,0),walnut,collide=True)
+    for z in (-18,-10,-2,6,14):
+        piece("Exposed transverse tie beam",(42,.61,.79),(0,19.3,z),cedar)
+        for side in (-1,1):
+            piece("Angled roof truss",(22.2,.55,.55),(10.2*side,20.7,z),cedar,roll=-side*9)
+            piece("Decorative knee brace",(.66,4,.54),(18.8*side,17.9,z),cedar,roll=side*38)
+        piece("Roof king post",(.50,3.43,.51),(0,21.18,z),cedar)
+    for x in (-15.5,-7.7,0,7.7,15.5):
+        piece("Longitudinal rafter",(.29,.38,41),(x,22.55-.135*abs(x),0),"805032")
+
+    def lattice(x,y,z,width,height,yaw,tint):
+        direction = radians(yaw)
+        def window_piece(name, size, dx, dy, depth, paint, material=smooth):
+            return piece(name,size,(x+dx*cos(direction)+depth*sin(direction),
+                                     y+dy,z-dx*sin(direction)+depth*cos(direction)),
+                         paint,material,yaw=yaw)
+        window_piece("Lattice frame",(width+.33,height+.33,.24),0,0,0,cedar,wood)
+        window_piece("Luminous lattice backing",(width,height,.08),0,0,.15,tint,neon)
+        for i in range(1,9):
+            window_piece("Lattice mullion",(.085,height,.10),(i/9-.5)*width,0,.22,walnut)
+        for i in range(1,3):
+            window_piece("Lattice transom",(width,.085,.10),0,(i/3-.5)*height,.22,walnut)
+
+    for side in (-1,1):
+        for z in (-15.8,-8.5,-1.0,6.5,14.8):
+            lattice(side*20.4,17.9,z,6.7,2.18,-side*90,"A875D9")
+        for z in (-16.7,-9.2,-1.8,5.8,13.3):
+            lattice(side*20.4,2.5,z,6.8,2.48,-side*90,"E4A65D")
+    for x in (-14,-7,0,7,14):
+        lattice(x,18.2,-19.96,6.65,2.45,0,"A875D9")
+
+    def mural(title, center, size, key, yaw=0):
+        x,y,z = center
+        w,h = size
+        direction = radians(yaw)
+        piece(title+" gold surround",(w+.42,h+.42,.34),center,gold,smooth,yaw=yaw)
+        face = piece(title,(w,h,.09),(x+.22*sin(direction),y,z+.22*cos(direction)),
+                     "DFCBAB",smooth,yaw=yaw)
+        if key in murals:
+            picture = item(face,"Decal",title)
+            asset(picture,"TextureContent",f"rbxassetid://{murals[key]}")
+            prop(picture,"token","Face",2)
+
+    mural("Lantern Relay at sunset",(-20.08,10.9,2.5),(17.9,11.0),"relay",90)
+    mural("Cloudbreak mountain shrines",(3.8,11.7,-19.20),(24.0,11.2),"cloudbreak")
+    mural("Grand Dojo sparring scroll",(-13.8,10.7,-19.20),(10.0,8.7),"sparring")
+    mural("Illustrated valley map",(20.08,11,0),(17.9,11.0),"valley",-90)
+
+    piece("Woven gallery runner",(7.2,.055,23),(0,.036,6),"BD8D4E",fabric)
+    for x in (-3.48,3.48):
+        piece("Embroidered red runner border",(.25,.020,23),(x,.070,6),"772F2C",fabric)
+        piece("Stitched gold line",(.04,.013,23),(x*.94,.082,6),"E7B564",fabric)
+    for z in (-5.39,17.39):
+        piece("Runner end embroidery",(7.22,.022,.18),(0,.073,z),"772F2C",fabric)
+
+    for x,y,z,scale in ((0,15.5,7,1.48),(-12,14.7,2,1.06),(12,14.7,2,1.06),
+                         (-7,13.5,-8,.84),(7,13.5,-8,.84)):
+        lantern("Hanging festival lantern",x,y,z,scale,lit=z>=0,hanging=True)
+        piece("High lantern chain",(.07,18.91-y-2.05*scale,.07),
+              (x,(18.91+y+2.05*scale)/2,z),gold)
+    for name, at, brightness, radius, tint in (
+        ("Entrance fill",(0,7,13),1.75,21,"FFE0BD"),
+        ("Shrine and cabinet fill",(0,7,-12),2.2,24,"FFDCAA"),
+        ("Rafter bounce",(0,17.7,-4),1.5,21,"FFBF88"),
+    ):
+        emitter = piece(name,(.12,.12,.12),at,tint,transparency=1)
+        light(emitter,brightness,radius,tint)
+    for x in (-6.5,6.5):
+        piece("Crimson gallery banner",(2.25,4.23,.11),(x,16.9,5.56),"8D312B",fabric)
+        for y in (14.9,18.91):
+            piece("Banner brocade border",(2.28,.11,.13),(x,y,5.56),gold,fabric)
+        for dx,dy in ((-.37,0),(0,.19),(.37,0)):
+            piece("Banner cloud embroidery",(.61,.42,.025),(x+dx,17.3+dy,5.64),gold,fabric,shape=0)
+
+    def plinth(name, x,z,diameter,height):
+        cylinder(name+" stone foot",diameter,.22,(x,.11,z),"362A30",slate)
+        cylinder(name+" underglow",diameter*.92,.083,(x,.25,z),"FFBF52",neon)
+        cylinder(name+" lacquer base",diameter*.85,height-.42,(x,height/2+.07,z),"622F25",wood,collide=True)
+        cylinder(name+" brass crown",diameter*.94,.16,(x,height-.07,z),gold)
+        piece(name+" face plaque",(diameter*.36,.42,.07),(x,height*.52,z+diameter*.43),"A46529",smooth)
+        piece(name+" crest",(.26,.26,.06),(x,height*.52,z+diameter*.43+.05),cream,smooth,roll=45)
+
+    plinth("Central shrine",0,-8.1,6.9,1.9)
+    for x in (-2.65,2.65):
+        piece("Shrine red timber post",(.64,6.4,.73),(x,4.61,-8.33),red)
+        for y in (1.54,2.03,6.9,7.51):
+            piece("Shrine gold join",(.77,.17,.85),(x,y,-8.33),gold,smooth)
+    piece("Shrine vermilion crossbeam",(6.65,.38,.77),(0,6.68,-8.33),red)
+    piece("Shrine painted fascia",(7.10,.55,.935),(0,7.73,-8.33),red)
+    piece("Shrine charcoal cap",(7.43,.30,1.16),(0,8.11,-8.33),"352838",slate)
+    for side in (-1,1):
+        piece("Upturned shrine eave",(1.82,.30,1.15),(side*3.83,8.31,-8.33),
+              "352838",slate,roll=side*18)
+    for x,y in ((-.42,8.0),(.42,8.0),(0,8.23)):
+        piece("Gilded shrine cloud crest",(.62,.49,.18),(x,y,-7.67),gold,smooth,shape=0)
+    lantern("Ceremonial hall lantern",0,4.28,-8.11,1.56,lit=True,hanging=True)
+    piece("Ceremonial lantern pendant",(.32,.86,.32),(0,2.63,-8.11),gold,smooth)
+
+    for index,x in enumerate((-15.1,-10.4,-5.9,5.9,10.4,15.1),1):
+        z = -8.1 if index in (3,4) else -10.0
+        plinth("Featured trophy stand",x,z,3.55,1.43)
+        piece(f"Featured{index}",(.2,.2,.2),(x,1.62,z),gold,transparency=1)
+        piece("Cabinet dark backing",(4.23,4.75,.25),(x,3.17,-19.39),"3B2526")
+        for y in (.89,2.85,5.39):
+            piece("Cabinet brass rail",(4.30,.11,.19),(x,y,-19.04),gold,smooth)
+        for dx in (-2.1,2.1):
+            piece("Cabinet carved frame",(.16,4.5,.24),(x+dx,3.13,-19.08),cedar)
+        piece("Wall display shelf",(4.20,.20,2.18),(x,2.66,-18.40),cedar)
+        piece("Wall display gilded edge",(4.23,.07,.1),(x,2.72,-17.29),gold,smooth)
+        piece(f"Wall{index}",(.2,.2,.2),(x,2.77,-18.22),gold,transparency=1)
+
+    for side in (-1,1):
+        for z in (7.8,14.2):
+            x=16.6*side
+            piece("Gallery reading bench",(2.16,.25,5.06),(x,.96,z),cedar)
+            piece("Embroidered crimson cushion",(1.93,.21,4.66),(x,1.15,z),"873430",fabric)
+            for dz in (-1.79,1.79):
+                piece("Bench carved leg",(1.7,.92,.47),(x,.45,z+dz),walnut)
+        lantern("Floor lantern",18.75*side,.95,16.9,.53)
+        x,z=17.8*side,-3.75
+        cylinder("Bonsai ceramic vessel",2.5,.74,(x,.43,z),"6D6861",slate)
+        cylinder("Bonsai soil",2.30,.11,(x,.85,z),"493E2D")
+        piece("Bonsai leaning trunk",(.41,2.25,.38),(x,1.76,z),cedar,roll=-side*15)
+        for dx,y,dz,d,w in ((0,2.86,0,1.86,1.1),(.9,2.62,.17,1.78,1.1),(-.72,2.35,-.24,1.56,1.05),
+                             (-1.24,2.20,.1,1.19,.84),(.40,3.18,-.14,1.28,.88)):
+            piece("Bonsai foliage",(d,.54,w),(x+dx*side,y,z+dz),
+                  "58653A" if side>0 else "CD777F",smooth,shape=0)
+
+    piece("Arrival",(.2,.2,.2),(0,3.1,14.2),gold,transparency=1)
+    piece("Exit",(.3,.3,.3),(0,2,18.65),gold,transparency=1)
+    sign(room,"RETURN TO TROPHY HALL",0,4.3,20.03,7.14,.72,yaw=180,tint=walnut,wayfinding=True)
+    piece("RoomControls",(.3,.3,.3),(0,2,-3.4),gold,transparency=1)
