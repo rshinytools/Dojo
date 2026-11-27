@@ -31,6 +31,7 @@ local store = if studio then PlayerProfiles.memoryStore() else DataStoreService:
 local profiles = PlayerProfiles.new(store, os.time, task.wait)
 local cityAdventure
 local quickPlay
+local trophyRooms
 local shuttingDown = false
 local profileWorkers = 0
 local fighterLaunchUtc
@@ -517,6 +518,7 @@ local function saveAdventure(player, data, token)
         projectProgress(player, data, profile)
         player:SetAttribute("ProgressStatus", if pendingProgress(data) then "saving" else "saved")
         if command.kind == "quick-play" then quickPlay.saved(player, command, xp)
+        elseif command.kind == "trophy-display" then trophyRooms.saved(player)
         else cityAdventure.saved(player, command, xp) end
     end
     return profile
@@ -864,6 +866,14 @@ cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).moun
     city:WaitForChild("City Adventure"), adventureCallbacks)
 quickPlay = require(script.Parent:WaitForChild("QuickPlayService")).mount(
     city:WaitForChild("Festival Quick Play"), adventureCallbacks)
+trophyRooms = require(script.Parent:WaitForChild("TrophyRoomService")).mount(
+    city["Trophy Hall"]:WaitForChild("PersonalRoomEntry"), adventureCallbacks)
+script.Parent:WaitForChild("ArenaTrophyCompleted").Event:Connect(function(player, mode, outcome, parries, placement)
+    adventureCallbacks.queue(player, {
+        kind = "arena-trophy", mode = mode, outcome = outcome,
+        parries = math.clamp(parries or 0,0,10), placement = placement, at = os.time(),
+    })
+end)
 local CityAdventureProgress = require(script.Parent:WaitForChild("CityAdventureProgress"))
 script.Parent:WaitForChild("CloudbreakAdventureCleared").Event:Connect(function(player, seconds, clean)
     local tenths = CityAdventureProgress.cloudbreakTenths(seconds)

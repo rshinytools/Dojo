@@ -1,3 +1,4 @@
+local trophyCompleted = script.Parent:WaitForChild("ArenaTrophyCompleted")
 local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -307,6 +308,9 @@ local function stop(duel, result, departing, walkover)
             if Match.root(player) == side.root then
                 Match.move(side.root, returns[i].CFrame)
             end
+            if not departing and not walkover and not duel.assignmentId then
+                trophyCompleted:Fire(player,"duel",result[i],side.trophyParries)
+            end
             local message = if walkover and result[i] == "win" then "Your opponent left the duel." else resultMessages[result[i]]
             remote:FireClient(player, "result", score(duel, i, {result = result[i], message = message,
                 opponentName = duel.actors[3 - i].player.DisplayName, ratingPending = counts,
@@ -360,6 +364,7 @@ local function resolve(duel, now, beforeExit)
             Match.queueHitStop(a, a.kit, side.kit, event, a.motors, side.reaction)
         end
         local kind = event.kind
+        if kind=="parried" and b then b.trophyParries=(b.trophyParries or 0)+1 end
         local stormCue = Match.stormFeedback(event)
         if stormCue then
             setFeedback(a, stormCue, now, event.elementEffect)

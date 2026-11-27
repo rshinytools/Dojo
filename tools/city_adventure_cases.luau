@@ -362,3 +362,32 @@ invalidReceipt.id, invalidReceipt.score = "quick-invalid-bell", 9999
 local ignored = assert(profiles:commitCityAdventure(quickPlayer, quickLease, invalidReceipt))
 assert(ignored.cityAdventure.quickPlay.bell.score == 10 and ignored.fighters["reedguard-kangaroo"].xp == 105)
 print("Quick Play saved three Gold records and kept all rewards idempotent after a lost reply and rejoin.")
+
+local roomId, roomLease = 9764, "trophy-room-original"
+assert(profiles:open(roomId,roomLease))
+assert(profiles:commitStarterChoice(roomId,roomLease,"reedguard-kangaroo"))
+local function roomReceipt(id,fields)
+    fields.id, fields.at, fields.fighterId = id, now, "reedguard-kangaroo"
+    return profiles:commitCityAdventure(roomId,roomLease,fields)
+end
+assert(roomReceipt("room-unearned",{kind="trophy-display",slot=1,trophy="world-04"})==nil)
+assert(roomReceipt("room-first-duel",{kind="arena-trophy",mode="duel",outcome="win",parries=2}).trophies["arena-01"])
+local displayed={kind="trophy-display",slot=1,trophy="arena-01"}
+loseReply=true
+assert(roomReceipt("room-display",displayed).cityAdventure.trophyRoom["1"]=="arena-01")
+assert(roomReceipt("room-display",displayed).cityAdventure.trophyRoom["1"]=="arena-01")
+assert(profiles:release(roomId,roomLease))
+roomLease="trophy-room-rejoin"
+local rejoinedRoom=assert(profiles:open(roomId,roomLease))
+assert(rejoinedRoom.cityAdventure.trophyRoom["1"]=="arena-01")
+local moved=assert(roomReceipt("room-move",{kind="trophy-display",slot=18,trophy="arena-01"}))
+assert(moved.cityAdventure.trophyRoom["1"]==nil and moved.cityAdventure.trophyRoom["18"]=="arena-01")
+assert(roomReceipt("room-invalid-slot",{kind="trophy-display",slot=19,trophy="arena-01"})==nil)
+local removed=assert(roomReceipt("room-clear",{kind="trophy-display",slot=18,trophy=""}))
+assert(removed.cityAdventure.trophyRoom["18"]==nil and removed.trophies["arena-01"])
+for n=1,19 do
+    local mode=if n==1 then "brawl" elseif n==2 then "tag" else "duel"
+    removed=assert(roomReceipt("arena-credit-"..n,{kind="arena-trophy",mode=mode,placement=2,outcome="win",parries=1}))
+end
+for n=1,6 do assert(removed.trophies[string.format("arena-%02d",n)]) end
+print("Trophy displays passed earning, unearned rejection, lost response, rejoin, wall slot moves and all six arena thresholds.")

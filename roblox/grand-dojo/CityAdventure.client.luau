@@ -260,6 +260,7 @@ local function gamepad()
 end
 
 local function available()
+    if player:GetAttribute("TrophyRoomActive") then return false end
     for _, attribute in ipairs(busyAttributes) do
         if player:GetAttribute(attribute) then return false end
     end

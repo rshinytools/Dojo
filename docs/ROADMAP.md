@@ -133,10 +133,10 @@ Give every player a saved achievement collection and a place to display it.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P4T.1 | Trophy catalog and rank distinction | In progress | All 30 trophy concepts and the personal room and Journal mockups are available for review on the owner-private production site. Every trophy has a criterion and source event; account trophies are distinct from currencies, ranked score and trading inventory. |
+| P4T.1 | Trophy catalog and rank distinction | In progress | All 30 trophy concepts remain available for review. V0.371 includes 30 original native sculptures and six eligible arena earning paths. Every trophy has a criterion and source event; account trophies are distinct from currencies, ranked score and trading inventory. |
 | P4T.2 | Authoritative awards and migration | Prototype ready | The first official public v16 Relay awarded Lantern Keeper, and the trophy appeared in Trophy Hall after joining a different server on Mac. Verify two-player display isolation with disposable staging profiles and extend the same contract to the remaining trophy criteria. |
-| P4T.3 | Collection journal and goal tracking | Prototype ready | Native UI distinguishes pending saves and supports controller, touch and VR without requiring chat. Browser collection tracking is playable. |
-| P4T.4 | Personal trophy room and visits | Prototype ready | Production adds six featured pedestals, paged walls and a saved layout per account. Rooms default to Private. Invited visitors can inspect displays and return to the city. Verify owner-only edits, expired or revoked invitations, reconnect and return. |
+| P4T.3 | Collection journal and goal tracking | Prototype ready | V0.371 ships a native six-tile category grid and a 3D preview of the selected award. Verify phone, console and VR input on hardware. |
+| P4T.4 | Personal trophy room and visits | Prototype ready | V0.371 builds six featured pedestals, two wall pages, five murals and saved owner-controlled displays. Studio verified placement with controlled awards and return. A public Mac playtest placed Lantern Keeper on Featured 3. Rooms start private. Verify restoration across public servers and test invitations, ownership controls and return with two players. |
 
 ## P5 Original asset pipeline and budgets
 

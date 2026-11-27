@@ -643,7 +643,7 @@ local function updateLocation()
             name, nearest = marker.Name, distance
         end
     end
-    name = landmarkAt(root.Position) or name
+    name = if player:GetAttribute("TrophyRoomActive") then "Trophy Room" else landmarkAt(root.Position) or name
     local musicArea = musicAreaAt(name, root.Position)
     if musicArea and player:GetAttribute("MusicArea") ~= musicArea then
         player:SetAttribute("MusicArea", musicArea)
@@ -1110,8 +1110,8 @@ local function layout()
     if map then
         width, height = layoutRoutePlanner(size)
     elseif journalView then
-        width = math.clamp(size.X - 26, 240, 435)
-        height = math.clamp(size.Y - 54, 240, 421)
+        width = math.clamp(size.X - 26, 240, 580)
+        height = math.clamp(size.Y - 54, 240, 495)
     end
     local narrow = map or journalView or size.X < 720
     panel.AnchorPoint = Vector2.new(narrow and .5 or 1, .5)

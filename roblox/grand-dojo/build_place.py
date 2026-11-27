@@ -148,6 +148,7 @@ from saltwind_high_walk import (NAME as SALTWIND_WALK, POINTS as SALTWIND_WALK_P
                                 SALTWIND_OPENING, build_saltwind_high_walk)
 from city_adventure_scenery import build_city_adventure_scenery
 from quick_play_scenery import build_quick_play
+from trophy_room_scenery import build_trophy_room
 from dojo_outfitters import build_dojo_outfitters
 from south_channel_arch import build_south_channel_arch
 from south_ridge_trail import build_south_ridge_trail
@@ -2468,6 +2469,8 @@ prop(hall_prompt,"string","ActionText","Inspect trophy")
 prop(hall_prompt,"string","ObjectText","Lantern Keeper")
 prop(hall_prompt,"float","MaxActivationDistance",10)
 prop(hall_prompt,"bool","RequiresLineOfSight",False)
+room_entry=part(hall,"PersonalRoomEntry",(-7,3.25,-42),(1,1,1),CREAM,transparency=1,collide=False)
+sign(hall,"PERSONAL TROPHY ROOM",-7,4.2,-44.3,5.9,.72,tint="603745",wayfinding=True)
 facade=item(hall,"Model","Crowned gallery")
 prop(facade,"token","LevelOfDetail",4)
 swept_roof(facade,0,13.11,-44,43.2,29.8,4.38,signature=True)
@@ -7876,6 +7879,7 @@ add_world_collision(scene, part=part, prop=prop, rock_material=ROCK)
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")
 item(storage,"RemoteEvent","QuickPlay")
+item(storage,"RemoteEvent","TrophyRoom")
 item(storage,"BindableEvent","AdventureNavigation")
 item(storage,"RemoteEvent","DojoWallet")
 item(storage,"RemoteEvent","GrandDojoAction")
@@ -7933,6 +7937,8 @@ build_night_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop
 build_storm_evolutions(form_visuals, fighter_visuals, item=item, part=part, prop=prop, vector=vector)
 compact_form_visuals(form_visuals, fighter_visuals, item=item)
 server_storage=item(root,"ServerStorage","ServerStorage")
+build_trophy_room(server_storage,item=item,part=part,prop=prop,sign=sign,
+                  wood=WOOD_PLANK,slate=SLATE,fabric=FABRIC,neon=NEON,smooth=SMOOTH)
 build_sparring_bot_models(server_storage, storage, item=item, prop=prop, part=part, asset=asset, vector=vector)
 map_canvas(storage,map_districts,map_paths)
 city_route_data(storage,map_districts,map_paths)
@@ -8135,12 +8141,14 @@ item(server,"BindableEvent","RingTrainingCompleted")
 item(server,"BindableEvent","DojoRaidCompleted")
 item(server,"BindableEvent","CloudbreakAdventureCleared")
 item(server,"BindableEvent","AdventureSparCompleted")
+item(server,"BindableEvent","ArenaTrophyCompleted")
 for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDojo.server.luau"),
                                     (server,"Script","CityFallRecovery","CityFallRecovery.server.luau"),
                                     (server,"ModuleScript","CityAdventureCatalog","CityAdventureCatalog.luau"),
                                     (server,"ModuleScript","CityAdventureProgress","CityAdventureProgress.luau"),
                                     (server,"ModuleScript","CityAdventureService","CityAdventureService.luau"),
                                     (server,"ModuleScript","QuickPlayService","QuickPlayService.luau"),
+                                    (server,"ModuleScript","TrophyRoomService","TrophyRoomService.luau"),
                                     (server,"Script","GrandDojoSparring","GrandDojoSparring.server.luau"),
                                     (server,"Script","GrandDojoDuel","GrandDojoDuel.server.luau"),
                                     (server,"Script","GrandDojoBrawl","GrandDojoBrawl.server.luau"),
@@ -8248,6 +8256,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","RingProgression","RingProgression.luau"),
                                     (storage,"ModuleScript","MusicPlaylist","MusicPlaylist.luau"),
                                     (storage,"ModuleScript","TrophyJournal","TrophyJournal.luau"),
+                                    (storage,"ModuleScript","TrophyCatalog","TrophyCatalog.luau"),
+                                    (storage,"ModuleScript","TrophyArt","TrophyArt.luau"),
                                     (storage,"ModuleScript","QuickPlayCatalog","QuickPlayCatalog.luau"),
                                     (storage,"ModuleScript","QuickPlayBell","QuickPlayBell.luau"),
                                     (storage,"ModuleScript","QuickPlayBellView","QuickPlayBellView.luau"),
@@ -8261,6 +8271,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (scripts,"LocalScript","GrandDojoClient","GrandDojo.client.luau"),
                                     (scripts,"LocalScript","CityAdventureClient","CityAdventure.client.luau"),
                                     (scripts,"LocalScript","QuickPlayClient","QuickPlay.client.luau"),
+                                    (scripts,"LocalScript","TrophyRoomClient","TrophyRoom.client.luau"),
                                     (scripts,"LocalScript","DojoWalletClient","DojoWallet.client.luau"),
                                     (scripts,"LocalScript","GrandDojoBrawlClient","GrandDojoBrawl.client.luau"),
                                     (scripts,"LocalScript","GrandDojoTagTeamClient","GrandDojoTagTeam.client.luau"),

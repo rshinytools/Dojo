@@ -6,48 +6,9 @@ local UserInputService = game:GetService("UserInputService")
 local TrophyJournal = {}
 TrophyJournal.__index = TrophyJournal
 
-local categories = {
-    {"Journey", {
-        {"journey-01", "First Footing", "Complete the introductory mentor quest."},
-        {"journey-02", "A Chapter Begins", "Complete the three-step Dojo Valley mentor chapter."},
-        {"journey-03", "Six Horizons", "Discover the arrival checkpoint in all six districts."},
-        {"journey-04", "A New Form", "Complete the first server-confirmed fighter evolution."},
-        {"journey-05", "Mentors Remember", "Complete all six mentor chapters."},
-        {"journey-06", "Dojo Graduate", "Complete the graduation quest after the six mentor chapters."},
-    }},
-    {"Discovery", {
-        {"discovery-valley", "Dojo Valley Explorer", "Find all three permanent seals in Dojo Valley."},
-        {"discovery-coast", "Tideharbor Coast Explorer", "Find all three permanent seals in Tideharbor Coast."},
-        {"discovery-cinder", "Cinder Terraces Explorer", "Find all three permanent seals in Cinder Terraces."},
-        {"discovery-sky", "Skywalk Peaks Explorer", "Find all three permanent seals in Skywalk Peaks."},
-        {"discovery-frost", "Frostglass Gardens Explorer", "Find all three permanent seals in Frostglass Gardens."},
-        {"discovery-circuit", "Lantern Circuit Explorer", "Find all three permanent seals in Lantern Circuit."},
-    }},
-    {"Mastery", {
-        {"mastery-valley", "Dojo Valley Master", "Complete the validated Reed-path expert course."},
-        {"mastery-coast", "Tideharbor Coast Master", "Complete the validated Tide-path expert course."},
-        {"mastery-cinder", "Cinder Terraces Master", "Complete the validated Steam-lift expert course."},
-        {"mastery-sky", "Skywalk Peaks Master", "Finish Cloudbreak Wind Trial in Expert mode and ring the summit bell."},
-        {"mastery-frost", "Frostglass Gardens Master", "Complete the validated Ice-slide expert course."},
-        {"mastery-circuit", "Lantern Circuit Master", "Complete the validated Rooftop expert course."},
-    }},
-    {"Arena", {
-        {"arena-01", "First Duel", "Win one eligible completed duel."},
-        {"arena-02", "Ring Reader", "Finish in the top three of an eligible eight-player brawl."},
-        {"arena-03", "Tag Partners", "Win one eligible tag-team match."},
-        {"arena-04", "Ten Duels", "Win ten eligible duels. Each result counts once."},
-        {"arena-05", "Steady Guard", "Perform ten validated parries across eligible completed encounters."},
-        {"arena-06", "Ring Veteran", "Complete twenty eligible arena matches with participation credit."},
-    }},
-    {"World challenges", {
-        {"world-01", "Kiln Keeper", "Earn participation credit for clearing the Kilnback Custodian encounter."},
-        {"world-02", "Deepwater Team", "Earn participation credit for clearing the Abyssal Kraken encounter."},
-        {"world-03", "Dawn Return", "Earn participation credit for clearing the Solar Phoenix encounter."},
-        {"world-04", "Lantern Keeper", "Finish one official Lantern Relay with all seven gates validated."},
-        {"world-05", "Festival Regular", "Complete three validated Training Festival activities. Each result counts once."},
-        {"world-06", "World Champion", "Earn all three boss-clear trophies and both world-event trophies."},
-    }},
-}
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local categories = require(ReplicatedStorage.TrophyCatalog).categories
+local TrophyArt = require(ReplicatedStorage.TrophyArt)
 
 local raidAwards = {
     ["world-01"] = {attribute = "KilnKeeper", boss = "Kilnback Custodian"},
@@ -68,7 +29,7 @@ local function describe(player, id)
         local isAdventure = string.match(id, "^discovery%-") ~= nil or string.match(id, "^mastery%-") ~= nil
             or id == "journey-01" or id == "journey-02" or id == "journey-03" or id == "journey-05"
             or id == "journey-06" or id == "world-05" or id == "world-06"
-        if isAdventure then
+        if isAdventure or string.match(id, "^arena%-") then
             return if player:GetAttribute("ProgressMode") == "studio" then "Studio award" else "Earned",
                 "Recorded in your collection."
         end
@@ -135,11 +96,11 @@ local function describe(player, id)
         or id == "world-05" or id == "world-06" then
         return "Locked", "Open the Adventure Journal to see city progress."
     end
-    return "Planned", "This achievement’s earning path is planned."
+    return "Locked", "Complete eligible matches at the Grand Dojo Ring."
 end
 
-local ink = Color3.fromRGB(19, 37, 40)
-local raised = Color3.fromRGB(31, 56, 54)
+local ink = Color3.fromRGB(50, 29, 43)
+local raised = Color3.fromRGB(105, 55, 60)
 local gold = Color3.fromRGB(244, 189, 79)
 local parchment = Color3.fromRGB(255, 242, 209)
 local muted = Color3.fromRGB(190, 212, 199)
@@ -244,7 +205,13 @@ function TrophyJournal.new(panel, player, onBack)
     end
 
     local categoryPrevious, categoryNext, categoryName = navigation("Category", 1)
-    local entryPrevious, entryNext, entryNumber = navigation("Trophy", 2)
+    local gallery = make("Frame", scroll, {
+        Name = "TrophyGrid", LayoutOrder = 2, Size = UDim2.new(1, 0, 0, 148), BackgroundTransparency = 1,
+    })
+    make("UIGridLayout", gallery, {
+        CellPadding = UDim2.fromOffset(6, 6), CellSize = UDim2.new(1 / 3, -4, 0, 70),
+        SortOrder = Enum.SortOrder.LayoutOrder, FillDirectionMaxCells = 3,
+    })
     local card = make("Frame", scroll, {Name = "TrophyDetails", LayoutOrder = 3,
         BackgroundColor3 = ink, BorderSizePixel = 0, AutomaticSize = Enum.AutomaticSize.Y,
         Size = UDim2.new(1, 0, 0, 0)})
@@ -256,23 +223,34 @@ function TrophyJournal.new(panel, player, onBack)
     local state = cardLine(card, "TrophyState", 14, gold, true, 2)
     local criterion = cardLine(card, "Criterion", 15, parchment, false, 3)
     local note = cardLine(card, "TrophyNote", 13, muted, false, 4)
+    local art = make("ViewportFrame", card, {
+        Name = "SelectedSculpture", Size = UDim2.new(1, 0, 0, 176), LayoutOrder = 0,
+        BackgroundColor3 = Color3.fromRGB(66, 37, 52),
+    })
+    outline(art, 8)
 
     back.NextSelectionDown = categoryNext
     categoryPrevious.NextSelectionUp, categoryNext.NextSelectionUp = back, back
-    categoryPrevious.NextSelectionDown, categoryNext.NextSelectionDown = entryPrevious, entryNext
-    entryPrevious.NextSelectionUp, entryNext.NextSelectionUp = categoryPrevious, categoryNext
-
     local journal = setmetatable({
         player = player, container = gui, scroll = scroll, back = back, connections = {},
-        category = 5, entry = 4, summary = summary, categoryName = categoryName, entryNumber = entryNumber,
-        name = name, state = state, criterion = criterion, note = note,
+        category = 5, entry = 4, summary = summary, categoryName = categoryName,
+        name = name, state = state, criterion = criterion, note = note, art = art, tiles = {},
     }, TrophyJournal)
+    for i = 1, 6 do
+        local tile = button(gallery, "Trophy" .. i, "", UDim2.fromOffset(0, 0), UDim2.fromOffset(0, 0))
+        tile.LayoutOrder, tile.TextSize, tile.TextWrapped = i, 13, true
+        tile.Activated:Connect(function() journal.entry = i; journal:_update() end)
+        journal.tiles[i] = tile
+    end
+    categoryPrevious.NextSelectionDown, categoryNext.NextSelectionDown = journal.tiles[1], journal.tiles[3]
+    for i, tile in journal.tiles do
+        tile.NextSelectionUp = if i <= 3 then categoryNext else journal.tiles[i - 3]
+        if i <= 3 then tile.NextSelectionDown = journal.tiles[i + 3] end
+    end
 
     back.Activated:Connect(onBack)
     categoryPrevious.Activated:Connect(function() journal:_switchCategory(-1) end)
     categoryNext.Activated:Connect(function() journal:_switchCategory(1) end)
-    entryPrevious.Activated:Connect(function() journal:_switchEntry(-1) end)
-    entryNext.Activated:Connect(function() journal:_switchEntry(1) end)
     gui.Destroying:Connect(function() journal:Hide() end)
     return journal
 end
@@ -281,7 +259,16 @@ function TrophyJournal:_update()
     local group = categories[self.category]
     local entry = group[2][self.entry]
     self.categoryName.Text = group[1]
-    self.entryNumber.Text = string.format("Trophy %d / %d", self.entry, #group[2])
+    if self.renderedId ~= entry[1] then
+        TrophyArt.preview(self.art, entry[1])
+        self.renderedId = entry[1]
+    end
+    for i, tile in self.tiles do
+        local trophy = group[2][i]
+        local availability = describe(self.player, trophy[1])
+        tile.Text = trophy[2] .. "\n" .. (if availability == "Studio award" then "Earned" else availability)
+        tile.BackgroundColor3 = if i == self.entry then Color3.fromRGB(146, 83, 52) else raised
+    end
     self.name.Text = entry[2]
     self.criterion.Text = entry[3]
     self.state.Text, self.note.Text = describe(self.player, entry[1])
@@ -308,11 +295,6 @@ end
 function TrophyJournal:_switchCategory(offset)
     self.category = (self.category - 1 + offset) % #categories + 1
     self.entry = 1
-    self:_update()
-end
-
-function TrophyJournal:_switchEntry(offset)
-    self.entry = (self.entry - 1 + offset) % #categories[self.category][2] + 1
     self:_update()
 end
 

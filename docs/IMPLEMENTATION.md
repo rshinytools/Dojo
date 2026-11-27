@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.370 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.371 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -397,7 +397,9 @@ All six districts belong to one walkable Roblox city place. Players in the same 
 
 The planned **Play Together** flow adds in-game invites and regrouping. If a city server is full, offer the group a common server with enough room. Queued matches and larger raids can use separate servers and return the party to a safe city checkpoint. Test these flows in published staging with separate accounts.
 
-The public Trophy Hall is a city landmark and the planned entrance to each player's **personal trophy room**. Each owner chooses six featured trophies plus paged wall displays. Layouts and earned trophies are saved per account and follow the owner across servers. The room defaults to private. Owners can invite guests to inspect displays, and only the owner can change the layout. The Studio build has the Hall, an owner-specific journal and the first Lantern Keeper display. Private rooms, visit invites and published multiplayer verification are planned.
+V0.371 adds a walkable personal Trophy Room off the shared Trophy Hall, a native Journal grid with a 3D selected preview, and 30 original Roblox sculptures using the established award IDs. Each room has five framed murals, six featured pedestals, and two pages of six wall slots. The room starts private. Owners can invite someone in the same server for 60 seconds. Visitors can inspect the active page and leave, and the server accepts layout edits only from the owner. Display placement uses the existing leased Adventure profile worker. The six arena trophies use eligible completed same-server PvP outcomes and server-observed parries.
+
+Studio loaded all 30 sculptures, opened the Journal, placed Cloudbreak and First Duel sculptures, rejected an unearned Lantern Keeper, switched the wall display to the second page and returned the avatar to Trophy Hall. The award inputs for these placement checks were issued through Studio bindables. Standalone profile checks exercised all six arena thresholds, a lost write response, duplicate retries, rejoin, moving and clearing a trophy without losing the award. Published directly to public Beast Dojo on November 27. In Roblox Player on Mac, an existing non-owner tester entered the room and set its previously earned Lantern Keeper on Featured 3. Live two-player visits and cross-server layout checks remain open.
 
 ## Four-ring progression plan
 

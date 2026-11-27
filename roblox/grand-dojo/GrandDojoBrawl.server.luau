@@ -1,3 +1,4 @@
+local trophyCompleted = script.Parent:WaitForChild("ArenaTrophyCompleted")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -292,6 +293,9 @@ local function sendResult(match, index, result, departing)
         local position = cityReturn.Position + Vector3.new((column - 1.5) * 2.4, 0, row * 2.75)
         Match.move(root, CFrame.lookAt(position, Vector3.new(gate.Position.X, position.Y, gate.Position.Z)))
     end
+    if match.round.result and result~="left" then
+        trophyCompleted:Fire(player,"brawl",result,actor.trophyParries,round.sides[index].placement)
+    end
     local winner = round.result and round.result.winners[1]
     remote:FireClient(player, "result", {matchId = match.id, result = result, placement = round.sides[index].placement,
         winnerName = winner and match.actors[winner].player.DisplayName, alive = round.remaining, total = SIZE,
@@ -320,6 +324,8 @@ local function resolveContacts(match, now, beforeBoundary)
     local playedFloor = {}
     for _, event in match.round.notices do
         Motion.impact(match, event)
+        local defender=match.actors[event.defender]
+        if defender and event.kind=="parried" then defender.trophyParries=(defender.trophyParries or 0)+1 end
         local attacker = match.actors[event.attacker]
         local side = match.round.sides[event.attacker]
         if attacker and side.playerHealth > 0 and not side.eliminated then

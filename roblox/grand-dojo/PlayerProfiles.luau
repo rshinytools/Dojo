@@ -786,6 +786,48 @@ function PlayerProfiles:commitCityAdventure(userId, token, receipt)
     local saved, reason = self:_owned(userId, token, function(profile, now)
         if profile.cityAdventureReceipt and profile.cityAdventureReceipt.id == receipt.id then return end
         if not PlayerProfiles.canSwitch(profile, receipt.fighterId) then return "fighter locked" end
+        if receipt.kind == "trophy-display" then
+            local slot, id = receipt.slot, receipt.trophy
+            if not whole(slot, 1, 18) or type(id) ~= "string" or (id ~= "" and not profile.trophies[id]) then
+                return "trophy not earned"
+            end
+            local world = table.clone(CityAdventureProgress.world(profile))
+            world.trophyRoom = table.clone(world.trophyRoom or {})
+            if id ~= "" then
+                for key, savedId in world.trophyRoom do
+                    if savedId == id then world.trophyRoom[key] = nil end
+                end
+            end
+            world.trophyRoom[tostring(slot)] = if id == "" then nil else id
+            profile.cityAdventure = world
+            profile.cityAdventureReceipt = {id = receipt.id, xp = 0}
+            return
+        end
+        if receipt.kind == "arena-trophy" then
+            local mode = receipt.mode
+            if mode ~= "duel" and mode ~= "tag" and mode ~= "brawl" then return "invalid arena trophy" end
+            if not whole(receipt.parries, 0, 10) then return "invalid arena trophy" end
+            local world = table.clone(CityAdventureProgress.world(profile))
+            local old = world.arenaTrophies or {}
+            local duelWins = math.min(10, (old.duelWins or 0) + (if mode=="duel" and receipt.outcome=="win" then 1 else 0))
+            local parries = math.min(10, (old.parries or 0) + receipt.parries)
+            local matches = math.min(20, (old.matches or 0) + 1)
+            world.arenaTrophies = {duelWins=duelWins,parries=parries,matches=matches}
+            profile.cityAdventure = world
+            profile.trophies = table.clone(profile.trophies)
+            local awards = {
+                duelWins>=1, mode=="brawl" and whole(receipt.placement,1,3), mode=="tag" and receipt.outcome=="win",
+                duelWins>=10, parries>=10, matches>=20,
+            }
+            for index, earned in awards do
+                if earned then
+                    local id = string.format("arena-%02d",index)
+                    profile.trophies[id] = profile.trophies[id] or {earnedAt=now,criterionVersion=1}
+                end
+            end
+            profile.cityAdventureReceipt = {id=receipt.id,xp=0}
+            return
+        end
         local updated, xp, awards = CityAdventureProgress.apply(profile.cityAdventure, receipt)
         profile.cityAdventure = updated
         if #awards > 0 then

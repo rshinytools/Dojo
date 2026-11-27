@@ -1,3 +1,4 @@
+local trophyCompleted = script.Parent:WaitForChild("ArenaTrophyCompleted")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -332,6 +333,9 @@ local function finishPlayer(match, index, result, departing)
         local position = cityReturn.Position + Vector3.new((column - .5) * 2.6, 0, row * 2.7)
         Match.move(root, CFrame.lookAt(position, Vector3.new(gate.Position.X, position.Y, gate.Position.Z)))
     end
+    if match.round.result and result~="left" then
+        trophyCompleted:Fire(player,"tag",result,actor.trophyParries)
+    end
     local outcome = match.round.result
     remote:FireClient(player, "result", {matchId = match.id, result = result,
         presentationSequence = CombatPresentation.resultSequence(match),
@@ -355,6 +359,8 @@ local function resolveContacts(match, now, beforeExit)
     local floorCueAt = {}
     for _, event in match.round.notices do
         Motion.impact(match, event)
+        local defender=match.actors[event.defender]
+        if defender and event.kind=="parried" then defender.trophyParries=(defender.trophyParries or 0)+1 end
         local attacker = match.actors[event.attacker]
         local side = match.round.sides[event.attacker]
         if attacker and side.playerHealth > 0 and not side.eliminated then
