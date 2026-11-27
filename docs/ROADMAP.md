@@ -67,7 +67,7 @@ V0.288 keeps zero-HP fighters on the mat until the final knockout outro ends in 
 
 V0.290 gives Reedguard planted shuffles and a right body kick at the end of the Strike chain. Juniper circles in both directions and steps back after defense. Desktop Studio checked native keyboard movement, fixed windups, whiffs, parry, all three combo contacts, first-win XP and restored city speed and camera. Galaxy A06 landscape simulation used the touch joystick, three native Strike taps and touch exit. Live multiplayer and physical-device input tests remain release gates.
 
-The current walking candidate recognizes remote walk and run tracks by their configured asset IDs. A Studio server probe matched 66 moving samples that exposed a generic animation name, all missed by the original name check. The [verification table](IMPLEMENTATION.md#walking-release-first-time-play-and-save-recovery) tracks the published two-player walk, physical-device Relay onboarding, and save recovery work.
+The walking update recognizes remote walk and run tracks by their configured asset IDs. A Studio server probe matched 66 moving samples that exposed a generic animation name, all missed by the original name check. Private Staging v20 is published and a fresh macOS Roblox Player session completed a Juniper spar and returned to city movement. The [verification table](IMPLEMENTATION.md#walking-release-first-time-play-and-save-recovery) tracks the pending two-player walk, physical-device Relay onboarding, and save recovery work.
 
 ## P3 Persistent player progression
 
