@@ -875,9 +875,17 @@ local function layout()
     shop.Position = if wide then UDim2.new(1, -28, .5, 0) else UDim2.fromScale(.5, .5)
     shop.Size = UDim2.fromOffset(width, height)
     local touch = UserInputService.TouchEnabled
-    storeShortcuts.Size = UDim2.fromOffset(172, 44)
-    storeShortcuts.Position = if touch then UDim2.fromOffset(8, if compact then 54 else 82)
+    -- Keep the touch storefront above the city card and left of the compact XP chip.
+    local shortcutWidth = if touch then math.clamp(size.X - 148, 112, 172) else 172
+    local nativeWidth = math.floor(shortcutWidth * 70 / 172)
+    storeShortcuts.Size = UDim2.fromOffset(shortcutWidth, 44)
+    nativeShop.Size = UDim2.fromOffset(nativeWidth, 44)
+    shortcut.Position = UDim2.fromOffset(nativeWidth + 6, 0)
+    shortcut.Size = UDim2.fromOffset(shortcutWidth - nativeWidth - 6, 44)
+    storeShortcuts.Position = if touch then UDim2.fromOffset(8, 6)
         else UDim2.fromOffset(16, if compact then 65 else 178)
+    -- Keep the failure message below the city card on touch screens.
+    shopUnavailable.Position = UDim2.fromOffset(0, if touch then 163 else 49)
 
     local stacked = width < 460
     local small = compact or stacked
