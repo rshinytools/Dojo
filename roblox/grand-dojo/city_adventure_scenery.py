@@ -134,8 +134,9 @@ def build_city_adventure_scenery(city, *, item, part, prop, sign, cedar, slate, 
         return piece(parent, name, (x, y + height, z), (.25, .25, .25), _BRASS, metal,
                      transparency=1)
 
-    def words(parent, title, location, width, height, yaw, tint, distance):
-        plaque = sign(parent, title.upper(), *location, width, height, yaw, tint, face_only=True)
+    def words(parent, title, location, width, height, yaw, tint, distance, *, wayfinding=False):
+        plaque = sign(parent, title.upper(), *location, width, height, yaw, tint,
+                      face_only=True, wayfinding=wayfinding)
         prop(plaque, "bool", "CastShadow", False)
         prop(plaque.find("Item"), "float", "MaxDistance", distance)
 
@@ -162,7 +163,9 @@ def build_city_adventure_scenery(city, *, item, part, prop, sign, cedar, slate, 
         for side in (-1, 1):
             piece(parent, "Enamel nail head", front(location, side * (width / 2 - .17), height + .58, .28),
                   (.15, .12, .070), lamp, metal, yaw=yaw)
-        words(parent, title, front(location, 0, height + .15, -.16), width, .47, yaw, enamel, 58)
+        # Keep the lettering in front of the board and its corner trim at oblique angles.
+        words(parent, title, front(location, 0, height + .15, -.09), width, .47,
+              yaw, enamel, 58, wayfinding=True)
         if subtitle:
             words(parent, subtitle, front(location, 0, height - .31, -.16), width - .11, .34, yaw, enamel, 38)
 

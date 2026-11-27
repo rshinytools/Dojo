@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.368 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.369 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -42,6 +42,12 @@ Private Staging place v28 contains the six-script Adventure flow update. macOS R
 On November 27, 2026, macOS Roblox Player passed the full first-time flow in published Private Staging. The tester used an empty, separate native DataStore scope with the standard gameplay and save code. The fighter picker confirmed Reedguard, the tracked marker led across the red bridge, and all seven official gates counted. The recap awarded 80 XP, 60 Coins, and Lantern Keeper. A new server restored Reedguard at 80/250 XP, the 60-Coin balance, and the Trophy Hall objective. The trophy was visible on the center pedestal. Server job IDs ended in `ea922` and `db809`. The isolated routing was removed in the following staging publish. A fresh join then restored the tester’s original Penguin Brawler and 90-Coin balance.
 
 On November 27, 2026, physical iPhone Roblox Player passed the first-time flow in Private Staging v31 using an isolated empty save. Mirrored taps confirmed Reedguard, tracked the Relay, started the official run, and opened Lantern Keeper. Mirrored WASD controlled traversal. All seven gates counted in 19.3 seconds. A different server restored Reedguard at 80/250 XP, 60 Coins, the Trophy Hall goal, and Lantern Keeper on the center pedestal. The QA badges recorded distinct job suffixes `cbc9` and `e4d0`. The next staging publish removed the save routing and QA badge. A new join on the phone loaded the tester’s regular Penguin Brawler and 90 Coins. Touch-only traversal and the physical PS5 check remain open.
+
+## Mobile wayfinding signs
+
+V0.369 raises the plaza direction boards above the Reed-path Parkour marker. Larger, bolder lettering and darker plaque colors make the Dojo Ring, Trophy Hall and Lantern Relay arrows clearer. The lettering treatment also covers the Relay start, Trophy Hall approaches, primary district road boards, and Adventure activity titles. Activity title lettering sits clear of the wooden board face. Matched iPhone 17 Pro landscape Studio Play screenshots verified all three plaza arrows and the full Reed-path Parkour title from the arrival approach. A published hardware check of the signs remains open.
+
+In a separate Private Staging v32 attempt on a physical iPhone, iPhone Mirroring opened the Roblox menu and registered taps. Repeated drags on the movement area after reconnecting in landscape did not move the fighter. The touch-only Relay and its cross-server reward check remain open.
 
 ## Starter fighter selection
 

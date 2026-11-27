@@ -625,23 +625,28 @@ def arrival_hanging_lantern(parent, x, y, z, scale, *, light=True, entrance_pape
 
 
 def sign(parent, label, x, y, z, width, height, yaw=0, tint=DARK, *, roll=0, face_only=False,
-         finished_back=False, reverse_label=None, single_line=False):
+         finished_back=False, reverse_label=None, single_line=False, wayfinding=False):
     def letters(board, message, face, canvas_size):
+        if wayfinding:
+            canvas_size = (round(width*80), round(height*80))
         surface=item(board,"SurfaceGui",message)
         prop(surface,"token","Face",face)
         prop(surface,"token","SizingMode",0)
         vector(surface,"Vector2","CanvasSize",("X","Y"),canvas_size)
-        prop(surface,"float","LightInfluence",.16)
+        prop(surface,"float","LightInfluence",.04 if wayfinding else .16)
         lettering=item(surface,"TextLabel","Lettering")
         vector(lettering,"UDim2","Size",("XS","XO","YS","YO"),(1,0,1,0))
         prop(lettering,"float","BackgroundTransparency",1)
         prop(lettering,"string","Text",message)
         color(lettering,"TextColor3",CREAM)
-        prop(lettering,"token","Font",4)
-        prop(lettering,"bool","TextScaled",not single_line)
-        if single_line:
+        prop(lettering,"token","Font",19 if wayfinding else 4)
+        prop(lettering,"bool","TextScaled",not (single_line or wayfinding))
+        if wayfinding:
+            # Keep the destination and its directional arrow on the same line.
+            prop(lettering,"float","TextSize",round(min(canvas_size[1]*.82,canvas_size[0]/(max(len(message),1)*.64))))
+        elif single_line:
             prop(lettering,"float","TextSize",round(canvas_size[1]*.69))
-        prop(lettering,"float","TextStrokeTransparency",.65)
+        prop(lettering,"float","TextStrokeTransparency",.44 if wayfinding else .65)
 
     if width > 5 and not face_only:
         part(parent, label + " gold frame", (x, y, z), (width+.32, height+.29, .42),
@@ -2027,17 +2032,17 @@ for x,z,angle in ((-31.6,18.3,-11),(-32.8,25.9,24)):
 
 directions=item(plaza,"Model","Plaza direction post")
 prop(directions,"token","ModelStreamingMode",1)
-direction_x,direction_z=-4.68,46.55
+direction_x,direction_z=-4.96,47.60
 part(directions,"Direction post slate foot",(direction_x,.28,direction_z),(.91,.54,.83),
      "967E85",material=SLATE,collide=False)
-part(directions,"Direction post cedar",(direction_x,1.86,direction_z),(.33,3.00,.39),
+part(directions,"Direction post cedar",(direction_x,2.705,direction_z),(.33,4.69,.39),
      "8B543D",material=WOOD_PLANK,collide=False)
-part(directions,"Direction post cap",(direction_x,3.38,direction_z),(.50,.24,.48),
+part(directions,"Direction post cap",(direction_x,5.10,direction_z),(.50,.24,.48),
      "BA8751",collide=False)
-for label,y,tint in (("DOJO RING  →",3.02,"883B33"),
-                     ("TROPHY HALL  ↑",2.30,"735B3A"),
-                     ("←  LANTERN RELAY",1.58,"734960")):
-    sign(directions,label,direction_x+.18,y,direction_z+.16,3.5,.61,yaw=49,tint=tint)
+for label,y,tint in (("DOJO RING  →",4.63,"75312A"),
+                     ("TROPHY HALL  ↑",3.68,"5E472D"),
+                     ("←  LANTERN RELAY",2.73,"57364B")):
+    sign(directions,label,direction_x+.18,y,direction_z+.16,4.85,.87,yaw=49,tint=tint,wayfinding=True)
 
 # Support arriving players at the height of the local flagstone faces.
 arrival_spawn_surface = .214
@@ -2827,7 +2832,7 @@ board=part(relay,"EventBoard",(board_x,2.0,board_z),(3.38,1.95,.49),"6E3830",
            material=WOOD_PLANK,collide=False)
 part(relay,"Relay desk plaque frame",(board_x,2.05,board_z+.24),(3.22,1.16,.13),
      "C28F53",material=METAL,collide=False)
-sign(relay,"RELAY START",board_x,2.05,board_z+.23,2.95,.92,tint="95372D")
+sign(relay,"RELAY START",board_x,2.05,board_z+.23,2.95,.92,tint="813026",wayfinding=True)
 for side in (-1,1):
     px=board_x+side*1.34
     part(relay,"Relay desk slate shoe",(px,.31,board_z),(.58,.37,.72),"8D7E86",
@@ -3536,7 +3541,7 @@ def road_sign(parent, origin, destination, label, tint, *, width=8, reverse_labe
     z+=dz/length*2-dx/length*shoulder
     part(parent,"Wayfinding post",(x,y+2.54,z),(.43,5.40,.43),"754438",yaw=yaw,collide=False)
     part(parent,"Wayfinding stone foot",(x,y+.25,z),(1.17,.50,1.17),"85767D",collide=False)
-    sign(parent,label,x,y+4.18,z,width,1.72,yaw,tint,reverse_label=reverse_label)
+    sign(parent,label,x,y+4.18,z,width,1.95,yaw,tint,reverse_label=reverse_label,wayfinding=True)
     lamp(parent,x,y+5.63,z,scale=.52)
 
 
@@ -4516,7 +4521,7 @@ def trophy_hall_approach(parent):
         (20.35,top+2.39,-32.96,4.85,"HALL ENTRY  ←"),
     ):
         part(terrace,"Ramp wayfinding post",(x,y-1.53,z),(.32,3.10,.32),rail,collide=False)
-        sign(terrace,label,x,y,z+.23,width,.93,tint="426C62")
+        sign(terrace,label,x,y,z+.23,width,1.14,tint="315A51",wayfinding=True)
 
 
 trophy_hall_approach(hall)
