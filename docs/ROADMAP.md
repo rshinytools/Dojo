@@ -81,10 +81,10 @@ Implement safe saving before a persistent economy or trading.
 
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
-| P3.1 | Versioned account profile | Prototype ready | Verify cloud reconnect and future migrations preserve XP and trophy history. Restore permanent ring access across reconnects, server changes and fighter switches once any owned fighter reached the threshold. Production also adds the remaining account fields and boost expiry. |
+| P3.1 | Versioned account profile | Prototype ready | Verify cloud reconnect and future migrations preserve XP and trophy history. Private Staging v27 verified that a Level 1 Penguin could enter Cinder Ring after a rejoin once Reedguard reached Level 3. Verify the other thresholds and remaining account fields. Production also adds the remaining account fields and boost expiry. |
 | P3.2 | Session ownership and safe loading | Prototype ready | Repeat the conflict, expiry and failed-load checks on staging. Automatic teleport handoff remains planned. |
-| P3.3 | Idempotent rewards | Prototype ready | Verify the cloud grant and retry path. Extend it to the planned first-time mentor XP grant and later match and purchase receipts. |
-| P3.4 | Autosave and recovery | In progress | Exercise cloud throttling and abrupt server loss on staging. Versioned support tooling and future migrations remain open. |
+| P3.3 | Idempotent rewards | Prototype ready | The published staging Relay retry granted XP once after lost replies. Extend the grant and retry path to the planned first-time mentor XP grant and later match and purchase receipts. |
+| P3.4 | Autosave and recovery | In progress | Private Staging v24–v26 passed injected write interruptions, stale lease rejection and lost-reply recovery across two server jobs. Exercise platform throttling and abrupt server loss on staging. Versioned support tooling and future migrations remain open. |
 | P3.5 | Player save feedback | Prototype ready | Verify native UI feedback on a staging outage and reconnect. Add support tools for the last committed revision. |
 
 ## P4 Native UI and all-device access
