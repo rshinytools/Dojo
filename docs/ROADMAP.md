@@ -134,7 +134,7 @@ Give every player a saved achievement collection and a place to display it.
 | ID | Work item | Status | Acceptance |
 | --- | --- | --- | --- |
 | P4T.1 | Trophy catalog and rank distinction | Planned | Every trophy has a criterion and source event; account trophies are distinct from currencies, ranked score and trading inventory. |
-| P4T.2 | Authoritative awards and migration | Prototype ready | Verify the cloud grant and two-player isolation with disposable staging profiles. Extend the same contract to the remaining trophy criteria. |
+| P4T.2 | Authoritative awards and migration | Prototype ready | The first official public v16 Relay awarded Lantern Keeper, and the trophy appeared in Trophy Hall after joining a different server on Mac. Verify two-player display isolation with disposable staging profiles and extend the same contract to the remaining trophy criteria. |
 | P4T.3 | Collection journal and goal tracking | Prototype ready | Native UI distinguishes pending saves and supports controller, touch and VR without requiring chat. Browser collection tracking is playable. |
 | P4T.4 | Personal trophy room and visits | Prototype ready | Production adds six featured pedestals, paged walls and a saved layout per account. Rooms default to Private. Invited visitors can inspect displays and return to the city. Verify owner-only edits, expired or revoked invitations, reconnect and return. |
 
