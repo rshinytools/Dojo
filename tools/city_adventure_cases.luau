@@ -239,6 +239,27 @@ print("Bundle equip preference survived rejoin and left earned Coins and the Jad
 local progressionStore = PlayerProfiles.memoryStore()
 local progression = PlayerProfiles.new(progressionStore, function() return now end, function() end)
 local reedguard = "reedguard-kangaroo"
+local guideUser, firstJob, secondJob, thirdJob = 14, "guide-first", "guide-second", "guide-third"
+assert(progression:open(guideUser, firstJob))
+assert(progression:commitStarterChoice(guideUser, firstJob, reedguard))
+local tracked = assert(progression:commitCityAdventure(guideUser, firstJob,
+    {kind = "guided-goal", goal = "relay", at = now, id = "track-relay", fighterId = reedguard}))
+assert(tracked.cityAdventure.guidedGoal == "relay")
+assert(progression:release(guideUser, firstJob))
+assert(progression:open(guideUser, secondJob).cityAdventure.guidedGoal == "relay")
+local goalReward, _, firstClear, xpReward = progression:commitRelay(guideUser, secondJob, 183, "guided-relay", reedguard)
+assert(goalReward.cityAdventure.guidedGoal == "trophy" and firstClear and xpReward == 80)
+assert(PlayerProfiles.wallet(goalReward).coins == 60 and goalReward.trophies["world-04"])
+assert(progression:release(guideUser, secondJob))
+local guideRestored = assert(progression:open(guideUser, thirdJob))
+assert(guideRestored.cityAdventure.guidedGoal == "trophy" and guideRestored.relayBestTenths == 183)
+assert(guideRestored.trophies["world-04"] and PlayerProfiles.summary(guideRestored).xp == 80)
+local nextGoal = assert(progression:commitCityAdventure(guideUser, thirdJob,
+    {kind = "track", district = "valley", at = now, id = "track-valley", fighterId = reedguard}))
+assert(nextGoal.cityAdventure.guidedGoal == nil and nextGoal.cityAdventure.tracked == "valley")
+local replayedGuide = assert(progression:commitRelay(guideUser, thirdJob, 183, "guided-relay", reedguard))
+assert(replayedGuide.cityAdventure.tracked == "valley" and PlayerProfiles.summary(replayedGuide).xp == 80)
+print("Adventure goal survived separate leases, advanced with the first Relay grant, and yielded to the next tracked activity.")
 local fresh = assert(progression:open(11, "fresh-curve"))
 assert(PlayerProfiles.summary(fresh).nextLevelXp == 250)
 assert(PlayerProfiles.levelForXp(249) == 1 and PlayerProfiles.levelForXp(250) == 2)

@@ -2,6 +2,7 @@ local Catalog = require(script.Parent.CityAdventureCatalog)
 local Progress = {}
 local EMPTY = table.freeze({districts = table.freeze({}), activities = table.freeze({})})
 local FESTIVAL_SOURCES = {relay = true, cloudbreak = true}
+local GUIDED_GOALS = {relay = true, trophy = true, hidden = true}
 -- Expert has an inactivity limit. Any verified finish can be stored as exact tenths.
 local MAX_CLOUDBREAK_TENTHS = 2 ^ 53 - 1
 local CACHE_COOLDOWN = 48 * 60 * 60
@@ -66,6 +67,7 @@ function Progress.valid(world)
         if not Catalog.activities[id] or not integer(best, 1, 1200) then return false end
     end
     if world.tracked ~= nil and not Catalog.byId[world.tracked] then return false end
+    if world.guidedGoal ~= nil and not GUIDED_GOALS[world.guidedGoal] then return false end
     for _, key in {"graduated", "grandCache"} do
         if world[key] ~= nil and world[key] ~= true then return false end
     end
@@ -90,6 +92,15 @@ end
 
 function Progress.world(profile)
     return profile and profile.cityAdventure or EMPTY
+end
+
+function Progress.afterRelay(world)
+    if world and world.guidedGoal == "relay" then
+        local updated = table.clone(world)
+        updated.guidedGoal = "trophy"
+        return updated
+    end
+    return world
 end
 
 function Progress.count(map)
@@ -167,8 +178,12 @@ function Progress.apply(source, action)
             world.grandCache = true
             world.grandCacheOpenedAt = if action.rewardXp then action.at else old.grandCacheOpenedAt
         end
+    elseif kind == "guided-goal" and GUIDED_GOALS[action.goal] then
+        world.guidedGoal = action.goal
+        if action.goal ~= "hidden" then world.tracked = nil end
     elseif chapter and kind == "track" then
         world.tracked = id
+        world.guidedGoal = nil
     elseif chapter then
         local district = table.clone(old.districts[id] or {step = 0})
         if kind == "visit" then

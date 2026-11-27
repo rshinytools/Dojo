@@ -1118,6 +1118,8 @@ local function layout()
     panel.Position = narrow and UDim2.fromScale(.5, .5) or UDim2.new(1, -26, .5, 0)
     panel.Size = UDim2.fromOffset(width, height)
     scale.Scale = math.max(.1, math.min(1, (size.X - 26)/width, (size.Y - 54)/height))
+    local actionHeight = if compact and not (map or journalView) then math.max(55, 44 / scale.Scale) else 55
+    actions.Position, actions.Size = UDim2.new(0, 0, 1, -actionHeight), UDim2.new(1, 0, 0, actionHeight)
     local showingResult = sparResult and sparResult.Visible
     local choosingFight = (sparPicker and sparPicker.Visible) or (duelUi.picker and duelUi.picker.Visible)
     local inGroupCombat = groupCombatUiOpen()
@@ -1195,10 +1197,6 @@ local function hide()
     layout()
 end
 
-local function formatRewardXp(amount)
-    return string.format("+%d XP", amount)
-end
-
 local function updateTrophyPanel()
     local state = player:GetAttribute("ProgressStatus")
     local earned = player:GetAttribute("LanternKeeper")
@@ -1259,11 +1257,15 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     eyebrow.Text = "GRAND DOJO"
     local earned = first or player:GetAttribute("LanternKeeper")
     local best = player:GetAttribute("RelayBest") or 0
-    practice.Visible = offered
     eagleButton.Visible = map
-    start.Text = if offered then "Start relay" elseif kind == "trophy" then "Open journal" else "Back to city"
-    start.Size = (offered or eagleButton.Visible) and UDim2.new(.5, -4, 1, 0) or UDim2.fromScale(1, 1)
-    start.NextSelectionRight = if offered then practice elseif eagleButton.Visible then eagleButton else nil
+    local officialResult = kind == "finished" and not practiceRun
+    practice.Visible = offered or officialResult or kind == "trophy"
+    practice.Text = if offered then "Practice route" else "Choose Next Activity"
+    start.Text = if offered then "Start relay" elseif officialResult then "View Trophy"
+        elseif kind == "relayInfo" then "Track Relay" elseif kind == "trophy" then "Open journal" else "Back to city"
+    start.Size = (practice.Visible or eagleButton.Visible)
+        and UDim2.new(.5, -4, 1, 0) or UDim2.fromScale(1, 1)
+    start.NextSelectionRight = if practice.Visible then practice elseif eagleButton.Visible then eagleButton else nil
     eagleButton.NextSelectionLeft = start
     start.NextSelectionUp = close
     close.NextSelectionDown = start
@@ -1277,7 +1279,7 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
         heading.Text = "Lantern Relay"
         detail.Text = if offered then "Follow seven lantern gates in order. 2 min limit."
             else "Cross the red bridge. Start timed or practice runs at the Lantern Relay arch."
-        status.Text = best > 0 and string.format("Best time  %.1fs", best) or "First clear unlocks a trophy for your hall."
+        status.Text = best > 0 and string.format("Best time  %.1fs", best) or "First clear · 80 XP · 60 Coins · Trophy"
         prizeDetail.Text = earned and "Already displayed in your Trophy Hall." or "Finish an official relay to earn this golden lantern."
     elseif kind == "trophy" then
         heading.Text = "Trophy Hall"
@@ -1285,11 +1287,11 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     else
         heading.Text = practiceRun and "Practice complete" or "Relay complete!"
         detail.Text = string.format("Seven gates cleared in %.1fs.", elapsed)
-        prizeDetail.Text = first and "Trophy earned. Follow the jade markers to the Trophy Hall." or
+        prizeDetail.Text = first and "Your trophy is now on display in Trophy Hall." or
             (practiceRun and "Enter an official relay to earn the trophy." or "Your first-clear trophy is already in the hall.")
-        status.Text = if first then "Lantern Keeper unlocked · " .. formatRewardXp(xpReward or 0)
+        status.Text = if first then "Lantern Keeper earned · " .. string.format("+%d XP", xpReward or 0) .. " · +60 Coins"
             elseif practiceRun then "Practice route"
-            elseif xpReward and xpReward > 0 then "Official clear · " .. formatRewardXp(xpReward)
+            elseif xpReward and xpReward > 0 then "Official clear · " .. string.format("+%d XP", xpReward)
             else string.format("Best time  %.1fs", math.min(best > 0 and best or elapsed, elapsed))
     end
     layout()
@@ -1355,15 +1357,24 @@ close.Activated:Connect(hide)
 start.Activated:Connect(function()
     if offered and openPanel == "relay" then
         remote:FireServer("start")
-    elseif openPanel == "trophy" then
+    elseif openPanel == "trophy" or (openPanel == "finished" and practice.Visible) then
         show("journal")
+    elseif openPanel == "relayInfo" then
+        hide()
+        ReplicatedStorage.AdventureNavigation:Fire("track-relay")
     else
         hide()
     end
 end)
+ReplicatedStorage:WaitForChild("AdventureNavigation").Event:Connect(function(action)
+    if action == "view-trophy" then show("journal") end
+end)
 practice.Activated:Connect(function()
     if offered and openPanel == "relay" then
         remote:FireServer("practice")
+    elseif openPanel == "trophy" or openPanel == "finished" then
+        hide()
+        ReplicatedStorage.AdventureNavigation:Fire("next-activity")
     end
 end)
 cancel.Activated:Connect(function()
@@ -1512,7 +1523,7 @@ remote.OnClientEvent:Connect(function(kind, a, b, c, d)
                 message ..= " · Lantern Keeper"
             end
             if d and d > 0 then
-                message ..= " · " .. formatRewardXp(d)
+                message ..= " · " .. string.format("+%d XP", d)
             end
             flash(message)
         else

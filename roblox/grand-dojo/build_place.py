@@ -7867,6 +7867,7 @@ add_world_collision(scene, part=part, prop=prop, rock_material=ROCK)
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")
+item(storage,"BindableEvent","AdventureNavigation")
 item(storage,"RemoteEvent","DojoWallet")
 item(storage,"RemoteEvent","GrandDojoAction")
 item(storage,"RemoteEvent","GrandDojoSparring")

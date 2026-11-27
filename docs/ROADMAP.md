@@ -101,7 +101,7 @@ Translate the UI direction to Roblox while the feature set is still small.
 | --- | --- | --- | --- |
 | P4.1 | Native UI component library | Prototype ready | The shared Festival Championship HUD covers Bot Spar, Duel and Brawl. Confirm controller focus, notch clearance, VR and older-phone performance on hardware. |
 | P4.2 | Input and safe-area layouts | In progress | Private Staging v21 moves Shop and Outfitters clear of the city card. iPad 6th Gen and Galaxy A06 Studio Play verified the expanded and compact layouts. Retest on the physical phone that reproduced the overlap. Core actions require neither hover nor an external website. |
-| P4.3 | Onboarding and comfort | Prototype ready | Desktop and Galaxy A06 Studio Play covered the first-join fighter picker. Verify on hardware and continue the onboarding loop so first-time players navigate dojo, quest, activity, fight and reward; returning players restore a tracked goal. VR has no forced camera shake, snapping or hit-stop. |
+| P4.3 | Onboarding and comfort | Prototype ready | V0.368 adds the Adventure card, saved Relay waypoint, confirmed reward, Trophy Journal and next-activity selection. Desktop and Galaxy A06 Studio Play verified the fresh-profile first clear. Mac Roblox Player restored the goal across two Private Staging v28 server jobs. Verify on a physical phone and PS5. VR has no forced camera shake, snapping or hit-stop. |
 | P4.4 | Early physical-device checkpoint | Planned | Record the device, settings, frame-time and usability findings; resolve architectural issues before roster expansion. |
 
 ## P4W Open-world city foundation and Dojo Valley slice

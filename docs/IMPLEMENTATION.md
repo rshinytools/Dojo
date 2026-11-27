@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.367 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.368 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -30,6 +30,14 @@ V0.296 shortens the equipped tail from 1.73 to 1.38 studs while preserving the a
 V0.292 fits the invisible Festival Plaza spawn support to the sandstone surface and shortens Reedguard’s equipped tail by another 20 percent. Both feet settle on the canvas in his Bot Spar intro, idle and guard. The four Bot Spar entry marks use the shared rig’s settled root height. The original Blender source and mesh ID remain reusable.
 
 Desktop Studio sampled Reedguard’s boots on the plaza and Grand Dojo canvas. The authored sole fit was also checked against the original Blender export throughout the intro, idle, guard, block, salute and win, alongside the existing shuffle and body kick regression checks.
+
+## Adventure card and Lantern Relay
+
+V0.368 offers a compact **Track Relay** card after a new player confirms a starter. Tracking saves the goal to the account and marks the arch across the red bridge. The original seven ordered gates and start-board proximity checks validate the official run. The first clear awards 80 fighter XP, 60 Coins and Lantern Keeper. A repeat awards 25 fighter XP. If Relay is tracked, the same profile write advances the goal to Trophy Hall. The recap opens the Lantern Keeper entry or the Adventure Journal, where a district objective can replace the tracked goal. The card can be hidden, and the Relay can be tracked again from the Journal or arrival board.
+
+The standalone City Adventure test exercised separate profile leases, reward replay and replacement by a district goal. Desktop and Galaxy A06 landscape Studio Play used temporary fresh profiles and seven-gate waypoint-assisted runs. Both recorded the full first-clear reward. Desktop opened the earned trophy entry, and the phone simulation opened Choose Next Activity. The compact HUD moved below Shop and Outfitters to clear the Festival prompt. Physical phone verification remains open.
+
+Private Staging place v28 contains the six-script Adventure flow update. macOS Roblox Player restored the tracked Relay card and start marker after leaving job `...6ab9b` and joining job `...fec8f`. The owner used an existing staging profile, which already owned Lantern Keeper.
 
 ## Starter fighter selection
 

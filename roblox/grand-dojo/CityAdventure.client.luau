@@ -9,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("CityAdventure")
+local adventureNavigation = ReplicatedStorage:WaitForChild("AdventureNavigation")
 local backAction = "CloseCityAdventureJournal"
 local function bindActivityPrompts(tag, playerAttribute, promptAttribute)
     local function refresh(prompt)
@@ -148,6 +149,24 @@ trailChip.BackgroundColor3, trailChip.BackgroundTransparency, trailChip.Visible 
 create("UISizeConstraint", trailChip, {MaxSize = Vector2.new(263, 54)})
 create("UIPadding", trailChip, {PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8)})
 decorate(trailChip, 8, edge)
+
+local guidedCard = create("Frame", screen, {
+    Name = "AdventureCard", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -8, 0, 95),
+    Size = UDim2.fromOffset(210, 97), BackgroundColor3 = ink, BackgroundTransparency = .04,
+    BorderSizePixel = 0, Visible = false,
+})
+decorate(guidedCard, 10, edge)
+local guidedTitle = label(guidedCard, "Objective", 15, gold, true)
+guidedTitle.Position, guidedTitle.Size = UDim2.fromOffset(10, 7), UDim2.new(1, -21, 0, 20)
+local guidedDetail = label(guidedCard, "Directions", 12, paper, false)
+guidedDetail.Position, guidedDetail.Size = UDim2.fromOffset(10, 29), UDim2.new(1, -20, 0, 20)
+local guidedAction = button(guidedCard, "PrimaryAction", "Track Relay")
+guidedAction.Position, guidedAction.Size = UDim2.fromOffset(8, 47), UDim2.new(1, -66, 0, 44)
+local guidedClose = button(guidedCard, "HideObjective", "×")
+guidedClose.Position, guidedClose.Size = UDim2.new(1, -50, 0, 47), UDim2.fromOffset(44, 44)
+guidedAction.NextSelectionRight, guidedClose.NextSelectionLeft = guidedClose, guidedAction
+guidedAction.NextSelectionUp, guidedClose.NextSelectionUp = toggle, toggle
+toggle.NextSelectionDown = guidedAction
 
 local waypoint = create("Part", workspace, {
     Name = "LocalAdventureWaypoint", Size = Vector3.new(.2, .2, .2), Anchored = true, Transparency = 1,
@@ -412,6 +431,15 @@ local function chapterCards()
         local actions = if running then {{name = "Action", label = "Cancel trail", run = function() remote:FireServer("cancel") end}} else nil
         deadlineLabel = card("trail", if running then "Active trail" else "Tracked objective", trailText(trail), body(trail.hint), actions)
     end
+    local guide = snapshot.guided
+    card("relay", "Lantern Relay", if snapshot.relayEarned then "Lantern Keeper earned" else "First clear",
+        "Cross the red bridge to the Relay arch. First clear earns Lantern Keeper, 80 XP and 60 Coins.",
+        if guide and guide.goal == "relay" then nil else {{
+            name = "TrackRelay", label = "Track Relay", run = function()
+                remote:FireServer("guided-goal", "relay")
+                hide()
+            end,
+        }})
     for _, district in ipairs(districts()) do
         local id = body(district.id)
         local completed = math.clamp(integer(district.step), 0, 3)
@@ -545,9 +573,22 @@ end
 
 local function syncVisibility()
     local ready = available()
+    local guide = snapshot and snapshot.guided
+    local showGuide = ready and not shade.Visible and guide ~= nil and snapshot.trail == nil
     toggle.Visible = ready and not shade.Visible
     trailChip.Visible = ready and not shade.Visible and snapshot ~= nil and type(snapshot.trail) == "table"
-    flag.Enabled = trailChip.Visible and goalPosition ~= nil
+    guidedCard.Visible = showGuide
+    flag.Enabled = (trailChip.Visible or showGuide) and goalPosition ~= nil
+    if showGuide then
+        local trophy = guide.goal == "trophy"
+        local suggested = guide.goal == "suggested"
+        guidedTitle.Text = if trophy then "Lantern Keeper earned" else "Lantern Relay"
+        guidedDetail.Text = if guide.saving then "Saving your goal…"
+            elseif trophy then "On display in Trophy Hall"
+            elseif suggested then "80 XP · 60 Coins · Trophy" else "Cross the red bridge to the arch"
+        guidedAction.Text = if trophy then "View Trophy" elseif suggested then "Track Relay" else "Adventure Journal"
+        guidedAction.Active, guidedClose.Active = not guide.saving, not guide.saving
+    end
     toast.Visible = ready and not shade.Visible and workspace:GetServerTimeNow() < noticeUntil
 end
 
@@ -589,6 +630,10 @@ end
 
 local function layout()
     local size = screen.AbsoluteSize
+    local compact = UserInputService.TouchEnabled and not UserInputService.VREnabled
+        and (size.X < 780 or size.Y < 520)
+    guidedCard.AnchorPoint = if compact then Vector2.zero else Vector2.new(1, 0)
+    guidedCard.Position = if compact then UDim2.fromOffset(8, 88) else UDim2.new(1, -8, 0, 95)
     panel.Size = UDim2.new(.96, 0, 0, math.max(160, math.min(590, size.Y - 14)))
     heading.TextSize = if size.X < 330 then 18 elseif size.X < 420 then 21 else 25
     progress.TextSize = if size.X < 370 then 12 else 13
@@ -604,6 +649,30 @@ for index, tab in ipairs(tabs) do
 end
 close.Activated:Connect(hide)
 toggle.Activated:Connect(askView)
+guidedAction.Activated:Connect(function()
+    local guide = snapshot and snapshot.guided
+    if not guide or guide.saving or not guidedCard.Visible then return end
+    if guide.goal == "trophy" then
+        adventureNavigation:Fire("view-trophy")
+    elseif guide.goal == "suggested" then
+        remote:FireServer("guided-goal", "relay")
+    else
+        askView()
+    end
+end)
+guidedClose.Activated:Connect(function()
+    if guidedCard.Visible and snapshot.guided and not snapshot.guided.saving then
+        remote:FireServer("guided-goal", "hidden")
+    end
+end)
+adventureNavigation.Event:Connect(function(action)
+    if action == "next-activity" then
+        show(1)
+        if shade.Visible then remote:FireServer("view") end
+    elseif action == "track-relay" then
+        remote:FireServer("guided-goal", "relay")
+    end
+end)
 UserInputService.InputBegan:Connect(function(input, consumed)
     if consumed or UserInputService:GetFocusedTextBox() then return end
     local key = input.KeyCode
@@ -654,9 +723,12 @@ remote.OnClientEvent:Connect(function(kind, packet)
         for _, district in ipairs(fields(packet.districts)) do
             cacheReadyAt[district.id] = fields(district.treasure).readyAt
         end
-        local position = waypointFor(packet.trail)
+        local guide = packet.guided
+        local position = waypointFor(packet.trail or (guide and {goal = guide.point}))
         if position and position ~= goalPosition then waypoint.Position = position end
         goalPosition = position
+        flagText.Text = if packet.trail or not guide then "Next objective"
+            elseif guide.goal == "trophy" then "Trophy Hall" else "Relay start"
         if kind == "open" then
             local tab = if packet.openTab == "chapters" then 1 elseif packet.openTab == "treasures" then 2
                 elseif packet.openTab == "festival" then 3 else nil

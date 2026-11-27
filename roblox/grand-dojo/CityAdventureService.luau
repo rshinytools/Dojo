@@ -107,6 +107,9 @@ function Service.mount(folder, callbacks)
     end
     local function packet(player, now)
         local world, s = read(player), session(player)
+        local profile = callbacks.profile(player)
+        local committedGoal = Progress.world(profile).guidedGoal
+        local keeper = profile ~= nil and profile.trophies["world-04"] ~= nil
         local chapters, totals = {}, Progress.totals(world)
         for index, chapter in Catalog.chapters do
             local place, district = places[chapter.id], world.districts[chapter.id] or {step = 0}
@@ -161,7 +164,16 @@ function Service.mount(folder, callbacks)
             end
             table.sort(stampIds)
         end
-        return {districts = chapters, tracked = world.tracked, totals = totals, trail = trail,
+        local guidePoint = if world.guidedGoal == "relay" then callbacks.relayBoard
+            elseif world.guidedGoal == "trophy" then callbacks.trophyHall else nil
+        local guided = if profile and (guidePoint or (not world.guidedGoal and not world.tracked and not keeper)) then {
+            goal = world.guidedGoal or "suggested",
+            point = guidePoint and asGoal(guidePoint.Position),
+            saving = world.guidedGoal ~= committedGoal,
+            earned = keeper,
+        } else nil
+        return {districts = chapters, tracked = world.tracked, totals = totals, trail = trail, guided = guided,
+            relayEarned = keeper,
             saving = #callbacks.pending(player) > 0, grandCache = world.grandCache == true,
             grandCacheReadyAt = Progress.cacheReadyAt(world, "grand"), graduated = world.graduated == true,
             cloudbreak = world.cloudbreak, festival = {active = now < endsAt, endsAt = endsAt, nextAt = nextAt,
@@ -397,6 +409,12 @@ function Service.mount(folder, callbacks)
         s.remoteAt = now + .28
         if action == "track" and type(id) == "string" and Catalog.byId[id] and read(player).tracked ~= id then
             if enqueue(player, {kind = "track", district = id}) then publish(player) end
+        elseif action == "guided-goal" and not callbacks.blocked(player) then
+            local profile = callbacks.profile(player)
+            if (id == "relay" or id == "hidden" or id == "trophy" and profile.trophies["world-04"])
+                and read(player).guidedGoal ~= id then
+                if enqueue(player, {kind = "guided-goal", goal = id}) then publish(player) end
+            end
         elseif action == "cancel" then
             stop(player, "Activity cancelled.")
         elseif action == "sash" and type(id) == "boolean" and not callbacks.blocked(player) then

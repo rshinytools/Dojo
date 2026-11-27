@@ -868,6 +868,7 @@ function PlayerProfiles:commitRelay(userId, token, elapsedTenths, completionId, 
         if profile.relayBestTenths == 0 or elapsedTenths < profile.relayBestTenths then
             profile.relayBestTenths = elapsedTenths
         end
+        profile.cityAdventure = CityAdventureProgress.afterRelay(profile.cityAdventure)
         -- The account-bound trophy also acts as the first-clear grant receipt.
         -- A repeated callback, ambiguous network reply or later clear can't add XP twice.
         local xp = if trophy then REPEAT_RELAY_XP else FIRST_RELAY_XP

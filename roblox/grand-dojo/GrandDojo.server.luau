@@ -831,6 +831,8 @@ walletRemote.OnServerEvent:Connect(function(player, kind, equipped, itemId)
 end)
 
 cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).mount(city:WaitForChild("City Adventure"), {
+    relayBoard = board,
+    trophyHall = hall,
     profile = function(player)
         local data = state[player]
         return data and data.profile
