@@ -566,7 +566,7 @@ Kilnback and Solar use the selected fighter's base health plus 5.5% of base heal
 
 Exact archive rules verified the damage in both phases of all three raids and health at Levels 1, 5, and 10. A scripted Solar run tested a down, revive, and exposed-chest hit before clearing in 52.61 seconds. Real four-player balance remains open.
 
-The [Blender source and export notes](../design/raid-bosses/README.md) cover the new Kilnback and Phoenix meshes. The v0.376 checkpoint uses the existing Studio boss geometry. Mesh import, fitting, and review in Roblox remain open.
+The [Blender source and export notes](../design/raid-bosses/README.md) cover the new Kilnback and Phoenix meshes. In a local v0.377 Studio preview, all 39 exported meshes fitted the existing animated rigs. The production visual modules opened Kilnback’s shutters, moved the Phoenix’s outer wing in flight, and exposed its chest on landing. At full exposure, the centers of the new visible glows were 0.42 studs (Kilnback) and 0.14 studs (Phoenix) from the centers of their existing hit volumes and inside them. A front ray met the visible core on both meshes. The saved checkpoint still uses the existing geometry. Permanent mesh import, published play and group balance checks remain open.
 
 ### Co-op raid schedule and rewards
 
