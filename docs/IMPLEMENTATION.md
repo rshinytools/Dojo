@@ -57,6 +57,12 @@ Keep existing treasure locations, including the Grand Cache. Start the expansion
 
 Check the matched spawn view, guide and course prompts, footpaths, the cache grant and rejoin, and retest the Guide and Relay route in Studio. The physical-phone check is pending. See [remaining V1 implementation and owners](ROADMAP.md#remaining-implementation-for-public-v1).
 
+### Cherry Blossom Season
+
+Build a quiet scenic spur off Garden Lookout in Grand Dojo City. Use layered pink canopies to frame a lantern-lit stone walk, then open the view onto the city rooftops and distant hills at sunset. Add a bench and a clear route back to the city. A sloping path should reach the same overlook as the optional stone steps. Use one entrance plaque and list the outlook in the Festival Guide and City Map.
+
+Keep the garden open year-round. During Cherry Blossom Season, give it a fuller canopy and a light drift of nearby petals. Reuse the screened Sakura and lantern assets where they fit. Verify the sightline from player height, rail and tree collision, the walk in both directions, and a low-effects setting with static blossoms. The reference image guides the composition and mood. Build the scenery from the existing Beast Dojo art and original layout.
+
 ## Starter fighter selection
 
 Private Staging version 7 keeps the first-join chooser open until the player confirms one of the four starters. Fighter Select starts with eight released fighters, with two more per monthly anniversary once the production `fighter_roster_launch_utc` configuration is set. Leave the timestamp unset to hold at eight. Released fighters still have their own level requirements, and fighters already used by an existing account stay accessible. The picker uses a paged grid with shoulder-button navigation and explicit direction links between rows. Studio gamepad input confirmed a fresh Penguin choice and moved from the first row to Karate Frog in the second. Galaxy A06 landscape simulation verified the first-join confirmation button. Creator Hub now has Console enabled for the existing private audience. Verify first join and second-row navigation on a physical PS5 with an eligible account that has never joined Private Staging.
