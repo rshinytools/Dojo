@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.378 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.379 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -59,9 +59,11 @@ Check the matched spawn view, guide and course prompts, footpaths, the cache gra
 
 ### Cherry Blossom Season
 
-Build a quiet scenic spur off Garden Lookout in Grand Dojo City. Use layered pink canopies to frame a lantern-lit stone walk, then open the view onto the city rooftops and distant hills at sunset. Add a bench and a clear route back to the city. A sloping path should reach the same overlook as the optional stone steps. Use one entrance plaque and list the outlook in the Festival Guide and City Map.
+V0.379 adds Cherry Blossom Walk off Garden Lookout. One plaque marks the entry. A rose-stone ramp and a parallel flight of steps share a railed terrace with a native Sunset Bench. The City Map marks the overlook. The bench uses a standard Sit prompt and a fitted arm pose for the seated fighter. Jump to get up. The view is framed around Lantern Tower and the existing sunset.
 
-Keep the garden open year-round. During Cherry Blossom Season, give it a fuller canopy and a light drift of nearby petals. Reuse the screened Sakura and lantern assets where they fit. Verify the sightline from player height, rail and tree collision, the walk in both directions, and a low-effects setting with static blossoms. The reference image guides the composition and mood. Build the scenery from the existing Beast Dojo art and original layout.
+The garden is open year-round. The initial season is March 20 through April 15 UTC, inclusive. Fuller blossoms appear during the event and the nearby client renders a small number of drifting petals. Explicit low graphics settings, reduced motion and VR suppress the moving petals. Set the Workspace attribute `PreviewCherryBlossomSeason` to true in Studio for a seasonal preview.
+
+Desktop Studio Play mounted the generated walk and scripts on v0.378. Reedguard walked from Garden Lookout up the ramp, stopped at the north guard, used the E prompt with confirmed seat occupancy, saw the sunset, jumped off, and took the stairs back without respawning. Switching the preview off hid the additional canopy and stopped the petals while retaining the Sit prompt. The packaged v0.379 is the local checkpoint. Published play, physical-device checks and adding the destination to the Festival Guide remain open.
 
 ## Starter fighter selection
 

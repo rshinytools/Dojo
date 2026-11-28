@@ -34,6 +34,7 @@ from cinder_harbor_road_relief import build_cinder_harbor_road_relief
 from cinder_kilnwalk import GLAZE_RAIL_OPENING, POTTERS_NORTH_RAIL_END, build_cinder_kiln_walk
 from cinder_ravine_terraces import build_cinder_ravine_terraces
 from cinder_workshop_hall import build_cinder_workshop_hall
+from cherry_blossom_walk import build_cherry_blossom_walk
 from city_boundary import build_south_boundary
 from coastal_horizon import build_coastal_horizon
 from creator_store_canal_stones import build_canal_store_stones
@@ -729,6 +730,11 @@ def map_canvas(parent,districts,paths):
         color(sample,"BackgroundColor3",tint)
         map_text(canvas,caption,(x+24,24,width,18),"E3D6AE")
     map_text(canvas,"Height above plaza (studs)",(363,24,199,18),"E3D6AE")
+    x,y=project((-103.45,6.1,49.65))
+    blossom=map_box(canvas,"Frame","Cherry Blossom Walk pin",(x-4,y-4,8,8))
+    color(blossom,"BackgroundColor3","EEA2BD")
+    prop(blossom,"float","Rotation",45)
+    map_text(canvas,"Cherry Blossom Walk",(x-75,y+7,150,19),"F4C6D7")
     return canvas
 
 
@@ -4157,6 +4163,14 @@ build_lantern_garden_walk(
     sign=sign, festival_lantern=festival_lantern, garden_shelf=garden_shelf, garden_prop=garden_prop,
     showcase_tree=showcase_tree, stone=LIMESTONE, cedar=WOOD_PLANK, grass=GRASS_MAT, slate=SLATE,
     metal=METAL, flagstone_variant=SUNSET_FLAGSTONE, variant_field=MATERIAL_VARIANT_FIELD,
+)
+
+
+build_cherry_blossom_walk(
+    district, item=item, prop=prop, part=part, beam=beam, sign=sign, route=route,
+    lantern=festival_lantern, tree=showcase_tree, guard=walking_rail_collider,
+    source=(HERE/"SunsetBench.server.luau").read_text(),
+    cedar=WOOD_PLANK, slate=SLATE, stone=LIMESTONE,
 )
 
 
@@ -8340,7 +8354,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (scripts,"LocalScript","FrostglassReflectorDisplay","FrostglassReflectors.client.luau"),
                                     (scripts,"LocalScript","GrandDojoTownLife","GrandDojoTownLife.client.luau"),
                                     (scripts,"LocalScript","SouthRidgeBirds","SouthRidgeBirds.client.luau"),
-                                    (scripts,"LocalScript","GrandDojoFireworks","GrandDojoFireworks.client.luau")]:
+                                    (scripts,"LocalScript","GrandDojoFireworks","GrandDojoFireworks.client.luau"),
+                                    (scripts,"LocalScript","CherryBlossomSeason","CherryBlossomSeason.client.luau")]:
     script=item(parent,class_name,name)
     prop(script,"ProtectedString","Source",(HERE/file).read_text())
 support=item(server,"ModuleScript","CombatDefeatSupport")

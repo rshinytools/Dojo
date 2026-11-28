@@ -396,6 +396,7 @@ local districtDescriptions = {
     ["Reedfall Crown"] = "Above Cascade Lookout",
     ["Cedarbank Rise"] = "Grand Dojo City",
     ["Lantern Garden Walk"] = "Grand Dojo City",
+    ["Cherry Blossom Walk"] = "Grand Dojo City",
     ["South Ridge Trail"] = "Beyond the South Gate",
     ["South Ridge Lookout"] = "Grand Dojo City",
     ["Sunken Pirate Galleon"] = "Tideharbor practice ring",
@@ -428,6 +429,7 @@ local districtMusic = {
     ["Reedfall Crown"] = "city",
     ["Cedarbank Rise"] = "city",
     ["Lantern Garden Walk"] = "city",
+    ["Cherry Blossom Walk"] = "city",
     ["South Ridge Trail"] = "city",
     ["South Ridge Lookout"] = "city",
     ["Sunken Pirate Galleon"] = "tideharbor",
@@ -463,6 +465,15 @@ end
 local function landmarkAt(position)
     if player:GetAttribute("SkywalkTrialMode") then
         return "Cloudbreak Wind Trial"
+    end
+    local streets = city:FindFirstChild("City streets")
+    local blossom = streets and streets:FindFirstChild("Cherry Blossom Walk")
+    if blossom then
+        for _, name in {"Garden Lookout connection", "Blossom entry landing", "Step-free blossom path", "Sunset terrace"} do
+            if aboveDeck(position, blossom:FindFirstChild(name)) then
+                return "Cherry Blossom Walk"
+            end
+        end
     end
     local plaza = city:FindFirstChild("Plaza & streets")
     local garden = plaza and plaza:FindFirstChild("Lantern Garden Walk")
