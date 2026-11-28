@@ -570,7 +570,7 @@ The [Blender source and export notes](../design/raid-bosses/README.md) cover the
 
 ### V0.378 Solar Phoenix HUD
 
-Solar Phoenix moves boss and party status into a narrow upper-left stack. Non-VR combat widens the camera and restores the previous field of view on exit. Native four-client Studio screenshots show the body, wings and floor warnings clear of the HUD in the captured poses. The exact layout fit kept all eight 44-pixel touch targets clear in 705 × 280, 359 × 660, 480 × 248 and 320 × 570 safe areas, and restored the camera after detachment. Published play and physical-phone fit remain open.
+Solar Phoenix moves boss and party status into a narrow upper-left stack. Non-VR combat widens the camera and restores the previous field of view on exit. Native four-client Studio screenshots show the body, wings and floor warnings clear of the HUD in the captured poses. The exact layout fit kept all eight 44-pixel touch targets clear in 705 × 280, 359 × 660, 480 × 248 and 320 × 570 safe areas, and restored the camera after detachment. Published mesh loading and physical-phone fit remain open. On November 28, Studio published the checksum-verified v0.378 candidate to the existing **Beast Dojo — Private Staging** start place. Studio granted the destination access to required assets and confirmed the experience was ready to test with private access. [Private Staging play link](https://www.roblox.com/games/93127462831707/Beast-Dojo-Private-Staging)
 
 ### Co-op raid schedule and rewards
 
