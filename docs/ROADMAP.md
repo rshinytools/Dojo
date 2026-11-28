@@ -4,6 +4,28 @@ Portable production roadmap for the approved four-ring plan. [Code entry points 
 
 **Private Staging version 11.** The city collision update covers the reported rocks, buildings, mountains and railings. First join requires a confirmed starter, with eight released fighters at launch and two more per month after the rollout date is set. Studio verified controller navigation to the second row, Galaxy A06 landscape confirmation, and four individually fitted Rookie cosmetics. All four passes are mapped and have original icon uploads. A non-owner verified the native Shop listing and website cancellation for Bamboo Weave Mitts. Published traversal, physical PS5, and purchases and rejoins are the remaining staging gates. The approved main-game base price is 299 Robux per cosmetic.
 
+## Remaining implementation for public V1
+
+| Priority | Work area | Remaining implementation | Who does it |
+| --- | --- | --- | --- |
+| Next | Festival Plaza and spawn view | Build the approved A + B layout with one canal-side direction post, the existing landmark arches, and a Festival Guide kiosk beside the Fighter Select planter. Clear the walkway, place local signs at their prompts, and verify all routes from normal spawn height. | Codex |
+| Next | Treasure expansion and Reed-Path Parkour | Preserve the district caches and Grand Cache. Prototype three small finds in Grand Dojo City, starting with the lantern clue by the canal. Extend to three per district, with 20–40 XP and a 48-hour reset. Keep the 1,000 XP rare roll on the existing district caches. Keep Reed-Path as an optional beginner route with its sign at the start. | Codex |
+| Next | First session and Quick Play | Polish loading recovery, fighter confirmation, and Adventure tracking. Verify Relay rewards and rejoin, then verify Juniper’s Bell, Lantern Rush, and Reedfall Rescue in published play. Measure second-activity starts. | Codex |
+| High | World, obbies, and events | Verify the six districts, 18 mentor steps, 12 district activities, 18 hidden seals, cache prerequisites, Festival rewards, and half-hour fireworks. Check Cloudbreak’s 20–30 second clean-run target and trophy and sash after rejoin. Finish rewards for longer active sessions. | Codex |
+| High | Traversal, art, audio, and performance | Check collisions and escape routes across the city, polish NPCs and district sound, and profile streaming, Eagle Eye, and effects in Studio and available desktop clients. | Codex |
+| High | Trophy Hall and personal rooms | Verify 30 award paths and saved displays. Test owner edits, guest 3D previews, invite expiry, and owner departure in a two-player session. | Codex |
+| High | Saves and progression | Test Cloud-Top Temple and Galleon unlocks on a lower-level fighter after rejoin, older saves, equipment, interrupted writes, duplicate grants, staging and live isolation, and release rollback. | Codex |
+| High | Combat, matchmaking, and raids | Balance 24 fighters and three forms across four rings. Run published Duel, Tag Team, Brawl, and all three raids with real groups. Finish queuing, travel and disconnect recovery, parties, clans, and Clan Dojos. | Codex |
+| High | Economy and cosmetics | Verify fighter-specific fit and equip persistence, native checkout and sale switches, and the earned Raid Exchange. Finish V1 season and Trading Plaza work, verify eligibility and odds for any enabled rewarded ads or paid random offers, and validate purchase and trade recovery. | Codex |
+| Pending hardware | Physical phone and PS5 | Play the phone checks when ready, including plaza readability, Phoenix HUD, and older-phone performance where available. Run the deferred PS5 first-join, second-row selection, and confirmation checks. | Amulya |
+| High | Device QA and test records | Prepare builds and checklists, run desktop and simulator passes, verify available tablet, console and VR coverage, and record physical-device results separately. Fix and retest reported issues. | Codex |
+| Optional | VPS support | Use the VPS for private metrics or support if it serves the launch. Verify gameplay and progression during an outage if it is connected. | Codex |
+| Release | Rights, ratings, audience, and deployment | Finish the asset register, check the candidate’s rating and audience in Creator Hub, rehearse rollback, publish the verified update, and smoke-test a fresh public server. Confirm Kids and Select access before announcing younger-player availability. | Codex |
+| Marketing | Storefront and organic outreach | Verify public trailer playback and refresh the gallery and About copy against the release. Prepare community material and measure acquisition, first-session engagement, and retention. | Codex |
+| Marketing | Paid marketing decision | Decide when to start paid promotion and whether to use the optional budget after reviewing organic results. | Amulya |
+
+Codex owns the preparation, fixes, and evidence for hardware and group tests. Amulya handles the physical phone and PS5 playthroughs when available. Real-player checks require the relevant group size.
+
 ## P0 Identity remediation and release boundaries
 
 Remove identified references and establish original character and asset rules before scaling content.
