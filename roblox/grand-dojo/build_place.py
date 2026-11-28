@@ -149,6 +149,7 @@ from saltwind_high_walk import (NAME as SALTWIND_WALK, POINTS as SALTWIND_WALK_P
 from city_adventure_scenery import build_city_adventure_scenery
 from quick_play_scenery import build_quick_play
 from trophy_room_scenery import build_trophy_room
+from shared_trophy_hall import build_shared_trophy_hall
 from dojo_outfitters import build_dojo_outfitters
 from south_channel_arch import build_south_channel_arch
 from south_ridge_trail import build_south_ridge_trail
@@ -2458,19 +2459,13 @@ for side in (-1,1):
     house(wing,x,-46.8,10.8,14.4,8.75,pedestal=.55,with_roof=False)
     part(wing,"Pavilion stone terrace",(x,-.82,-46.8),(11.5,1.64,14.9),"7D6A76",material=SLATE)
     trophy_hall_wing_frontage(wing,side)
-for x in (-8,0,8):
-    part(hall,"Display plinth base",(x,1.18,-47),(4.1,.55,4.1),STONE)
-    part(hall,"Display plinth",(x,2.18,-47),(3.3,1.6,3.3),DARK,material=WOOD_PLANK)
-    part(hall,"Brass plinth rim",(x,3.04,-47),(3.6,.22,3.6),GOLD)
-    sign(hall,"LANTERN KEEPER" if x==0 else "COMING SOON",x,2.44,-45.23,3.28,.62)
-hall_marker=part(hall,"HallPrompt",(0,3.25,-44),(1,1,1),CREAM,transparency=1,collide=False)
+hall_marker=part(hall,"HallPrompt",(0,2.70,-36.7),(1,1,1),CREAM,transparency=1,collide=False)
 hall_prompt=item(hall_marker,"ProximityPrompt","TrophyPrompt")
-prop(hall_prompt,"string","ActionText","Inspect trophy")
-prop(hall_prompt,"string","ObjectText","Lantern Keeper")
-prop(hall_prompt,"float","MaxActivationDistance",10)
+prop(hall_prompt,"string","ActionText","Open journal")
+prop(hall_prompt,"string","ObjectText","Trophy Hall")
+prop(hall_prompt,"float","MaxActivationDistance",5)
 prop(hall_prompt,"bool","RequiresLineOfSight",False)
-room_entry=part(hall,"PersonalRoomEntry",(-7,3.25,-42),(1,1,1),CREAM,transparency=1,collide=False)
-sign(hall,"PERSONAL TROPHY ROOM",-7,4.2,-44.3,5.9,.72,tint="603745",wayfinding=True)
+part(hall,"PersonalRoomEntry",(0,2.61,-52.15),(1,1,1),CREAM,transparency=1,collide=False)
 facade=item(hall,"Model","Crowned gallery")
 prop(facade,"token","LevelOfDetail",4)
 swept_roof(facade,0,13.11,-44,43.2,29.8,4.38,signature=True)
@@ -2567,11 +2562,6 @@ for side in (-1,1):
     beam(crest,"Crest gallery diagonal corbel",(x,16.22,-33.82),(x,19.31,-25.95),.43,"A45A39")
 build_hall_cup_relief(crest,item=item,prop=prop,part=part,vector=vector,asset=asset,metal=METAL,
                       variant_field=MATERIAL_VARIANT_FIELD,brass_variant=ORNAMENT_BRASS)
-part(hall,"Trophy backdrop",(0,4.9,-52.91),(7.1,6.05,.14),"812D2C",material=FABRIC,collide=False)
-reed_mark(hall,0,5.31,-52.79,1.55)
-for x in (-7.4,7.4):
-    lamp(hall,x,6.85,-47,scale=1,light=True)
-part(hall,"LanternTrophyMount",(0,4.51,-47),(.2,.2,.2),CREAM,transparency=1,collide=False)
 raise_geometry(hall,2.64)
 
 
@@ -2651,15 +2641,35 @@ def hall_viewing_gallery(parent):
                  material=WOOD_PLANK,collide=False)
         part(gallery,"Upper hall timber frieze",(x,14.88,-44.16),(.26,.72,20.61),
              "845344",material=WOOD_PLANK,collide=False)
+    for side in (-1,1):
+        x=side*14.43
+        part(gallery,"Clerestory cedar backing",(x,15.94,-44.15),(.26,2.49,20.8),"4E303D",material=WOOD_PLANK,collide=False)
+        for z in (-37.18,-41.47,-45.76,-50.05):
+            part(gallery,"Violet clerestory panel",(x*.985,16.02,z),(.17,1.47,3.82),
+                 "A77D9B",material=NEON,collide=False)
+            for dz in (-1.86,-.92,0,.92,1.86):
+                part(gallery,"Clerestory mullion",(x*.967,16.02,z+dz),(.22,1.55,.10),
+                     "57332D",material=WOOD_PLANK,collide=False)
     for z in (-35.68,-39.85,-44.02,-48.19,-52.36):
-        part(gallery,"Cedar ceiling recess",(0,15.64,z),(29.73,.19,4.10),"725044",
+        part(gallery,"Cedar ceiling recess",(0,17.16,z),(29.73,.19,4.10),"725044",
              material=WOOD_PLANK,collide=False)
-        part(gallery,"Crossed ceiling timber",(0,15.47,z+2.02),(29.84,.29,.35),"573B35",
+        part(gallery,"Exposed cedar tie beam",(0,15.06,z+1.77),(29.84,.40,.46),"573B35",
              material=WOOD_PLANK,collide=False)
+        for side in (-1,1):
+            beam(gallery,"Sloped cedar rafter",(side*14.4,15.27,z+1.77),(0,16.97,z+1.77),
+                 .49,"905A3F",collide=False)
+            part(gallery,"Brass truss joint",(side*11.8,15.08,z+1.77),(.35,.45,.52),
+                 "C88B4B",material=METAL,collide=False)
+    for z in (-38.3,-47.5):
+        part(gallery,"Lantern suspension",(0,15.26,z),(.08,1.48,.08),"805B39",material=METAL,collide=False)
+        lamp(gallery,0,13.96,z,scale=.73,light=True)
     threshold_light(gallery,0,14.67,-47.0,reach=13,spread=75,brightness=.82)
 
 
 hall_viewing_gallery(hall)
+build_shared_trophy_hall(hall,item=item,part=part,prop=prop,asset=asset,sign=sign,lamp=lamp,
+                        threshold_light=threshold_light,wood=WOOD_PLANK,slate=SLATE,fabric=FABRIC,
+                        metal=METAL,smooth=SMOOTH)
 part(hall,"Raised retaining foundation",(0,1.25,-44),(32.5,2.5,23.5),"74616D",material=SLATE)
 for side in (-1,1):
     x=side*12.1
@@ -7762,9 +7772,9 @@ resident("Tidewatch Keeper","The west ramp meets the Cinder road. Go east to Bea
          *TIDEWATCH_KEEPER,"AA805E","3F7773",.40,173,species="otter")
 resident("Ring Steward","Look for the green Bot Spar sign at the top of the Dojo Ring stairs.",
          49.2+ring_offset,ring_floor,15.5,"8C736D","3F535E",.40,109)
-resident("Trophy Archivist","The center pedestal is yours. Finish an official Lantern Relay to light it.",
+resident("Trophy Archivist","Walk up to a trophy to see how to earn it. The rear portal leads to your own display room.",
          -10,3.61,-40,"91A16C","6B6540",.3,180,species="tortoise")
-resident("Gallery Curator","Look down to see your Lantern Keeper trophy. Finish an official relay to earn it.",
+resident("Gallery Curator","Lantern Keeper celebrates the official Relay. The Trophy Journal tracks what you have earned.",
          5.36,10.17,-53.27,"C09165","7F536D",.43,175,species="red panda")
 resident("Cascade Lookout Keeper","Take the cedar ramp to Reedfall Crown, or head down to Reedfall Gallery for the plaza and the Cinder road.",
          *cascade_keeper,"9F785E","416D60",.52,145,species="otter")
@@ -8256,6 +8266,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","RingProgression","RingProgression.luau"),
                                     (storage,"ModuleScript","MusicPlaylist","MusicPlaylist.luau"),
                                     (storage,"ModuleScript","TrophyJournal","TrophyJournal.luau"),
+                                    (storage,"ModuleScript","TrophyExhibit","TrophyExhibit.luau"),
                                     (storage,"ModuleScript","TrophyCatalog","TrophyCatalog.luau"),
                                     (storage,"ModuleScript","TrophyArt","TrophyArt.luau"),
                                     (storage,"ModuleScript","QuickPlayCatalog","QuickPlayCatalog.luau"),

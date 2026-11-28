@@ -64,9 +64,9 @@ local function describe(player, id)
     elseif id == "world-04" then
         if player:GetAttribute("LanternKeeper") == true then
             if player:GetAttribute("ProgressMode") == "studio" then
-                return "Studio award", "Displayed on the center pedestal for this playtest."
+                return "Studio award", "Can be placed in your Personal Trophy Room."
             end
-            return "Earned", "Displayed on the center pedestal in Trophy Hall."
+            return "Earned", "Can be placed in your Personal Trophy Room."
         end
         local status = player:GetAttribute("ProgressStatus")
         if status == "ready" or status == "saved" then

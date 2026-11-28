@@ -41,7 +41,8 @@ local switchStation = city:FindFirstChild("Fighter Select Station")
 local switchPrompt = switchStation and switchStation:FindFirstChild("SwitchFighterPrompt")
 local relay = city:WaitForChild("Lantern Relay")
 local board = relay:WaitForChild("EventBoard")
-local hall = city:WaitForChild("Trophy Hall"):WaitForChild("HallPrompt")
+local trophyHall = city:WaitForChild("Trophy Hall")
+local hall = trophyHall:WaitForChild("HallPrompt")
 local remote = ReplicatedStorage:WaitForChild("GrandDojoAction")
 local sparRemote = ReplicatedStorage:WaitForChild("GrandDojoSparring")
 local terrain = workspace.Terrain
@@ -1186,10 +1187,32 @@ if arrivalBoard then
 end
 
 hall.TrophyPrompt.Triggered:Connect(function(player)
-    if state[player] and near(player, hall, 11) then
-        remote:FireClient(player, "panel", "trophy")
+    if state[player] and near(player, hall, 6) then
+        remote:FireClient(player, "panel", "journal")
     end
 end)
+
+do
+    local trophyArt = require(ReplicatedStorage.TrophyArt)
+    for _, exhibit in trophyHall["Walk-up Exhibits"]:GetChildren() do
+        local id = exhibit.Name
+        local sculpture = trophyArt.build(id)
+        local mount = exhibit.SculptureMount
+        sculpture:ScaleTo(1.42)
+        local origin = sculpture:GetPivot()
+        local offset = origin.Position * (sculpture:GetScale() - 1)
+        sculpture:PivotTo(mount.CFrame * (origin + offset))
+        sculpture.Parent = exhibit
+        local anchor = exhibit.ExhibitPrompt
+        anchor.Inspect.Triggered:Connect(function(player)
+            local data = state[player]
+            if data and not data.run and not player:GetAttribute("CityAdventureActive")
+                and not player:GetAttribute("SparringActive") and near(player,anchor,6) then
+                remote:FireClient(player, "panel", "exhibit", id)
+            end
+        end)
+    end
+end
 
 local function bindPracticeTarget(target)
     target.PracticePrompt.Triggered:Connect(function(player)

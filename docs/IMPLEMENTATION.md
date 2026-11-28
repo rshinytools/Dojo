@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.373 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.374 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -406,6 +406,8 @@ The v0.372 art pass raises the ceiling to 23 studs, with exposed trusses, violet
 The public v0.372 two-player check paired a Mac owner with a physical iPhone guest. The guest accepted the room invitation and saw Skywalk Peaks Master after the owner mounted it on Featured 1. The guest opened Displays and tapped the trophy row without changing the layout. Both players returned to shared Trophy Hall when the owner used Return. The guest reported that the timed invitation was gone after the 60-second window. A new invitation worked. In the second visit, the guest confirmed a return to shared Trophy Hall when the Mac owner quit Roblox Player. A late acceptance could not be exercised through the iPhone UI because the old prompt was gone.
 
 V0.373 adds layered cedar rafters, brass details and warmer lantern lighting. Owners can choose a pedestal or wall slot, preview an earned trophy, then place it. Guests can open a 3D card with the trophy name and earning criteria. Studio verified placement of Skywalk Peaks Master and exercised the guest card with a simulated guest response. A fresh two-player and phone check of these changes remains. Three browser concepts explore a future shared Trophy Hall update. Public Roblox is still on v0.372.
+
+V0.374 builds the walk-up shared Hall concept inside the existing exterior and viewing gallery routes. Three lacquer and brass cabinets pair the existing Lantern Keeper, Skywalk Peaks Master and First Duel sculptures with the existing Relay, Cloudbreak and sparring mural assets. The raised rafters, clerestory panels and localized lanterns frame a clear center aisle. A separate rear portal opens the owner-controlled room. Each display opens a read-only 3D exhibit card with the earned criterion, while the entrance prompt opens the personal Journal. Desktop Studio used the generated Hall geometry and changed runtime scripts in a temporary test session. Native prompts opened all three cards without granting XP or trophies, opened the Journal, and entered the personal room. Return restored the player to the shared Hall. Physical phone and published-play verification are pending.
 
 ## Four-ring progression plan
 

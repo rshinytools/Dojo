@@ -882,29 +882,6 @@ guideLabel.BackgroundTransparency = 0
 guideLabel.BackgroundColor3 = palette.gold
 style(guideLabel, 9, palette.parchment)
 
-local displayedTrophy
-local mountName = "LanternTrophyMount"
-local function updateDisplay()
-    local hall = city:FindFirstChild("Trophy Hall")
-    local mount = hall and hall:FindFirstChild(mountName)
-    if not displayedTrophy and mount and player:GetAttribute("LanternKeeper") then
-        displayedTrophy = trophyTemplate:Clone()
-        displayedTrophy:PivotTo(mount.CFrame)
-        displayedTrophy.Parent = workspace
-    end
-end
-city.DescendantAdded:Connect(function(instance)
-    if instance.Name == mountName then
-        task.defer(updateDisplay)
-    end
-end)
-city.DescendantRemoving:Connect(function(instance)
-    if instance.Name == mountName and displayedTrophy then
-        displayedTrophy:Destroy()
-        displayedTrophy = nil
-    end
-end)
-
 local boardHint = make("TextButton", gui, {
     Name = "EventBoardHint", AnchorPoint = Vector2.new(.5, 1),
     Position = UDim2.new(.5, 0, 1, -20), Size = UDim2.new(1, -32, 0, 50),
@@ -950,8 +927,10 @@ local function groupCombatUiOpen()
         or player:GetAttribute("KilnbackRaidActive") or player:GetAttribute("KilnbackRaidRecapOpen")
 end
 
+local openPanel, offered = "", false
+
 local function restoreWorldPrompts()
-    ProximityPromptService.Enabled = not sparringActive and not groupCombatUiOpen() and not panel.Visible
+    ProximityPromptService.Enabled = not sparringActive and not groupCombatUiOpen() and not panel.Visible and openPanel ~= "exhibit"
         and not (sparResult and sparResult.Visible) and not (sparPicker and sparPicker.Visible)
         and not (duelUi.picker and duelUi.picker.Visible)
 end
@@ -994,7 +973,6 @@ local function updateBoardHint()
     boardAction.Text = prompt.ActionText
 end
 
-local openPanel, offered = "", false
 local restorePlayerList
 local function updatePlayerList(hidden)
     if hidden and restorePlayerList == nil then
@@ -1009,7 +987,7 @@ local function updatePlayerList(hidden)
         restorePlayerList = nil
     end
 end
-local journal
+local journal, trophyExhibit
 local eagleEye
 local isPractice = false
 local function layoutRoutePlanner(viewportSize)
@@ -1186,6 +1164,7 @@ local function hide()
         eagleEye:Close(false)
     end
     openPanel = ""
+    if trophyExhibit then trophyExhibit:Hide() end
     panel.Visible = false
     if journal then
         journal:Hide()
@@ -1213,7 +1192,7 @@ local function updateTrophyPanel()
             player:GetAttribute("FighterLevel") or 1, player:GetAttribute("FighterXp") or 0)
     end
     if earned then
-        prizeDetail.Text = "Earned. Your trophy is on the center pedestal."
+        prizeDetail.Text = "Earned. Equip it in your Personal Trophy Room."
         status.Text = "On display"
     elseif state == "ready" or state == "saved" then
         prizeDetail.Text = "Locked. Finish the Lantern Relay to earn it."
@@ -1234,7 +1213,14 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     if journal then
         journal:Hide()
     end
+    if trophyExhibit then trophyExhibit:Hide() end
     openPanel = kind
+    if kind == "exhibit" then
+        panel.Visible = false
+        ProximityPromptService.Enabled = false
+        trophyExhibit:Show(elapsed)
+        return
+    end
     offered = kind == "relay"
     local map = kind == "map"
     local journalView = kind == "journal"
@@ -1280,15 +1266,15 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
         detail.Text = if offered then "Follow seven lantern gates in order. 2 min limit."
             else "Cross the red bridge. Start timed or practice runs at the Lantern Relay arch."
         status.Text = best > 0 and string.format("Best time  %.1fs", best) or "First clear · 80 XP · 60 Coins · Trophy"
-        prizeDetail.Text = earned and "Already displayed in your Trophy Hall." or "Finish an official relay to earn this golden lantern."
+        prizeDetail.Text = earned and "Already earned for your Personal Trophy Room." or "Finish an official relay to earn this golden lantern."
     elseif kind == "trophy" then
         heading.Text = "Trophy Hall"
         updateTrophyPanel()
     else
         heading.Text = practiceRun and "Practice complete" or "Relay complete!"
         detail.Text = string.format("Seven gates cleared in %.1fs.", elapsed)
-        prizeDetail.Text = first and "Your trophy is now on display in Trophy Hall." or
-            (practiceRun and "Enter an official relay to earn the trophy." or "Your first-clear trophy is already in the hall.")
+        prizeDetail.Text = first and "Your trophy is ready to display in your Personal Trophy Room." or
+            (practiceRun and "Enter an official relay to earn the trophy." or "Your first-clear trophy is already in your Journal.")
         status.Text = if first then "Lantern Keeper earned · " .. string.format("+%d XP", xpReward or 0) .. " · +60 Coins"
             elseif practiceRun then "Practice route"
             elseif xpReward and xpReward > 0 then "Official clear · " .. string.format("+%d XP", xpReward)
@@ -1301,6 +1287,7 @@ local function show(kind, elapsed, first, practiceRun, xpReward)
     end
 end
 
+trophyExhibit = require(ReplicatedStorage:WaitForChild("TrophyExhibit")).new(gui,hide)
 journal = require(ReplicatedStorage:WaitForChild("TrophyJournal")).new(panel, player, function()
     show("trophy")
 end)
@@ -1384,6 +1371,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and eagleEye:IsActive()
         and (input.KeyCode == Enum.KeyCode.ButtonB or input.KeyCode == Enum.KeyCode.Backspace) then
         eagleEye:Close(true)
+    elseif not processed and openPanel == "exhibit"
+        and (input.KeyCode == Enum.KeyCode.ButtonB or input.KeyCode == Enum.KeyCode.Backspace) then
+        hide()
     elseif not processed and input.KeyCode == Enum.KeyCode.ButtonB and panel.Visible then
         if openPanel == "journal" then
             show("trophy")
@@ -1395,7 +1385,6 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-player:GetAttributeChangedSignal("LanternKeeper"):Connect(updateDisplay)
 for _, attribute in {"LanternKeeper", "ProgressStatus", "FighterLevel", "FighterXp", "SelectedStarterFighter"} do
     player:GetAttributeChangedSignal(attribute):Connect(function()
         if openPanel == "trophy" then
@@ -1510,7 +1499,7 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, who)
 end)
 remote.OnClientEvent:Connect(function(kind, a, b, c, d)
     if kind == "panel" then
-        show(a)
+        show(a, b)
     elseif kind == "started" then
         isPractice = a
         hide()
@@ -1565,9 +1554,8 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 layout()
-updateDisplay()
 updateRace()
-print("[Grand Dojo] Event board and personal trophy display ready.")
+print("[Grand Dojo] Event board and Trophy Hall ready.")
 
 local sparBots = require(ReplicatedStorage:WaitForChild("SparringBots"))
 local ringProgression = require(ReplicatedStorage:WaitForChild("RingProgression"))
