@@ -7874,6 +7874,47 @@ build_solar_raid(next(town for town in outer.findall("Item")
                       if town.findtext("Properties/string[@name='Name']") == "Lantern Circuit"),
                  item=item, part=part, prop=prop, sign=sign, wood=WOOD_PLANK, slate=SLATE,
                  metal=METAL, neon=NEON, limestone=LIMESTONE, smooth=SMOOTH, color=color, triangle=triangle)
+# Roblox's importer splits authored glTF material primitives into MeshParts.
+# Keep the original raid hinges and gameplay volumes and replace only their visuals.
+raid_meshes = json.loads((Path(__file__).resolve().parents[2] /
+                          "design/raid-bosses/assets/roblox-meshes.json").read_text())
+raid_materials = {"smooth": SMOOTH, "metal": METAL, "neon": NEON}
+raid_frame_fields = ("X", "Y", "Z", "R00", "R01", "R02", "R10", "R11", "R12", "R20", "R21", "R22")
+def raid_child(parent, name):
+    return next(node for node in parent.findall("Item")
+                if node.findtext("Properties/string[@name='Name']") == name)
+
+def strip_raid_visuals(group):
+    for node in group.findall("Item"):
+        if node.get("class") == "Model":
+            strip_raid_visuals(node)
+        elif node.findtext("Properties/string[@name='Name']") != "Pose Hinge":
+            group.remove(node)
+
+for boss_name, district_name, court_name in (
+    ("Kilnback Custodian", "Cinder Terraces", "Kilnback Raid Court"),
+    ("Solar Phoenix", "Lantern Circuit", "Solar Raid Court"),
+):
+    boss = raid_child(raid_child(raid_child(outer, district_name), court_name), boss_name)
+    rig = raid_child(boss, "Animated Body")
+    origin = raid_child(boss, "Origin").find("Properties/CoordinateFrame[@name='CFrame']")
+    strip_raid_visuals(rig)
+    for spec in raid_meshes[boss_name]:
+        group = rig
+        for name in spec["parents"]:
+            group = raid_child(group, name)
+        position = tuple(float(origin.findtext(axis)) + offset for axis, offset in zip("XYZ", spec["frame"]))
+        tint = "".join(f"{channel:02x}" for channel in spec["tint"])
+        visual = part(group, spec["name"], position, spec["size"], tint, collide=False,
+                      class_name="MeshPart", material=raid_materials[spec["style"]])
+        properties = visual.find("Properties")
+        properties.remove(properties.find("CoordinateFrame[@name='CFrame']"))
+        vector(visual, "CoordinateFrame", "CFrame", raid_frame_fields, (*position, *spec["frame"][3:]))
+        vector(visual, "Vector3", "InitialSize", ("X", "Y", "Z"), spec["size"])
+        prop(visual, "bool", "CastShadow", False)
+        prop(visual, "bool", "DoubleSided", True)
+        asset(visual, "MeshContent", spec["asset"])
+
 build_ring_training(scene, {
     "lantern-timing": (8, .15, 36, 90),
     "kiln-rhythm": (150, 10.027, -182, 0),

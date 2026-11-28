@@ -272,6 +272,7 @@ local attackCues = {
 }
 
 local match, matchRaid, outcome, outcomeRaid, reward, earlyReward
+local solarCamera, originalFov
 local queuedRaid, nearbyRaid, displayedRaid, noticeRaid
 local noticeUntil = 0
 local leaving, detached = false, false
@@ -351,9 +352,12 @@ local function layout()
     local width, height = gui.AbsoluteSize.X, gui.AbsoluteSize.Y
     local compact = height <= 400 or width < 620
     local touch = UserInputService.TouchEnabled and not gamepad()
-    local header = if compact then 63 else 84
+    local solar = matchRaid and matchRaid.id == "phoenix"
+    local sideWidth = math.min(285, math.floor(width * (if width < 460 then .47 else .34)))
+    local header = if solar then 68 elseif compact then 63 else 84
+    hud.AnchorPoint = Vector2.new(if solar then 0 else .5, 0)
     hud.Position, hud.Size = UDim2.new(.5, 0, 0, if compact then 5 else 9), UDim2.new(.94, 0, 0, header)
-    hudLimit.MaxSize = Vector2.new(if compact then 476 else 660, header)
+    hudLimit.MaxSize = Vector2.new(if solar then sideWidth elseif compact then 476 else 660, header)
     heading.Position, heading.Size = UDim2.fromOffset(10, 4), UDim2.new(1, if compact then -113 else -133, 0, if compact then 21 else 27)
     heading.TextSize = if compact then 14 else 20
     timer.Position, timer.Size = UDim2.new(1, -60, 0, 4), UDim2.fromOffset(50, if compact then 21 else 27)
@@ -369,12 +373,28 @@ local function layout()
     cue.TextSize = if compact then 11 else 13
     reviveMeter.Position, reviveMeter.Size = UDim2.new(0, 10, 1, -4), UDim2.new(1, -20, 0, 2)
 
-    local cols = if width < 470 then 2 else 4
-    local cardH = if compact then 24 else 33
+    cue.TextWrapped = solar == true
+    if solar then
+        hud.Position = UDim2.fromOffset(7, 5)
+        heading.Position, heading.Size = UDim2.fromOffset(8, 3), UDim2.new(1, -48, 0, 17)
+        heading.TextSize = if compact then 12 else 15
+        timer.Position, timer.Size = UDim2.new(1, -40, 0, 3), UDim2.fromOffset(33, 17)
+        timer.TextSize = if compact then 12 else 14
+        phase.Position, phase.Size = UDim2.new(1, -53, 0, 22), UDim2.fromOffset(46, 12)
+        phase.TextSize = 9
+        health.track.Position, health.track.Size = UDim2.fromOffset(8, 22), UDim2.new(1, -61, 0, 12)
+        healthValue.TextSize = 9
+        cue.Position, cue.Size = UDim2.fromOffset(7, 36), UDim2.new(1, -14, 0, 28)
+        cue.TextSize = if compact then 10 else 11
+    end
+    local cols = if solar or width < 470 then 2 else 4
+    local cardH = if compact or solar then 24 else 33
     local partyH = if cols == 2 then cardH * 2 + 4 else cardH
     local partyTop = header + hud.Position.Y.Offset + 5
     party.Position, party.Size = UDim2.new(.5, 0, 0, partyTop), UDim2.new(.94, 0, 0, partyH)
-    partyLimit.MaxSize = Vector2.new(if compact then 476 else 660, partyH)
+    party.AnchorPoint = Vector2.new(if solar then 0 else .5, 0)
+    if solar then party.Position = UDim2.fromOffset(7, partyTop) end
+    partyLimit.MaxSize = Vector2.new(if solar then sideWidth elseif compact then 476 else 660, partyH)
     for index, tile in slots do
         local offset = index - 1
         tile.node.Position = UDim2.new((offset % cols) / cols, 2, 0, math.floor(offset / cols) * (cardH + 4))
@@ -382,6 +402,9 @@ local function layout()
         local portraitSize = if compact then 18 else 26
         tile.portraitFrame.Position = UDim2.fromOffset(4, 2)
         tile.portraitFrame.Size = UDim2.fromOffset(portraitSize, portraitSize)
+        if solar then
+            tile.portraitFrame.Visible = match.selfIndex == index and sideWidth >= 226
+        end
         local nameStart = if tile.portraitFrame.Visible then portraitSize + 8 else 6
         tile.name.Position, tile.name.Size = UDim2.fromOffset(nameStart, 1), UDim2.new(1, -(nameStart + 37), 1, -4)
         tile.name.TextSize = if compact then 10 else 12
@@ -401,14 +424,17 @@ local function layout()
     local rowH = if compact then 44 else 48
     local actionH = if stacked then 2 * rowH + 4 else rowH
     local preferredBottom = if touch and stacked then math.min(92, math.floor(height * .19)) elseif touch then 16 else 25
-    local bottom = math.clamp(height - partyTop - partyH - actionH - 6, 0, preferredBottom)
+    local controlsTop = if solar then 74 else partyTop + partyH + 6
+    local bottom = math.clamp(height - controlsTop - actionH, 0, preferredBottom)
     local board
     if touch then
         local portrait = height > width
         local inset = GuiService:GetInsetArea(Enum.ScreenInsets.CoreUISafeInsets)
         board = CombatTouchDock.layout(playerGui, inset.Min, width, height, {
             count = #order, columns = 4, rowHeight = rowH, cellWidth = if portrait then 86 else 64,
-            top = partyTop + partyH + 6, bottom = if portrait then math.floor(height * .56) - 8 else height - 16,
+            top = controlsTop, extra = if solar then {left = 7, top = 5, right = 7 + sideWidth,
+                bottom = partyTop + partyH} else nil,
+            bottom = if portrait then math.floor(height * .56) - 8 else height - 16,
         })
     end
     if board then
@@ -439,7 +465,7 @@ local function refreshParty()
         local slot = match.slots[index]
         local own = index == match.selfIndex
         tile.node.Visible = slot ~= nil
-        tile.portraitFrame.Visible = own
+        if matchRaid.id ~= "phoenix" then tile.portraitFrame.Visible = own end
         if slot then
             local name = if own then "You" else participantName(slot)
             local down = slot.down or slot.health <= 0
@@ -569,9 +595,23 @@ local function tell(raid, message, now)
     end
 end
 
+local function frameSolarRaid(active)
+    local camera = workspace.CurrentCamera
+    local widen = active and matchRaid.id == "phoenix" and camera and not UserInputService.VREnabled
+    if solarCamera and (not widen or solarCamera ~= camera) then
+        solarCamera.FieldOfView = originalFov
+        solarCamera, originalFov = nil, nil
+    end
+    if widen and not solarCamera and camera.FieldOfView < 82 then
+        solarCamera, originalFov = camera, camera.FieldOfView
+        camera.FieldOfView = 82
+    end
+end
+
 local function refresh()
     local now = workspace:GetServerTimeNow()
     local current = match ~= nil and not detached
+    frameSolarRaid(current)
     local occupied = player:GetAttribute("SparringActive") or player:GetAttribute("BrawlActive")
         or player:GetAttribute("TagTeamActive") or player:GetAttribute("SkywalkTrialMode")
         or player:GetAttribute("StarterSelectionRequired")

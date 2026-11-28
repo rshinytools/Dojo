@@ -10,8 +10,9 @@ blender -b -t 4 -P build_bosses.py -- --out assets --previews /tmp/dojo-raid-pre
 
 ## Roblox import
 
-Import each GLB into a scratch place first. Match groups using the companion JSON and preserve existing parent-relative pivots, motion groups, and gameplay weak points. Blender suffixes such as `.001` distinguish repeated names in the export. Map them under their listed parents when fitting the runtime rig. Check materials, emissions, mesh asset ownership and permissions, wing and leg motion, boss health contact, and weak-point alignment in Studio before replacing the current raid geometry. Record the granted Roblox mesh IDs with the release dependencies.
+The v0.378 build reads `assets/roblox-meshes.json`. The manifest records the Roblox-hosted mesh IDs, authored tint, material, corrected placement, and animation parent for each primitive imported from the two GLBs. The Studio importer split the exports by glTF material, yielding 56 Kilnback and 38 Phoenix MeshParts. The builder attaches them to the original hinges and leaves the gameplay markers as authored. These are original Beast Dojo models uploaded through Studio under the signed-in creator using the Me option. The manifest is the release asset reference. The published experience still needs a fresh-server permission check.
 
+When replacing either GLB, import it into a scratch place with **Upload to Roblox** and select the experience owner. Match each resulting primitive against its GLB center and dimensions. The importer changed the forward axis. It also flattened six rotations on Kilnback, so preserve the corrected transforms and per-material tints in the manifest. Check both exposed cores and stream the assets using the intended Roblox universe before release.
 
 ## Studio fit evidence
 

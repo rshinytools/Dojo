@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.377 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.378 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -566,7 +566,11 @@ Kilnback and Solar use the selected fighter's base health plus 5.5% of base heal
 
 Exact archive rules verified the damage in both phases of all three raids and health at Levels 1, 5, and 10. A scripted Solar run tested a down, revive, and exposed-chest hit before clearing in 52.61 seconds. Real four-player balance remains open.
 
-The [Blender source and export notes](../design/raid-bosses/README.md) cover the new Kilnback and Phoenix meshes. In a local v0.377 Studio preview, all 39 exported meshes fitted the existing animated rigs. The production visual modules opened Kilnback’s shutters, moved the Phoenix’s outer wing in flight, and exposed its chest on landing. At full exposure, the centers of the new visible glows were 0.42 studs (Kilnback) and 0.14 studs (Phoenix) from the centers of their existing hit volumes and inside them. A front ray met the visible core on both meshes. The saved checkpoint still uses the existing geometry. Permanent mesh import, published play and group balance checks remain open.
+The [Blender source and export notes](../design/raid-bosses/README.md) cover the new Kilnback and Phoenix meshes. In a local v0.377 Studio preview, all 39 exported meshes fitted the existing animated rigs. The production visual modules opened Kilnback’s shutters, moved the Phoenix’s outer wing in flight, and exposed its chest on landing. At full exposure, the centers of the new visible glows were 0.42 studs (Kilnback) and 0.14 studs (Phoenix) from the centers of their existing hit volumes and inside them. A front ray met the visible core on both meshes. V0.378 uses 94 Roblox-hosted mesh primitives from the two original Blender exports. Four Studio clients cleared the imported Kilnback in 47.0 seconds and closed all four victory recaps. Three met the contribution rule and received a single award. The fourth returned with zero raid currency granted. Four Studio clients cleared the imported Solar Phoenix in 83.3 seconds and returned to Lantern Circuit. Two qualified and received one award each. The two remaining players received zero raid currency. The fixture required at least three eligible players, so the Phoenix run ended before the recap-close check. Every client saw the exposed Sunheart align within 0.10 studs of the combat volume center. The build restores the Blender palette and the transforms that the importer flattened. The same hinges, collision and hit volumes drive the new visuals. Published asset permissions and real-player balance remain open.
+
+### V0.378 Solar Phoenix HUD
+
+Solar Phoenix moves boss and party status into a narrow upper-left stack. Non-VR combat widens the camera and restores the previous field of view on exit. Native four-client Studio screenshots show the body, wings and floor warnings clear of the HUD in the captured poses. The exact layout fit kept all eight 44-pixel touch targets clear in 705 × 280, 359 × 660, 480 × 248 and 320 × 570 safe areas, and restored the camera after detachment. Published play and physical-phone fit remain open.
 
 ### Co-op raid schedule and rewards
 
