@@ -25,8 +25,8 @@ def build_trophy_room(storage, *, item, part, prop, sign, asset, color, wood, sl
         prop(lamp, "float", "Brightness", brightness)
         color(lamp, "Color", tint)
 
-    def lantern(name, x, y, z, scale=1, *, lit=False, hanging=False):
-        shade = cylinder(name, 1.46*scale, 1.65*scale, (x,y,z), cream, neon)
+    def lantern(name, x, y, z, scale=1, *, lit=False, hanging=False, shade_tint=cream):
+        shade = cylinder(name, 1.46*scale, 1.65*scale, (x,y,z), shade_tint, neon)
         for component, h, width in (("Crown",-0.86,1.36), ("Cap",.86,1.36), ("Rib",-.44,1.49),
                                     ("Rib",0,1.49), ("Rib",.44,1.49)):
             cylinder(name+" "+component,width*scale,.067*scale,(x,y+h*scale,z),cedar)
@@ -37,7 +37,7 @@ def build_trophy_room(storage, *, item, part, prop, sign, asset, color, wood, sl
         if hanging:
             piece("Lantern suspension",(.07,1.4,.07),(x,y+1.52*scale,z),gold)
         if lit:
-            light(shade,.9,17,"FFC57D")
+            light(shade,.9,17,"FFB668")
 
     piece("Polished cedar gallery floor",(42,.75,41),(0,-.375,0),"81513A",collide=True)
     for i in range(24):
@@ -54,14 +54,42 @@ def build_trophy_room(storage, *, item, part, prop, sign, asset, color, wood, sl
         for x in (-19,-13,-6.5,0,6.5,13,19):
             piece("Gallery end upright",(.71,23,.82),(x,11.5,z*.971),cedar)
     piece("High roof decking",(43,.72,42),(0,23.3,0),walnut,collide=True)
+
+    def ceiling_detail(name, size, at, tint, material=wood, **options):
+        trim = piece(name,size,at,tint,material,**options)
+        prop(trim,"bool","CastShadow",False)
+        return trim
+
     for z in (-18,-10,-2,6,14):
-        piece("Exposed transverse tie beam",(42,.61,.79),(0,19.3,z),cedar)
+        piece("Exposed transverse tie beam",(42,.72,.88),(0,19.3,z),"693D30")
+        ceiling_detail("Tie beam lower molding",(40.8,.19,1.02),(0,18.94,z),"8E4931")
         for side in (-1,1):
-            piece("Angled roof truss",(22.2,.55,.55),(10.2*side,20.7,z),cedar,roll=-side*9)
-            piece("Decorative knee brace",(.66,4,.54),(18.8*side,17.9,z),cedar,roll=side*38)
-        piece("Roof king post",(.50,3.43,.51),(0,21.18,z),cedar)
-    for x in (-15.5,-7.7,0,7.7,15.5):
-        piece("Longitudinal rafter",(.29,.38,41),(x,22.55-.135*abs(x),0),"805032")
+            piece("Angled roof truss",(20.8,.65,.66),(10.2*side,21.20,z),cedar,roll=-side*7)
+            piece("Decorative knee brace",(.66,3.70,.61),(18.8*side,18.22,z),cedar,roll=side*38)
+            ceiling_detail("Carved bracket cap",(1.49,.24,1.13),(19.55*side,18.72,z),"86462D")
+            ceiling_detail("Brass truss joint",(.18,.41,.90),(17.5*side,19.29,z),gold,smooth)
+        piece("Roof king post",(.58,2.9,.64),(0,20.96,z),cedar)
+        ceiling_detail("Carved king post collar",(.98,.28,.90),(0,20.02,z),"925537")
+
+    # Raised center coffers sit above a separate layer of sloping side panels.
+    for z in (-14,-6,2,10,17):
+        span = 5.65 if z==17 else 7.65
+        ceiling_detail("Raised cedar ceiling coffer",(10.38,.16,span),(0,22.77,z),"734733")
+        for dx in (-2.61,2.61):
+            ceiling_detail("Coffer recessed field",(4.85,.12,span-.42),(dx,22.67,z),"53302D")
+        ceiling_detail("Coffer cross rail",(10.4,.22,.23),(0,22.56,z),"9A5431")
+        for side in (-1,1):
+            ceiling_detail("Sloped cedar ceiling panel",(14.4,.17,span),(12.43*side,21.84,z),
+                           "694333",roll=-side*7)
+            ceiling_detail("Sloped coffer cross rail",(14.42,.18,.23),(12.43*side,21.66,z),
+                           "925335",roll=-side*7)
+    for x,y,width in ((-5.22,22.48,.36),(0,22.52,.29),(5.22,22.48,.36),
+                      (-11.9,21.62,.25),(11.9,21.62,.25),(-19.55,20.70,.35),(19.55,20.70,.35)):
+        ceiling_detail("Longitudinal cedar rafter",(width,.39,40.2),(x,y,0),"8C4E33")
+    for side in (-1,1):
+        ceiling_detail("Clerestory cornice",(.86,.31,40.5),(20.19*side,19.34,0),"844332")
+        ceiling_detail("Clerestory cornice brass fillet",(.44,.067,40.4),(19.95*side,19.18,0),
+                       "A36C3E",smooth)
 
     def lattice(x,y,z,width,height,yaw,tint):
         direction = radians(yaw)
@@ -78,11 +106,11 @@ def build_trophy_room(storage, *, item, part, prop, sign, asset, color, wood, sl
 
     for side in (-1,1):
         for z in (-15.8,-8.5,-1.0,6.5,14.8):
-            lattice(side*20.4,17.9,z,6.7,2.18,-side*90,"A875D9")
+            lattice(side*20.4,17.9,z,6.7,2.18,-side*90,"A878A2")
         for z in (-16.7,-9.2,-1.8,5.8,13.3):
             lattice(side*20.4,2.5,z,6.8,2.48,-side*90,"E4A65D")
     for x in (-14,-7,0,7,14):
-        lattice(x,18.2,-19.96,6.65,2.45,0,"A875D9")
+        lattice(x,18.2,-19.96,6.65,2.45,0,"A878A2")
 
     def mural(title, center, size, key, yaw=0):
         x,y,z = center
@@ -108,15 +136,18 @@ def build_trophy_room(storage, *, item, part, prop, sign, asset, color, wood, sl
     for z in (-5.39,17.39):
         piece("Runner end embroidery",(7.22,.022,.18),(0,.073,z),"772F2C",fabric)
 
-    for x,y,z,scale in ((0,15.5,7,1.48),(-12,14.7,2,1.06),(12,14.7,2,1.06),
-                         (-7,13.5,-8,.84),(7,13.5,-8,.84)):
-        lantern("Hanging festival lantern",x,y,z,scale,lit=z>=0,hanging=True)
-        piece("High lantern chain",(.07,18.91-y-2.05*scale,.07),
-              (x,(18.91+y+2.05*scale)/2,z),gold)
+    for x,y,z,scale in ((0,15.45,6,1.48),(-12,14.55,-2,1.06),(12,14.55,-2,1.06),
+                         (-7,13.35,-10,.84),(7,13.35,-10,.84)):
+        lantern("Hanging festival lantern",x,y,z,scale,lit=z>=-2,hanging=True,shade_tint="E6A66B")
+        hanger_top = 18.87
+        stem_top = y+1.52*scale+.7
+        ceiling_detail("High lantern chain",(.07,hanger_top-stem_top,.07),
+                       (x,(hanger_top+stem_top)/2,z),gold,smooth)
+        ceiling_detail("Lantern beam mount",(.36,.13,.36),(x,hanger_top,z),gold,smooth)
     for name, at, brightness, radius, tint in (
-        ("Entrance fill",(0,7,13),1.75,21,"FFE0BD"),
-        ("Shrine and cabinet fill",(0,7,-12),2.2,24,"FFDCAA"),
-        ("Rafter bounce",(0,17.7,-4),1.5,21,"FFBF88"),
+        ("Entrance fill",(0,7,13),1.65,21,"FFDBAF"),
+        ("Shrine and cabinet fill",(0,7,-12),2.05,24,"FFE0B8"),
+        ("Rafter bounce",(0,18.3,-2),1.8,24,"FFC488"),
     ):
         emitter = piece(name,(.12,.12,.12),at,tint,transparency=1)
         light(emitter,brightness,radius,tint)

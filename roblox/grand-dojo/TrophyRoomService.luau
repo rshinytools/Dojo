@@ -63,7 +63,7 @@ function RoomService.mount(entry, callbacks)
             end
         end
     end
-    local function snapshot(player)
+    local function snapshot(player, action)
         local room = membership[player]
         if not room then return end
         local earned, guests = {}, {}
@@ -79,10 +79,26 @@ function RoomService.mount(entry, callbacks)
             end
             table.sort(earned,function(a,b) return Catalog.byId[a].title < Catalog.byId[b].title end)
         end
-        remote:FireClient(player,"panel",{
-            mine=room.owner==player, owner=room.owner.DisplayName, layout=layout(room.owner),
+        local mine=room.owner==player
+        local saved=layout(room.owner)
+        if not mine then
+            local visible={}
+            for i=1,6 do
+                local featured=tostring(i)
+                local wall=tostring(6+i+(room.page-1)*6)
+                visible[featured],visible[wall]=saved[featured],saved[wall]
+            end
+            saved=visible
+        end
+        remote:FireClient(player,action or "panel",{
+            mine=mine, owner=room.owner.DisplayName, layout=saved,
             page=room.page, earned=earned, guests=guests,
         })
+    end
+    local function refreshDisplays(room)
+        for player,current in membership do
+            if current==room then snapshot(player,"refresh") end
+        end
     end
     local function sendCity(player, move)
         membership[player] = nil
@@ -157,7 +173,7 @@ function RoomService.mount(entry, callbacks)
         elseif action=="page" and own and (a==1 or a==2) then
             room.page=a
             redraw(room)
-            snapshot(player)
+            refreshDisplays(room)
         elseif action=="invite" and own and type(a)=="number" then
             local guest=Players:GetPlayerByUserId(a)
             if guest and guest~=player and not membership[guest] then
@@ -190,7 +206,7 @@ function RoomService.mount(entry, callbacks)
             local room=rooms[player]
             if room then
                 redraw(room)
-                snapshot(player)
+                refreshDisplays(room)
                 notify(player,"Display saved.")
             end
         end,

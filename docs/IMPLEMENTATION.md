@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.372 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.373 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -403,7 +403,9 @@ Studio loaded all 30 sculptures, opened the Journal, placed Cloudbreak and First
 
 The v0.372 art pass raises the ceiling to 23 studs, with exposed trusses, violet lattice windows, an illuminated central shrine, lit pedestals and four original illustrated murals. Desktop Studio confirmed that all four mural textures loaded and that all 12 physical display anchors are present. The two wall pages reuse the same six physical anchors. The [mural manifest and source PNGs](../roblox/grand-dojo/art/trophy-murals) record the assets uploaded through ApexGameD's Roblox Studio session. Roblox published the art pass on November 27. In a fresh public server on Mac, the non-owner tester entered through Trophy Hall. All four murals resolved at full detail after streaming, and the saved Lantern Keeper returned to Featured 3.
 
-The public v0.372 two-player check paired a Mac owner with a physical iPhone guest. The guest accepted the room invitation and saw Skywalk Peaks Master after the owner mounted it on Featured 1. The guest opened Displays and tapped the trophy row without changing the layout. Both players returned to shared Trophy Hall when the owner used Return. The guest reported that the timed invitation was gone after the 60-second window. A new invitation worked. In the second visit, the guest confirmed a return to shared Trophy Hall when the Mac owner quit Roblox Player. A late acceptance could not be exercised through the iPhone UI because the old prompt was gone. The next UI pass should give visitors a read-only trophy detail view and improve the display panel and ceiling treatment.
+The public v0.372 two-player check paired a Mac owner with a physical iPhone guest. The guest accepted the room invitation and saw Skywalk Peaks Master after the owner mounted it on Featured 1. The guest opened Displays and tapped the trophy row without changing the layout. Both players returned to shared Trophy Hall when the owner used Return. The guest reported that the timed invitation was gone after the 60-second window. A new invitation worked. In the second visit, the guest confirmed a return to shared Trophy Hall when the Mac owner quit Roblox Player. A late acceptance could not be exercised through the iPhone UI because the old prompt was gone.
+
+V0.373 adds layered cedar rafters, brass details and warmer lantern lighting. Owners can choose a pedestal or wall slot, preview an earned trophy, then place it. Guests can open a 3D card with the trophy name and earning criteria. Studio verified placement of Skywalk Peaks Master and exercised the guest card with a simulated guest response. A fresh two-player and phone check of these changes remains. Three browser concepts explore a future shared Trophy Hall update. Public Roblox is still on v0.372.
 
 ## Four-ring progression plan
 
