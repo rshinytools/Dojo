@@ -18,10 +18,14 @@ end
 local DataStoreService = game:GetService("DataStoreService")
 local HttpService = game:GetService("HttpService")
 local PlayerProfiles = require(script.Parent:WaitForChild("PlayerProfiles"))
+local StageCases = require(script.Parent:WaitForChild("StagingProgressionCases"))
+local RingProgression = require(game:GetService("ReplicatedStorage"):WaitForChild("RingProgression"))
 local fighterId = "reedguard-kangaroo"
 
 local function verify(tester)
     local store = DataStoreService:GetDataStore("BeastDojoStagingRecovery", "qa-" .. runId)
+    local compatibilityStore = DataStoreService:GetDataStore("BeastDojoStagingRecovery", "legacy-" .. runId)
+    local compatibility = PlayerProfiles.new(compatibilityStore, os.time, task.wait)
     local token = HttpService:GenerateGUID(false)
     local mode, faultCount = nil, 0
     local adapter = {}
@@ -66,6 +70,8 @@ local function verify(tester)
         local result, reason = profiles:commitRelay(tester.UserId, token, 170, "interrupted", fighterId)
         assert(result == nil and reason == "unavailable" and faultCount == 3,
             "Expected all three write attempts to be interrupted")
+        StageCases.seed(compatibilityStore, tester.UserId, os.time())
+        StageCases.migrate(compatibility, tester.UserId, token)
         claimed.state = "interrupted"
         store:SetAsync("run", claimed)
     else
@@ -91,6 +97,7 @@ local function verify(tester)
         local readback = HttpService:GenerateGUID(false)
         expectProfile(profiles:open(tester.UserId, readback), 105, 16.5)
         assert(profiles:release(tester.UserId, readback))
+        StageCases.rejoin(compatibility, PlayerProfiles, RingProgression, tester.UserId, readback)
         claimed.state = "passed"
         claimed.replayJob = game.JobId
         store:SetAsync("run", claimed)

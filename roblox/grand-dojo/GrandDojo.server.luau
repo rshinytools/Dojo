@@ -206,7 +206,7 @@ local state = {}
 
 local function liveRoot(player)
     if player:GetAttribute("StarterSelectionRequired") ~= false or player:GetAttribute("StarterSelectionPending")
-        or player:GetAttribute("DuelTransferHold") then
+        or player:GetAttribute("DuelTransferHold") or player:GetAttribute("DojoPartyTravel") then
         return nil
     end
     local character = player.Character
@@ -747,7 +747,7 @@ trainingCompleted.Event:Connect(function(player, drillId, fighterId)
 end)
 
 local function activeActivity(player, data)
-    return data.run or player:GetAttribute("SparringActive") or player:GetAttribute("SkywalkTrialMode")
+    return data.run or player:GetAttribute("DojoPartyTravel") or player:GetAttribute("SparringActive") or player:GetAttribute("SkywalkTrialMode")
         or player:GetAttribute("CityAdventureActive")
         or player:GetAttribute("RingTrainingActive") or player:GetAttribute("RingTrainingPending")
         or player:GetAttribute("DuelQueued") or player:GetAttribute("BrawlQueued") or player:GetAttribute("TagTeamQueued")
@@ -863,6 +863,11 @@ local adventureCallbacks = {
         return true
     end,
 }
+require(script.Parent.DojoPartyService).mount(ReplicatedStorage.DojoParty, function(player)
+    local status = player:GetAttribute("ProgressStatus")
+    return not shuttingDown and (status == "ready" or status == "saved")
+        and not adventureCallbacks.blocked(player) and liveRoot(player) ~= nil
+end)
 cityAdventure = require(script.Parent:WaitForChild("CityAdventureService")).mount(
     city:WaitForChild("City Adventure"), adventureCallbacks)
 quickPlay = require(script.Parent:WaitForChild("QuickPlayService")).mount(

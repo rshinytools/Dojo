@@ -391,3 +391,28 @@ for n=1,19 do
 end
 for n=1,6 do assert(removed.trophies[string.format("arena-%02d",n)]) end
 print("Trophy displays passed earning, unearned rejection, lost response, rejoin, wall slot moves and all six arena thresholds.")
+
+do
+    local original = PlayerProfiles.memoryStore()
+    local otherUniverse = PlayerProfiles.memoryStore()
+    local origin = PlayerProfiles.new(original, function() return now end, function() end)
+    local separate = PlayerProfiles.new(otherUniverse, function() return now end, function() end)
+    local tester = 8801
+    StagingProgressionCases.seed(original, tester, now)
+    StagingProgressionCases.migrate(origin, tester, "legacy-origin")
+    local destination = PlayerProfiles.new(original, function() return now + 1 end, function() end)
+    StagingProgressionCases.rejoin(destination, PlayerProfiles, RingProgression, tester, "new-city-job")
+    local profileInOtherScope = assert(separate:open(tester, "independent-scope"))
+    local data = PlayerProfiles.summary(profileInOtherScope)
+    assert(data.highestFighterLevel == 1 and not data.lanternKeeper and data.relayBest == 0)
+    assert(not PlayerProfiles.wallet(profileInOtherScope).marketSashOwned)
+    for index, ring in {"cinder", "cloud-top", "galleon"} do
+        local level = ({3, 5, 7})[index]
+        local expected = ({550, 1450, 2850})[index]
+        local access, hint = RingProgression.access(level - 1, 1, ring)
+        assert(not access and hint:find(tostring(expected) .. " XP", 1, true))
+        assert(PlayerProfiles.levelForXp(expected - 1) == level - 1)
+        assert(PlayerProfiles.levelForXp(expected) == level and RingProgression.access(level, 1, ring))
+    end
+    print("Legacy Level 7, both satellite ring gates, 10 Coins and two cosmetic preferences survived a new lease; an independent store remained fresh.")
+end

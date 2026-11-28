@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.374 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.375 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -258,10 +258,16 @@ The public walking update consists of two client script changes from `0aad5fa` a
 
 [The recovery probe](../tools/staging_profile_recovery.server.luau) uses `PlayerProfiles` with native `DataStoreService` and writes to disposable scopes in `BeastDojoStagingRecovery`. The probe lives outside the game builder. Both phases passed locally with an in-memory substitute before the published test. Studio stalled at new-place creation for both Publish As and Save to Roblox As, and Creator Dashboard showed no child place. With owner approval, the test ran in the staging start place behind exact universe, place, and owner ID checks. The probe and its temporary result panel were removed in v27.
 
-1. In the existing private staging universe, use a temporary **non-start** test place. Copy `PlayerProfiles`, `CityAdventureProgress`, and `CityAdventureCatalog` into `ServerScriptService`, and `FighterForms`, `FighterTactics`, and `FighterLoadouts` into `ReplicatedStorage`, keeping their names and dependencies. Install the probe as a server Script alongside `PlayerProfiles`.
+1. In the existing private staging universe, use a temporary **non-start** test place. Copy `PlayerProfiles`, `CityAdventureProgress`, and `CityAdventureCatalog` into `ServerScriptService`, and `FighterForms`, `FighterTactics`, `FighterLoadouts`, `FighterLevelCurve`, `RingProgression`, and `QuickPlayCatalog` into `ReplicatedStorage`, keeping their names and dependencies. Copy `tools/staging_progression_cases.luau` to a ModuleScript named `StagingProgressionCases` beside `PlayerProfiles`. Install the probe as a server Script alongside `PlayerProfiles`.
 2. Set its `StagingUniverseId`, `RecoveryPlaceId`, and `TesterUserId` number attributes to the exact staging universe, temporary place, and selected tester. Set the `RecoveryRunId` string attribute to a new lowercase run label of up to 28 characters, with digits and hyphens allowed. Set `RecoveryPhase` to `interrupt`, publish the test place, and join it in Roblox Player. Record the job ID and server log line `[Staging profile recovery] PASS interrupt`.
 3. Set `RecoveryPhase` to `replay`, publish the same test place, and join a different server using the same tester and run ID. Record `[Staging profile recovery] PASS replay` and the new job ID. The probe checks that an interrupted write preserves 80 XP, the starter, a 22.2-second record, and Lantern Keeper. It then drops three replies after native writes, retries one receipt, and reopens the test profile to verify 105 XP and a 16.5-second best. It offsets the clock only for the old test lease so the second server can take ownership immediately.
 4. Record both results here and disable the probe in the temporary test place after the run. Keep the running staging start place on its normal build. Complete the separate ring access check through the normal Cinder Bot Spar entrance with a below-threshold fighter.
+
+### V0.375 progression and rollback checks
+
+Ring lock prompts now use the same cumulative XP thresholds as saved progression. Cinder requires 550 XP, Cloud-Top Temple 1,450 XP, and Galleon 2,850 XP. Studio confirmed the Cloud-Top and Galleon prompt text. The standalone compatibility fixture seeded the old 830 XP Level 7 record, migrated it to 2,850 XP, switched to Level 1 Penguin, and reopened it under a separate lease. It verified both ring gates, Lantern Keeper, the 22.2-second Relay record, the equipped Jade Festival Sash and Penguin Glacier Mitts preferences, and a 10-Coin balance. The same tester key remained fresh in a separate simulated store. The previous v0.374 archive's Profile module reopened the migrated record, and the current module reopened it again. This exercises saved profile compatibility. Creator Hub restore and re-publish, native appearance/ownership checks, and live isolation readback are still due.
+
+Run `python3 -B tools/verify_city_adventure.py luau --rollback releases/Beast_Dojo_Grand_Dojo_v0.374.zip` to repeat the local rollback compatibility check. The guarded native recovery probe now runs the same migration case in a separate disposable scope across its two phases. A live ring check must still use each physical entrance on a reduced-level fighter in a different staging server. Before the release rehearsal, capture read-only public and staging progress for the same tester. Compare both after the staging-only changes. Creator Hub Version History requires the owner session. The test must restore and republish the previous staging build, check progress in a fresh job, then return staging to the verified candidate.
 
 ## Six-district traversal
 
@@ -452,6 +458,10 @@ V0.276 two-endpoint Luau simulations of the actual server exercised a casual kno
 
 V0.348 settles a deciding hit or completed bell strictly before a Duel exit while both original fighter roots are available. An unresolved match still uses its normal walkover result. Standalone Luau checked the archived server rules. Native replay remains open.
 
+## Party regrouping
+
+V0.375 adds **Adventure → Party** for players already in a platform Roblox Party. The server refreshes membership before each action and chooses the earliest party member in a regular city server. If that member is already in the player's current job, the party anchor stays put. Players explicitly request their own move. Reserved arenas and other places are excluded. While a move is pending, the server refuses conflicting activities. The dispatch callback and timeout clear only their own hold. Desktop Studio checked the empty- and simulated split-city states. The Luau suite checked the real service logic with simulated APIs, including stale membership, a synchronous failure, delayed callbacks, timeout and retry. Published regrouping, full destination handling, controller and phone checks, and post-match coordination are open. Clan membership, shared dojos, contributions and wars are still planned.
+
 ## Cross-server Casual staging
 
 V0.347 implements an opt-in Casual queue across servers. Two eligible players in separate city jobs can be assigned to the same reserved Grand Dojo Duel Court. The original Casual intro, moves, rules and result are reused. The return to Grand Dojo City waits for the profile release. Standalone Luau checks covered two origin queues, matching receipt versions, cancellation, lost replies, failed travel, expiration with MemoryStore unavailable, split destination jobs and safe return retries. The tests preserved XP, trophies and the next City server’s profile ownership. The new option stays disabled in the packaged checkpoint until the published private staging test is run.
@@ -471,6 +481,22 @@ The exporter checks the archive SHA-256 and prints both the original and staging
 The source queue uses a Roblox MemoryStore ticket and matching assignment. The progress worker remains the sole profile owner. Both profiles need a matching transfer receipt before either player leaves. The destination checks both profiles and the physical server before starting the original Casual bout. Regular City return uses a separate public-server teleport after a durable release receipt.
 
 Run `python3 -B tools/verify_cross_server_duel.py luau` from the repository root with the standalone Luau runner. Published staging needs two eligible accounts in separate City jobs. Verify both arrivals in one physical server, the full Casual match and City return, a failed transfer, a late arrival and a later reconnect. Confirm touch and controller access to the new choice.
+
+### Published group acceptance
+
+The v0.375 archive preflight verified 24 fighter kits, 216 move choices, 648 loadout combinations, 287 timelines, 469 scheduled contact beats, and 291 fitted points with no registry anomalies. A scripted Solar Phoenix preflight reached Phase 2, completed a revive, and cleared in 67.30 seconds. Human match outcomes and balance still need published QA.
+
+Use Private Staging and eligible non-owner testers. Capture build, source and destination job IDs where relevant, device/input, fighter and form, exit reason, reward delta and the result seen by each player.
+
+| Test | Players | Acceptance |
+| --- | --- | --- |
+| Four resident rings | 1 | Round against Juniper, Bracken, Sablecrest and Granite. Verify access boundaries, contact/guard timing, win and knockout, the one-time reward and control recovery. |
+| 24-fighter balance | 2 or more | Exercise each fighter on a representative matchup, including common defensive answers and alternate moves. Record damage, interrupt and recovery, time to knockout, and input parity. Repeated human matches are needed before balance changes. |
+| Duel | 2 | Finish Casual, Best of 3, and Ranked. Verify both recaps, eligible rating change, forfeit and rejoin. |
+| Tag Team | 4 | Confirm paired fighters, voluntary tag, KO replacement, team result, disconnect and return. |
+| Brawl | 8 | Test tile drops, ring-out, spectating, last-fighter or time-limit result, and rematch. |
+| Co-op Raids | 4 | Clear Kilnback, Abyssal Kraken and Solar Phoenix; verify a revive, disconnect cleanup, and one qualifying grant per player. |
+| Cross-server Casual and party | 2 in separate city jobs | Finish Casual in one reserved arena, return to regular city jobs, then regroup with the Roblox Party. Repeat with a failed or stale transfer. Check recovery, normal queues, and saved progress. |
 
 The exact v0.346 Tag run verified four player entries, the Grizzly reserve and its 41-damage Heavy. Cinder Tap was attempted after knockback pushed the defender outside its reach. An updated test approaches again before attempting the move. The v0.346 eight-client Brawl test lost its local connection before recording match evidence. Staggered startup is prepared for the rerun. Latest-build full Tag and Brawl replays remain open.
 

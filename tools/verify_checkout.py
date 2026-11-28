@@ -48,7 +48,7 @@ def verify_place():
                 "Juniper Tortoise", "Bracken Boar", "Sablecrest Lynx", "Granite Rhino", "SplashArtwork",
                 "Fighter Select Station", "SwitchFighterPrompt", "Resident Dojo Bots",
                 "Cinder Terraces Ring", "Cloud-Top Temple", "Tideharbor practice ring",
-                "RingProgression", "GrandDojoRingTraining", "RingTrainingCompleted",
+                "FighterLevelCurve", "RingProgression", "DojoParty", "DojoPartyService", "GrandDojoRingTraining", "RingTrainingCompleted",
                 "GrandDojoDuel", "DuelCombatRound", "DuelSeries", "DuelRankLedger", "DuelRankRules",
                 "DuelTransportConfig", "DuelTransportRuntime", "DuelQueueTickets", "DuelAssignments",
                 "DuelAssignmentDriver", "DuelProfileBridge", "DuelSourceQueue", "DuelCityReturn",

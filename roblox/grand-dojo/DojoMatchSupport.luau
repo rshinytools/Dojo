@@ -208,7 +208,7 @@ function Match.available(player)
     return player:GetAttribute("StarterSelectionRequired") == false
         and (status == "ready" or status == "saved")
         and not player:GetAttribute("StarterSelectionPending")
-        and not player:GetAttribute("DuelTransferHold")
+        and not player:GetAttribute("DuelTransferHold") and not player:GetAttribute("DojoPartyTravel")
         and not player:GetAttribute("FighterSelectOpen")
         and not player:GetAttribute("SparringActive")
         and not player:GetAttribute("RingTrainingActive")

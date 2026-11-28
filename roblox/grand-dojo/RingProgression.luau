@@ -1,21 +1,23 @@
+local FighterLevelCurve = require(script.Parent.FighterLevelCurve)
+
 local RingProgression = {}
 
 RingProgression.Order = {"grand-dojo", "cinder", "cloud-top", "galleon"}
 RingProgression.ById = {
     ["grand-dojo"] = {
-        name = "Grand Dojo Ring", botId = "juniper", level = 1, xp = 0,
+        name = "Grand Dojo Ring", botId = "juniper", level = 1,
         pvp = true, training = "Lantern Timing in Festival Plaza",
     },
     cinder = {
-        name = "Cinder Terraces Ring", botId = "bracken", level = 3, xp = 180,
+        name = "Cinder Terraces Ring", botId = "bracken", level = 3,
         pvp = false, training = "Lantern Timing or the Lantern Relay",
     },
     ["cloud-top"] = {
-        name = "Cloud-Top Temple", botId = "sablecrest", level = 5, xp = 460,
+        name = "Cloud-Top Temple", botId = "sablecrest", level = 5,
         pvp = false, training = "Kiln Rhythm, the Lantern Relay, or Bot Spar",
     },
     galleon = {
-        name = "Galleon Ring", botId = "granite", level = 7, xp = 830,
+        name = "Galleon Ring", botId = "granite", level = 7,
         pvp = false, training = "Wind Court Signals, the Lantern Relay, or Bot Spar",
     },
 }
@@ -53,7 +55,7 @@ function RingProgression.access(highestLevel, fighterLevel, ringId)
     end
     if highestLevel < ring.level then
         return false, string.format("%s opens at Level %d (%d XP). Train with %s.",
-            ring.name, ring.level, ring.xp, ring.training)
+            ring.name, ring.level, FighterLevelCurve[ring.level], ring.training)
     end
     if type(fighterLevel) == "number" and fighterLevel < ring.level then
         return true, string.format("Ring open. Level %d recommended, your fighter is Level %d.",

@@ -4,6 +4,8 @@ local FighterTactics = require(ReplicatedStorage:WaitForChild("FighterTactics"))
 local FighterLoadouts = require(ReplicatedStorage:WaitForChild("FighterLoadouts"))
 local CityAdventureProgress = require(script.Parent:WaitForChild("CityAdventureProgress"))
 
+local FighterLevelCurve = require(ReplicatedStorage:WaitForChild("FighterLevelCurve"))
+
 local PlayerProfiles = {}
 PlayerProfiles.__index = PlayerProfiles
 
@@ -48,7 +50,7 @@ local RAID_TROPHIES = {kilnback = KILN_KEEPER, kraken = DEEPWATER_TEAM, phoenix 
 local RAID_TOKENS, RAID_SHARDS = 20, 2
 local MARKET_SASH_COST = 50
 local LEGACY_LEVEL_THRESHOLDS = {0, 80, 180, 300, 460, 650, 830, 1030, 1260, 1500}
-local LEVEL_THRESHOLDS = {0, 250, 550, 950, 1450, 2100, 2850, 3700, 4700, 5800}
+local LEVEL_THRESHOLDS = FighterLevelCurve
 local MAX_LEVEL_CURVE_CREDIT = LEVEL_THRESHOLDS[#LEVEL_THRESHOLDS] - LEGACY_LEVEL_THRESHOLDS[#LEGACY_LEVEL_THRESHOLDS]
 PlayerProfiles.FirstRelayXp = FIRST_RELAY_XP
 PlayerProfiles.FirstDojoPracticeXp = FIRST_DOJO_PRACTICE_XP

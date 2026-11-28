@@ -87,11 +87,19 @@ print("A reserved job keeps its recovery path when the matching store cannot ini
     return PORTS + "".join(f"do\n{case}\nend\n" for case in (disabled, unavailable, arena))
 
 
+def party_service_fixture():
+    destination = as_local("Destination", source("DojoPartyDestination"))
+    services = source("DojoPartyService").replace("local Destination = require(script.Parent.DojoPartyDestination)", "", 1)
+    return (FIXTURES / "party_service_ports.luau").read_text() + destination + as_local("PartyService", services) + (
+        FIXTURES / "party_service_cases.luau"
+    ).read_text()
+
+
 def stored_profile_fixture():
     body = source("PlayerProfiles")
     declarations, body = body.split("local PlayerProfiles = {}", 1)
-    assert declarations.count("require(") == 4
-    modules = ("FighterForms", "FighterTactics", "FighterLoadouts", "CityAdventureCatalog", "QuickPlayCatalog")
+    assert declarations.count("require(") == 5
+    modules = ("FighterForms", "FighterTactics", "FighterLoadouts", "FighterLevelCurve", "CityAdventureCatalog", "QuickPlayCatalog")
     adventure = source("CityAdventureProgress").replace(
         "local Catalog = require(script.Parent.CityAdventureCatalog)", "local Catalog = CityAdventureCatalog", 1
     ).replace('local QuickPlay = require(game:GetService("ReplicatedStorage").QuickPlayCatalog)', "local QuickPlay = QuickPlayCatalog", 1)
@@ -106,10 +114,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("luau", help="Path to the standalone Luau interpreter, or an executable on PATH")
     args = parser.parse_args()
-    for name in ("profile_bridge", "source_return"):
+    for name in ("profile_bridge", "source_return", "party_regroup"):
         subprocess.run([args.luau, FIXTURES / f"{name}.luau"], check=True)
     with TemporaryDirectory() as temp:
-        for name, fixture in (("runtime", runtime_fixture), ("durable_lease", stored_profile_fixture)):
+        for name, fixture in (("runtime", runtime_fixture), ("durable_lease", stored_profile_fixture),
+                              ("party_service", party_service_fixture)):
             path = Path(temp) / f"{name}.luau"
             path.write_text(fixture())
             subprocess.run([args.luau, path], check=True)

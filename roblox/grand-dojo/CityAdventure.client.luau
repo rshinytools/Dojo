@@ -9,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local remote = ReplicatedStorage:WaitForChild("CityAdventure")
+local partyRemote = ReplicatedStorage:WaitForChild("DojoParty")
 local adventureNavigation = ReplicatedStorage:WaitForChild("AdventureNavigation")
 local backAction = "CloseCityAdventureJournal"
 local function bindActivityPrompts(tag, playerAttribute, promptAttribute)
@@ -111,10 +112,10 @@ local tabBar = create("Frame", panel, {
     Name = "Tabs", BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 80), Size = UDim2.new(1, -28, 0, 44),
 })
 local tabs = {}
-local tabNames = {"Chapters", "Treasures", "Festival"}
+local tabNames = {"Chapters", "Treasures", "Festival", "Party"}
 for index, name in ipairs(tabNames) do
     local tab = button(tabBar, name, name)
-    tab.Position, tab.Size = UDim2.new((index - 1) / 3, 2, 0, 0), UDim2.new(1 / 3, -4, 0, 44)
+    tab.Position, tab.Size = UDim2.new((index - 1) / #tabNames, 2, 0, 0), UDim2.new(1 / #tabNames, -4, 0, 44)
     tab.NextSelectionUp = close
     tabs[index] = tab
 end
@@ -551,6 +552,23 @@ local function festivalCards()
     end
 end
 
+local partyState, partyNotice
+local function partyCards()
+    local actions = {{name = "RefreshParty", label = "Refresh", run = function()
+        partyRemote:FireServer("view")
+    end}}
+    if partyState and partyState.canRegroup then
+        table.insert(actions, {name = "Regroup", label = "Join party's city", width = 166, run = function()
+            partyRemote:FireServer("regroup")
+        end})
+    end
+    local summary = if partyState then string.format("%d here · %d in city servers",
+        integer(partyState.nearby), integer(partyState.inCity)) else ""
+    local detail = partyNotice or (if partyState then "Regroup in the city of your earliest available party member."
+        else "Create or join a party in Roblox, then refresh here.")
+    card("party", "Roblox Party", summary, detail, actions)
+end
+
 local function render(resetScroll)
     local selected = GuiService.SelectedObject
     local id = selected and selected:IsDescendantOf(scroll) and selected:GetAttribute("JournalFocusId")
@@ -564,7 +582,9 @@ local function render(resetScroll)
         tab.BackgroundColor3 = if index == activeTab then gold else raised
         tab.TextColor3 = if index == activeTab then dark else paper
     end
-    if not snapshot then
+    if activeTab == 4 then
+        partyCards()
+    elseif not snapshot then
         card("loading", "Adventure progress", "", "Your journal will update when progression is available.")
     else
         if activeTab == 1 then chapterCards() elseif activeTab == 2 then treasureCards() else festivalCards() end
@@ -595,7 +615,7 @@ local function syncVisibility()
         local suggested = guide.goal == "suggested"
         guidedTitle.Text = if trophy then "Lantern Keeper earned" else "Lantern Relay"
         guidedDetail.Text = if guide.saving then "Saving your goal…"
-            elseif trophy then "On display in Trophy Hall"
+            elseif trophy then "View your Trophy Journal"
             elseif suggested then "80 XP · 60 Coins · Trophy" else "Cross the red bridge to the arch"
         guidedAction.Text = if trophy then "View Trophy" elseif suggested then "Track Relay" else "Adventure Journal"
         guidedAction.Active, guidedClose.Active = not guide.saving, not guide.saving
@@ -656,6 +676,7 @@ for index, tab in ipairs(tabs) do
         activeTab = index
         render(true)
         focus(tab)
+        if index == 4 then partyRemote:FireServer("view") end
     end)
 end
 close.Activated:Connect(hide)
@@ -724,6 +745,16 @@ for _, node in ipairs(playerGui:GetDescendants()) do watchPanel(node) end
 playerGui.DescendantAdded:Connect(watchPanel)
 playerGui.ChildRemoved:Connect(function(node)
     if node.Name == "BeastDojoSplash" then updateAvailability() end
+end)
+
+partyRemote.OnClientEvent:Connect(function(kind, packet)
+    if kind == "party" then
+        partyState = if type(packet) == "table" then packet else nil
+        partyNotice = nil
+    elseif kind == "notice" and type(packet) == "string" then
+        partyNotice = packet
+    end
+    if shade.Visible and activeTab == 4 then render(false) end
 end)
 
 remote.OnClientEvent:Connect(function(kind, packet)

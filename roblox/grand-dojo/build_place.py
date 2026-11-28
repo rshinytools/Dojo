@@ -7888,6 +7888,7 @@ add_world_collision(scene, part=part, prop=prop, rock_material=ROCK)
 
 storage=item(root,"ReplicatedStorage","ReplicatedStorage")
 item(storage,"RemoteEvent","CityAdventure")
+item(storage,"RemoteEvent","DojoParty")
 item(storage,"RemoteEvent","QuickPlay")
 item(storage,"RemoteEvent","TrophyRoom")
 item(storage,"BindableEvent","AdventureNavigation")
@@ -8157,6 +8158,8 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (server,"ModuleScript","CityAdventureCatalog","CityAdventureCatalog.luau"),
                                     (server,"ModuleScript","CityAdventureProgress","CityAdventureProgress.luau"),
                                     (server,"ModuleScript","CityAdventureService","CityAdventureService.luau"),
+                                    (server,"ModuleScript","DojoPartyService","DojoPartyService.luau"),
+                                    (server,"ModuleScript","DojoPartyDestination","DojoPartyDestination.luau"),
                                     (server,"ModuleScript","QuickPlayService","QuickPlayService.luau"),
                                     (server,"ModuleScript","TrophyRoomService","TrophyRoomService.luau"),
                                     (server,"Script","GrandDojoSparring","GrandDojoSparring.server.luau"),
@@ -8263,6 +8266,7 @@ for parent,class_name,name,file in [(server,"Script","GrandDojoServer","GrandDoj
                                     (storage,"ModuleScript","DojoOutfitArt","DojoOutfitArt.luau"),
                                     (server,"ModuleScript","StarterFighters","StarterFighters.luau"),
                                     (storage,"ModuleScript","SparringBots","SparringBots.luau"),
+                                    (storage,"ModuleScript","FighterLevelCurve","FighterLevelCurve.luau"),
                                     (storage,"ModuleScript","RingProgression","RingProgression.luau"),
                                     (storage,"ModuleScript","MusicPlaylist","MusicPlaylist.luau"),
                                     (storage,"ModuleScript","TrophyJournal","TrophyJournal.luau"),
