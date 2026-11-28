@@ -42,6 +42,14 @@ local inputs = {strike = true, guard = true, heavy = true, uppercut = true, dodg
     signature = true, stormSteer = true}
 local evades = {sidestep = true, floeTurn = true}
 
+function Raid.healthFor(bossId, baseHealth, fighterLevel)
+    if bossId == "kraken" then return baseHealth end
+    local level = tonumber(fighterLevel)
+    if not level or level ~= level then level = 1 end
+    level = math.clamp(math.floor(level), 1, 10)
+    return math.round(baseHealth * (1 + (level - 1) * .055))
+end
+
 function Raid.new(now, entrants, bossId)
     bossId = bossId or "kilnback"
     local boss = assert(bosses[bossId], "Unknown raid boss")
@@ -52,6 +60,8 @@ function Raid.new(now, entrants, bossId)
         assert(type(entrant.fighter.health) == "number" and entrant.fighter.health > 0
             and entrant.fighter.health < math.huge and entrant.kitId, "Invalid raid fighter")
         local side = Fighter.new(now, entrant.fighter, entrant.kitId, timing, entrant.loadout or entrant.tactical)
+        local maxHealth = Raid.healthFor(bossId, entrant.fighter.health, entrant.level)
+        side.playerHealth, side.playerMaxHealth = maxHealth, maxHealth
         side.kitId = entrant.kitId
         side.contribution = {damage = 0, revives = 0, parries = 0}
         sides[index] = side
@@ -205,7 +215,7 @@ local function beginAttack(round, at, chooseTarget)
     if id == "pulse" then
         attack.impactAt = at + (if faster then 1.15 else 1.40)
         attack.steps[1] = {index = 1, at = attack.impactAt, radius = if faster then 13.5 else 11.5,
-            damage = if faster then 38 else 29}
+            damage = if faster then 47 else 36}
         attack.endsAt = attack.impactAt + (if faster then .65 else .80)
     elseif id == "sweep" then
         attack.target = nextTarget(round, at, chooseTarget)
@@ -213,7 +223,7 @@ local function beginAttack(round, at, chooseTarget)
         for index = 1, 3 do
             attack.steps[index] = {index = index, at = attack.impactAt + (index - 1) * (if faster then .40 else .47),
                 offset = 4.5 + (index - 1) * 6, halfWidth = 3.25, halfSpan = 8,
-                damage = if faster then 29 else 22}
+                damage = if faster then 36 else 27}
         end
         attack.endsAt = attack.steps[3].at + (if faster then .65 else .90)
     elseif id == "undertow" then
@@ -234,14 +244,14 @@ local function beginAttack(round, at, chooseTarget)
         for index, center in sunspots do
             attack.steps[index] = {index = index, at = attack.impactAt + (index - 1) * (if faster then .18 else .25),
                 centerX = center[1], centerZ = center[2], radius = if faster then 5.6 else 4.75,
-                damage = if faster then 32 else 25}
+                damage = if faster then 41 else 31}
         end
         attack.endsAt = attack.steps[#sunspots].at + (if faster then .54 else .70)
     elseif id == "sunDive" then
         attack.target = nextTarget(round, at, chooseTarget)
         attack.impactAt = at + (if faster then 1.56 else 1.90)
         attack.steps[1] = {index = 1, at = attack.impactAt, offset = 0, halfWidth = if faster then 23 else 22,
-            halfSpan = if faster then 4.3 else 3.3, damage = if faster then 43 else 36}
+            halfSpan = if faster then 4.3 else 3.3, damage = if faster then 55 else 44}
         attack.endsAt = attack.impactAt + (if faster then .65 else .85)
     elseif id == "dawnLanding" then
         attack.landAt = at + (if faster then .74 else .88)

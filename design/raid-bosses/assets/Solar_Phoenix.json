@@ -1,0 +1,116 @@
+{
+  "triangles": 7144,
+  "meshes": 16,
+  "groups": [
+    {
+      "group": "Animated Body",
+      "parent": null,
+      "pivot": [
+        0.0,
+        3.64,
+        0.12
+      ],
+      "triangles": 1632
+    },
+    {
+      "group": "Crown Fan",
+      "parent": "Animated Body",
+      "pivot": [
+        0.0,
+        6.8,
+        0.67
+      ],
+      "triangles": 260
+    },
+    {
+      "group": "Left Heart Plate",
+      "parent": "Animated Body",
+      "pivot": [
+        -0.94,
+        2.6,
+        3.05
+      ],
+      "triangles": 128
+    },
+    {
+      "group": "Left Talon",
+      "parent": "Animated Body",
+      "pivot": [
+        -1.24,
+        1.92,
+        0.37
+      ],
+      "triangles": 1260
+    },
+    {
+      "group": "Left Wing",
+      "parent": "Animated Body",
+      "pivot": [
+        -1.62,
+        4.12,
+        -0.11
+      ],
+      "triangles": 476
+    },
+    {
+      "group": "Outer Wing",
+      "parent": "Left Wing",
+      "pivot": [
+        -5.65,
+        4.04,
+        -1.04
+      ],
+      "triangles": 580
+    },
+    {
+      "group": "Right Heart Plate",
+      "parent": "Animated Body",
+      "pivot": [
+        0.94,
+        2.6,
+        3.05
+      ],
+      "triangles": 128
+    },
+    {
+      "group": "Right Talon",
+      "parent": "Animated Body",
+      "pivot": [
+        1.24,
+        1.92,
+        0.37
+      ],
+      "triangles": 1260
+    },
+    {
+      "group": "Right Wing",
+      "parent": "Animated Body",
+      "pivot": [
+        1.62,
+        4.12,
+        -0.11
+      ],
+      "triangles": 476
+    },
+    {
+      "group": "Outer Wing.001",
+      "parent": "Right Wing",
+      "pivot": [
+        5.65,
+        4.04,
+        -1.04
+      ],
+      "triangles": 580
+    },
+    {
+      "group": "Tail Fan",
+      "parent": "Animated Body",
+      "pivot": [
+        0.0,
+        2.74,
+        -1.31
+      ],
+      "triangles": 364
+    }
+  ]
+}

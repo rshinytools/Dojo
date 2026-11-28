@@ -1,0 +1,186 @@
+{
+  "triangles": 15104,
+  "meshes": 23,
+  "groups": [
+    {
+      "group": "Animated Body",
+      "parent": null,
+      "pivot": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "triangles": 3940
+    },
+    {
+      "group": "Bellows Left",
+      "parent": "Animated Body",
+      "pivot": [
+        -4.75,
+        2.1,
+        -0.55
+      ],
+      "triangles": 864
+    },
+    {
+      "group": "Bellows Right",
+      "parent": "Animated Body",
+      "pivot": [
+        4.75,
+        2.1,
+        -0.55
+      ],
+      "triangles": 864
+    },
+    {
+      "group": "Core Shutter Left",
+      "parent": "Animated Body",
+      "pivot": [
+        -0.67,
+        2.67,
+        5.55
+      ],
+      "triangles": 108
+    },
+    {
+      "group": "Core Shutter Right",
+      "parent": "Animated Body",
+      "pivot": [
+        0.67,
+        2.67,
+        5.55
+      ],
+      "triangles": 108
+    },
+    {
+      "group": "Head",
+      "parent": "Animated Body",
+      "pivot": [
+        0.0,
+        1.66,
+        4.69
+      ],
+      "triangles": 868
+    },
+    {
+      "group": "Leg 1",
+      "parent": "Animated Body",
+      "pivot": [
+        -3.8,
+        1.4,
+        -3.06
+      ],
+      "triangles": 800
+    },
+    {
+      "group": "Leg 2",
+      "parent": "Animated Body",
+      "pivot": [
+        -3.8,
+        1.4,
+        3.06
+      ],
+      "triangles": 800
+    },
+    {
+      "group": "Leg 3",
+      "parent": "Animated Body",
+      "pivot": [
+        3.8,
+        1.4,
+        -3.06
+      ],
+      "triangles": 800
+    },
+    {
+      "group": "Leg 4",
+      "parent": "Animated Body",
+      "pivot": [
+        3.8,
+        1.4,
+        3.06
+      ],
+      "triangles": 800
+    },
+    {
+      "group": "Shell Plate 1",
+      "parent": "Animated Body",
+      "pivot": [
+        0.0,
+        4.17,
+        2.58
+      ],
+      "triangles": 644
+    },
+    {
+      "group": "Shell Plate 2",
+      "parent": "Animated Body",
+      "pivot": [
+        2.0365,
+        4.17,
+        1.7365
+      ],
+      "triangles": 644
+    },
+    {
+      "group": "Shell Plate 3",
+      "parent": "Animated Body",
+      "pivot": [
+        2.88,
+        4.17,
+        -0.3
+      ],
+      "triangles": 644
+    },
+    {
+      "group": "Shell Plate 4",
+      "parent": "Animated Body",
+      "pivot": [
+        2.0365,
+        4.17,
+        -2.3365
+      ],
+      "triangles": 644
+    },
+    {
+      "group": "Shell Plate 5",
+      "parent": "Animated Body",
+      "pivot": [
+        0.0,
+        4.17,
+        -3.18
+      ],
+      "triangles": 644
+    },
+    {
+      "group": "Shell Plate 6",
+      "parent": "Animated Body",
+      "pivot": [
+        -2.0365,
+        4.17,
+        -2.3365
+      ],
+      "triangles": 644
+    },
+    {
+      "group": "Shell Plate 7",
+      "parent": "Animated Body",
+      "pivot": [
+        -2.88,
+        4.17,
+        -0.3
+      ],
+      "triangles": 644
+    },
+    {
+      "group": "Shell Plate 8",
+      "parent": "Animated Body",
+      "pivot": [
+        -2.0365,
+        4.17,
+        1.7365
+      ],
+      "triangles": 644
+    }
+  ]
+}

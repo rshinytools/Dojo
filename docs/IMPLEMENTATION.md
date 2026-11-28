@@ -1,6 +1,6 @@
 # Beast Dojo Implementation Handoff
 
-The v0.375 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
+The v0.376 Studio checkpoint is the starting point for new work. This repository contains the editable native implementation, an offline browser concept, the full [game design](GAME_DESIGN.md), and the [16-phase release roadmap](ROADMAP.md). The roadmap's release gates are wider than the current Studio build.
 
 ## Start here
 
@@ -557,6 +557,14 @@ Desktop Studio used one client and three fitted stand-ins. The fixture set Pengu
 Use **Solar Raid** in Lantern Circuit to visit Dawn Observatory. Four players open with a ten-second introduction and have 125 seconds to defeat the 1,650-HP boss. Move clear of the three **Sunspots** before they burst in sequence. **Sundive** locks onto one direction when its lane appears. Leave that lane before the Phoenix crosses it. Wait for **Dawn Landing** to finish, then attack the chest while the bird is on its perch. Airborne strikes cannot remove health, and taking off closes the damage window. At half health the danger zones widen and the landing window shortens. The first eligible clear earns **Dawn Return**.
 
 Desktop Studio used one client and three fitted stand-ins. The fixture set Penguin to 20 HP before an actual Sunspot knocked him down. It checked that a matching strike dealt zero damage during flight, hazards hit only their marked areas, and a revive off the locked dive lane restored 34 HP. The party landed confirmed chest hits, reached Phase 2, returned to Lantern Circuit, and opened Dawn Return in Trophy Hall. Galaxy A06 landscape Studio simulation repeated the full clear with touch Strike and Revive. The landed chest sat within 0.061 studs of the hit-zone center. Exact rule tests also checked damage at the touchdown and takeoff boundaries. Published four-client play, live persistence, final audio and physical-device validation remain open.
+
+### V0.376 raid tuning and boss models
+
+Kilnback and Solar use the selected fighter's base health plus 5.5% of base health per level after Level 1, up to Level 10. A 100 HP fighter enters at 122 HP at Level 5 and 150 HP at Level 10. Kiln Pulse deals 36/47 damage, Tile Sweep 27/36, Sunspots 31/41, and Sundive 44/55 in phases 1 and 2 respectively. Guard, parry, and teammate revives remain available. Abyssal Kraken keeps its existing health rules and damage. Fighter forms can look armored. Cosmetic gear does not confer persistent defense.
+
+Exact archive rules verified the damage in both phases of all three raids and health at Levels 1, 5, and 10. A scripted Solar run tested a down, revive, and exposed-chest hit before clearing in 52.61 seconds. Real four-player balance remains open.
+
+The [Blender source and export notes](../design/raid-bosses/README.md) cover the new Kilnback and Phoenix meshes. The v0.376 checkpoint uses the existing Studio boss geometry. Mesh import, fitting, and review in Roblox remain open.
 
 ### Co-op raid schedule and rewards
 

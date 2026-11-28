@@ -236,6 +236,7 @@ local function mount(encounter)
         for index, member in lineup do
             local kit = Match.FighterKits[member.fighterId]
             entrants[index] = {fighter = fighters[member.fighterId], kitId = kit,
+                level = member.player:GetAttribute("FighterLevel"),
                 loadout = Match.loadout(member.player, kit)}
             actors[index] = {player = member.player, root = member.root, nextInput = now, feedbackUntil = 0,
                 reviveMarker = reviveMarker(member.root, telegraph)}
